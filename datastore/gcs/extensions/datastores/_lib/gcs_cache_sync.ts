@@ -560,8 +560,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
   }
 
   async migrateMonolithToShards(
-    signal?: AbortSignal,
+    options?: DatastoreSyncOptions,
   ): Promise<PartitionMetaV2> {
+    const signal = options?.signal;
+    this.bindNamespace(options?.namespace);
     const migrateStart = Date.now();
     await this.pullIndex({ forceRemote: true, signal });
     const allEntries = this.index?.entries ?? {};

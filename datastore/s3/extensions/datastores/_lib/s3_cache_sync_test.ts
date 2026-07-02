@@ -5027,6 +5027,80 @@ Deno.test("migrateMonolithToShards: idempotent on retry with v1 meta", async () 
   }
 });
 
+// (7b) Migration with namespace scopes keys under {namespace}/_index/
+Deno.test("migrateMonolithToShards: namespaced repo migrates under namespace prefix", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-migrate-ns-" });
+  try {
+    const mock = createMockS3Client();
+    const ns = "agentic-tooling";
+
+    const index = {
+      version: 1,
+      lastPulled: "2026-01-01T00:00:00Z",
+      entries: {
+        "data/t1/m1/d1/1/raw": {
+          key: "data/t1/m1/d1/1/raw",
+          size: 4,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+        "audit/log1.json": {
+          key: "audit/log1.json",
+          size: 10,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+      },
+    };
+    mock.storage.set(
+      `${ns}/.datastore-index.json`,
+      new TextEncoder().encode(JSON.stringify(index)),
+    );
+    mock.storage.set(
+      `${ns}/data/t1/m1/d1/1/raw`,
+      new TextEncoder().encode("aaa\n"),
+    );
+    mock.storage.set(
+      `${ns}/audit/log1.json`,
+      new TextEncoder().encode("log data\n\n"),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.migrateMonolithToShards({ namespace: ns });
+
+    // Shards should be under {namespace}/_index/, NOT root _index/
+    assert(
+      mock.storage.has(`${ns}/_index/_meta.json`),
+      "namespaced _meta.json should exist after migration",
+    );
+    assert(
+      !mock.storage.has("_index/_meta.json"),
+      "root _meta.json should NOT be created for a namespaced migration",
+    );
+
+    const meta = decodeMeta(mock.storage.get(`${ns}/_index/_meta.json`)!);
+    assertEquals(meta.version, 2, "should be version 2 after migration");
+    assert(
+      meta.partitions.includes("data--t1--m1"),
+      "should have t1/m1 partition",
+    );
+    assert(meta.partitions.includes("audit"), "should have audit partition");
+
+    assert(
+      mock.storage.has(`${ns}/_index/data--t1--m1.json`),
+      "namespaced data--t1--m1 shard should exist",
+    );
+    assert(
+      mock.storage.has(`${ns}/_index/audit.json`),
+      "namespaced audit shard should exist",
+    );
+    assert(
+      !mock.storage.has("_index/data--t1--m1.json"),
+      "root data--t1--m1 shard should NOT exist",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 // (8) _meta.json recovery from ListObjectsV2
 Deno.test("shard-first commitPush: recovers _meta.json from _index/ listing", async () => {
   const cachePath = await Deno.makeTempDir({ prefix: "s3sync-recover-" });
