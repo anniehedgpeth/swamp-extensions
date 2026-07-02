@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/ecs/express-gateway-service
+// Auto-generated extension model for @swamp/aws/connect/test-case
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for ECS ExpressGatewayService (AWS::ECS::ExpressGatewayService).
+ * Swamp extension model for Connect TestCase (AWS::Connect::TestCase).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,28 +41,15 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const ExpressGatewayRepositoryCredentialsSchema = z.object({
-  CredentialsParameter: z.string(),
-});
-
-const SecretSchema = z.object({
-  ValueFrom: z.string(),
-  Name: z.string(),
-});
-
-const ExpressGatewayServiceAwsLogsConfigurationSchema = z.object({
-  LogStreamPrefix: z.string(),
-  LogGroup: z.string(),
-});
-
-const KeyValuePairSchema = z.object({
-  Value: z.string(),
-  Name: z.string(),
-});
-
 const TagSchema = z.object({
-  Value: z.string(),
-  Key: z.string(),
+  Key: z.string().min(1).max(128).regex(
+    new RegExp("^(?!aws:)[a-zA-Z+-=._:/]+$"),
+  ).describe(
+    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
+  Value: z.string().max(256).describe(
+    "The value for the tag. You can specify a value that is maximum of 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
 });
 
 const GlobalArgsSchema = z.object({
@@ -81,132 +68,71 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Status: z.object({
-    StatusCode: z.enum(["ACTIVE", "DRAINING", "INACTIVE"]).optional(),
-  }).optional(),
-  TaskRoleArn: z.string().optional(),
-  PrimaryContainer: z.object({
-    RepositoryCredentials: ExpressGatewayRepositoryCredentialsSchema.optional(),
-    Secrets: z.array(SecretSchema).optional(),
-    Command: z.array(z.string()).optional(),
-    AwsLogsConfiguration: ExpressGatewayServiceAwsLogsConfigurationSchema
+  InstanceArn: z.string().min(1).max(256).regex(
+    new RegExp(
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
+    ),
+  ).describe("The identifier of the Amazon Connect instance."),
+  Name: z.string().min(1).max(127).regex(new RegExp(".*\\S.*")).describe(
+    "The name of the test case.",
+  ),
+  Content: z.string().min(1).max(256000).describe(
+    "The content of the test case.",
+  ),
+  Description: z.string().max(500).regex(new RegExp(".*\\S.*")).describe(
+    "The description of the test case.",
+  ).optional(),
+  Status: z.enum(["SAVED", "PUBLISHED"]).describe(
+    "The status of the test case.",
+  ).optional(),
+  InitializationData: z.string().min(1).max(256000).describe(
+    "The initialization data of the test case.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe("One or more tags.").optional(),
+  EntryPoint: z.object({
+    Type: z.enum(["VOICE_CALL", "CHAT"]).describe("The type of the Entry Point")
       .optional(),
-    ContainerPort: z.number().int().optional(),
-    Environment: z.array(KeyValuePairSchema).optional(),
-    Image: z.string(),
-  }).optional(),
-  Memory: z.string().optional(),
-  HealthCheckPath: z.string().optional(),
-  Cluster: z.string().optional(),
-  Cpu: z.string().optional(),
-  ExecutionRoleArn: z.string().optional(),
-  InfrastructureRoleArn: z.string(),
-  ScalingTarget: z.object({
-    MinTaskCount: z.number().int().optional(),
-    MaxTaskCount: z.number().int().optional(),
-    AutoScalingMetric: z.enum([
-      "AVERAGE_CPU",
-      "AVERAGE_MEMORY",
-      "REQUEST_COUNT_PER_TARGET",
-    ]).optional(),
-    AutoScalingTargetValue: z.number().int().optional(),
-  }).optional(),
-  ServiceName: z.string().optional(),
-  NetworkConfiguration: z.object({
-    SecurityGroups: z.array(z.string()).optional(),
-    Subnets: z.array(z.string()).optional(),
-  }).optional(),
-  Tags: z.array(TagSchema).optional(),
-  TaskDefinitionArn: z.string().optional(),
+    VoiceCallEntryPointParameters: z.object({
+      DestinationPhoneNumber: z.string().describe(
+        "The destination phonenumber of the EntryPoint",
+      ).optional(),
+      FlowId: z.string().describe("The flow id used for the TestCase")
+        .optional(),
+      SourcePhoneNumber: z.string().describe(
+        "The source phonenumber of the EntryPoint",
+      ).optional(),
+    }).describe("The voice call entry point parameters for the test case")
+      .optional(),
+    ChatEntryPointParameters: z.object({
+      FlowId: z.string().min(1).max(256).describe(
+        "The flow id used for the TestCase",
+      ).optional(),
+    }).describe("The chat entry point parameters for the test case").optional(),
+  }).describe("Entry point for Testcase.").optional(),
 });
 
 const StateSchema = z.object({
-  Status: z.object({
-    StatusCode: z.string(),
-  }).optional(),
-  TaskRoleArn: z.string().optional(),
-  PrimaryContainer: z.object({
-    RepositoryCredentials: ExpressGatewayRepositoryCredentialsSchema,
-    Secrets: z.array(SecretSchema),
-    Command: z.array(z.string()),
-    AwsLogsConfiguration: ExpressGatewayServiceAwsLogsConfigurationSchema,
-    ContainerPort: z.number(),
-    Environment: z.array(KeyValuePairSchema),
-    Image: z.string(),
-  }).optional(),
-  Memory: z.string().optional(),
-  HealthCheckPath: z.string().optional(),
-  CreatedAt: z.string().optional(),
-  Cluster: z.string().optional(),
-  Cpu: z.string().optional(),
-  ServiceArn: z.string(),
-  ECSManagedResourceArns: z.object({
-    LogGroups: z.array(z.string()),
-    ServiceSecurityGroups: z.array(z.string()),
-    MetricAlarms: z.array(z.string()),
-    IngressPath: z.object({
-      ListenerArn: z.string(),
-      LoadBalancerArn: z.string(),
-      TargetGroupArns: z.array(z.string()),
-      ListenerRuleArn: z.string(),
-      LoadBalancerSecurityGroups: z.array(z.string()),
-      CertificateArn: z.string(),
-    }),
-    AutoScaling: z.object({
-      ScalableTarget: z.string(),
-      ApplicationAutoScalingPolicies: z.array(z.string()),
-    }),
-  }).optional(),
-  UpdatedAt: z.string().optional(),
-  ExecutionRoleArn: z.string().optional(),
-  InfrastructureRoleArn: z.string().optional(),
-  ScalingTarget: z.object({
-    MinTaskCount: z.number(),
-    MaxTaskCount: z.number(),
-    AutoScalingMetric: z.string(),
-    AutoScalingTargetValue: z.number(),
-  }).optional(),
-  ActiveConfigurations: z.array(z.object({
-    ServiceRevisionArn: z.string(),
-    ExecutionRoleArn: z.string(),
-    TaskRoleArn: z.string(),
-    ScalingTarget: z.object({
-      MinTaskCount: z.number(),
-      MaxTaskCount: z.number(),
-      AutoScalingMetric: z.string(),
-      AutoScalingTargetValue: z.number(),
-    }),
-    IngressPaths: z.array(z.object({
-      Endpoint: z.string(),
-      AccessType: z.string(),
-    })),
-    PrimaryContainer: z.object({
-      RepositoryCredentials: ExpressGatewayRepositoryCredentialsSchema,
-      Secrets: z.array(SecretSchema),
-      Command: z.array(z.string()),
-      AwsLogsConfiguration: ExpressGatewayServiceAwsLogsConfigurationSchema,
-      ContainerPort: z.number(),
-      Environment: z.array(KeyValuePairSchema),
-      Image: z.string(),
-    }),
-    Memory: z.string(),
-    HealthCheckPath: z.string(),
-    CreatedAt: z.string(),
-    Cpu: z.string(),
-    NetworkConfiguration: z.object({
-      SecurityGroups: z.array(z.string()),
-      Subnets: z.array(z.string()),
-    }),
-    TaskDefinitionArn: z.string(),
-  })).optional(),
-  Endpoint: z.string().optional(),
-  ServiceName: z.string().optional(),
-  NetworkConfiguration: z.object({
-    SecurityGroups: z.array(z.string()),
-    Subnets: z.array(z.string()),
-  }).optional(),
+  InstanceArn: z.string().optional(),
+  TestCaseArn: z.string(),
+  Name: z.string().optional(),
+  Content: z.string().optional(),
+  Description: z.string().optional(),
+  Status: z.string().optional(),
+  InitializationData: z.string().optional(),
+  LastModifiedTime: z.number().optional(),
+  LastModifiedRegion: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
-  TaskDefinitionArn: z.string().optional(),
+  EntryPoint: z.object({
+    Type: z.string(),
+    VoiceCallEntryPointParameters: z.object({
+      DestinationPhoneNumber: z.string(),
+      FlowId: z.string(),
+      SourcePhoneNumber: z.string(),
+    }),
+    ChatEntryPointParameters: z.object({
+      FlowId: z.string(),
+    }),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -217,43 +143,47 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Status: z.object({
-    StatusCode: z.enum(["ACTIVE", "DRAINING", "INACTIVE"]).optional(),
-  }).optional(),
-  TaskRoleArn: z.string().optional(),
-  PrimaryContainer: z.object({
-    RepositoryCredentials: ExpressGatewayRepositoryCredentialsSchema.optional(),
-    Secrets: z.array(SecretSchema).optional(),
-    Command: z.array(z.string()).optional(),
-    AwsLogsConfiguration: ExpressGatewayServiceAwsLogsConfigurationSchema
+  InstanceArn: z.string().min(1).max(256).regex(
+    new RegExp(
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
+    ),
+  ).describe("The identifier of the Amazon Connect instance.").optional(),
+  Name: z.string().min(1).max(127).regex(new RegExp(".*\\S.*")).describe(
+    "The name of the test case.",
+  ).optional(),
+  Content: z.string().min(1).max(256000).describe(
+    "The content of the test case.",
+  ).optional(),
+  Description: z.string().max(500).regex(new RegExp(".*\\S.*")).describe(
+    "The description of the test case.",
+  ).optional(),
+  Status: z.enum(["SAVED", "PUBLISHED"]).describe(
+    "The status of the test case.",
+  ).optional(),
+  InitializationData: z.string().min(1).max(256000).describe(
+    "The initialization data of the test case.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe("One or more tags.").optional(),
+  EntryPoint: z.object({
+    Type: z.enum(["VOICE_CALL", "CHAT"]).describe("The type of the Entry Point")
       .optional(),
-    ContainerPort: z.number().int().optional(),
-    Environment: z.array(KeyValuePairSchema).optional(),
-    Image: z.string().optional(),
-  }).optional(),
-  Memory: z.string().optional(),
-  HealthCheckPath: z.string().optional(),
-  Cluster: z.string().optional(),
-  Cpu: z.string().optional(),
-  ExecutionRoleArn: z.string().optional(),
-  InfrastructureRoleArn: z.string().optional(),
-  ScalingTarget: z.object({
-    MinTaskCount: z.number().int().optional(),
-    MaxTaskCount: z.number().int().optional(),
-    AutoScalingMetric: z.enum([
-      "AVERAGE_CPU",
-      "AVERAGE_MEMORY",
-      "REQUEST_COUNT_PER_TARGET",
-    ]).optional(),
-    AutoScalingTargetValue: z.number().int().optional(),
-  }).optional(),
-  ServiceName: z.string().optional(),
-  NetworkConfiguration: z.object({
-    SecurityGroups: z.array(z.string()).optional(),
-    Subnets: z.array(z.string()).optional(),
-  }).optional(),
-  Tags: z.array(TagSchema).optional(),
-  TaskDefinitionArn: z.string().optional(),
+    VoiceCallEntryPointParameters: z.object({
+      DestinationPhoneNumber: z.string().describe(
+        "The destination phonenumber of the EntryPoint",
+      ).optional(),
+      FlowId: z.string().describe("The flow id used for the TestCase")
+        .optional(),
+      SourcePhoneNumber: z.string().describe(
+        "The source phonenumber of the EntryPoint",
+      ).optional(),
+    }).describe("The voice call entry point parameters for the test case")
+      .optional(),
+    ChatEntryPointParameters: z.object({
+      FlowId: z.string().min(1).max(256).describe(
+        "The flow id used for the TestCase",
+      ).optional(),
+    }).describe("The chat entry point parameters for the test case").optional(),
+  }).describe("Entry point for Testcase.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -272,62 +202,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for ECS ExpressGatewayService. Registered at `@swamp/aws/ecs/express-gateway-service`. */
+/** Swamp extension model for Connect TestCase. Registered at `@swamp/aws/connect/test-case`. */
 export const model = {
-  type: "@swamp/aws/ecs/express-gateway-service",
+  type: "@swamp/aws/connect/test-case",
   version: "2026.07.02.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.02.1",
-      description: "Added: TaskDefinitionArn",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "ECS ExpressGatewayService resource state",
+      description: "Connect TestCase resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -335,7 +218,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a ECS ExpressGatewayService",
+      description: "Create a Connect TestCase",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -347,7 +230,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::ECS::ExpressGatewayService",
+          "AWS::Connect::TestCase",
           desiredState,
           credentials,
         ) as StateData;
@@ -364,16 +247,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a ECS ExpressGatewayService",
+      description: "Get a Connect TestCase",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the ECS ExpressGatewayService",
+          "The primary identifier of the Connect TestCase",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::ECS::ExpressGatewayService",
+          "AWS::Connect::TestCase",
           args.identifier,
           credentials,
         ) as StateData;
@@ -391,7 +274,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a ECS ExpressGatewayService",
+      description: "Update a Connect TestCase",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -409,12 +292,12 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.ServiceArn?.toString();
+        const identifier = existing.TestCaseArn?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         const currentState = await readResource(
-          "AWS::ECS::ExpressGatewayService",
+          "AWS::Connect::TestCase",
           identifier,
           credentials,
         ) as StateData;
@@ -425,11 +308,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::ECS::ExpressGatewayService",
+          "AWS::Connect::TestCase",
           identifier,
           currentState,
           desiredState,
-          ["ServiceName", "Cluster", "InfrastructureRoleArn", "Tags"],
+          undefined,
           credentials,
         );
         const handle = await context.writeResource(
@@ -441,16 +324,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a ECS ExpressGatewayService",
+      description: "Delete a Connect TestCase",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the ECS ExpressGatewayService",
+          "The primary identifier of the Connect TestCase",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::ECS::ExpressGatewayService",
+          "AWS::Connect::TestCase",
           args.identifier,
           credentials,
         );
@@ -469,7 +352,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync ECS ExpressGatewayService state from AWS",
+      description: "Sync Connect TestCase state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -487,13 +370,13 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.ServiceArn?.toString();
+        const identifier = existing.TestCaseArn?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         try {
           const result = await readResource(
-            "AWS::ECS::ExpressGatewayService",
+            "AWS::Connect::TestCase",
             identifier,
             credentials,
           ) as StateData;

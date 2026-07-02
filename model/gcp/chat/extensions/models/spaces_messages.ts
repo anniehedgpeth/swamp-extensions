@@ -744,6 +744,18 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   space: z.object({
     accessSettings: z.object({
+      accessPermissionSettings: z.object({
+        discoverSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+        joinSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+      }).describe("Access permission settings for a space.").optional(),
       accessState: z.enum([
         "ACCESS_STATE_UNSPECIFIED",
         "PRIVATE",
@@ -1300,6 +1312,14 @@ const StateSchema = z.object({
   }).optional(),
   space: z.object({
     accessSettings: z.object({
+      accessPermissionSettings: z.object({
+        discoverSpaceSetting: z.object({
+          principals: z.array(z.unknown()),
+        }),
+        joinSpaceSetting: z.object({
+          principals: z.array(z.unknown()),
+        }),
+      }),
       accessState: z.string(),
       audience: z.string(),
     }),
@@ -1953,6 +1973,18 @@ const InputsSchema = z.object({
   ).optional(),
   space: z.object({
     accessSettings: z.object({
+      accessPermissionSettings: z.object({
+        discoverSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+        joinSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+      }).describe("Access permission settings for a space.").optional(),
       accessState: z.enum([
         "ACCESS_STATE_UNSPECIFIED",
         "PRIVATE",
@@ -2192,7 +2224,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages. Registered at `@swamp/gcp/chat/spaces-messages`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages",
-  version: "2026.06.12.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2327,6 +2359,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

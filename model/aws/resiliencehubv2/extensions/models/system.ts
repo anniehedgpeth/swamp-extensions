@@ -72,6 +72,9 @@ const GlobalArgsSchema = z.object({
       "^((arn:aws(-[^:]+)?:kms:[a-zA-Z0-9-]*:[0-9]{12}:((key/[a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)))|([a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+))$",
     ),
   ).describe("The KMS key ID for encrypting system data.").optional(),
+  SharingEnabled: z.boolean().describe(
+    "Whether the system is enabled to be shared with other members of the Organization. Only applicable if the system owner is a management account or delegated admin.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -83,6 +86,7 @@ const StateSchema = z.object({
   CreatedAt: z.string().optional(),
   UpdatedAt: z.string().optional(),
   KmsKeyId: z.string().optional(),
+  SharingEnabled: z.boolean().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -103,6 +107,9 @@ const InputsSchema = z.object({
       "^((arn:aws(-[^:]+)?:kms:[a-zA-Z0-9-]*:[0-9]{12}:((key/[a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)))|([a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+))$",
     ),
   ).describe("The KMS key ID for encrypting system data.").optional(),
+  SharingEnabled: z.boolean().describe(
+    "Whether the system is enabled to be shared with other members of the Organization. Only applicable if the system owner is a management account or delegated admin.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -124,7 +131,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ResilienceHubV2 System. Registered at `@swamp/aws/resiliencehubv2/system`. */
 export const model = {
   type: "@swamp/aws/resiliencehubv2/system",
-  version: "2026.06.15.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.06.06.1",
@@ -139,6 +146,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
+      description: "Added: SharingEnabled",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

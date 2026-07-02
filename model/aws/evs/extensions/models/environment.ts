@@ -95,7 +95,7 @@ const GlobalArgsSchema = z.object({
   ServiceAccessSubnetId: z.string().min(15).max(24).regex(
     new RegExp("^subnet-[a-f0-9]{8}([a-f0-9]{9})?$"),
   ),
-  VcfVersion: z.enum(["VCF-5.2.1", "VCF-5.2.2"]),
+  VcfVersion: z.enum(["VCF-5.2.1", "VCF-5.2.2", "SELF_DEPLOYED"]),
   TermsAccepted: z.boolean(),
   LicenseInfo: z.object({
     SolutionKey: z.string().regex(
@@ -108,7 +108,7 @@ const GlobalArgsSchema = z.object({
         "^[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}$",
       ),
     ),
-  }).describe("The license information for an EVS environment"),
+  }).describe("The license information for an EVS environment").optional(),
   InitialVlans: z.object({
     VmkManagement: InitialVlanInfoSchema,
     VmManagement: InitialVlanInfoSchema,
@@ -131,7 +131,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   ConnectivityInfo: z.object({
     PrivateRouteServerPeerings: z.array(z.string().min(3).max(21)),
-  }),
+  }).optional(),
   VcfHostnames: z.object({
     VCenter: z.string().regex(new RegExp("^([a-zA-Z0-9\\-]*)$")),
     Nsx: z.string().regex(new RegExp("^([a-zA-Z0-9\\-]*)$")),
@@ -142,8 +142,8 @@ const GlobalArgsSchema = z.object({
     NsxEdge2: z.string().regex(new RegExp("^([a-zA-Z0-9\\-]*)$")),
     SddcManager: z.string().regex(new RegExp("^([a-zA-Z0-9\\-]*)$")),
     CloudBuilder: z.string().regex(new RegExp("^([a-zA-Z0-9\\-]*)$")),
-  }),
-  SiteId: z.string(),
+  }).optional(),
+  SiteId: z.string().optional(),
   ServiceAccessSecurityGroups: z.object({
     SecurityGroups: z.array(
       z.string().min(3).max(25).regex(new RegExp("^sg-[0-9a-zA-Z]*$")),
@@ -232,7 +232,7 @@ const InputsSchema = z.object({
   ServiceAccessSubnetId: z.string().min(15).max(24).regex(
     new RegExp("^subnet-[a-f0-9]{8}([a-f0-9]{9})?$"),
   ).optional(),
-  VcfVersion: z.enum(["VCF-5.2.1", "VCF-5.2.2"]).optional(),
+  VcfVersion: z.enum(["VCF-5.2.1", "VCF-5.2.2", "SELF_DEPLOYED"]).optional(),
   TermsAccepted: z.boolean().optional(),
   LicenseInfo: z.object({
     SolutionKey: z.string().regex(
@@ -311,7 +311,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EVS Environment. Registered at `@swamp/aws/evs/environment`. */
 export const model = {
   type: "@swamp/aws/evs/environment",
-  version: "2026.06.15.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -355,6 +355,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

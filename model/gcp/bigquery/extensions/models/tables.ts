@@ -741,7 +741,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Whether the column generation is done asynchronously.",
           ).optional(),
           generationExpression: z.unknown().describe(
-            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generated the field.",
+            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generate the field.",
           ).optional(),
           stored: z.unknown().describe(
             "Optional. Whether the generated column is stored in the table.",
@@ -1959,7 +1959,7 @@ const InputsSchema = z.object({
             "Optional. Whether the column generation is done asynchronously.",
           ).optional(),
           generationExpression: z.unknown().describe(
-            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generated the field.",
+            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generate the field.",
           ).optional(),
           stored: z.unknown().describe(
             "Optional. Whether the generated column is stored in the table.",
@@ -2254,7 +2254,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Tables. Registered at `@swamp/gcp/bigquery/tables`. */
 export const model = {
   type: "@swamp/gcp/bigquery/tables",
-  version: "2026.06.16.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2348,6 +2348,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

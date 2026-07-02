@@ -203,7 +203,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Specifies days of week like, MONDAY or TUESDAY, on which jobs will run. This is required for `recurrence_type`, `WEEKLY` and is not applicable otherwise. A validation error will occur if a value is supplied and `recurrence_type` is not `WEEKLY`.",
       ).optional(),
       hourlyFrequency: z.number().int().describe(
-        "Optional. Specifies frequency for hourly backups. A hourly frequency of 1 means jobs will run every 1 hour from start time till end time defined. This is required for `recurrence_type`, `HOURLY` and is not applicable otherwise. A validation error will occur if a value is supplied and `recurrence_type` is not `HOURLY`. The supported values for each resource type are as follows: * `compute.googleapis.com/Instance`: 4-23 * `compute.googleapis.com/Disk`: 1-23 * `sqladmin.googleapis.com/Instance`: 6-23 * `alloydb.googleapis.com/Cluster`: 1-23 * `file.googleapis.com/Instance`: 1-23 Refer to link https://cloud.google.com/backup-disaster-recovery/docs/concepts/cloud_best_practices for more details.",
+        "Optional. Specifies frequency for hourly backups. A hourly frequency of 1 means jobs will run every 1 hour from start time till end time defined. This is required for `recurrence_type`, `HOURLY` and is not applicable otherwise. A validation error will occur if a value is supplied and `recurrence_type` is not `HOURLY`. The supported values for each resource type are as follows: * `compute.googleapis.com/Instance`: 1-23 * `compute.googleapis.com/Disk`: 1-23 * `sqladmin.googleapis.com/Instance`: 6-23 * `alloydb.googleapis.com/Cluster`: 1-23 * `file.googleapis.com/Instance`: 1-23 Refer to link https://cloud.google.com/backup-disaster-recovery/docs/concepts/cloud_best_practices for more details.",
       ).optional(),
       months: z.array(
         z.enum([
@@ -388,7 +388,7 @@ const InputsSchema = z.object({
         "Optional. Specifies days of week like, MONDAY or TUESDAY, on which jobs will run. This is required for `recurrence_type`, `WEEKLY` and is not applicable otherwise. A validation error will occur if a value is supplied and `recurrence_type` is not `WEEKLY`.",
       ).optional(),
       hourlyFrequency: z.number().int().describe(
-        "Optional. Specifies frequency for hourly backups. A hourly frequency of 1 means jobs will run every 1 hour from start time till end time defined. This is required for `recurrence_type`, `HOURLY` and is not applicable otherwise. A validation error will occur if a value is supplied and `recurrence_type` is not `HOURLY`. The supported values for each resource type are as follows: * `compute.googleapis.com/Instance`: 4-23 * `compute.googleapis.com/Disk`: 1-23 * `sqladmin.googleapis.com/Instance`: 6-23 * `alloydb.googleapis.com/Cluster`: 1-23 * `file.googleapis.com/Instance`: 1-23 Refer to link https://cloud.google.com/backup-disaster-recovery/docs/concepts/cloud_best_practices for more details.",
+        "Optional. Specifies frequency for hourly backups. A hourly frequency of 1 means jobs will run every 1 hour from start time till end time defined. This is required for `recurrence_type`, `HOURLY` and is not applicable otherwise. A validation error will occur if a value is supplied and `recurrence_type` is not `HOURLY`. The supported values for each resource type are as follows: * `compute.googleapis.com/Instance`: 1-23 * `compute.googleapis.com/Disk`: 1-23 * `sqladmin.googleapis.com/Instance`: 6-23 * `alloydb.googleapis.com/Cluster`: 1-23 * `file.googleapis.com/Instance`: 1-23 Refer to link https://cloud.google.com/backup-disaster-recovery/docs/concepts/cloud_best_practices for more details.",
       ).optional(),
       months: z.array(
         z.enum([
@@ -501,7 +501,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupPlans. Registered at `@swamp/gcp/backupdr/backupplans`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupplans",
-  version: "2026.06.08.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -610,6 +610,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

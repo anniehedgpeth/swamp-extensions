@@ -649,6 +649,10 @@ const StateSchema = z.object({
       }),
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.object({
+            discoverSpaceSetting: z.unknown(),
+            joinSpaceSetting: z.unknown(),
+          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -881,6 +885,10 @@ const StateSchema = z.object({
       }),
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.object({
+            discoverSpaceSetting: z.unknown(),
+            joinSpaceSetting: z.unknown(),
+          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -1113,6 +1121,10 @@ const StateSchema = z.object({
       }),
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.object({
+            discoverSpaceSetting: z.unknown(),
+            joinSpaceSetting: z.unknown(),
+          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -1283,6 +1295,7 @@ const StateSchema = z.object({
     spaces: z.array(z.object({
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.unknown(),
           accessState: z.unknown(),
           audience: z.unknown(),
         }),
@@ -1327,6 +1340,14 @@ const StateSchema = z.object({
   spaceUpdatedEventData: z.object({
     space: z.object({
       accessSettings: z.object({
+        accessPermissionSettings: z.object({
+          discoverSpaceSetting: z.object({
+            principals: z.unknown(),
+          }),
+          joinSpaceSetting: z.object({
+            principals: z.unknown(),
+          }),
+        }),
         accessState: z.string(),
         audience: z.string(),
       }),
@@ -1428,7 +1449,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.SpaceEvents. Registered at `@swamp/gcp/chat/spaces-spaceevents`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-spaceevents",
-  version: "2026.06.08.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -1532,6 +1553,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

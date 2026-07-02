@@ -131,6 +131,9 @@ const GlobalArgsSchema = z.object({
     "Sets the runtime management configuration for a function's version. For more information, see [Runtime updates](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html).",
   ).optional(),
   DurableConfig: z.object({
+    KMSKeyArn: z.string().regex(
+      new RegExp("^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"),
+    ).optional(),
     ExecutionTimeout: z.number().int().min(1).max(31622400).describe(
       "The maximum time (in seconds) that a durable execution can run before timing out. This timeout applies to the entire durable execution, not individual function invocations.",
     ),
@@ -319,6 +322,7 @@ const StateSchema = z.object({
     RuntimeVersionArn: z.string(),
   }).optional(),
   DurableConfig: z.object({
+    KMSKeyArn: z.string(),
     ExecutionTimeout: z.number(),
     RetentionPeriodInDays: z.number(),
   }).optional(),
@@ -432,6 +436,9 @@ const InputsSchema = z.object({
     "Sets the runtime management configuration for a function's version. For more information, see [Runtime updates](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html).",
   ).optional(),
   DurableConfig: z.object({
+    KMSKeyArn: z.string().regex(
+      new RegExp("^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"),
+    ).optional(),
     ExecutionTimeout: z.number().int().min(1).max(31622400).describe(
       "The maximum time (in seconds) that a durable execution can run before timing out. This timeout applies to the entire durable execution, not individual function invocations.",
     ).optional(),
@@ -619,7 +626,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lambda Function. Registered at `@swamp/aws/lambda/function`. */
 export const model = {
   type: "@swamp/aws/lambda/function",
-  version: "2026.06.30.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -678,6 +685,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.30.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

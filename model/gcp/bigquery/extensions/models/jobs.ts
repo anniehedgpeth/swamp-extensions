@@ -4689,7 +4689,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Jobs. Registered at `@swamp/gcp/bigquery/jobs`. */
 export const model = {
   type: "@swamp/gcp/bigquery/jobs",
-  version: "2026.06.24.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4788,6 +4788,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -5140,6 +5145,7 @@ export const model = {
     query: {
       description: "query",
       arguments: z.object({
+        arrowSerializationOptions: z.any().optional(),
         connectionProperties: z.any().optional(),
         continuous: z.any().optional(),
         createSession: z.any().optional(),
@@ -5159,6 +5165,7 @@ export const model = {
         preserveNulls: z.any().optional(),
         query: z.any().optional(),
         queryParameters: z.any().optional(),
+        queryResultsFormat: z.any().optional(),
         requestId: z.any().optional(),
         reservation: z.any().optional(),
         timeoutMs: z.any().optional(),
@@ -5172,6 +5179,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
+        if (args["arrowSerializationOptions"] !== undefined) {
+          body["arrowSerializationOptions"] = args["arrowSerializationOptions"];
+        }
         if (args["connectionProperties"] !== undefined) {
           body["connectionProperties"] = args["connectionProperties"];
         }
@@ -5217,6 +5227,9 @@ export const model = {
         if (args["query"] !== undefined) body["query"] = args["query"];
         if (args["queryParameters"] !== undefined) {
           body["queryParameters"] = args["queryParameters"];
+        }
+        if (args["queryResultsFormat"] !== undefined) {
+          body["queryResultsFormat"] = args["queryResultsFormat"];
         }
         if (args["requestId"] !== undefined) {
           body["requestId"] = args["requestId"];

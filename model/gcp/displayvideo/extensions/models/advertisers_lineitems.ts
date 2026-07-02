@@ -331,7 +331,7 @@ const GlobalArgsSchema = z.object({
       "The percentage of post-view conversions to count, in millis (1/1000 of a percent). Must be between 0 and 100000 inclusive. For example, to track 50% of the post-click conversions, set a value of 50000.",
     ).optional(),
     primaryAttributionModelId: z.string().describe(
-      "Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items. Retrieval and management of Demand Gen resources is currently rolling out. This field will be available to all partners by *June 24, 2026*.",
+      "Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items.",
     ).optional(),
   }).describe(
     "Settings that control how conversions are counted. All post-click conversions will be counted. A percentage value can be set for post-view conversions counting.",
@@ -375,7 +375,7 @@ const GlobalArgsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL`",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -711,7 +711,7 @@ const GlobalArgsSchema = z.object({
       "Required. Whether to enable Optimized Targeting for the line item. Optimized targeting is not compatible with all bid strategies. Attempting to set this field to `true` for a line item using the BiddingStrategy field fixed_bid or one of the following combinations of BiddingStrategy fields and BiddingStrategyPerformanceGoalType will result in an error: maximize_auto_spend_bid: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` performance_goal_auto_bid: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` This also applies if the line item inherits one of the above bid strategies from the parent insertion order. Bid strategies set at the insertion order-level will be inherited by their line items if the `InsertionOrder` budget field automationType is set to `INSERTION_ORDER_AUTOMATION_TYPE_BUDGET` or `INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET`.",
     ).optional(),
     excludeDemographicExpansion: z.boolean().describe(
-      "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently rolling out. This field will be available to all partners by *June 24, 2026*.",
+      "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups.",
     ).optional(),
   }).describe(
     "Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.",
@@ -805,7 +805,7 @@ const GlobalArgsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL`",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -1341,7 +1341,7 @@ const InputsSchema = z.object({
       "The percentage of post-view conversions to count, in millis (1/1000 of a percent). Must be between 0 and 100000 inclusive. For example, to track 50% of the post-click conversions, set a value of 50000.",
     ).optional(),
     primaryAttributionModelId: z.string().describe(
-      "Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items. Retrieval and management of Demand Gen resources is currently rolling out. This field will be available to all partners by *June 24, 2026*.",
+      "Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items.",
     ).optional(),
   }).describe(
     "Settings that control how conversions are counted. All post-click conversions will be counted. A percentage value can be set for post-view conversions counting.",
@@ -1385,7 +1385,7 @@ const InputsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL`",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -1721,7 +1721,7 @@ const InputsSchema = z.object({
       "Required. Whether to enable Optimized Targeting for the line item. Optimized targeting is not compatible with all bid strategies. Attempting to set this field to `true` for a line item using the BiddingStrategy field fixed_bid or one of the following combinations of BiddingStrategy fields and BiddingStrategyPerformanceGoalType will result in an error: maximize_auto_spend_bid: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` performance_goal_auto_bid: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` This also applies if the line item inherits one of the above bid strategies from the parent insertion order. Bid strategies set at the insertion order-level will be inherited by their line items if the `InsertionOrder` budget field automationType is set to `INSERTION_ORDER_AUTOMATION_TYPE_BUDGET` or `INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET`.",
     ).optional(),
     excludeDemographicExpansion: z.boolean().describe(
-      "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently rolling out. This field will be available to all partners by *June 24, 2026*.",
+      "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups.",
     ).optional(),
   }).describe(
     "Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.",
@@ -1815,7 +1815,7 @@ const InputsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL`",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -1998,7 +1998,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.LineItems. Registered at `@swamp/gcp/displayvideo/advertisers-lineitems`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-lineitems",
-  version: "2026.06.18.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2126,6 +2126,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -164,6 +164,31 @@ const GlobalArgsSchema = z.object({
         "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
       ).optional(),
       instanceSelectionList: z.array(z.object({
+        diskConfig: z.object({
+          attachedDiskConfigs: z.unknown().describe(
+            "Optional. A list of attached disk configs for a group of VM instances.",
+          ).optional(),
+          bootDiskProvisionedIops: z.unknown().describe(
+            "Optional. Indicates how many IOPS to provision for the disk. This sets the number of I/O operations per second that the disk can handle. This field is supported only if boot_disk_type is hyperdisk-balanced.",
+          ).optional(),
+          bootDiskProvisionedThroughput: z.unknown().describe(
+            "Optional. Indicates how much throughput to provision for the disk. This sets the number of throughput mb per second that the disk can handle. Values must be greater than or equal to 1. This field is supported only if boot_disk_type is hyperdisk-balanced.",
+          ).optional(),
+          bootDiskSizeGb: z.unknown().describe(
+            "Optional. Size in GB of the boot disk (default is 500GB).",
+          ).optional(),
+          bootDiskType: z.unknown().describe(
+            "Optional. Type of the boot disk (default is pd-standard). Valid values: pd-balanced (Persistent Disk Balanced Solid State Drive), pd-ssd (Persistent Disk Solid State Drive), or pd-standard (Persistent Disk Hard Disk Drive). See Disk types (https://cloud.google.com/compute/docs/disks#disk-types).",
+          ).optional(),
+          localSsdInterface: z.unknown().describe(
+            "Optional. Interface type of local SSDs (default is scsi). Valid values: scsi (Small Computer System Interface), nvme (Non-Volatile Memory Express). See local SSD performance (https://cloud.google.com/compute/docs/disks/local-ssd#performance).",
+          ).optional(),
+          numLocalSsds: z.unknown().describe(
+            "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
+          ).optional(),
+        }).describe(
+          "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+        ).optional(),
         machineTypes: z.array(z.unknown()).describe(
           'Optional. Full machine-type names, e.g. "n1-standard-16".',
         ).optional(),
@@ -303,6 +328,15 @@ const StateSchema = z.object({
     instanceFlexibilityPolicy: z.object({
       instanceMachineTypes: z.record(z.string(), z.unknown()),
       instanceSelectionList: z.array(z.object({
+        diskConfig: z.object({
+          attachedDiskConfigs: z.unknown(),
+          bootDiskProvisionedIops: z.unknown(),
+          bootDiskProvisionedThroughput: z.unknown(),
+          bootDiskSizeGb: z.unknown(),
+          bootDiskType: z.unknown(),
+          localSsdInterface: z.unknown(),
+          numLocalSsds: z.unknown(),
+        }),
         machineTypes: z.array(z.unknown()),
         rank: z.number(),
       })),
@@ -412,6 +446,31 @@ const InputsSchema = z.object({
         "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
       ).optional(),
       instanceSelectionList: z.array(z.object({
+        diskConfig: z.object({
+          attachedDiskConfigs: z.unknown().describe(
+            "Optional. A list of attached disk configs for a group of VM instances.",
+          ).optional(),
+          bootDiskProvisionedIops: z.unknown().describe(
+            "Optional. Indicates how many IOPS to provision for the disk. This sets the number of I/O operations per second that the disk can handle. This field is supported only if boot_disk_type is hyperdisk-balanced.",
+          ).optional(),
+          bootDiskProvisionedThroughput: z.unknown().describe(
+            "Optional. Indicates how much throughput to provision for the disk. This sets the number of throughput mb per second that the disk can handle. Values must be greater than or equal to 1. This field is supported only if boot_disk_type is hyperdisk-balanced.",
+          ).optional(),
+          bootDiskSizeGb: z.unknown().describe(
+            "Optional. Size in GB of the boot disk (default is 500GB).",
+          ).optional(),
+          bootDiskType: z.unknown().describe(
+            "Optional. Type of the boot disk (default is pd-standard). Valid values: pd-balanced (Persistent Disk Balanced Solid State Drive), pd-ssd (Persistent Disk Solid State Drive), or pd-standard (Persistent Disk Hard Disk Drive). See Disk types (https://cloud.google.com/compute/docs/disks#disk-types).",
+          ).optional(),
+          localSsdInterface: z.unknown().describe(
+            "Optional. Interface type of local SSDs (default is scsi). Valid values: scsi (Small Computer System Interface), nvme (Non-Volatile Memory Express). See local SSD performance (https://cloud.google.com/compute/docs/disks/local-ssd#performance).",
+          ).optional(),
+          numLocalSsds: z.unknown().describe(
+            "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
+          ).optional(),
+        }).describe(
+          "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+        ).optional(),
         machineTypes: z.array(z.unknown()).describe(
           'Optional. Full machine-type names, e.g. "n1-standard-16".',
         ).optional(),
@@ -540,7 +599,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Clusters.NodeGroups. Registered at `@swamp/gcp/dataproc/clusters-nodegroups`. */
 export const model = {
   type: "@swamp/gcp/dataproc/clusters-nodegroups",
-  version: "2026.06.08.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -644,6 +703,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -184,6 +184,14 @@ const GlobalArgsSchema = z.object({
     SnsRegion: z.string().optional(),
   }).optional(),
   SmsVerificationMessage: z.string().min(6).max(140).optional(),
+  KeyConfiguration: z.object({
+    KeyType: z.enum(["AWS_OWNED_KEY", "CUSTOMER_MANAGED_KEY"]).optional(),
+    KmsKeyArn: z.string().regex(
+      new RegExp(
+        "arn:[\\w+=/,.@-]+:[\\w+=/,.@-]+:([\\w+=/,.@-]*)?:[0-9]+:[\\w+=/,.@-]+(:[\\w+=/,.@-]+)?(:[\\w+=/,.@-]+)?",
+      ),
+    ).optional(),
+  }).optional(),
   WebAuthnRelyingPartyID: z.string().min(1).max(63).optional(),
   WebAuthnUserVerification: z.string().min(1).max(9).optional(),
   WebAuthnFactorConfiguration: z.enum([
@@ -212,6 +220,9 @@ const GlobalArgsSchema = z.object({
       .optional(),
   }).optional(),
   UserPoolTier: z.enum(["LITE", "ESSENTIALS", "PLUS"]).optional(),
+  IssuerConfiguration: z.object({
+    Type: z.enum(["ORIGINAL", "UPDATED"]).optional(),
+  }).optional(),
 });
 
 const StateSchema = z.object({
@@ -273,6 +284,10 @@ const StateSchema = z.object({
     SnsRegion: z.string(),
   }).optional(),
   SmsVerificationMessage: z.string().optional(),
+  KeyConfiguration: z.object({
+    KeyType: z.string(),
+    KmsKeyArn: z.string(),
+  }).optional(),
   WebAuthnRelyingPartyID: z.string().optional(),
   WebAuthnUserVerification: z.string().optional(),
   WebAuthnFactorConfiguration: z.string().optional(),
@@ -301,6 +316,9 @@ const StateSchema = z.object({
   Arn: z.string().optional(),
   UserPoolId: z.string(),
   UserPoolTier: z.string().optional(),
+  IssuerConfiguration: z.object({
+    Type: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -369,6 +387,14 @@ const InputsSchema = z.object({
     SnsRegion: z.string().optional(),
   }).optional(),
   SmsVerificationMessage: z.string().min(6).max(140).optional(),
+  KeyConfiguration: z.object({
+    KeyType: z.enum(["AWS_OWNED_KEY", "CUSTOMER_MANAGED_KEY"]).optional(),
+    KmsKeyArn: z.string().regex(
+      new RegExp(
+        "arn:[\\w+=/,.@-]+:[\\w+=/,.@-]+:([\\w+=/,.@-]*)?:[0-9]+:[\\w+=/,.@-]+(:[\\w+=/,.@-]+)?(:[\\w+=/,.@-]+)?",
+      ),
+    ).optional(),
+  }).optional(),
   WebAuthnRelyingPartyID: z.string().min(1).max(63).optional(),
   WebAuthnUserVerification: z.string().min(1).max(9).optional(),
   WebAuthnFactorConfiguration: z.enum([
@@ -397,6 +423,9 @@ const InputsSchema = z.object({
       .optional(),
   }).optional(),
   UserPoolTier: z.enum(["LITE", "ESSENTIALS", "PLUS"]).optional(),
+  IssuerConfiguration: z.object({
+    Type: z.enum(["ORIGINAL", "UPDATED"]).optional(),
+  }).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -418,7 +447,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Cognito UserPool. Registered at `@swamp/aws/cognito/user-pool`. */
 export const model = {
   type: "@swamp/aws/cognito/user-pool",
-  version: "2026.06.15.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -463,6 +492,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
+      description: "Added: KeyConfiguration, IssuerConfiguration",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

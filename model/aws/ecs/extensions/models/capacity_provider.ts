@@ -154,6 +154,12 @@ const InstanceRequirementsRequestSchema = z.object({
       "vu9p",
       "v100",
       "l40s",
+      "l4",
+      "gaudi-hl-205",
+      "inferentia2",
+      "trainium",
+      "trainium2",
+      "u30",
     ]),
   ).optional(),
   AcceleratorTotalMemoryMiB: AcceleratorTotalMemoryMiBRequestSchema.optional(),
@@ -301,7 +307,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ECS CapacityProvider. Registered at `@swamp/aws/ecs/capacity-provider`. */
 export const model = {
   type: "@swamp/aws/ecs/capacity-provider",
-  version: "2026.06.15.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -350,6 +356,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -77,7 +77,7 @@ const GlobalArgsSchema = z.object({
     "The type of authentication that your function URL uses. Set to AWS_IAM if you want to restrict access to authenticated users only. Set to NONE if you want to bypass IAM authentication to create a public endpoint. For more information, see [Control access to Lambda function URLs](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html).",
   ).optional(),
   InvokedViaFunctionUrl: z.boolean().describe(
-    "Restricts the lambda:InvokeFunction action to function URL calls. When specified, this option prevents the principal from invoking the function by any means other than the function URL. For more information, see [Control access to Lambda function URLs](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html).",
+    "Indicates whether the permission applies when the function is invoked through a function URL.",
   ).optional(),
   Principal: z.string().min(1).max(256).regex(new RegExp("^.*$")).describe(
     "The AWS-service, AWS-account, IAM user, or IAM role that invokes the function. If you specify a service, use SourceArn or SourceAccount to limit who can invoke the function through that service.",
@@ -142,7 +142,7 @@ const InputsSchema = z.object({
     "The type of authentication that your function URL uses. Set to AWS_IAM if you want to restrict access to authenticated users only. Set to NONE if you want to bypass IAM authentication to create a public endpoint. For more information, see [Control access to Lambda function URLs](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html).",
   ).optional(),
   InvokedViaFunctionUrl: z.boolean().describe(
-    "Restricts the lambda:InvokeFunction action to function URL calls. When specified, this option prevents the principal from invoking the function by any means other than the function URL. For more information, see [Control access to Lambda function URLs](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html).",
+    "Indicates whether the permission applies when the function is invoked through a function URL.",
   ).optional(),
   Principal: z.string().min(1).max(256).regex(new RegExp("^.*$")).describe(
     "The AWS-service, AWS-account, IAM user, or IAM role that invokes the function. If you specify a service, use SourceArn or SourceAccount to limit who can invoke the function through that service.",
@@ -184,7 +184,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lambda Permission. Registered at `@swamp/aws/lambda/permission`. */
 export const model = {
   type: "@swamp/aws/lambda/permission",
-  version: "2026.06.15.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -223,6 +223,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

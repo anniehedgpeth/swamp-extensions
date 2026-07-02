@@ -154,8 +154,13 @@ const AwsVpcConfigurationSchema = z.object({
 });
 
 const MetricConfigurationSchema = z.object({
-  ResolutionSeconds: z.union([z.literal(20), z.literal(60)]),
-  MetricNames: z.array(z.enum(["CPUUtilization", "MemoryUtilization"])),
+  ResolutionSeconds: z.union([z.literal(20), z.literal(60)]).describe(
+    "The resolution, in seconds, at which to collect the metrics. The valid values are 20 and 60.",
+  ),
+  MetricNames: z.array(z.enum(["CPUUtilization", "MemoryUtilization"]))
+    .describe(
+      "The list of metric names to configure. The supported metric names are CPUUtilization and MemoryUtilization.",
+    ),
 });
 
 const PlacementConstraintSchema = z.object({
@@ -370,10 +375,17 @@ const DeploymentAlarmsSchema = z.object({
   ),
 });
 
+const ThresholdConfigurationSchema = z.object({
+  Type: z.enum(["COUNT", "BOUNDED_PERCENT", "UNBOUNDED_PERCENT"]),
+  Value: z.number().int(),
+});
+
 const DeploymentCircuitBreakerSchema = z.object({
+  ThresholdConfiguration: ThresholdConfigurationSchema.optional(),
   Enable: z.boolean().describe(
     "Determines whether to use the deployment circuit breaker logic for the service.",
   ),
+  ResetOnHealthyTask: z.boolean().optional(),
   Rollback: z.boolean().describe(
     "Determines whether to configure Amazon ECS to roll back the service if a service deployment fails. If rollback is on, when a service deployment fails, the service is rolled back to the last deployment that completed successfully.",
   ),
@@ -443,8 +455,12 @@ const GlobalArgsSchema = z.object({
     "The metadata that you apply to the service to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define. When a service is deleted, the tags are deleted as well. The following basic restrictions apply to tags: Maximum number of tags per resource - 50 For each resource, each tag key must be unique, and each tag key can have only one value. Maximum key length - 128 Unicode characters in UTF-8 Maximum value length - 256 Unicode characters in UTF-8 If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - =. _: / @. Tag keys and values are case-sensitive. Do not use aws:, AWS:, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for AWS use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.",
   ).optional(),
   Monitoring: z.object({
-    MetricConfigurations: z.array(MetricConfigurationSchema),
-  }).optional(),
+    MetricConfigurations: z.array(MetricConfigurationSchema).describe(
+      "The list of metric configurations for the service monitoring.",
+    ),
+  }).describe(
+    "The optional monitoring configuration for the service, which defines the resolution for the service-level CPUUtilization and MemoryUtilization Amazon CloudWatch metrics. When not specified, Amazon ECS uses the default resolution of 60 seconds.",
+  ).optional(),
   ForceNewDeployment: z.object({
     EnableForceNewDeployment: z.boolean().describe(
       "Determines whether to force a new deployment of the service. By default, deployments aren't forced. You can use this option to start a new deployment with no service definition changes. For example, you can update a service's tasks to use a newer Docker image with the same image/tag combination ( my_image:latest) or to roll Fargate tasks onto a newer platform version.",
@@ -650,8 +666,12 @@ const InputsSchema = z.object({
     "The metadata that you apply to the service to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define. When a service is deleted, the tags are deleted as well. The following basic restrictions apply to tags: Maximum number of tags per resource - 50 For each resource, each tag key must be unique, and each tag key can have only one value. Maximum key length - 128 Unicode characters in UTF-8 Maximum value length - 256 Unicode characters in UTF-8 If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - =. _: / @. Tag keys and values are case-sensitive. Do not use aws:, AWS:, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for AWS use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.",
   ).optional(),
   Monitoring: z.object({
-    MetricConfigurations: z.array(MetricConfigurationSchema).optional(),
-  }).optional(),
+    MetricConfigurations: z.array(MetricConfigurationSchema).describe(
+      "The list of metric configurations for the service monitoring.",
+    ).optional(),
+  }).describe(
+    "The optional monitoring configuration for the service, which defines the resolution for the service-level CPUUtilization and MemoryUtilization Amazon CloudWatch metrics. When not specified, Amazon ECS uses the default resolution of 60 seconds.",
+  ).optional(),
   ForceNewDeployment: z.object({
     EnableForceNewDeployment: z.boolean().describe(
       "Determines whether to force a new deployment of the service. By default, deployments aren't forced. You can use this option to start a new deployment with no service definition changes. For example, you can update a service's tasks to use a newer Docker image with the same image/tag combination ( my_image:latest) or to roll Fargate tasks onto a newer platform version.",
@@ -771,7 +791,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ECS Service. Registered at `@swamp/aws/ecs/service`. */
 export const model = {
   type: "@swamp/aws/ecs/service",
-  version: "2026.06.23.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -841,6 +861,11 @@ export const model = {
     {
       toVersion: "2026.06.23.1",
       description: "Added: Monitoring",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

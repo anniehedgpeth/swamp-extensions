@@ -554,6 +554,9 @@ const GlobalArgsSchema = z.object({
           "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
         ).optional(),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown().describe(
+            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
           ).optional(),
@@ -710,6 +713,9 @@ const GlobalArgsSchema = z.object({
           "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
         ).optional(),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown().describe(
+            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
           ).optional(),
@@ -956,6 +962,9 @@ const GlobalArgsSchema = z.object({
           "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
         ).optional(),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown().describe(
+            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
           ).optional(),
@@ -1301,6 +1310,7 @@ const StateSchema = z.object({
       instanceFlexibilityPolicy: z.object({
         instanceMachineTypes: z.record(z.string(), z.unknown()),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown(),
           machineTypes: z.unknown(),
           rank: z.unknown(),
         })),
@@ -1361,6 +1371,7 @@ const StateSchema = z.object({
       instanceFlexibilityPolicy: z.object({
         instanceMachineTypes: z.record(z.string(), z.unknown()),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown(),
           machineTypes: z.unknown(),
           rank: z.unknown(),
         })),
@@ -1446,6 +1457,7 @@ const StateSchema = z.object({
       instanceFlexibilityPolicy: z.object({
         instanceMachineTypes: z.record(z.string(), z.unknown()),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown(),
           machineTypes: z.unknown(),
           rank: z.unknown(),
         })),
@@ -1884,6 +1896,9 @@ const InputsSchema = z.object({
           "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
         ).optional(),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown().describe(
+            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
           ).optional(),
@@ -2040,6 +2055,9 @@ const InputsSchema = z.object({
           "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
         ).optional(),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown().describe(
+            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
           ).optional(),
@@ -2286,6 +2304,9 @@ const InputsSchema = z.object({
           "Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., 'n1-standard-16'). See Machine types for more information on valid machine type strings.",
         ).optional(),
         instanceSelectionList: z.array(z.object({
+          diskConfig: z.unknown().describe(
+            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
           ).optional(),
@@ -2514,7 +2535,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Clusters. Registered at `@swamp/gcp/dataproc/clusters`. */
 export const model = {
   type: "@swamp/gcp/dataproc/clusters",
-  version: "2026.06.24.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2633,6 +2654,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

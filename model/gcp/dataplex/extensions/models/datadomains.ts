@@ -190,6 +190,16 @@ const GlobalArgsSchema = z.object({
   parentDataDomain: z.string().describe(
     "Optional. Immutable. The resource name of the parent DataDomain. Empty if this is a top-level DataDomain. Format: projects/{project_id_or_number}/locations/{location}/dataDomains/{parent_data_domain_id} This field is immutable after creation.",
   ).optional(),
+  policyMember: z.object({
+    iamPolicyNamePrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource.Example: principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter",
+    ).optional(),
+    iamPolicyUidPrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resourceExample: principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5",
+    ).optional(),
+  }).describe(
+    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
+  ).optional(),
   dataDomainId: z.string().describe(
     "Required. DataDomain identifier. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project and location.",
   ).optional(),
@@ -212,6 +222,10 @@ const StateSchema = z.object({
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
   parentDataDomain: z.string().optional(),
+  policyMember: z.object({
+    iamPolicyNamePrincipal: z.string(),
+    iamPolicyUidPrincipal: z.string(),
+  }).optional(),
   uid: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
@@ -251,6 +265,16 @@ const InputsSchema = z.object({
   parentDataDomain: z.string().describe(
     "Optional. Immutable. The resource name of the parent DataDomain. Empty if this is a top-level DataDomain. Format: projects/{project_id_or_number}/locations/{location}/dataDomains/{parent_data_domain_id} This field is immutable after creation.",
   ).optional(),
+  policyMember: z.object({
+    iamPolicyNamePrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource.Example: principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter",
+    ).optional(),
+    iamPolicyUidPrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resourceExample: principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5",
+    ).optional(),
+  }).describe(
+    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
+  ).optional(),
   dataDomainId: z.string().describe(
     "Required. DataDomain identifier. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project and location.",
   ).optional(),
@@ -274,7 +298,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataDomains. Registered at `@swamp/gcp/dataplex/datadomains`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datadomains",
-  version: "2026.06.25.1",
+  version: "2026.07.02.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.02.1",
+      description: "Added: policyMember",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -310,6 +341,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["parentDataDomain"] !== undefined) {
           body["parentDataDomain"] = g["parentDataDomain"];
+        }
+        if (g["policyMember"] !== undefined) {
+          body["policyMember"] = g["policyMember"];
         }
         if (g["dataDomainId"] !== undefined) {
           body["dataDomainId"] = g["dataDomainId"];
@@ -416,6 +450,9 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["policyMember"] !== undefined) {
+          body["policyMember"] = g["policyMember"];
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

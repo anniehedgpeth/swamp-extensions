@@ -643,6 +643,9 @@ const GlobalArgsSchema = z.object({
     createTime: z.string().describe(
       "Output only. The time the cluster was created, in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) text format.",
     ).optional(),
+    currentEmulatedVersion: z.string().describe(
+      "Output only. The current emulated version of the master endpoint. The version is in minor version format, e.g. 1.30. No value or empty string means the cluster has no emulated version.",
+    ).optional(),
     currentMasterVersion: z.string().describe(
       "Output only. The current software version of the master endpoint.",
     ).optional(),
@@ -3093,6 +3096,13 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
+    rollbackSafeUpgrade: z.object({
+      controlPlaneSoakDuration: z.string().describe(
+        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
+      ).optional(),
+    }).describe(
+      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
+    ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
     satisfiesPzs: z.boolean().describe("Output only. Reserved for future use.")
@@ -3786,6 +3796,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe(
       "DNSConfig contains the desired set of options for configuring clusterDNS.",
+    ).optional(),
+    desiredEmulatedVersion: z.string().describe(
+      "Optional. The desired emulated version for the cluster.",
     ).optional(),
     desiredEnableCiliumClusterwideNetworkPolicy: z.boolean().describe(
       "Enable/Disable Cilium Clusterwide Network Policy for the cluster.",
@@ -4594,6 +4607,13 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
+    desiredRollbackSafeUpgrade: z.object({
+      controlPlaneSoakDuration: z.string().describe(
+        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
+      ).optional(),
+    }).describe(
+      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
+    ).optional(),
     desiredSecretManagerConfig: z.object({
       enabled: z.boolean().describe("Enable/Disable Secret Manager Config.")
         .optional(),
@@ -4961,6 +4981,7 @@ const StateSchema = z.object({
     enabled: z.boolean(),
   }).optional(),
   createTime: z.string().optional(),
+  currentEmulatedVersion: z.string().optional(),
   currentMasterVersion: z.string().optional(),
   currentNodeCount: z.number().optional(),
   currentNodeVersion: z.string().optional(),
@@ -5969,6 +5990,9 @@ const StateSchema = z.object({
     }),
     enableNetworkEgressMetering: z.boolean(),
   }).optional(),
+  rollbackSafeUpgrade: z.object({
+    controlPlaneSoakDuration: z.string(),
+  }).optional(),
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
   scheduleUpgradeConfig: z.object({
@@ -6508,6 +6532,9 @@ const InputsSchema = z.object({
       .optional(),
     createTime: z.string().describe(
       "Output only. The time the cluster was created, in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) text format.",
+    ).optional(),
+    currentEmulatedVersion: z.string().describe(
+      "Output only. The current emulated version of the master endpoint. The version is in minor version format, e.g. 1.30. No value or empty string means the cluster has no emulated version.",
     ).optional(),
     currentMasterVersion: z.string().describe(
       "Output only. The current software version of the master endpoint.",
@@ -8959,6 +8986,13 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
+    rollbackSafeUpgrade: z.object({
+      controlPlaneSoakDuration: z.string().describe(
+        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
+      ).optional(),
+    }).describe(
+      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
+    ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
     satisfiesPzs: z.boolean().describe("Output only. Reserved for future use.")
@@ -9652,6 +9686,9 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe(
       "DNSConfig contains the desired set of options for configuring clusterDNS.",
+    ).optional(),
+    desiredEmulatedVersion: z.string().describe(
+      "Optional. The desired emulated version for the cluster.",
     ).optional(),
     desiredEnableCiliumClusterwideNetworkPolicy: z.boolean().describe(
       "Enable/Disable Cilium Clusterwide Network Policy for the cluster.",
@@ -10460,6 +10497,13 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
+    desiredRollbackSafeUpgrade: z.object({
+      controlPlaneSoakDuration: z.string().describe(
+        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
+      ).optional(),
+    }).describe(
+      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
+    ).optional(),
     desiredSecretManagerConfig: z.object({
       enabled: z.boolean().describe("Enable/Disable Secret Manager Config.")
         .optional(),
@@ -10639,7 +10683,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Kubernetes Engine Clusters. Registered at `@swamp/gcp/container/clusters`. */
 export const model = {
   type: "@swamp/gcp/container/clusters",
-  version: "2026.06.25.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -10798,6 +10842,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -11111,6 +11160,44 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    complete_control_plane_upgrade: {
+      description: "complete control plane upgrade",
+      arguments: z.object({
+        version: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            String(g["parent"]),
+            String(g["name"]),
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (args["version"] !== undefined) body["version"] = args["version"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "container.projects.locations.clusters.completeControlPlaneUpgrade",
+            "path": "v1/{+name}:completeControlPlaneUpgrade",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,

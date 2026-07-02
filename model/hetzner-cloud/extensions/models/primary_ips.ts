@@ -54,9 +54,6 @@ const GlobalArgsSchema = z.object({
   type: z.enum(["ipv4", "ipv6"]).describe(
     "[Primary IP](#tag/primary-ips) type.",
   ),
-  datacenter: z.string().describe(
-    "**Deprecated**: This property is deprecated and will be removed after 1 July 2026.\nUse the `location` key instead.\n\n[Data Center](#tag/data-centers) ID or name.\n\nThe [Primary IP](#tag/primary-ips) will be bound to this [Data Center](#tag/data-centers).\nOmit if `assignee_id`/`assignee_type` or `location` are provided.\n",
-  ).optional(),
   location: z.string().describe(
     "[Location](#tag/locations) ID or name the [Primary IP](#tag/primary-ips) will be bound to.\n\nOmit if `assignee_id`/`assignee_type` or `datacenter` are provided.\n",
   ).optional(),
@@ -77,26 +74,6 @@ const ResourceSchema = z.object({
   labels: z.record(z.string(), z.unknown()).optional(),
   created: z.string().optional(),
   blocked: z.boolean().optional(),
-  datacenter: z.object({
-    id: z.number().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    location: z.object({
-      id: z.number().optional(),
-      name: z.string().optional(),
-      description: z.string().optional(),
-      country: z.string().optional(),
-      city: z.string().optional(),
-      latitude: z.number().optional(),
-      longitude: z.number().optional(),
-      network_zone: z.string().optional(),
-    }).optional(),
-    server_types: z.object({
-      supported: z.array(z.number()).optional(),
-      available: z.array(z.number()).optional(),
-      available_for_migration: z.array(z.number()).optional(),
-    }).optional(),
-  }).optional(),
   location: z.object({
     id: z.number().optional(),
     name: z.string().optional(),
@@ -128,7 +105,6 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.unknown()).optional(),
   auto_delete: z.boolean().optional(),
   type: z.enum(["ipv4", "ipv6"]).optional(),
-  datacenter: z.string().optional(),
   location: z.string().optional(),
   assignee_type: z.enum(["server"]).optional(),
   assignee_id: z.unknown().optional(),
@@ -138,7 +114,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Hetzner Cloud primary ip. Registered at `@swamp/hetzner-cloud/primary-ips`. */
 export const model = {
   type: "@swamp/hetzner-cloud/primary-ips",
-  version: "2026.06.25.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.03.1",
@@ -195,6 +171,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.02.1",
+      description: "Removed: datacenter",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { datacenter: _datacenter, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -216,7 +200,6 @@ export const model = {
         if (g.name !== undefined) body.name = g.name;
         if (g.labels !== undefined) body.labels = g.labels;
         if (g.type !== undefined) body.type = g.type;
-        if (g.datacenter !== undefined) body.datacenter = g.datacenter;
         if (g.location !== undefined) body.location = g.location;
         if (g.assignee_type !== undefined) body.assignee_type = g.assignee_type;
         if (g.assignee_id !== undefined) body.assignee_id = g.assignee_id;

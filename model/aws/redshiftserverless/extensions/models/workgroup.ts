@@ -89,15 +89,17 @@ const GlobalArgsSchema = z.object({
     "A property that represents the price performance target settings for the workgroup.",
   ).optional(),
   SnapshotArn: z.string().describe(
-    "The Amazon Resource Name (ARN) of the snapshot to restore from.",
+    "The Amazon Resource Name (ARN) of the snapshot to restore the namespace from. Specify either SnapshotArn or SnapshotName, but not both. When this resource is first created, the namespace is restored from this snapshot. On subsequent updates, a restore occurs only when SnapshotArn changes from its previous value. If the value is unchanged or removed, no restore takes place and existing data is preserved.",
   ).optional(),
-  SnapshotName: z.string().describe("The snapshot name to restore from.")
-    .optional(),
+  SnapshotName: z.string().describe(
+    "The name of the snapshot to restore the namespace from. Because snapshot names are unique only within an account, also specify SnapshotOwnerAccount when restoring from a snapshot owned by a different account. Specify either SnapshotName or SnapshotArn, but not both. When this resource is first created, the namespace is restored from this snapshot. On subsequent updates, a restore occurs only when SnapshotName or SnapshotOwnerAccount changes from its previous value. If both values are unchanged or SnapshotName is removed, no restore takes place and existing data is preserved.",
+  ).optional(),
   SnapshotOwnerAccount: z.string().describe(
-    "The Amazon Web Services account that owns the snapshot.",
+    "The AWS account ID that owns the snapshot. Required when restoring from a snapshot shared by another account. Used in combination with SnapshotName. On updates, changing this value while SnapshotName is set triggers a restore from the newly referenced snapshot. If the value is unchanged, no restore takes place and existing data is preserved.",
   ).optional(),
-  RecoveryPointId: z.string().describe("The recovery point id to restore from.")
-    .optional(),
+  RecoveryPointId: z.string().describe(
+    "The identifier of the recovery point to restore the namespace from. When this resource is first created, the namespace is restored from this recovery point. On subsequent updates, a restore occurs only when RecoveryPointId changes from its previous value. If the value is unchanged or removed, no restore takes place and existing data is preserved.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "The map of the key-value pairs used to tag the workgroup.",
   ).optional(),
@@ -165,15 +167,17 @@ const InputsSchema = z.object({
     "A property that represents the price performance target settings for the workgroup.",
   ).optional(),
   SnapshotArn: z.string().describe(
-    "The Amazon Resource Name (ARN) of the snapshot to restore from.",
+    "The Amazon Resource Name (ARN) of the snapshot to restore the namespace from. Specify either SnapshotArn or SnapshotName, but not both. When this resource is first created, the namespace is restored from this snapshot. On subsequent updates, a restore occurs only when SnapshotArn changes from its previous value. If the value is unchanged or removed, no restore takes place and existing data is preserved.",
   ).optional(),
-  SnapshotName: z.string().describe("The snapshot name to restore from.")
-    .optional(),
+  SnapshotName: z.string().describe(
+    "The name of the snapshot to restore the namespace from. Because snapshot names are unique only within an account, also specify SnapshotOwnerAccount when restoring from a snapshot owned by a different account. Specify either SnapshotName or SnapshotArn, but not both. When this resource is first created, the namespace is restored from this snapshot. On subsequent updates, a restore occurs only when SnapshotName or SnapshotOwnerAccount changes from its previous value. If both values are unchanged or SnapshotName is removed, no restore takes place and existing data is preserved.",
+  ).optional(),
   SnapshotOwnerAccount: z.string().describe(
-    "The Amazon Web Services account that owns the snapshot.",
+    "The AWS account ID that owns the snapshot. Required when restoring from a snapshot shared by another account. Used in combination with SnapshotName. On updates, changing this value while SnapshotName is set triggers a restore from the newly referenced snapshot. If the value is unchanged, no restore takes place and existing data is preserved.",
   ).optional(),
-  RecoveryPointId: z.string().describe("The recovery point id to restore from.")
-    .optional(),
+  RecoveryPointId: z.string().describe(
+    "The identifier of the recovery point to restore the namespace from. When this resource is first created, the namespace is restored from this recovery point. On subsequent updates, a restore occurs only when RecoveryPointId changes from its previous value. If the value is unchanged or removed, no restore takes place and existing data is preserved.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "The map of the key-value pairs used to tag the workgroup.",
   ).optional(),
@@ -202,7 +206,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for RedshiftServerless Workgroup. Registered at `@swamp/aws/redshiftserverless/workgroup`. */
 export const model = {
   type: "@swamp/aws/redshiftserverless/workgroup",
-  version: "2026.06.15.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -241,6 +245,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

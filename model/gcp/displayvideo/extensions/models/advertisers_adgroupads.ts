@@ -385,7 +385,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Details on the DCM tracking.").optional(),
   demandGenCarouselAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     cards: z.array(z.object({
       callToAction: z.string().describe(
@@ -483,7 +483,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Details for a Demand Gen carousel ad.").optional(),
   demandGenImageAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.string().describe(
       "Required. The call-to-action button shown on the ad.",
@@ -521,7 +521,9 @@ const GlobalArgsSchema = z.object({
       mimeType: z.string().describe(
         "Output only. MIME type of the image asset.",
       ).optional(),
-    })).describe("The list of logo images shown on the ad.").optional(),
+    })).describe(
+      "The list of logo images shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
+    ).optional(),
     marketingImages: z.array(z.object({
       assetId: z.string().describe("Required. The unique ID of the asset.")
         .optional(),
@@ -581,7 +583,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Details for a Demand Gen image ad.").optional(),
   demandGenProductAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -650,7 +652,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Details for a Demand Gen product ad.").optional(),
   demandGenVideoAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -1609,7 +1611,7 @@ const InputsSchema = z.object({
   }).describe("Details on the DCM tracking.").optional(),
   demandGenCarouselAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     cards: z.array(z.object({
       callToAction: z.string().describe(
@@ -1707,7 +1709,7 @@ const InputsSchema = z.object({
   }).describe("Details for a Demand Gen carousel ad.").optional(),
   demandGenImageAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.string().describe(
       "Required. The call-to-action button shown on the ad.",
@@ -1745,7 +1747,9 @@ const InputsSchema = z.object({
       mimeType: z.string().describe(
         "Output only. MIME type of the image asset.",
       ).optional(),
-    })).describe("The list of logo images shown on the ad.").optional(),
+    })).describe(
+      "The list of logo images shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
+    ).optional(),
     marketingImages: z.array(z.object({
       assetId: z.string().describe("Required. The unique ID of the asset.")
         .optional(),
@@ -1805,7 +1809,7 @@ const InputsSchema = z.object({
   }).describe("Details for a Demand Gen image ad.").optional(),
   demandGenProductAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -1874,7 +1878,7 @@ const InputsSchema = z.object({
   }).describe("Details for a Demand Gen product ad.").optional(),
   demandGenVideoAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Required. The business name shown on the ad. *Warning*: Starting **July 13, 2026**, this setting will no longer be required if a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -2262,7 +2266,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.AdGroupAds. Registered at `@swamp/gcp/displayvideo/advertisers-adgroupads`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-adgroupads",
-  version: "2026.06.08.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2375,6 +2379,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

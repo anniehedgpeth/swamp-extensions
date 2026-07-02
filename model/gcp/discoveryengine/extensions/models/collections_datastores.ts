@@ -498,6 +498,7 @@ const GlobalArgsSchema = z.object({
       "GOOGLE_GROUPS",
       "GOOGLE_KEEP",
       "GOOGLE_PEOPLE",
+      "GOOGLE_WORKSPACE",
     ]).describe("The Google Workspace data source.").optional(),
   }).describe(
     "Config to store data store type configuration for workspace data",
@@ -974,6 +975,7 @@ const InputsSchema = z.object({
       "GOOGLE_GROUPS",
       "GOOGLE_KEEP",
       "GOOGLE_PEOPLE",
+      "GOOGLE_WORKSPACE",
     ]).describe("The Google Workspace data source.").optional(),
   }).describe(
     "Config to store data store type configuration for workspace data",
@@ -1013,7 +1015,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.DataStores. Registered at `@swamp/gcp/discoveryengine/collections-datastores`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-datastores",
-  version: "2026.06.08.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1102,6 +1104,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

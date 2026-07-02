@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/cognito/user-pool-user
+// Auto-generated extension model for @swamp/aws/certificatemanager/acme-domain-validation
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Cognito UserPoolUser (AWS::Cognito::UserPoolUser).
+ * Swamp extension model for CertificateManager AcmeDomainValidation (AWS::CertificateManager::AcmeDomainValidation).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -37,12 +37,29 @@ import {
   deleteResource,
   isResourceNotFoundError,
   readResource,
+  updateResource,
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const AttributeTypeSchema = z.object({
-  Value: z.string().optional(),
-  Name: z.string().optional(),
+const DomainScopeSchema = z.object({
+  ExactDomain: z.string().describe(
+    "Whether certificates may be issued for the exact domain.",
+  ).optional(),
+  Subdomains: z.string().describe(
+    "Whether certificates may be issued for subdomains of the domain.",
+  ).optional(),
+  Wildcards: z.string().describe(
+    "Whether wildcard certificates may be issued for the domain.",
+  ).optional(),
+});
+
+const DnsPrevalidationOptionsSchema = z.object({
+  DomainScope: DomainScopeSchema.describe(
+    "Controls which certificate types are authorized to be issued for the domain via the ACME endpoint.",
+  ).optional(),
+  HostedZoneId: z.string().describe(
+    "The Route 53 hosted zone ID for automatic DNS record management. When provided, the service creates the validation DNS record on the customer's behalf.",
+  ).optional(),
 });
 
 const GlobalArgsSchema = z.object({
@@ -61,25 +78,34 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  ValidationData: z.array(AttributeTypeSchema).optional(),
-  UserPoolId: z.string(),
-  Username: z.string().optional(),
-  MessageAction: z.string().optional(),
-  ClientMetadata: z.record(z.string(), z.string()).optional(),
-  DesiredDeliveryMediums: z.array(z.string()).optional(),
-  ForceAliasCreation: z.boolean().optional(),
-  UserAttributes: z.array(AttributeTypeSchema).optional(),
+  AcmeEndpointArn: z.string().describe(
+    "The ARN of the ACME endpoint this domain validation is associated with.",
+  ),
+  DomainName: z.string().describe("The domain name to validate."),
+  PrevalidationOptions: z.object({
+    DnsPrevalidation: DnsPrevalidationOptionsSchema.describe(
+      "DNS-based prevalidation options for the domain validation.",
+    ),
+  }).describe(
+    "Prevalidation method configuration. Currently only DNS-based prevalidation is supported.",
+  ),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128).describe("The key name of the tag."),
+    Value: z.string().min(0).max(256).describe("The value for the tag."),
+  })).describe("Tags associated with the domain validation.").optional(),
 });
 
 const StateSchema = z.object({
-  ValidationData: z.array(AttributeTypeSchema).optional(),
-  UserPoolId: z.string(),
-  Username: z.string(),
-  MessageAction: z.string().optional(),
-  ClientMetadata: z.record(z.string(), z.unknown()).optional(),
-  DesiredDeliveryMediums: z.array(z.string()).optional(),
-  ForceAliasCreation: z.boolean().optional(),
-  UserAttributes: z.array(AttributeTypeSchema).optional(),
+  Arn: z.string(),
+  AcmeEndpointArn: z.string().optional(),
+  DomainName: z.string().optional(),
+  PrevalidationOptions: z.object({
+    DnsPrevalidation: DnsPrevalidationOptionsSchema,
+  }).optional(),
+  Tags: z.array(z.object({
+    Key: z.string(),
+    Value: z.string(),
+  })).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -90,14 +116,23 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  ValidationData: z.array(AttributeTypeSchema).optional(),
-  UserPoolId: z.string().optional(),
-  Username: z.string().optional(),
-  MessageAction: z.string().optional(),
-  ClientMetadata: z.record(z.string(), z.string()).optional(),
-  DesiredDeliveryMediums: z.array(z.string()).optional(),
-  ForceAliasCreation: z.boolean().optional(),
-  UserAttributes: z.array(AttributeTypeSchema).optional(),
+  AcmeEndpointArn: z.string().describe(
+    "The ARN of the ACME endpoint this domain validation is associated with.",
+  ).optional(),
+  DomainName: z.string().describe("The domain name to validate.").optional(),
+  PrevalidationOptions: z.object({
+    DnsPrevalidation: DnsPrevalidationOptionsSchema.describe(
+      "DNS-based prevalidation options for the domain validation.",
+    ).optional(),
+  }).describe(
+    "Prevalidation method configuration. Currently only DNS-based prevalidation is supported.",
+  ).optional(),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128).describe("The key name of the tag.")
+      .optional(),
+    Value: z.string().min(0).max(256).describe("The value for the tag.")
+      .optional(),
+  })).describe("Tags associated with the domain validation.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -116,62 +151,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for Cognito UserPoolUser. Registered at `@swamp/aws/cognito/user-pool-user`. */
+/** Swamp extension model for CertificateManager AcmeDomainValidation. Registered at `@swamp/aws/certificatemanager/acme-domain-validation`. */
 export const model = {
-  type: "@swamp/aws/cognito/user-pool-user",
+  type: "@swamp/aws/certificatemanager/acme-domain-validation",
   version: "2026.07.02.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.02.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Cognito UserPoolUser resource state",
+      description: "CertificateManager AcmeDomainValidation resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -179,7 +167,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a Cognito UserPoolUser",
+      description: "Create a CertificateManager AcmeDomainValidation",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -191,7 +179,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::Cognito::UserPoolUser",
+          "AWS::CertificateManager::AcmeDomainValidation",
           desiredState,
           credentials,
         ) as StateData;
@@ -208,16 +196,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a Cognito UserPoolUser",
+      description: "Get a CertificateManager AcmeDomainValidation",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Cognito UserPoolUser",
+          "The primary identifier of the CertificateManager AcmeDomainValidation",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::Cognito::UserPoolUser",
+          "AWS::CertificateManager::AcmeDomainValidation",
           args.identifier,
           credentials,
         ) as StateData;
@@ -234,17 +222,67 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
+    update: {
+      description: "Update a CertificateManager AcmeDomainValidation",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.Arn?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        const currentState = await readResource(
+          "AWS::CertificateManager::AcmeDomainValidation",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::CertificateManager::AcmeDomainValidation",
+          identifier,
+          currentState,
+          desiredState,
+          ["AcmeEndpointArn", "DomainName", "HostedZoneId"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
     delete: {
-      description: "Delete a Cognito UserPoolUser",
+      description: "Delete a CertificateManager AcmeDomainValidation",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Cognito UserPoolUser",
+          "The primary identifier of the CertificateManager AcmeDomainValidation",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::Cognito::UserPoolUser",
+          "AWS::CertificateManager::AcmeDomainValidation",
           args.identifier,
           credentials,
         );
@@ -263,7 +301,8 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync Cognito UserPoolUser state from AWS",
+      description:
+        "Sync CertificateManager AcmeDomainValidation state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -281,19 +320,13 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const idParts = [
-          existing.UserPoolId?.toString(),
-          existing.Username?.toString(),
-        ];
-        if (idParts.some((p) => !p)) {
-          throw new Error(
-            "Missing primary identifier fields in existing state",
-          );
+        const identifier = existing.Arn?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
         }
-        const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::Cognito::UserPoolUser",
+            "AWS::CertificateManager::AcmeDomainValidation",
             identifier,
             credentials,
           ) as StateData;

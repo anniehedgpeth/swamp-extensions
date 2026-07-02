@@ -443,6 +443,7 @@ const GlobalArgsSchema = z.object({
     CapacityDistributionStrategy: z.enum([
       "balanced-best-effort",
       "balanced-only",
+      "reservations-then-balanced",
     ]).describe(
       "If launches fail in an Availability Zone, the following strategies are available. The default is balanced-best-effort. balanced-only - If launches fail in an Availability Zone, Auto Scaling will continue to attempt to launch in the unhealthy zone to preserve a balanced distribution. balanced-best-effort - If launches fail in an Availability Zone, Auto Scaling will attempt to launch in another healthy Availability Zone instead.",
     ).optional(),
@@ -681,6 +682,7 @@ const InputsSchema = z.object({
     CapacityDistributionStrategy: z.enum([
       "balanced-best-effort",
       "balanced-only",
+      "reservations-then-balanced",
     ]).describe(
       "If launches fail in an Availability Zone, the following strategies are available. The default is balanced-best-effort. balanced-only - If launches fail in an Availability Zone, Auto Scaling will continue to attempt to launch in the unhealthy zone to preserve a balanced distribution. balanced-best-effort - If launches fail in an Availability Zone, Auto Scaling will attempt to launch in another healthy Availability Zone instead.",
     ).optional(),
@@ -761,7 +763,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for AutoScaling AutoScalingGroup. Registered at `@swamp/aws/autoscaling/auto-scaling-group`. */
 export const model = {
   type: "@swamp/aws/autoscaling/auto-scaling-group",
-  version: "2026.06.15.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.03.27.1",
@@ -815,6 +817,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

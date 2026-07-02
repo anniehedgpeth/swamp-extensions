@@ -444,7 +444,7 @@ const GlobalArgsSchema = z.object({
         "FEATURE_STATE_OFF",
       ]),
     ).describe(
-      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `deep-research`",
+      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `disable-projects` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `deep-research`",
     ).optional(),
     generativeAnswerConfig: z.object({
       disableRelatedQuestions: z.boolean().describe(
@@ -482,6 +482,9 @@ const GlobalArgsSchema = z.object({
         "The number of top results to generate the answer from. Up to 10.",
       ).optional(),
     }).describe("Describes configuration for generative answer.").optional(),
+    googleDrivePickerEnabled: z.boolean().describe(
+      "Output only. Whether the Google Drive file picker is available to end-users. Declared `optional` for the same field-presence reason as `onedrive_picker_enabled` above.",
+    ).optional(),
     interactionType: z.enum([
       "INTERACTION_TYPE_UNSPECIFIED",
       "SEARCH_ONLY",
@@ -519,6 +522,9 @@ const GlobalArgsSchema = z.object({
       z.enum(["MODEL_STATE_UNSPECIFIED", "MODEL_ENABLED", "MODEL_DISABLED"]),
     ).describe(
       "Output only. Maps a model name to its specific configuration for this engine. This allows admin users to turn on/off individual models. This only stores models whose states are overridden by the admin. When the state is unspecified, or model_configs is empty for this model, the system will decide if this model should be available or not based on the default configuration. For example, a preview model should be disabled by default if the admin has not chosen to enable it.",
+    ).optional(),
+    onedrivePickerEnabled: z.boolean().describe(
+      'Output only. Whether the OneDrive file picker is available to end-users. Computed by the backend from admin connector enablement (Business edition) or attached OneDrive connectors (Enterprise edition), combined with the existing `disable-onedrive-upload` admin feature. Declared `optional` so an explicitly-computed `false` is serialized with field presence. A plain proto3 `bool` drops a default `false` on the wire, which prevented clients from distinguishing "picker disabled" (`false`) from "field not populated" (unset).',
     ).optional(),
     resultDescriptionType: z.enum([
       "RESULT_DISPLAY_TYPE_UNSPECIFIED",
@@ -699,6 +705,7 @@ const StateSchema = z.object({
       modelVersion: z.string(),
       resultCount: z.number(),
     }),
+    googleDrivePickerEnabled: z.boolean(),
     interactionType: z.string(),
     modelConfigInfo: z.object({
       defaultModelId: z.string(),
@@ -711,6 +718,7 @@ const StateSchema = z.object({
       })),
     }),
     modelConfigs: z.record(z.string(), z.unknown()),
+    onedrivePickerEnabled: z.boolean(),
     resultDescriptionType: z.string(),
   }).optional(),
   updateTime: z.string().optional(),
@@ -1070,7 +1078,7 @@ const InputsSchema = z.object({
         "FEATURE_STATE_OFF",
       ]),
     ).describe(
-      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `deep-research`",
+      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `disable-projects` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `deep-research`",
     ).optional(),
     generativeAnswerConfig: z.object({
       disableRelatedQuestions: z.boolean().describe(
@@ -1108,6 +1116,9 @@ const InputsSchema = z.object({
         "The number of top results to generate the answer from. Up to 10.",
       ).optional(),
     }).describe("Describes configuration for generative answer.").optional(),
+    googleDrivePickerEnabled: z.boolean().describe(
+      "Output only. Whether the Google Drive file picker is available to end-users. Declared `optional` for the same field-presence reason as `onedrive_picker_enabled` above.",
+    ).optional(),
     interactionType: z.enum([
       "INTERACTION_TYPE_UNSPECIFIED",
       "SEARCH_ONLY",
@@ -1146,6 +1157,9 @@ const InputsSchema = z.object({
     ).describe(
       "Output only. Maps a model name to its specific configuration for this engine. This allows admin users to turn on/off individual models. This only stores models whose states are overridden by the admin. When the state is unspecified, or model_configs is empty for this model, the system will decide if this model should be available or not based on the default configuration. For example, a preview model should be disabled by default if the admin has not chosen to enable it.",
     ).optional(),
+    onedrivePickerEnabled: z.boolean().describe(
+      'Output only. Whether the OneDrive file picker is available to end-users. Computed by the backend from admin connector enablement (Business edition) or attached OneDrive connectors (Enterprise edition), combined with the existing `disable-onedrive-upload` admin feature. Declared `optional` so an explicitly-computed `false` is serialized with field presence. A plain proto3 `bool` drops a default `false` on the wire, which prevented clients from distinguishing "picker disabled" (`false`) from "field not populated" (unset).',
+    ).optional(),
     resultDescriptionType: z.enum([
       "RESULT_DISPLAY_TYPE_UNSPECIFIED",
       "SNIPPET",
@@ -1176,7 +1190,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/datastores-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-widgetconfigs",
-  version: "2026.06.24.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1310,6 +1324,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

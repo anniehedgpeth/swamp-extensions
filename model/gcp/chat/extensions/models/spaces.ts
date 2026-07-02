@@ -145,6 +145,26 @@ const GlobalArgsSchema = z.object({
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
   accessSettings: z.object({
+    accessPermissionSettings: z.object({
+      discoverSpaceSetting: z.object({
+        principals: z.array(z.object({
+          audience: z.unknown().describe(
+            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
+          ).optional(),
+        })).describe(
+          "Optional. Unordered list. Allowed principals for this permission.",
+        ).optional(),
+      }).describe("An access permission setting.").optional(),
+      joinSpaceSetting: z.object({
+        principals: z.array(z.object({
+          audience: z.unknown().describe(
+            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
+          ).optional(),
+        })).describe(
+          "Optional. Unordered list. Allowed principals for this permission.",
+        ).optional(),
+      }).describe("An access permission setting.").optional(),
+    }).describe("Access permission settings for a space.").optional(),
     accessState: z.enum(["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"])
       .describe("Output only. Indicates the access state of the space.")
       .optional(),
@@ -301,6 +321,18 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   accessSettings: z.object({
+    accessPermissionSettings: z.object({
+      discoverSpaceSetting: z.object({
+        principals: z.array(z.object({
+          audience: z.unknown(),
+        })),
+      }),
+      joinSpaceSetting: z.object({
+        principals: z.array(z.object({
+          audience: z.unknown(),
+        })),
+      }),
+    }),
     accessState: z.string(),
     audience: z.string(),
   }).optional(),
@@ -380,6 +412,26 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   accessSettings: z.object({
+    accessPermissionSettings: z.object({
+      discoverSpaceSetting: z.object({
+        principals: z.array(z.object({
+          audience: z.unknown().describe(
+            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
+          ).optional(),
+        })).describe(
+          "Optional. Unordered list. Allowed principals for this permission.",
+        ).optional(),
+      }).describe("An access permission setting.").optional(),
+      joinSpaceSetting: z.object({
+        principals: z.array(z.object({
+          audience: z.unknown().describe(
+            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
+          ).optional(),
+        })).describe(
+          "Optional. Unordered list. Allowed principals for this permission.",
+        ).optional(),
+      }).describe("An access permission setting.").optional(),
+    }).describe("Access permission settings for a space.").optional(),
     accessState: z.enum(["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"])
       .describe("Output only. Indicates the access state of the space.")
       .optional(),
@@ -549,7 +601,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces. Registered at `@swamp/gcp/chat/spaces`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces",
-  version: "2026.06.08.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -648,6 +700,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

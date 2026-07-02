@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/cognito/user-pool-user
+// Auto-generated extension model for @swamp/aws/cognito/user-pool-replica
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Cognito UserPoolUser (AWS::Cognito::UserPoolUser).
+ * Swamp extension model for Cognito UserPoolReplica (AWS::Cognito::UserPoolReplica).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -37,13 +37,9 @@ import {
   deleteResource,
   isResourceNotFoundError,
   readResource,
+  updateResource,
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
-
-const AttributeTypeSchema = z.object({
-  Value: z.string().optional(),
-  Name: z.string().optional(),
-});
 
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
@@ -61,25 +57,15 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  ValidationData: z.array(AttributeTypeSchema).optional(),
   UserPoolId: z.string(),
-  Username: z.string().optional(),
-  MessageAction: z.string().optional(),
-  ClientMetadata: z.record(z.string(), z.string()).optional(),
-  DesiredDeliveryMediums: z.array(z.string()).optional(),
-  ForceAliasCreation: z.boolean().optional(),
-  UserAttributes: z.array(AttributeTypeSchema).optional(),
+  RegionName: z.string().min(5).max(32),
+  UserPoolTagsAtCreate: z.record(z.string(), z.string()).optional(),
 });
 
 const StateSchema = z.object({
-  ValidationData: z.array(AttributeTypeSchema).optional(),
   UserPoolId: z.string(),
-  Username: z.string(),
-  MessageAction: z.string().optional(),
-  ClientMetadata: z.record(z.string(), z.unknown()).optional(),
-  DesiredDeliveryMediums: z.array(z.string()).optional(),
-  ForceAliasCreation: z.boolean().optional(),
-  UserAttributes: z.array(AttributeTypeSchema).optional(),
+  RegionName: z.string(),
+  UserPoolTagsAtCreate: z.record(z.string(), z.unknown()).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -90,14 +76,9 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  ValidationData: z.array(AttributeTypeSchema).optional(),
   UserPoolId: z.string().optional(),
-  Username: z.string().optional(),
-  MessageAction: z.string().optional(),
-  ClientMetadata: z.record(z.string(), z.string()).optional(),
-  DesiredDeliveryMediums: z.array(z.string()).optional(),
-  ForceAliasCreation: z.boolean().optional(),
-  UserAttributes: z.array(AttributeTypeSchema).optional(),
+  RegionName: z.string().min(5).max(32).optional(),
+  UserPoolTagsAtCreate: z.record(z.string(), z.string()).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -116,62 +97,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for Cognito UserPoolUser. Registered at `@swamp/aws/cognito/user-pool-user`. */
+/** Swamp extension model for Cognito UserPoolReplica. Registered at `@swamp/aws/cognito/user-pool-replica`. */
 export const model = {
-  type: "@swamp/aws/cognito/user-pool-user",
+  type: "@swamp/aws/cognito/user-pool-replica",
   version: "2026.07.02.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.02.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Cognito UserPoolUser resource state",
+      description: "Cognito UserPoolReplica resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -179,7 +113,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a Cognito UserPoolUser",
+      description: "Create a Cognito UserPoolReplica",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -191,7 +125,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::Cognito::UserPoolUser",
+          "AWS::Cognito::UserPoolReplica",
           desiredState,
           credentials,
         ) as StateData;
@@ -208,16 +142,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a Cognito UserPoolUser",
+      description: "Get a Cognito UserPoolReplica",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Cognito UserPoolUser",
+          "The primary identifier of the Cognito UserPoolReplica",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::Cognito::UserPoolUser",
+          "AWS::Cognito::UserPoolReplica",
           args.identifier,
           credentials,
         ) as StateData;
@@ -234,36 +168,8 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
-    delete: {
-      description: "Delete a Cognito UserPoolUser",
-      arguments: z.object({
-        identifier: z.string().describe(
-          "The primary identifier of the Cognito UserPoolUser",
-        ),
-      }),
-      execute: async (args: { identifier: string }, context: any) => {
-        const credentials = _buildCredentials(context.globalArgs);
-        const { existed } = await deleteResource(
-          "AWS::Cognito::UserPoolUser",
-          args.identifier,
-          credentials,
-        );
-        const instanceName =
-          (context.globalArgs.name?.toString() ?? args.identifier).replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
-          identifier: args.identifier,
-          existed,
-          status: existed ? "deleted" : "not_found",
-          deletedAt: new Date().toISOString(),
-        });
-        return { dataHandles: [handle] };
-      },
-    },
-    sync: {
-      description: "Sync Cognito UserPoolUser state from AWS",
+    update: {
+      description: "Update a Cognito UserPoolReplica",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -283,7 +189,91 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         const idParts = [
           existing.UserPoolId?.toString(),
-          existing.Username?.toString(),
+          existing.RegionName?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
+        }
+        const identifier = idParts.join("|");
+        const currentState = await readResource(
+          "AWS::Cognito::UserPoolReplica",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::Cognito::UserPoolReplica",
+          identifier,
+          currentState,
+          desiredState,
+          ["UserPoolId", "RegionName", "UserPoolTagsAtCreate"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete a Cognito UserPoolReplica",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the Cognito UserPoolReplica",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { existed } = await deleteResource(
+          "AWS::Cognito::UserPoolReplica",
+          args.identifier,
+          credentials,
+        );
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
+        return { dataHandles: [handle] };
+      },
+    },
+    sync: {
+      description: "Sync Cognito UserPoolReplica state from AWS",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const idParts = [
+          existing.UserPoolId?.toString(),
+          existing.RegionName?.toString(),
         ];
         if (idParts.some((p) => !p)) {
           throw new Error(
@@ -293,7 +283,7 @@ export const model = {
         const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::Cognito::UserPoolUser",
+            "AWS::Cognito::UserPoolReplica",
             identifier,
             credentials,
           ) as StateData;

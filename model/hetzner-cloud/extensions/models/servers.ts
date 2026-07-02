@@ -49,10 +49,7 @@ const GlobalArgsSchema = z.object({
     'User-defined labels (`key/value` pairs) for the Resource.\nFor more information, see "[Labels](#description/labels)".\n',
   ).optional(),
   location: z.string().describe(
-    "ID or name of the Location to create the Server in (must not be used together with `datacenter`).",
-  ).optional(),
-  datacenter: z.string().describe(
-    "**Deprecated**: This property is deprecated and will be removed after the 1 July 2026.\nUse the `location` property instead.\n\nID or name of the Data Center to create Server in (must not be used together with `location`).\n",
+    "ID or name of the Location to create the Server in.",
   ).optional(),
   server_type: z.string().describe(
     "ID or name of the Server type this Server should be created with.",
@@ -153,26 +150,6 @@ const ResourceSchema = z.object({
       available: z.boolean().optional(),
     })).optional(),
   }).optional(),
-  datacenter: z.object({
-    id: z.number().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    location: z.object({
-      id: z.number().optional(),
-      name: z.string().optional(),
-      description: z.string().optional(),
-      country: z.string().optional(),
-      city: z.string().optional(),
-      latitude: z.number().optional(),
-      longitude: z.number().optional(),
-      network_zone: z.string().optional(),
-    }).optional(),
-    server_types: z.object({
-      supported: z.array(z.number()).optional(),
-      available: z.array(z.number()).optional(),
-      available_for_migration: z.array(z.number()).optional(),
-    }).optional(),
-  }).optional(),
   location: z.object({
     id: z.number().optional(),
     name: z.string().optional(),
@@ -208,7 +185,6 @@ const InputsSchema = z.object({
   name: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   location: z.string().optional(),
-  datacenter: z.string().optional(),
   server_type: z.string().optional(),
   start_after_create: z.boolean().optional(),
   image: z.string().optional(),
@@ -233,7 +209,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Hetzner Cloud server. Registered at `@swamp/hetzner-cloud/servers`. */
 export const model = {
   type: "@swamp/hetzner-cloud/servers",
-  version: "2026.06.25.1",
+  version: "2026.07.02.1",
   upgrades: [
     {
       toVersion: "2026.04.02.1",
@@ -295,6 +271,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.02.1",
+      description: "Removed: datacenter",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { datacenter: _datacenter, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -315,7 +299,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g.name !== undefined) body.name = g.name;
         if (g.location !== undefined) body.location = g.location;
-        if (g.datacenter !== undefined) body.datacenter = g.datacenter;
         if (g.server_type !== undefined) body.server_type = g.server_type;
         if (g.start_after_create !== undefined) {
           body.start_after_create = g.start_after_create;
