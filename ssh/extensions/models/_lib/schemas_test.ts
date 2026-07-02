@@ -20,6 +20,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   AuthSchema,
+  CollectHostPublicKeyArgsSchema,
   CopyArgsSchema,
   ExecArgsSchema,
   ForwardArgsSchema,
@@ -417,4 +418,34 @@ Deno.test("ForwardArgsSchema: type defaults to L", () => {
     spec: "8000:127.0.0.1:8000",
   });
   assertEquals(f.type, "L");
+});
+
+// ---------------------------------------------------------------------------
+// CollectHostPublicKeyArgsSchema
+// ---------------------------------------------------------------------------
+
+Deno.test("CollectHostPublicKeyArgsSchema: defaults hostKeyPath", () => {
+  const c = CollectHostPublicKeyArgsSchema.parse({ hosts: "all" });
+  assertEquals(c.hostKeyPath, "/etc/ssh/ssh_host_ed25519_key.pub");
+});
+
+Deno.test("CollectHostPublicKeyArgsSchema: accepts custom hostKeyPath", () => {
+  const c = CollectHostPublicKeyArgsSchema.parse({
+    hosts: ["web-1"],
+    hostKeyPath: "/etc/ssh/ssh_host_rsa_key.pub",
+  });
+  assertEquals(c.hostKeyPath, "/etc/ssh/ssh_host_rsa_key.pub");
+});
+
+Deno.test("CollectHostPublicKeyArgsSchema: rejects empty hostKeyPath", () => {
+  assert(
+    !CollectHostPublicKeyArgsSchema.safeParse({
+      hosts: "all",
+      hostKeyPath: "",
+    }).success,
+  );
+});
+
+Deno.test("CollectHostPublicKeyArgsSchema: hosts is required", () => {
+  assert(!CollectHostPublicKeyArgsSchema.safeParse({}).success);
 });

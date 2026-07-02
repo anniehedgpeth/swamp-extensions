@@ -34,11 +34,13 @@
 
 import {
   ApplyArgsSchema,
+  CollectHostPublicKeyArgsSchema,
   CopyArgsSchema,
   ExecArgsSchema,
   ForwardArgsSchema,
   ForwardStateSchema,
   GlobalArgsSchema,
+  HostPublicKeySchema,
   HostResourceSchema,
   MasterAuditSchema,
   OpenArgsSchema,
@@ -47,6 +49,7 @@ import {
   TargetingSchema,
 } from "./_lib/schemas.ts";
 import {
+  type CollectHostPublicKeyArgs,
   type CopyArgs,
   type ExecArgs,
   type ForwardArgs,
@@ -58,6 +61,7 @@ import {
   runApply,
   runCheck,
   runClose,
+  runCollectHostPublicKey,
   runCopy,
   runExec,
   runForward,
@@ -81,6 +85,7 @@ const SELECTOR_METHODS = [
   "script",
   "copy",
   "forward",
+  "collect-host-public-key",
 ];
 
 /**
@@ -90,7 +95,7 @@ const SELECTOR_METHODS = [
  */
 export const model = {
   type: "@swamp/ssh",
-  version: "2026.06.27.1",
+  version: "2026.07.02.1",
   globalArguments: GlobalArgsSchema,
 
   upgrades: [
@@ -168,6 +173,17 @@ export const model = {
         "No globalArguments schema change.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.02.1",
+      description:
+        "Feature (#917): added collect-host-public-key method. Reads a " +
+        "remote host's SSH public key file (default " +
+        "/etc/ssh/ssh_host_ed25519_key.pub), validates it as a single " +
+        "OpenSSH public key line, computes its SHA256 fingerprint, and " +
+        "emits a hostPublicKey resource per host. New additive resource " +
+        "spec (hostPublicKey) with gc 10. No globalArguments schema change.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
 
   resources: {
@@ -199,6 +215,14 @@ export const model = {
       schema: MasterAuditSchema,
       lifetime: "infinite" as const,
       garbageCollection: 100,
+    },
+    hostPublicKey: {
+      description: "Observed SSH host public key. One per host, written by " +
+        "`collect-host-public-key`. Contains the raw public key line, " +
+        "parsed algorithm, and SHA256 fingerprint.",
+      schema: HostPublicKeySchema,
+      lifetime: "infinite" as const,
+      garbageCollection: 10,
     },
   },
 
@@ -272,6 +296,15 @@ export const model = {
         "Open/cancel/list a port forward (ssh -O forward, or detached tailscale child).",
       arguments: ForwardArgsSchema,
       execute: (args: ForwardArgs, ctx: FleetContext) => runForward(args, ctx),
+    },
+    "collect-host-public-key": {
+      description:
+        "Read and validate a remote host's SSH public key file. Emits a " +
+        "hostPublicKey resource with the raw key, algorithm, and SHA256 " +
+        "fingerprint. Defaults to /etc/ssh/ssh_host_ed25519_key.pub.",
+      arguments: CollectHostPublicKeyArgsSchema,
+      execute: (args: CollectHostPublicKeyArgs, ctx: FleetContext) =>
+        runCollectHostPublicKey(args, ctx),
     },
   },
 };

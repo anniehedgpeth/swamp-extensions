@@ -173,11 +173,20 @@ Deno.test("model: declares expected type, methods, resources, checks", () => {
       "script",
       "copy",
       "forward",
+      "collect-host-public-key",
     ]
   ) {
     assert(m in model.methods, `missing method ${m}`);
   }
-  for (const r of ["host", "runResult", "forwardState", "masterAudit"]) {
+  for (
+    const r of [
+      "host",
+      "runResult",
+      "forwardState",
+      "masterAudit",
+      "hostPublicKey",
+    ]
+  ) {
     assert(r in model.resources, `missing resource ${r}`);
   }
   for (const c of ["master-writable", "sshpass-available"]) {
@@ -1190,6 +1199,195 @@ Deno.test("copy: non-zero exit throws", async () => {
     assert(msg.includes("copy failed"), msg);
     assert(msg.includes("web-1"), msg);
     assert(msg.includes("exit 255"), msg);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// collect-host-public-key
+// ---------------------------------------------------------------------------
+
+const ED25519_PUBKEY =
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl host@example";
+
+Deno.test("collect-host-public-key: writes hostPublicKey resource with correct fields", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor } = okExecutor(() => ED25519_PUBKEY + "\n");
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: ["web-1"],
+    });
+    const out = await model.methods["collect-host-public-key"].execute(
+      args,
+      h.ctx,
+    );
+    assert(out.dataHandles.length >= 2);
+    const rec = h.resources.get("hostPublicKey-web-1");
+    assert(rec !== undefined, "hostPublicKey resource should exist");
+    assertEquals(rec.name, "web-1");
+    assertEquals(rec.host, "10.0.0.11");
+    assertEquals(rec.user, "deploy");
+    assertEquals(rec.hostKeyPath, "/etc/ssh/ssh_host_ed25519_key.pub");
+    assertEquals(rec.publicKey, ED25519_PUBKEY);
+    assertEquals(rec.algorithm, "ssh-ed25519");
+    assert(
+      (rec.fingerprint as string).startsWith("SHA256:"),
+      "fingerprint should start with SHA256:",
+    );
+    assert(typeof rec.observedAt === "string");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("collect-host-public-key: custom hostKeyPath is used in the remote command", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor, requests } = okExecutor(() => ED25519_PUBKEY + "\n");
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: ["web-1"],
+      hostKeyPath: "/etc/ssh/ssh_host_rsa_key.pub",
+    });
+    await model.methods["collect-host-public-key"].execute(args, h.ctx);
+    const remoteCmd = requests[0].args.at(-1) as string;
+    assert(
+      remoteCmd.includes("/etc/ssh/ssh_host_rsa_key.pub"),
+      "remote command should reference the custom path",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("collect-host-public-key: empty output throws clear error", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor } = okExecutor(() => "");
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: ["web-1"],
+    });
+    let msg = "";
+    try {
+      await model.methods["collect-host-public-key"].execute(args, h.ctx);
+    } catch (e) {
+      msg = e instanceof Error ? e.message : String(e);
+    }
+    assert(msg.includes("empty or unreadable"), msg);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("collect-host-public-key: multi-line output throws", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor } = okExecutor(
+    () => "ssh-ed25519 AAAA... host1\nssh-rsa AAAA... host2\n",
+  );
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: ["web-1"],
+    });
+    let msg = "";
+    try {
+      await model.methods["collect-host-public-key"].execute(args, h.ctx);
+    } catch (e) {
+      msg = e instanceof Error ? e.message : String(e);
+    }
+    assert(msg.includes("single public key line"), msg);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("collect-host-public-key: private key content is rejected", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor } = okExecutor(
+    () =>
+      "-----BEGIN OPENSSH PRIVATE KEY-----\nfake\n-----END OPENSSH PRIVATE KEY-----\n",
+  );
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: ["web-1"],
+    });
+    let msg = "";
+    try {
+      await model.methods["collect-host-public-key"].execute(args, h.ctx);
+    } catch (e) {
+      msg = e instanceof Error ? e.message : String(e);
+    }
+    assert(msg.includes("private key"), msg);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("collect-host-public-key: invalid key format throws", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor } = okExecutor(() => "not-a-known-algo AAAA...\n");
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: ["web-1"],
+    });
+    let msg = "";
+    try {
+      await model.methods["collect-host-public-key"].execute(args, h.ctx);
+    } catch (e) {
+      msg = e instanceof Error ? e.message : String(e);
+    }
+    assert(msg.includes("unrecognized key algorithm"), msg);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("collect-host-public-key: non-zero exit throws via throwOnHostFailures", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor } = failExecutor(1, "No such file or directory\n");
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: ["web-1"],
+    });
+    let msg = "";
+    try {
+      await model.methods["collect-host-public-key"].execute(args, h.ctx);
+    } catch (e) {
+      msg = e instanceof Error ? e.message : String(e);
+    }
+    assert(msg.includes("collect-host-public-key failed"), msg);
+    assert(msg.includes("web-1"), msg);
+    assert(
+      h.resources.has("run-collect-host-public-key-web-1"),
+      "runResult should be written before throw",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("collect-host-public-key: multiple hosts, all succeed", async () => {
+  const h = makeHarness(FLEET, "collect-host-public-key");
+  const { executor } = okExecutor(() => ED25519_PUBKEY + "\n");
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods["collect-host-public-key"].arguments.parse({
+      hosts: "all",
+    });
+    const out = await model.methods["collect-host-public-key"].execute(
+      args,
+      h.ctx,
+    );
+    assert(out.dataHandles.length >= 6);
+    assert(h.resources.has("hostPublicKey-web-1"));
+    assert(h.resources.has("hostPublicKey-web-2"));
+    assert(h.resources.has("hostPublicKey-edge-1"));
   } finally {
     resetCommandExecutor();
   }

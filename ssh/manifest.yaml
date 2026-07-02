@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/ssh"
-version: "2026.06.27.1"
+version: "2026.07.02.1"
 description: |
   Run commands, copy files, and open port forwards across a declared set of
   hosts over SSH. Define the hosts once on the model, then target any subset
@@ -43,6 +43,7 @@ description: |
   | `script` | Pipe a multi-line script over stdin to `sh -s --` (or chosen interpreter) — no remote-side shell-quoting from us. |
   | `copy`   | `scp` (or `rsync -e ssh`) files to/from each selected host. |
   | `forward`| Local/remote port forwarding via the master, or detached `tailscale ssh -N -L` child for tailscale hosts. |
+  | `collect-host-public-key` | Read and validate a remote host's SSH public key file; emit algorithm, fingerprint, and raw key as a `hostPublicKey` resource. |
 
   ## Output capture
 

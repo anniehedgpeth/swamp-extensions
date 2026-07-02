@@ -323,6 +323,45 @@ For `tailscale`: spawns a detached `tailscale ssh -N -L <spec>` child,
 records the pid in a `forwardState` resource; `cancel` kills the pid.
 `list` reads the recorded `forwardState` resources for the selected hosts.
 
+### `collect-host-public-key`
+
+```yaml
+arguments:
+  hosts: all
+  hostKeyPath: /etc/ssh/ssh_host_ed25519_key.pub   # default
+```
+
+Reads the specified public key file from each selected host over SSH,
+validates it as a single OpenSSH public key line, extracts the key algorithm,
+and computes its SHA256 fingerprint. Writes one `hostPublicKey-<host>` resource
+per host.
+
+The method rejects private key content (`-----BEGIN`), multi-line output, empty
+files, and unrecognized key algorithms. Use this to observe remote host key
+material for host certificate workflows — the method reads and validates, it
+does not sign or manage certificates.
+
+```bash
+swamp model method run awesome collect-host-public-key \
+  --input hosts=all --json
+
+# Query a single host's collected key
+swamp data get awesome hostPublicKey-web-1 --json
+```
+
+Output resource fields:
+
+| Field         | Description |
+| ------------- | ----------- |
+| `name`        | Host name from the fleet definition. |
+| `host`        | Host address. |
+| `user`        | SSH user (if set). |
+| `hostKeyPath` | Path to the key file that was read. |
+| `publicKey`   | Full public key line (`<algo> <base64> [comment]`). |
+| `algorithm`   | Key algorithm (e.g. `ssh-ed25519`, `ssh-rsa`). |
+| `fingerprint` | `SHA256:<base64>` fingerprint matching `ssh-keygen -lf` output. |
+| `observedAt`  | ISO 8601 timestamp of collection. |
+
 ## Output capture
 
 `captureOutput: true` (the default, set on `globalArguments` or per call)
@@ -335,12 +374,13 @@ code and timing reach the resource.
 
 ## Resources
 
-| Name           | Cardinality                       | gc                | Notes |
-| -------------- | --------------------------------- | ----------------- | ----- |
-| `host`         | one per host in `hosts[]`         | 10                | Written by `apply`; tagged `{fleet: <globalArguments.name>}`. |
-| `runResult`    | one per (method, host, call)      | `runHistory` (50) | Per-host result. Instance name `run-<method>-<host>`. |
-| `forwardState` | one per (host, type, spec)        | 50                | pid for tailscale; ControlPath for ssh. |
-| `masterAudit`  | append per host                   | 100               | `open` / `check` / `exit` events. |
+| Name             | Cardinality                       | gc                | Notes |
+| ---------------- | --------------------------------- | ----------------- | ----- |
+| `host`           | one per host in `hosts[]`         | 10                | Written by `apply`; tagged `{fleet: <globalArguments.name>}`. |
+| `runResult`      | one per (method, host, call)      | `runHistory` (50) | Per-host result. Instance name `run-<method>-<host>`. |
+| `forwardState`   | one per (host, type, spec)        | 50                | pid for tailscale; ControlPath for ssh. |
+| `masterAudit`    | append per host                   | 100               | `open` / `check` / `exit` events. |
+| `hostPublicKey`  | one per host                      | 10                | Written by `collect-host-public-key`. Raw key, algorithm, fingerprint. |
 
 ## License
 

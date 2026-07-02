@@ -289,6 +289,13 @@ export const ForwardArgsSchema = TargetingSchema.extend({
 );
 export type ForwardArgs = z.infer<typeof ForwardArgsSchema>;
 
+export const CollectHostPublicKeyArgsSchema = TargetingSchema.extend({
+  hostKeyPath: z.string().min(1).default("/etc/ssh/ssh_host_ed25519_key.pub"),
+});
+export type CollectHostPublicKeyArgs = z.infer<
+  typeof CollectHostPublicKeyArgsSchema
+>;
+
 // ---------------------------------------------------------------------------
 // Resource record schemas
 // ---------------------------------------------------------------------------
@@ -343,3 +350,15 @@ export const MasterAuditSchema = z.object({
   recordedAt: z.string(),
 });
 export type MasterAudit = z.infer<typeof MasterAuditSchema>;
+
+export const HostPublicKeySchema = z.object({
+  name: z.string(),
+  host: z.string(),
+  user: z.string().optional(),
+  hostKeyPath: z.string(),
+  publicKey: z.string(),
+  algorithm: z.string(),
+  fingerprint: z.string(),
+  observedAt: z.string(),
+});
+export type HostPublicKey = z.infer<typeof HostPublicKeySchema>;

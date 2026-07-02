@@ -26,6 +26,7 @@
  */
 
 import {
+  type CollectHostPublicKeyArgs,
   type CopyArgs,
   type ExecArgs,
   type ForwardArgs,
@@ -925,4 +926,150 @@ export async function runForward(
   }
 
   return { dataHandles: handles };
+}
+
+// ---------------------------------------------------------------------------
+// collect-host-public-key
+// ---------------------------------------------------------------------------
+
+const KNOWN_ALGORITHMS = new Set([
+  "ssh-ed25519",
+  "ssh-rsa",
+  "ecdsa-sha2-nistp256",
+  "ecdsa-sha2-nistp384",
+  "ecdsa-sha2-nistp521",
+  "sk-ssh-ed25519@openssh.com",
+  "sk-ecdsa-sha2-nistp256@openssh.com",
+  "ssh-dss",
+]);
+
+function posixQuote(s: string): string {
+  return "'" + s.replaceAll("'", "'\\''") + "'";
+}
+
+async function computeFingerprint(base64Data: string): Promise<string> {
+  const raw = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+  const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", raw));
+  const b64 = btoa(String.fromCharCode(...hash)).replace(/=+$/, "");
+  return `SHA256:${b64}`;
+}
+
+function parsePublicKeyLine(
+  stdout: string,
+  hostName: string,
+): { algorithm: string; base64Data: string; fullLine: string } {
+  const trimmed = stdout.trim();
+
+  if (trimmed === "") {
+    throw new Error(
+      `collect-host-public-key failed on ${hostName}: file is empty or unreadable`,
+    );
+  }
+
+  if (trimmed.startsWith("-----BEGIN ")) {
+    throw new Error(
+      `collect-host-public-key failed on ${hostName}: output looks like a ` +
+        `private key (starts with "-----BEGIN"). Only public key files are ` +
+        `allowed — check the hostKeyPath.`,
+    );
+  }
+
+  const lines = trimmed.split("\n").filter((l) => l.trim() !== "");
+  if (lines.length !== 1) {
+    throw new Error(
+      `collect-host-public-key failed on ${hostName}: expected a single ` +
+        `public key line but got ${lines.length} lines. Ensure hostKeyPath ` +
+        `points to a .pub file containing exactly one key.`,
+    );
+  }
+
+  const parts = lines[0].split(/\s+/);
+  if (parts.length < 2) {
+    throw new Error(
+      `collect-host-public-key failed on ${hostName}: malformed public key ` +
+        `line — expected "<algorithm> <base64> [comment]".`,
+    );
+  }
+
+  const algorithm = parts[0];
+  if (!KNOWN_ALGORITHMS.has(algorithm)) {
+    throw new Error(
+      `collect-host-public-key failed on ${hostName}: unrecognized key ` +
+        `algorithm "${algorithm}". Expected one of: ${
+          [...KNOWN_ALGORITHMS].join(", ")
+        }.`,
+    );
+  }
+
+  return { algorithm, base64Data: parts[1], fullLine: lines[0] };
+}
+
+export async function runCollectHostPublicKey(
+  args: CollectHostPublicKeyArgs,
+  ctx: FleetContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  const g = parseGlobals(ctx);
+  const selected = resolveSelection(ctx, g, args.hosts);
+  const { hosts: materialized, tempPaths } = await materializeTempKeys(
+    selected,
+  );
+
+  try {
+    const recordedArgs: Record<string, unknown> = {
+      hostKeyPath: args.hostKeyPath,
+    };
+
+    const plans: HostPlan[] = [];
+    for (const host of materialized) {
+      const actx = await argvContextFor(g, host, args.env);
+      const command = `cat ${posixQuote(args.hostKeyPath)}`;
+      plans.push({
+        host,
+        argv: buildExecArgv(host, command, actx),
+        env: envFor(host, args.env),
+      });
+    }
+
+    const results = await runHosts(
+      plans,
+      runOptions(g, args, "collect-host-public-key", recordedArgs),
+    );
+
+    const handles: DataHandle[] = [];
+    for (const r of results) {
+      handles.push(await writeRunResult(ctx, r, g.runHistory));
+    }
+
+    throwOnHostFailures(results, "collect-host-public-key");
+
+    const now = new Date().toISOString();
+    for (const r of results) {
+      if (r.exitCode !== 0 || r.error) continue;
+      const stdout = r.stdout ?? "";
+      const host = materialized.find((h) => h.name === r.host)!;
+      const parsed = parsePublicKeyLine(stdout, r.host);
+      const fingerprint = await computeFingerprint(parsed.base64Data);
+
+      handles.push(
+        await ctx.writeResource(
+          "hostPublicKey",
+          `hostPublicKey-${r.host}`,
+          {
+            name: r.host,
+            host: host.address,
+            user: host.transport.user,
+            hostKeyPath: args.hostKeyPath,
+            publicKey: parsed.fullLine,
+            algorithm: parsed.algorithm,
+            fingerprint,
+            observedAt: now,
+          },
+        ),
+      );
+    }
+
+    return { dataHandles: handles };
+  } finally {
+    await cleanupTempKeys(tempPaths);
+  }
 }
