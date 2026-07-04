@@ -311,6 +311,10 @@ const GlobalArgsSchema = z.object({
     ipCidrRange: z.string().describe(
       "The range of IP addresses belonging to this subnetwork secondary range. Provide this property when you create the subnetwork. Ranges must be unique and non-overlapping with all primary and secondary IP ranges within a network. Both IPv4 and IPv6 ranges are supported. For IPv4, the range can be any range listed in theValid ranges list. For IPv6: The range must have a /64 prefix length. The range must be omitted, for auto-allocation from Google-defined ULA IPv6 range. For BYOGUA internal IPv6 secondary range, the range may be specified along with the `ipCollection` field. If an `ipCollection` is specified, the requested ip_cidr_range must lie within the range of the PDP referenced by the `ipCollection` field for allocation. If `ipCollection` field is specified, but ip_cidr_range is not, the range is auto-allocated from the PDP referenced by the `ipCollection` field.",
     ).optional(),
+    ipCollection: z.string().describe(
+      "Reference to a Public Delegated Prefix (PDP) for BYOIP. This field should be specified for configuring BYOGUA internal IPv6 secondary range. When specified along with the ip_cidr_range, the ip_cidr_range must lie within the PDP referenced by the `ipCollection` field. When specified without the ip_cidr_range, the range is auto-allocated from the PDP referenced by the `ipCollection` field.",
+    ).optional(),
+    ipVersion: z.enum(["IPV4", "IPV6", "IP_VERSION_UNSPECIFIED"]).optional(),
     rangeName: z.string().describe(
       "The name associated with this subnetwork secondary range, used when adding an alias IP/IPv6 range to a VM instance. The name must be 1-63 characters long, and comply withRFC1035. The name must be unique within the subnetwork.",
     ).optional(),
@@ -409,6 +413,8 @@ const StateSchema = z.object({
   role: z.string().optional(),
   secondaryIpRanges: z.array(z.object({
     ipCidrRange: z.string(),
+    ipCollection: z.string(),
+    ipVersion: z.string(),
     rangeName: z.string(),
     reservedInternalRange: z.string(),
   })).optional(),
@@ -568,6 +574,10 @@ const InputsSchema = z.object({
     ipCidrRange: z.string().describe(
       "The range of IP addresses belonging to this subnetwork secondary range. Provide this property when you create the subnetwork. Ranges must be unique and non-overlapping with all primary and secondary IP ranges within a network. Both IPv4 and IPv6 ranges are supported. For IPv4, the range can be any range listed in theValid ranges list. For IPv6: The range must have a /64 prefix length. The range must be omitted, for auto-allocation from Google-defined ULA IPv6 range. For BYOGUA internal IPv6 secondary range, the range may be specified along with the `ipCollection` field. If an `ipCollection` is specified, the requested ip_cidr_range must lie within the range of the PDP referenced by the `ipCollection` field for allocation. If `ipCollection` field is specified, but ip_cidr_range is not, the range is auto-allocated from the PDP referenced by the `ipCollection` field.",
     ).optional(),
+    ipCollection: z.string().describe(
+      "Reference to a Public Delegated Prefix (PDP) for BYOIP. This field should be specified for configuring BYOGUA internal IPv6 secondary range. When specified along with the ip_cidr_range, the ip_cidr_range must lie within the PDP referenced by the `ipCollection` field. When specified without the ip_cidr_range, the range is auto-allocated from the PDP referenced by the `ipCollection` field.",
+    ).optional(),
+    ipVersion: z.enum(["IPV4", "IPV6", "IP_VERSION_UNSPECIFIED"]).optional(),
     rangeName: z.string().describe(
       "The name associated with this subnetwork secondary range, used when adding an alias IP/IPv6 range to a VM instance. The name must be 1-63 characters long, and comply withRFC1035. The name must be unique within the subnetwork.",
     ).optional(),
@@ -643,7 +653,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Subnetworks. Registered at `@swamp/gcp/compute/subnetworks`. */
 export const model = {
   type: "@swamp/gcp/compute/subnetworks",
-  version: "2026.06.08.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -712,6 +722,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

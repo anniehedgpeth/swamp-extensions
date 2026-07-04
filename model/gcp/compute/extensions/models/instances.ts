@@ -521,6 +521,13 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Labels to apply to this instance. These can be later modified by the setLabels method.",
   ).optional(),
+  localSsdEncryptionMode: z.enum([
+    "EPHEMERAL_KEY_ENCRYPTION",
+    "LOCAL_SSD_ENCRYPTION_MODE_UNSPECIFIED",
+    "STANDARD_ENCRYPTION",
+  ]).describe(
+    "Specifies which method should be used for encrypting the Local SSDs attached to the VM.",
+  ).optional(),
   machineType: z.string().describe(
     "Full or partial URL of the machine type resource to use for this instance, in the format:zones/zone/machineTypes/machine-type. This is provided by the client when the instance is created. For example, the following is a valid partial url to a predefined machine type: zones/us-central1-f/machineTypes/n1-standard-1 To create acustom machine type, provide a URL to a machine type in the following format, where CPUS is 1 or an even number up to 32 (2, 4, 6,... 24, etc), and MEMORY is the total memory for this instance. Memory must be a multiple of 256 MB and must be supplied in MB (e.g. 5 GB of memory is 5120 MB): zones/zone/machineTypes/custom-CPUS-MEMORY For example: zones/us-central1-f/machineTypes/custom-4-5120 For a full list of restrictions, read theSpecifications for custom machine types.",
   ).optional(),
@@ -1024,6 +1031,7 @@ const StateSchema = z.object({
   lastStartTimestamp: z.string().optional(),
   lastStopTimestamp: z.string().optional(),
   lastSuspendedTimestamp: z.string().optional(),
+  localSsdEncryptionMode: z.string().optional(),
   machineType: z.string().optional(),
   metadata: z.object({
     fingerprint: z.string(),
@@ -1525,6 +1533,13 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Labels to apply to this instance. These can be later modified by the setLabels method.",
   ).optional(),
+  localSsdEncryptionMode: z.enum([
+    "EPHEMERAL_KEY_ENCRYPTION",
+    "LOCAL_SSD_ENCRYPTION_MODE_UNSPECIFIED",
+    "STANDARD_ENCRYPTION",
+  ]).describe(
+    "Specifies which method should be used for encrypting the Local SSDs attached to the VM.",
+  ).optional(),
   machineType: z.string().describe(
     "Full or partial URL of the machine type resource to use for this instance, in the format:zones/zone/machineTypes/machine-type. This is provided by the client when the instance is created. For example, the following is a valid partial url to a predefined machine type: zones/us-central1-f/machineTypes/n1-standard-1 To create acustom machine type, provide a URL to a machine type in the following format, where CPUS is 1 or an even number up to 32 (2, 4, 6,... 24, etc), and MEMORY is the total memory for this instance. Memory must be a multiple of 256 MB and must be supplied in MB (e.g. 5 GB of memory is 5120 MB): zones/zone/machineTypes/custom-CPUS-MEMORY For example: zones/us-central1-f/machineTypes/custom-4-5120 For a full list of restrictions, read theSpecifications for custom machine types.",
   ).optional(),
@@ -1924,7 +1939,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at `@swamp/gcp/compute/instances`. */
 export const model = {
   type: "@swamp/gcp/compute/instances",
-  version: "2026.06.12.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -2074,6 +2089,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.04.1",
+      description: "Added: localSsdEncryptionMode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2137,6 +2157,9 @@ export const model = {
           body["labelFingerprint"] = g["labelFingerprint"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["localSsdEncryptionMode"] !== undefined) {
+          body["localSsdEncryptionMode"] = g["localSsdEncryptionMode"];
+        }
         if (g["machineType"] !== undefined) {
           body["machineType"] = g["machineType"];
         }
@@ -2318,6 +2341,9 @@ export const model = {
           body["labelFingerprint"] = g["labelFingerprint"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["localSsdEncryptionMode"] !== undefined) {
+          body["localSsdEncryptionMode"] = g["localSsdEncryptionMode"];
+        }
         if (g["machineType"] !== undefined) {
           body["machineType"] = g["machineType"];
         }

@@ -710,6 +710,9 @@ const GlobalArgsSchema = z.object({
         'Optional. Custom configs for ParallelAiSearch. This field can be used to pass any parameter from the Parallel.ai Search API. See the Parallel.ai documentation for the full list of available parameters and their usage: https://docs.parallel.ai/api-reference/search-beta/search Currently only `source_policy`, `excerpts`, `max_results`, `mode`, `fetch_policy` can be set via this field. For example: { "source_policy": { "include_domains": ["google.com", "wikipedia.org"], "exclude_domains": ["example.com"] }, "fetch_policy": { "max_age_seconds": 3600 } }',
       ).optional(),
       enableDataRetention: z.boolean().describe(
+        'Optional. Deprecated: Use `enable_zero_data_retention` instead. Instructs Vertex Grounding to use Parallel\'s Zero Data Retention Marketplace product. If this value is "false" or omitted, the Parallel Web Search for Grounding standard subscription will be used. If this value is "true", the Parallel Web Search for Grounding - ZDR subscription will be used.',
+      ).optional(),
+      enableZeroDataRetention: z.boolean().describe(
         'Optional. Instructs Vertex Grounding to use Parallel\'s Zero Data Retention Marketplace product. If this value is "false" or omitted, the Parallel Web Search for Grounding standard subscription will be used. If this value is "true", the Parallel Web Search for Grounding - ZDR subscription will be used.',
       ).optional(),
     }).describe(
@@ -1047,6 +1050,7 @@ const StateSchema = z.object({
       apiKey: z.string(),
       customConfigs: z.record(z.string(), z.unknown()),
       enableDataRetention: z.boolean(),
+      enableZeroDataRetention: z.boolean(),
     }),
     retrieval: z.object({
       disableAttribution: z.boolean(),
@@ -1672,6 +1676,9 @@ const InputsSchema = z.object({
         'Optional. Custom configs for ParallelAiSearch. This field can be used to pass any parameter from the Parallel.ai Search API. See the Parallel.ai documentation for the full list of available parameters and their usage: https://docs.parallel.ai/api-reference/search-beta/search Currently only `source_policy`, `excerpts`, `max_results`, `mode`, `fetch_policy` can be set via this field. For example: { "source_policy": { "include_domains": ["google.com", "wikipedia.org"], "exclude_domains": ["example.com"] }, "fetch_policy": { "max_age_seconds": 3600 } }',
       ).optional(),
       enableDataRetention: z.boolean().describe(
+        'Optional. Deprecated: Use `enable_zero_data_retention` instead. Instructs Vertex Grounding to use Parallel\'s Zero Data Retention Marketplace product. If this value is "false" or omitted, the Parallel Web Search for Grounding standard subscription will be used. If this value is "true", the Parallel Web Search for Grounding - ZDR subscription will be used.',
+      ).optional(),
+      enableZeroDataRetention: z.boolean().describe(
         'Optional. Instructs Vertex Grounding to use Parallel\'s Zero Data Retention Marketplace product. If this value is "false" or omitted, the Parallel Web Search for Grounding standard subscription will be used. If this value is "true", the Parallel Web Search for Grounding - ZDR subscription will be used.',
       ).optional(),
     }).describe(
@@ -1812,7 +1819,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform CachedContents. Registered at `@swamp/gcp/aiplatform/cachedcontents`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/cachedcontents",
-  version: "2026.06.27.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1931,6 +1938,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.27.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

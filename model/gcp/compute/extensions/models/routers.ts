@@ -995,7 +995,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Routers. Registered at `@swamp/gcp/compute/routers`. */
 export const model = {
   type: "@swamp/gcp/compute/routers",
-  version: "2026.06.24.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1079,6 +1079,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1404,6 +1409,54 @@ export const model = {
         return { dataHandles, result: { count: items.length, nextPageToken } };
       },
     },
+    get_named_set: {
+      description: "get named set",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.getNamedSet",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/getNamedSet",
+            "httpMethod": "GET",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "namedSet": { "location": "query" },
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     get_nat_ip_info: {
       description: "get nat ip info",
       arguments: z.object({}),
@@ -1657,6 +1710,58 @@ export const model = {
         return { result };
       },
     },
+    list_named_sets: {
+      description: "list named sets",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.listNamedSets",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/listNamedSets",
+            "httpMethod": "GET",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "filter": { "location": "query" },
+              "maxResults": { "location": "query" },
+              "orderBy": { "location": "query" },
+              "pageToken": { "location": "query" },
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "returnPartialSuccess": { "location": "query" },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     list_route_policies: {
       description: "list route policies",
       arguments: z.object({}),
@@ -1701,6 +1806,70 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    patch_named_set: {
+      description: "patch named set",
+      arguments: z.object({
+        description: z.any().optional(),
+        elements: z.any().optional(),
+        fingerprint: z.any().optional(),
+        name: z.any().optional(),
+        type: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["description"] !== undefined) {
+          body["description"] = args["description"];
+        }
+        if (args["elements"] !== undefined) body["elements"] = args["elements"];
+        if (args["fingerprint"] !== undefined) {
+          body["fingerprint"] = args["fingerprint"];
+        }
+        if (args["name"] !== undefined) body["name"] = args["name"];
+        if (args["type"] !== undefined) body["type"] = args["type"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.patchNamedSet",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/patchNamedSet",
+            "httpMethod": "POST",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "requestId": { "location": "query" },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,
@@ -1854,6 +2023,70 @@ export const model = {
             "parameters": {
               "project": { "location": "path", "required": true },
               "region": { "location": "path", "required": true },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    update_named_set: {
+      description: "update named set",
+      arguments: z.object({
+        description: z.any().optional(),
+        elements: z.any().optional(),
+        fingerprint: z.any().optional(),
+        name: z.any().optional(),
+        type: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["description"] !== undefined) {
+          body["description"] = args["description"];
+        }
+        if (args["elements"] !== undefined) body["elements"] = args["elements"];
+        if (args["fingerprint"] !== undefined) {
+          body["fingerprint"] = args["fingerprint"];
+        }
+        if (args["name"] !== undefined) body["name"] = args["name"];
+        if (args["type"] !== undefined) body["type"] = args["type"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.updateNamedSet",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/updateNamedSet",
+            "httpMethod": "POST",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "requestId": { "location": "query" },
               "router": { "location": "path", "required": true },
             },
           },

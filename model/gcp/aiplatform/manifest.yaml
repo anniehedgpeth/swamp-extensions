@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/aiplatform"
-version: "2026.06.27.1"
+version: "2026.07.04.1"
 description: "Google Cloud aiplatform infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,8 +11,8 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Added: agents, semanticgovernancepolicies
-  - Updated: locations, cachedcontents, evaluationsets, reasoningengines_memories
+  - Added: evaluationmetrics, memorybanks_memories
+  - Updated: cachedcontents, evaluationitems, evaluationruns, evaluationsets, reasoningengines, reasoningengines_memories
 models:
   - agents.ts
   - batchpredictionjobs.ts
@@ -28,6 +28,7 @@ models:
   - deploymentresourcepools.ts
   - endpoints.ts
   - evaluationitems.ts
+  - evaluationmetrics.ts
   - evaluationruns.ts
   - evaluationsets.ts
   - featuregroups.ts
@@ -42,6 +43,7 @@ models:
   - indexendpoints.ts
   - indexes.ts
   - locations.ts
+  - memorybanks_memories.ts
   - metadatastores.ts
   - metadatastores_artifacts.ts
   - metadatastores_contexts.ts

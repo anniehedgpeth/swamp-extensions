@@ -193,6 +193,69 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   description: z.string().describe("An optional description of this resource.")
     .optional(),
+  instances: z.array(z.object({
+    fingerprint: z.string().describe(
+      "Fingerprint of this per-instance config. This field can be used in optimistic locking. It is ignored when inserting a per-instance config. An up-to-date fingerprint must be provided in order to update an existing per-instance configuration or the field needs to be unset.",
+    ).optional(),
+    name: z.string().describe(
+      "The name of a per-instance configuration and its corresponding instance. Serves as a merge key during UpdatePerInstanceConfigs operations, that is, if a per-instance configuration with the same name exists then it will be updated, otherwise a new one will be created for the VM instance with the same name. An attempt to create a per-instance configuration for a VM instance that either doesn't exist or is not part of the group will result in an error.",
+    ).optional(),
+    preservedState: z.object({
+      disks: z.record(
+        z.string(),
+        z.object({
+          autoDelete: z.unknown().describe(
+            "These stateful disks will never be deleted during autohealing, update, instance recreate operations. This flag is used to configure if the disk should be deleted after it is no longer used by the group, e.g. when the given instance or the whole MIG is deleted. Note: disks attached in READ_ONLY mode cannot be auto-deleted.",
+          ).optional(),
+          mode: z.unknown().describe(
+            "The mode in which to attach this disk, either READ_WRITE orREAD_ONLY. If not specified, the default is to attach the disk in READ_WRITE mode.",
+          ).optional(),
+          source: z.unknown().describe(
+            "The URL of the disk resource that is stateful and should be attached to the VM instance.",
+          ).optional(),
+        }),
+      ).describe(
+        "Preserved disks defined for this instance. This map is keyed with the device names of the disks.",
+      ).optional(),
+      externalIPs: z.record(
+        z.string(),
+        z.object({
+          autoDelete: z.unknown().describe(
+            "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
+          ).optional(),
+          ipAddress: z.unknown().optional(),
+        }),
+      ).describe(
+        "Preserved external IPs defined for this instance. This map is keyed with the name of the network interface.",
+      ).optional(),
+      internalIPs: z.record(
+        z.string(),
+        z.object({
+          autoDelete: z.unknown().describe(
+            "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
+          ).optional(),
+          ipAddress: z.unknown().optional(),
+        }),
+      ).describe(
+        "Preserved internal IPs defined for this instance. This map is keyed with the name of the network interface.",
+      ).optional(),
+      metadata: z.record(z.string(), z.string()).describe(
+        "Preserved metadata defined for this instance.",
+      ).optional(),
+    }).describe("Preserved state for a given instance.").optional(),
+    status: z.enum([
+      "APPLYING",
+      "DELETING",
+      "EFFECTIVE",
+      "NONE",
+      "UNAPPLIED",
+      "UNAPPLIED_DELETION",
+    ]).describe(
+      "The status of applying this per-instance configuration on the corresponding managed instance.",
+    ).optional(),
+  })).describe(
+    "The names of instances to be created by this resize request. The number of names specified determines the number of instances to create. The group's target size will be increased by this number. This field cannot be used together with 'resize_by'.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "The name of this resize request. The name must be 1-63 characters long, and comply withRFC1035.",
@@ -269,6 +332,17 @@ const StateSchema = z.object({
   creationTimestamp: z.string().optional(),
   description: z.string().optional(),
   id: z.string().optional(),
+  instances: z.array(z.object({
+    fingerprint: z.string(),
+    name: z.string(),
+    preservedState: z.object({
+      disks: z.record(z.string(), z.unknown()),
+      externalIPs: z.record(z.string(), z.unknown()),
+      internalIPs: z.record(z.string(), z.unknown()),
+      metadata: z.record(z.string(), z.unknown()),
+    }),
+    status: z.string(),
+  })).optional(),
   kind: z.string().optional(),
   name: z.string(),
   region: z.string().optional(),
@@ -311,6 +385,69 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   description: z.string().describe("An optional description of this resource.")
     .optional(),
+  instances: z.array(z.object({
+    fingerprint: z.string().describe(
+      "Fingerprint of this per-instance config. This field can be used in optimistic locking. It is ignored when inserting a per-instance config. An up-to-date fingerprint must be provided in order to update an existing per-instance configuration or the field needs to be unset.",
+    ).optional(),
+    name: z.string().describe(
+      "The name of a per-instance configuration and its corresponding instance. Serves as a merge key during UpdatePerInstanceConfigs operations, that is, if a per-instance configuration with the same name exists then it will be updated, otherwise a new one will be created for the VM instance with the same name. An attempt to create a per-instance configuration for a VM instance that either doesn't exist or is not part of the group will result in an error.",
+    ).optional(),
+    preservedState: z.object({
+      disks: z.record(
+        z.string(),
+        z.object({
+          autoDelete: z.unknown().describe(
+            "These stateful disks will never be deleted during autohealing, update, instance recreate operations. This flag is used to configure if the disk should be deleted after it is no longer used by the group, e.g. when the given instance or the whole MIG is deleted. Note: disks attached in READ_ONLY mode cannot be auto-deleted.",
+          ).optional(),
+          mode: z.unknown().describe(
+            "The mode in which to attach this disk, either READ_WRITE orREAD_ONLY. If not specified, the default is to attach the disk in READ_WRITE mode.",
+          ).optional(),
+          source: z.unknown().describe(
+            "The URL of the disk resource that is stateful and should be attached to the VM instance.",
+          ).optional(),
+        }),
+      ).describe(
+        "Preserved disks defined for this instance. This map is keyed with the device names of the disks.",
+      ).optional(),
+      externalIPs: z.record(
+        z.string(),
+        z.object({
+          autoDelete: z.unknown().describe(
+            "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
+          ).optional(),
+          ipAddress: z.unknown().optional(),
+        }),
+      ).describe(
+        "Preserved external IPs defined for this instance. This map is keyed with the name of the network interface.",
+      ).optional(),
+      internalIPs: z.record(
+        z.string(),
+        z.object({
+          autoDelete: z.unknown().describe(
+            "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
+          ).optional(),
+          ipAddress: z.unknown().optional(),
+        }),
+      ).describe(
+        "Preserved internal IPs defined for this instance. This map is keyed with the name of the network interface.",
+      ).optional(),
+      metadata: z.record(z.string(), z.string()).describe(
+        "Preserved metadata defined for this instance.",
+      ).optional(),
+    }).describe("Preserved state for a given instance.").optional(),
+    status: z.enum([
+      "APPLYING",
+      "DELETING",
+      "EFFECTIVE",
+      "NONE",
+      "UNAPPLIED",
+      "UNAPPLIED_DELETION",
+    ]).describe(
+      "The status of applying this per-instance configuration on the corresponding managed instance.",
+    ).optional(),
+  })).describe(
+    "The names of instances to be created by this resize request. The number of names specified determines the number of instances to create. The group's target size will be increased by this number. This field cannot be used together with 'resize_by'.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "The name of this resize request. The name must be 1-63 characters long, and comply withRFC1035.",
@@ -398,7 +535,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionInstanceGroupManagerResizeRequests. Registered at `@swamp/gcp/compute/regioninstancegroupmanagerresizerequests`. */
 export const model = {
   type: "@swamp/gcp/compute/regioninstancegroupmanagerresizerequests",
-  version: "2026.06.08.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -408,6 +545,11 @@ export const model = {
     {
       toVersion: "2026.06.08.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
+      description: "Added: instances",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -443,6 +585,7 @@ export const model = {
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
+        if (g["instances"] !== undefined) body["instances"] = g["instances"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["requestedRunDuration"] !== undefined) {
           body["requestedRunDuration"] = g["requestedRunDuration"];

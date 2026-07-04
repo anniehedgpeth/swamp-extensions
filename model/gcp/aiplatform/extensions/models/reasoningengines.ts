@@ -195,6 +195,9 @@ const GlobalArgsSchema = z.object({
             idleDuration: z.unknown().describe(
               "Optional. Specifies to trigger generation if the stream is inactive for the specified duration after the most recent event. The duration must have a minute-level granularity.",
             ).optional(),
+            overlapEventCount: z.unknown().describe(
+              "Optional. Re-include the last N already-processed events in the next window.",
+            ).optional(),
           }).describe(
             "Represents the active rule that determines when to flush the buffer.",
           ).optional(),
@@ -261,6 +264,11 @@ const GlobalArgsSchema = z.object({
     agentFramework: z.string().describe(
       'Optional. The OSS agent framework used to develop the agent. Currently supported values: "google-adk", "langchain", "langgraph", "ag2", "llama-index", "custom".',
     ).optional(),
+    buildSpec: z.object({
+      workerPool: z.string().describe(
+        "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
+      ).optional(),
+    }).describe("Specification for building container image.").optional(),
     classMethods: z.array(z.record(z.string(), z.string())).describe(
       "Optional. Declarations for object class methods in OpenAPI specification format.",
     ).optional(),
@@ -480,6 +488,7 @@ const StateSchema = z.object({
             eventCount: z.unknown(),
             fixedInterval: z.unknown(),
             idleDuration: z.unknown(),
+            overlapEventCount: z.unknown(),
           }),
         }),
         model: z.string(),
@@ -509,6 +518,9 @@ const StateSchema = z.object({
   name: z.string(),
   spec: z.object({
     agentFramework: z.string(),
+    buildSpec: z.object({
+      workerPool: z.string(),
+    }),
     classMethods: z.array(z.record(z.string(), z.unknown())),
     containerSpec: z.object({
       imageUri: z.string(),
@@ -644,6 +656,9 @@ const InputsSchema = z.object({
             idleDuration: z.unknown().describe(
               "Optional. Specifies to trigger generation if the stream is inactive for the specified duration after the most recent event. The duration must have a minute-level granularity.",
             ).optional(),
+            overlapEventCount: z.unknown().describe(
+              "Optional. Re-include the last N already-processed events in the next window.",
+            ).optional(),
           }).describe(
             "Represents the active rule that determines when to flush the buffer.",
           ).optional(),
@@ -710,6 +725,11 @@ const InputsSchema = z.object({
     agentFramework: z.string().describe(
       'Optional. The OSS agent framework used to develop the agent. Currently supported values: "google-adk", "langchain", "langgraph", "ag2", "llama-index", "custom".',
     ).optional(),
+    buildSpec: z.object({
+      workerPool: z.string().describe(
+        "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
+      ).optional(),
+    }).describe("Specification for building container image.").optional(),
     classMethods: z.array(z.record(z.string(), z.string())).describe(
       "Optional. Declarations for object class methods in OpenAPI specification format.",
     ).optional(),
@@ -924,7 +944,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines. Registered at `@swamp/gcp/aiplatform/reasoningengines`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines",
-  version: "2026.06.18.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1048,6 +1068,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

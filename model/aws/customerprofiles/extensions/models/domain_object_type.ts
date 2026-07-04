@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/customerprofiles/event-trigger
+// Auto-generated extension model for @swamp/aws/customerprofiles/domain-object-type
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for CustomerProfiles EventTrigger (AWS::CustomerProfiles::EventTrigger).
+ * Swamp extension model for CustomerProfiles DomainObjectType (AWS::CustomerProfiles::DomainObjectType).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,63 +41,14 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const ObjectAttributeSchema = z.object({
-  Source: z.string().min(1).max(1000).describe(
-    "An attribute contained within a source object.",
+const DomainObjectTypeFieldSchema = z.object({
+  Source: z.string().min(1).max(1000).describe("The source field name."),
+  Target: z.string().min(1).max(1000).describe("The target field name."),
+  ContentType: z.enum(["STRING", "NUMBER"]).describe(
+    "The content type of the field.",
   ).optional(),
-  FieldName: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9_.-]+$"))
-    .describe("A field defined within an object type.").optional(),
-  ComparisonOperator: z.enum([
-    "INCLUSIVE",
-    "EXCLUSIVE",
-    "CONTAINS",
-    "BEGINS_WITH",
-    "ENDS_WITH",
-    "GREATER_THAN",
-    "LESS_THAN",
-    "GREATER_THAN_OR_EQUAL",
-    "LESS_THAN_OR_EQUAL",
-    "EQUAL",
-    "BEFORE",
-    "AFTER",
-    "ON",
-    "BETWEEN",
-    "NOT_BETWEEN",
-  ]).describe(
-    "The operator used to compare an attribute against a list of values.",
-  ),
-  Values: z.array(z.string().min(1).max(255)).describe(
-    "A list of attribute values used for comparison.",
-  ),
-});
-
-const EventTriggerDimensionSchema = z.object({
-  ObjectAttributes: z.array(ObjectAttributeSchema).describe(
-    "A list of object attributes to be evaluated.",
-  ),
-});
-
-const EventTriggerConditionSchema = z.object({
-  EventTriggerDimensions: z.array(EventTriggerDimensionSchema).describe(
-    "A list of dimensions to be evaluated for the event.",
-  ),
-  LogicalOperator: z.enum(["ANY", "ALL", "NONE"]).describe(
-    "The operator used to combine multiple dimensions.",
-  ),
-});
-
-const PeriodSchema = z.object({
-  Unit: z.enum(["MINUTES", "HOURS", "DAYS", "WEEKS", "MONTHS"]).describe(
-    "The unit of time.",
-  ),
-  Value: z.number().int().min(1).max(60).describe(
-    "The amount of time of the specified unit.",
-  ),
-  MaxInvocationsPerProfile: z.number().int().min(1).max(1000).describe(
-    "The maximum allowed number of destination invocations per profile.",
-  ).optional(),
-  Unlimited: z.boolean().describe(
-    "If set to true, there is no limit on the number of destination invocations per profile. The default is false.",
+  FeatureType: z.enum(["TEXTUAL", "CATEGORICAL"]).describe(
+    "The feature type of the field.",
   ).optional(),
 });
 
@@ -128,32 +79,18 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   DomainName: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9_-]+$"))
     .describe("The unique name of the domain."),
-  EventTriggerName: z.string().min(1).max(64).regex(
-    new RegExp("^[a-zA-Z0-9_-]+$"),
-  ).describe("The unique name of the event trigger."),
   ObjectTypeName: z.string().min(1).max(255).regex(
     new RegExp("^[a-zA-Z_][a-zA-Z_0-9-]*$"),
-  ).describe("The unique name of the object type."),
-  Description: z.string().min(1).max(1000).describe(
-    "The description of the event trigger.",
+  ).describe("The name of the domain object type."),
+  Description: z.string().min(1).max(10000).describe(
+    "Description of the domain object type.",
   ).optional(),
-  EventTriggerConditions: z.array(EventTriggerConditionSchema).describe(
-    "A list of conditions that determine when an event should trigger the destination.",
+  EncryptionKey: z.string().min(0).max(255).describe(
+    "The default encryption key",
+  ).optional(),
+  Fields: z.record(z.string(), DomainObjectTypeFieldSchema).describe(
+    "A map of the name and ObjectType field.",
   ),
-  EventTriggerLimits: z.object({
-    EventExpiration: z.number().int().describe(
-      "Specifies that an event will only trigger the destination if it is processed within a certain latency period.",
-    ).optional(),
-    Periods: z.array(PeriodSchema).describe(
-      "A list of time periods during which the limits apply.",
-    ).optional(),
-  }).describe(
-    "Defines limits controlling whether an event triggers the destination, based on ingestion latency and the number of invocations per profile over specific time periods.",
-  ).optional(),
-  SegmentFilter: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9_-]+$"))
-    .describe(
-      "The destination is triggered only for profiles that meet the criteria of a segment definition.",
-    ).optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
   ).optional(),
@@ -161,15 +98,10 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   DomainName: z.string(),
-  EventTriggerName: z.string(),
-  ObjectTypeName: z.string().optional(),
+  ObjectTypeName: z.string(),
   Description: z.string().optional(),
-  EventTriggerConditions: z.array(EventTriggerConditionSchema).optional(),
-  EventTriggerLimits: z.object({
-    EventExpiration: z.number(),
-    Periods: z.array(PeriodSchema),
-  }).optional(),
-  SegmentFilter: z.string().optional(),
+  EncryptionKey: z.string().optional(),
+  Fields: z.record(z.string(), z.unknown()).optional(),
   CreatedAt: z.string().optional(),
   LastUpdatedAt: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
@@ -185,32 +117,18 @@ const InputsSchema = z.object({
   region: z.string().optional(),
   DomainName: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9_-]+$"))
     .describe("The unique name of the domain.").optional(),
-  EventTriggerName: z.string().min(1).max(64).regex(
-    new RegExp("^[a-zA-Z0-9_-]+$"),
-  ).describe("The unique name of the event trigger.").optional(),
   ObjectTypeName: z.string().min(1).max(255).regex(
     new RegExp("^[a-zA-Z_][a-zA-Z_0-9-]*$"),
-  ).describe("The unique name of the object type.").optional(),
-  Description: z.string().min(1).max(1000).describe(
-    "The description of the event trigger.",
+  ).describe("The name of the domain object type.").optional(),
+  Description: z.string().min(1).max(10000).describe(
+    "Description of the domain object type.",
   ).optional(),
-  EventTriggerConditions: z.array(EventTriggerConditionSchema).describe(
-    "A list of conditions that determine when an event should trigger the destination.",
+  EncryptionKey: z.string().min(0).max(255).describe(
+    "The default encryption key",
   ).optional(),
-  EventTriggerLimits: z.object({
-    EventExpiration: z.number().int().describe(
-      "Specifies that an event will only trigger the destination if it is processed within a certain latency period.",
-    ).optional(),
-    Periods: z.array(PeriodSchema).describe(
-      "A list of time periods during which the limits apply.",
-    ).optional(),
-  }).describe(
-    "Defines limits controlling whether an event triggers the destination, based on ingestion latency and the number of invocations per profile over specific time periods.",
+  Fields: z.record(z.string(), DomainObjectTypeFieldSchema).describe(
+    "A map of the name and ObjectType field.",
   ).optional(),
-  SegmentFilter: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9_-]+$"))
-    .describe(
-      "The destination is triggered only for profiles that meet the criteria of a segment definition.",
-    ).optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
   ).optional(),
@@ -232,62 +150,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for CustomerProfiles EventTrigger. Registered at `@swamp/aws/customerprofiles/event-trigger`. */
+/** Swamp extension model for CustomerProfiles DomainObjectType. Registered at `@swamp/aws/customerprofiles/domain-object-type`. */
 export const model = {
-  type: "@swamp/aws/customerprofiles/event-trigger",
+  type: "@swamp/aws/customerprofiles/domain-object-type",
   version: "2026.07.04.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.04.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "CustomerProfiles EventTrigger resource state",
+      description: "CustomerProfiles DomainObjectType resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -295,7 +166,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a CustomerProfiles EventTrigger",
+      description: "Create a CustomerProfiles DomainObjectType",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -307,7 +178,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::CustomerProfiles::EventTrigger",
+          "AWS::CustomerProfiles::DomainObjectType",
           desiredState,
           credentials,
         ) as StateData;
@@ -324,16 +195,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a CustomerProfiles EventTrigger",
+      description: "Get a CustomerProfiles DomainObjectType",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the CustomerProfiles EventTrigger",
+          "The primary identifier of the CustomerProfiles DomainObjectType",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::CustomerProfiles::EventTrigger",
+          "AWS::CustomerProfiles::DomainObjectType",
           args.identifier,
           credentials,
         ) as StateData;
@@ -351,7 +222,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a CustomerProfiles EventTrigger",
+      description: "Update a CustomerProfiles DomainObjectType",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -371,7 +242,7 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         const idParts = [
           existing.DomainName?.toString(),
-          existing.EventTriggerName?.toString(),
+          existing.ObjectTypeName?.toString(),
         ];
         if (idParts.some((p) => !p)) {
           throw new Error(
@@ -380,7 +251,7 @@ export const model = {
         }
         const identifier = idParts.join("|");
         const currentState = await readResource(
-          "AWS::CustomerProfiles::EventTrigger",
+          "AWS::CustomerProfiles::DomainObjectType",
           identifier,
           credentials,
         ) as StateData;
@@ -391,11 +262,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::CustomerProfiles::EventTrigger",
+          "AWS::CustomerProfiles::DomainObjectType",
           identifier,
           currentState,
           desiredState,
-          ["DomainName", "EventTriggerName"],
+          ["DomainName", "ObjectTypeName", "Fields"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -407,16 +278,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a CustomerProfiles EventTrigger",
+      description: "Delete a CustomerProfiles DomainObjectType",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the CustomerProfiles EventTrigger",
+          "The primary identifier of the CustomerProfiles DomainObjectType",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::CustomerProfiles::EventTrigger",
+          "AWS::CustomerProfiles::DomainObjectType",
           args.identifier,
           credentials,
         );
@@ -435,7 +306,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync CustomerProfiles EventTrigger state from AWS",
+      description: "Sync CustomerProfiles DomainObjectType state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -455,7 +326,7 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         const idParts = [
           existing.DomainName?.toString(),
-          existing.EventTriggerName?.toString(),
+          existing.ObjectTypeName?.toString(),
         ];
         if (idParts.some((p) => !p)) {
           throw new Error(
@@ -465,7 +336,7 @@ export const model = {
         const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::CustomerProfiles::EventTrigger",
+            "AWS::CustomerProfiles::DomainObjectType",
             identifier,
             credentials,
           ) as StateData;

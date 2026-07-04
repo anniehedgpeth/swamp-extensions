@@ -140,6 +140,9 @@ const DELETE_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "noGracefulShutdown": {
+      "location": "query",
+    },
     "project": {
       "location": "path",
       "required": true,
@@ -1164,7 +1167,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InstanceGroupManagers. Registered at `@swamp/gcp/compute/instancegroupmanagers`. */
 export const model = {
   type: "@swamp/gcp/compute/instancegroupmanagers",
-  version: "2026.06.24.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1303,6 +1306,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2141,6 +2149,7 @@ export const model = {
             "parameterOrder": ["project", "zone", "instanceGroupManager"],
             "parameters": {
               "instanceGroupManager": { "location": "path", "required": true },
+              "noGracefulShutdown": { "location": "query" },
               "project": { "location": "path", "required": true },
               "requestId": { "location": "query" },
               "zone": { "location": "path", "required": true },
@@ -2476,6 +2485,7 @@ export const model = {
             "parameterOrder": ["project", "zone", "instanceGroupManager"],
             "parameters": {
               "instanceGroupManager": { "location": "path", "required": true },
+              "noGracefulShutdown": { "location": "query" },
               "project": { "location": "path", "required": true },
               "requestId": { "location": "query" },
               "zone": { "location": "path", "required": true },

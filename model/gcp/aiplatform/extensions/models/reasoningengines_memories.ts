@@ -329,7 +329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.Memories. Registered at `@swamp/gcp/aiplatform/reasoningengines-memories`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-memories",
-  version: "2026.06.27.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -438,6 +438,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.27.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -858,8 +863,14 @@ export const model = {
       description: "ingest events",
       arguments: z.object({
         directContentsSource: z.any().optional(),
+        disableMemoryRevisions: z.any().optional(),
         forceFlush: z.any().optional(),
         generationTriggerConfig: z.any().optional(),
+        metadata: z.any().optional(),
+        metadataMergeStrategy: z.any().optional(),
+        revisionExpireTime: z.any().optional(),
+        revisionLabels: z.any().optional(),
+        revisionTtl: z.any().optional(),
         scope: z.any().optional(),
         streamId: z.any().optional(),
       }),
@@ -875,11 +886,27 @@ export const model = {
         if (args["directContentsSource"] !== undefined) {
           body["directContentsSource"] = args["directContentsSource"];
         }
+        if (args["disableMemoryRevisions"] !== undefined) {
+          body["disableMemoryRevisions"] = args["disableMemoryRevisions"];
+        }
         if (args["forceFlush"] !== undefined) {
           body["forceFlush"] = args["forceFlush"];
         }
         if (args["generationTriggerConfig"] !== undefined) {
           body["generationTriggerConfig"] = args["generationTriggerConfig"];
+        }
+        if (args["metadata"] !== undefined) body["metadata"] = args["metadata"];
+        if (args["metadataMergeStrategy"] !== undefined) {
+          body["metadataMergeStrategy"] = args["metadataMergeStrategy"];
+        }
+        if (args["revisionExpireTime"] !== undefined) {
+          body["revisionExpireTime"] = args["revisionExpireTime"];
+        }
+        if (args["revisionLabels"] !== undefined) {
+          body["revisionLabels"] = args["revisionLabels"];
+        }
+        if (args["revisionTtl"] !== undefined) {
+          body["revisionTtl"] = args["revisionTtl"];
         }
         if (args["scope"] !== undefined) body["scope"] = args["scope"];
         if (args["streamId"] !== undefined) body["streamId"] = args["streamId"];

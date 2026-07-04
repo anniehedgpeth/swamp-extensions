@@ -71,6 +71,7 @@ const GlobalArgsSchema = z.object({
       "^(arn(:[a-z0-9]+([.-][a-z0-9]+)*){2}(:([a-z0-9]+([.-][a-z0-9]+)*)?){2}:certificate/[0-9a-z-]+)?$",
     ),
   ).optional(),
+  IdleTimeoutSeconds: z.number().int().min(60).max(600).optional(),
   CustomDomainName: z.string().min(3).max(255).optional(),
   Tags: z.array(TagSchema).optional(),
 });
@@ -88,6 +89,7 @@ const StateSchema = z.object({
   Name: z.string().optional(),
   Status: z.string().optional(),
   CertificateArn: z.string().optional(),
+  IdleTimeoutSeconds: z.number().optional(),
   CustomDomainName: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
 }).passthrough();
@@ -109,6 +111,7 @@ const InputsSchema = z.object({
       "^(arn(:[a-z0-9]+([.-][a-z0-9]+)*){2}(:([a-z0-9]+([.-][a-z0-9]+)*)?){2}:certificate/[0-9a-z-]+)?$",
     ),
   ).optional(),
+  IdleTimeoutSeconds: z.number().int().min(60).max(600).optional(),
   CustomDomainName: z.string().min(3).max(255).optional(),
   Tags: z.array(TagSchema).optional(),
 });
@@ -132,7 +135,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for VpcLattice Service. Registered at `@swamp/aws/vpclattice/service`. */
 export const model = {
   type: "@swamp/aws/vpclattice/service",
-  version: "2026.06.15.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -172,6 +175,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
+      description: "Added: IdleTimeoutSeconds",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

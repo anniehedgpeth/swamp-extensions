@@ -421,6 +421,13 @@ const GlobalArgsSchema = z.object({
     labels: z.record(z.string(), z.string()).describe(
       "Labels to apply to instances that are created from these properties.",
     ).optional(),
+    localSsdEncryptionMode: z.enum([
+      "EPHEMERAL_KEY_ENCRYPTION",
+      "LOCAL_SSD_ENCRYPTION_MODE_UNSPECIFIED",
+      "STANDARD_ENCRYPTION",
+    ]).describe(
+      "Specifies which method should be used for encrypting the Local SSDs attached to the VM.",
+    ).optional(),
     machineType: z.string().describe(
       "The machine type to use for instances that are created from these properties. This field only accepts a machine type name, for example `n2-standard-4`. If you use the machine type full or partial URL, for example `projects/my-l7ilb-project/zones/us-central1-a/machineTypes/n2-standard-4`, the request will result in an `INTERNAL_ERROR`.",
     ).optional(),
@@ -881,6 +888,7 @@ const StateSchema = z.object({
     })),
     keyRevocationActionType: z.string(),
     labels: z.record(z.string(), z.unknown()),
+    localSsdEncryptionMode: z.string(),
     machineType: z.string(),
     metadata: z.object({
       fingerprint: z.string(),
@@ -1272,6 +1280,13 @@ const InputsSchema = z.object({
     labels: z.record(z.string(), z.string()).describe(
       "Labels to apply to instances that are created from these properties.",
     ).optional(),
+    localSsdEncryptionMode: z.enum([
+      "EPHEMERAL_KEY_ENCRYPTION",
+      "LOCAL_SSD_ENCRYPTION_MODE_UNSPECIFIED",
+      "STANDARD_ENCRYPTION",
+    ]).describe(
+      "Specifies which method should be used for encrypting the Local SSDs attached to the VM.",
+    ).optional(),
     machineType: z.string().describe(
       "The machine type to use for instances that are created from these properties. This field only accepts a machine type name, for example `n2-standard-4`. If you use the machine type full or partial URL, for example `projects/my-l7ilb-project/zones/us-central1-a/machineTypes/n2-standard-4`, the request will result in an `INTERNAL_ERROR`.",
     ).optional(),
@@ -1652,7 +1667,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionInstanceTemplates. Registered at `@swamp/gcp/compute/regioninstancetemplates`. */
 export const model = {
   type: "@swamp/gcp/compute/regioninstancetemplates",
-  version: "2026.06.12.1",
+  version: "2026.07.04.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1791,6 +1806,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
