@@ -72,6 +72,23 @@ const GlobalArgsSchema = z.object({
         "Size of the dynamic list for the nearest neighbors",
       ).optional(),
     }).optional(),
+    Analysis: z.object({
+      Analyzer: z.record(
+        z.string(),
+        z.object({
+          Type: z.string().describe(
+            "The analyzer type (e.g. custom, standard, simple)",
+          ).optional(),
+          Tokenizer: z.string().describe("The tokenizer to use").optional(),
+          Filter: z.array(z.string()).describe("Token filters to apply")
+            .optional(),
+          CharFilter: z.array(z.string()).describe("Character filters to apply")
+            .optional(),
+        }),
+      ).describe("Custom analyzer definitions").optional(),
+    }).describe(
+      "Custom analysis configuration including analyzers, tokenizers, and filters",
+    ).optional(),
   }).describe("Index settings").optional(),
   Mappings: z.object({
     Properties: z.record(z.string(), z.string()).describe(
@@ -88,6 +105,9 @@ const StateSchema = z.object({
       RefreshInterval: z.string(),
       Knn: z.boolean(),
       KnnAlgoParamEfSearch: z.number(),
+    }),
+    Analysis: z.object({
+      Analyzer: z.record(z.string(), z.unknown()),
     }),
   }).optional(),
   Mappings: z.object({
@@ -120,6 +140,23 @@ const InputsSchema = z.object({
         "Size of the dynamic list for the nearest neighbors",
       ).optional(),
     }).optional(),
+    Analysis: z.object({
+      Analyzer: z.record(
+        z.string(),
+        z.object({
+          Type: z.string().describe(
+            "The analyzer type (e.g. custom, standard, simple)",
+          ).optional(),
+          Tokenizer: z.string().describe("The tokenizer to use").optional(),
+          Filter: z.array(z.string()).describe("Token filters to apply")
+            .optional(),
+          CharFilter: z.array(z.string()).describe("Character filters to apply")
+            .optional(),
+        }),
+      ).describe("Custom analyzer definitions").optional(),
+    }).describe(
+      "Custom analysis configuration including analyzers, tokenizers, and filters",
+    ).optional(),
   }).describe("Index settings").optional(),
   Mappings: z.object({
     Properties: z.record(z.string(), z.string()).describe(
@@ -147,7 +184,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for OpenSearchServerless Index. Registered at `@swamp/aws/opensearchserverless/index`. */
 export const model = {
   type: "@swamp/aws/opensearchserverless/index",
-  version: "2026.06.15.1",
+  version: "2026.07.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -186,6 +223,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.03.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -302,7 +344,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["IndexName", "CollectionEndpoint"],
+          ["IndexName", "CollectionEndpoint", "Analysis"],
           credentials,
         );
         const handle = await context.writeResource(

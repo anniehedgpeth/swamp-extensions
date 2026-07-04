@@ -160,6 +160,9 @@ const GlobalArgsSchema = z.object({
   Tags: z.record(z.string(), z.string()).describe(
     "The tags of this image pipeline.",
   ).optional(),
+  ImageTags: z.record(z.string(), z.string()).describe(
+    "The tags to be applied to images created by this pipeline.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -192,6 +195,7 @@ const StateSchema = z.object({
     PipelineLogGroupName: z.string(),
   }).optional(),
   Tags: z.record(z.string(), z.unknown()).optional(),
+  ImageTags: z.record(z.string(), z.unknown()).optional(),
   DeploymentId: z.string().optional(),
 }).passthrough();
 
@@ -273,6 +277,9 @@ const InputsSchema = z.object({
   Tags: z.record(z.string(), z.string()).describe(
     "The tags of this image pipeline.",
   ).optional(),
+  ImageTags: z.record(z.string(), z.string()).describe(
+    "The tags to be applied to images created by this pipeline.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -294,7 +301,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ImageBuilder ImagePipeline. Registered at `@swamp/aws/imagebuilder/image-pipeline`. */
 export const model = {
   type: "@swamp/aws/imagebuilder/image-pipeline",
-  version: "2026.06.15.1",
+  version: "2026.07.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -334,6 +341,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.03.1",
+      description: "Added: ImageTags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
