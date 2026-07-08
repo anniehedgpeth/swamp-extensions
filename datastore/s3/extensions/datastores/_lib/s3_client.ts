@@ -330,8 +330,9 @@ export class S3Client {
   private readonly defaultRequestTimeoutMs: number;
 
   constructor(config: S3ClientConfig) {
-    this.defaultRequestTimeoutMs = config.defaultRequestTimeoutMs ??
-      DEFAULT_REQUEST_TIMEOUT_MS;
+    const envTimeout = S3Client.parseEnvTimeout();
+    this.defaultRequestTimeoutMs = envTimeout ??
+      config.defaultRequestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
 
     // When not running in a container environment (ECS/EKS), disable the
     // SDK's IMDS credential lookup. Off-cloud, the metadata endpoint is
@@ -374,6 +375,18 @@ export class S3Client {
     installErrorBodyCapture(this.client);
     this.bucket = config.bucket;
     this.prefix = config.prefix ?? "";
+  }
+
+  private static parseEnvTimeout(): number | undefined {
+    try {
+      const v = Deno.env.get("SWAMP_S3_REQUEST_TIMEOUT_MS");
+      if (!v) return undefined;
+      const n = Number(v);
+      if (!Number.isFinite(n) || n < 1000 || n > 600_000) return undefined;
+      return n;
+    } catch {
+      return undefined;
+    }
   }
 
   private fullKey(key: string): string {

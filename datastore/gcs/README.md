@@ -24,19 +24,24 @@ swamp datastore setup @swamp/gcs-datastore \
 | `apiEndpoint` | No | Custom API endpoint URL for emulators (e.g. [fake-gcs-server](https://github.com/fsouza/fake-gcs-server)). When set, authentication is skipped — matching the behavior of Google's official client libraries with `STORAGE_EMULATOR_HOST`. |
 | `pullConcurrency` | No | Maximum concurrent GCS downloads during pull (default: `50`, max: `1000`). |
 | `pushConcurrency` | No | Maximum concurrent GCS uploads during push (default: `25`, max: `1000`). |
-| `defaultRequestTimeoutMs` | No | Per-request timeout in milliseconds (default: `30000`). Every outbound GCS call is guarded by this deadline. Operations that legitimately run longer than the default (large-file uploads on slow links, say) should raise this. Setting it too low makes transient network blips look like timeouts. |
+| `requestTimeoutMs` | No | Per-request timeout in milliseconds (default: `30000`, range: 1000-600000). Override with `SWAMP_GCS_REQUEST_TIMEOUT_MS` env var (env var takes precedence). |
 
 ## Timeouts and cancellation
 
 Every outbound GCS request runs under a composite abort signal: the
-per-request deadline (`defaultRequestTimeoutMs`, 30 s default) composed
+per-request deadline (`requestTimeoutMs`, 30 s default) composed
 with any caller-supplied `AbortSignal`. Stalls surface as
 `TimeoutError`; upstream cancellation surfaces as `AbortError`. Prior
 to this, stalled sockets could hang indefinitely — switching to
 bounded timeouts is a user-visible behavior change: operations that
 legitimately exceed 30 s now error instead of hanging. Raise
-`defaultRequestTimeoutMs` in the datastore config if your workload
-needs longer deadlines.
+`requestTimeoutMs` in the datastore config or set the
+`SWAMP_GCS_REQUEST_TIMEOUT_MS` environment variable if your workload
+needs longer deadlines:
+
+```bash
+export SWAMP_GCS_REQUEST_TIMEOUT_MS=120000
+```
 
 Errors from GCS now carry structured detail:
 
@@ -186,9 +191,12 @@ The cache sync service maintains a local cache directory and syncs with GCS:
 - **Index** — a `.datastore-index.json` file in GCS tracks file sizes,
   timestamps, and SHA-256 content hashes. The local copy has a 60-second
   TTL to avoid redundant fetches during rapid command sequences.
-- **Partitioned index** — alongside the monolithic index, partition files
-  under `_index/{partition-key}.json` are written for each model. When
-  core provides a scoped sync context (`context.models`), pull reads
+- **Shard-first index** — after migration to v2
+  (`swamp datastore migrate-index`), per-model partition shards under
+  `_index/` are the source of truth. Commits write only the dirty shards
+  and `_meta.json`, skipping the monolithic `.datastore-index.json`
+  upload entirely. Pre-v2 repos continue dual-writing both formats.
+  When core provides a scoped sync context (`context.models`), pull reads
   only the relevant partition files instead of the full monolithic index.
   Falls back to monolithic when partition files are missing (old writer).
 - **Content hashing** — push computes SHA-256 for each uploaded file and
@@ -244,3 +252,17 @@ The cache sync service maintains a local cache directory and syncs with GCS:
   operator-visible consequence of the retry envelope: a single
   transient-5xx-affected file may be billed up to 3× on Cloud
   Storage PUT metrics — by design, not a regression.
+
+## Backward compatibility
+
+- Pre-v2 repos continue to write the monolithic `.datastore-index.json`
+  alongside partition shards (dual-write). After v2 migration, the
+  monolithic index is no longer written on push — shards are the source
+  of truth. Clients that only read the monolith should migrate.
+- Old clients ignore the `sha256` field in index entries (JSON forward compat).
+- A v1 sidecar read by the new code triggers a full walk (safe fallback).
+- The `_index/` directory is excluded from sync — old clients never see it.
+
+## License
+
+AGPLv3 — see [LICENSE.txt](./LICENSE.txt) for details.

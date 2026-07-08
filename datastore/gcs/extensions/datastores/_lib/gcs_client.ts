@@ -659,8 +659,9 @@ export class GcsClient {
     this.bucket = config.bucket;
     this.prefix = config.prefix ?? "";
     this.apiBase = (config.apiEndpoint ?? DEFAULT_API_BASE).replace(/\/+$/, "");
-    this.defaultRequestTimeoutMs = config.defaultRequestTimeoutMs ??
-      DEFAULT_REQUEST_TIMEOUT_MS;
+    const envTimeout = GcsClient.parseEnvTimeout();
+    this.defaultRequestTimeoutMs = envTimeout ??
+      config.defaultRequestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
 
     if (tokenFn) {
       this.getToken = tokenFn;
@@ -668,6 +669,18 @@ export class GcsClient {
       this.getToken = null;
     } else {
       this.getToken = getAccessToken;
+    }
+  }
+
+  private static parseEnvTimeout(): number | undefined {
+    try {
+      const v = Deno.env.get("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+      if (!v) return undefined;
+      const n = Number(v);
+      if (!Number.isFinite(n) || n < 1000 || n > 600_000) return undefined;
+      return n;
+    } catch {
+      return undefined;
     }
   }
 

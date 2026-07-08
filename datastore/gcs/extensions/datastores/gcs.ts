@@ -103,6 +103,11 @@ const gcsConfigSchema = z.object({
     .describe(
       "Maximum concurrent GCS uploads during push. Default: 25",
     ),
+  requestTimeoutMs: z.number().int().min(1000).max(600_000).optional()
+    .describe(
+      "Per-request timeout in milliseconds. Default: 30000. " +
+        "Override with SWAMP_GCS_REQUEST_TIMEOUT_MS env var.",
+    ),
 });
 
 // ---------------------------------------------------------------------------
@@ -116,6 +121,7 @@ interface GcsDatastoreProviderConfig {
   apiEndpoint?: string;
   pullConcurrency?: number;
   pushConcurrency?: number;
+  requestTimeoutMs?: number;
 }
 
 class GcsDatastoreProviderImpl implements DatastoreProvider {
@@ -125,8 +131,24 @@ class GcsDatastoreProviderImpl implements DatastoreProvider {
     this.config = config;
   }
 
+  private gcsClientConfig(): {
+    bucket: string;
+    prefix?: string;
+    projectId?: string;
+    apiEndpoint?: string;
+    defaultRequestTimeoutMs?: number;
+  } {
+    return {
+      bucket: this.config.bucket,
+      prefix: this.config.prefix,
+      projectId: this.config.projectId,
+      apiEndpoint: this.config.apiEndpoint,
+      defaultRequestTimeoutMs: this.config.requestTimeoutMs,
+    };
+  }
+
   createLock(_datastorePath: string, options?: LockOptions): DistributedLock {
-    const gcs = new GcsClient(this.config);
+    const gcs = new GcsClient(this.gcsClientConfig());
     return new GcsLock(gcs, options);
   }
 
@@ -138,7 +160,7 @@ class GcsDatastoreProviderImpl implements DatastoreProvider {
     _repoDir: string,
     cachePath: string,
   ): DatastoreSyncService {
-    const gcs = new GcsClient(this.config);
+    const gcs = new GcsClient(this.gcsClientConfig());
     return new GcsCacheSyncService(gcs, cachePath, {
       pullConcurrency: this.config.pullConcurrency,
       pushConcurrency: this.config.pushConcurrency,
@@ -159,7 +181,7 @@ class GcsDatastoreProviderImpl implements DatastoreProvider {
     namespace: string,
     repoId: string,
   ): Promise<void> {
-    const gcs = new GcsClient(this.config);
+    const gcs = new GcsClient(this.gcsClientConfig());
     if (/[/\\]|^\.\.?$|\.\.[\\/]/.test(namespace) || namespace.includes("\0")) {
       throw new Error(
         `Invalid namespace "${namespace}": must not contain path separators, "..", or null bytes`,
@@ -228,7 +250,7 @@ class GcsDatastoreProviderImpl implements DatastoreProvider {
   }
 
   async listNamespaces(_datastorePath: string): Promise<string[]> {
-    const gcs = new GcsClient(this.config);
+    const gcs = new GcsClient(this.gcsClientConfig());
     const entries = await gcs.listAllObjects();
     const namespaces: string[] = [];
     for (const entry of entries) {

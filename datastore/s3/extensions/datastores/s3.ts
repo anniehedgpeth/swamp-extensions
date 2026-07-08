@@ -95,6 +95,11 @@ const s3ConfigSchema = z.object({
     .describe(
       "Maximum concurrent S3 uploads during push. Default: 25",
     ),
+  requestTimeoutMs: z.number().int().min(1000).max(600_000).optional()
+    .describe(
+      "Per-request timeout in milliseconds. Default: 30000. " +
+        "Override with SWAMP_S3_REQUEST_TIMEOUT_MS env var.",
+    ),
 });
 
 // ---------------------------------------------------------------------------
@@ -109,6 +114,7 @@ interface S3DatastoreProviderConfig {
   forcePathStyle?: boolean;
   pullConcurrency?: number;
   pushConcurrency?: number;
+  requestTimeoutMs?: number;
 }
 
 class S3DatastoreProviderImpl implements DatastoreProvider {
@@ -118,8 +124,26 @@ class S3DatastoreProviderImpl implements DatastoreProvider {
     this.config = config;
   }
 
+  private s3ClientConfig(): {
+    bucket: string;
+    prefix?: string;
+    region?: string;
+    endpoint?: string;
+    forcePathStyle?: boolean;
+    defaultRequestTimeoutMs?: number;
+  } {
+    return {
+      bucket: this.config.bucket,
+      prefix: this.config.prefix,
+      region: this.config.region,
+      endpoint: this.config.endpoint,
+      forcePathStyle: this.config.forcePathStyle,
+      defaultRequestTimeoutMs: this.config.requestTimeoutMs,
+    };
+  }
+
   createLock(_datastorePath: string, options?: LockOptions): DistributedLock {
-    const s3 = new S3Client(this.config);
+    const s3 = new S3Client(this.s3ClientConfig());
     return new S3Lock(s3, options);
   }
 
@@ -131,7 +155,7 @@ class S3DatastoreProviderImpl implements DatastoreProvider {
     _repoDir: string,
     cachePath: string,
   ): DatastoreSyncService {
-    const s3 = new S3Client(this.config);
+    const s3 = new S3Client(this.s3ClientConfig());
     return new S3CacheSyncService(s3, cachePath, {
       pullConcurrency: this.config.pullConcurrency,
       pushConcurrency: this.config.pushConcurrency,
@@ -153,7 +177,7 @@ class S3DatastoreProviderImpl implements DatastoreProvider {
     namespace: string,
     repoId: string,
   ): Promise<void> {
-    const s3 = new S3Client(this.config);
+    const s3 = new S3Client(this.s3ClientConfig());
     const key = `${namespace}/.namespace.json`;
     const manifest = JSON.stringify(
       { namespace, repoId, registeredAt: new Date().toISOString() },
@@ -184,7 +208,7 @@ class S3DatastoreProviderImpl implements DatastoreProvider {
   }
 
   async listNamespaces(_datastorePath: string): Promise<string[]> {
-    const s3 = new S3Client(this.config);
+    const s3 = new S3Client(this.s3ClientConfig());
     const entries = await s3.listAllObjects();
     const namespaces: string[] = [];
     for (const entry of entries) {

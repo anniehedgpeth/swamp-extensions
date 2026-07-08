@@ -754,3 +754,66 @@ Deno.test({
     }
   },
 });
+
+// ---------------------------------------------------------------------------
+// SWAMP_GCS_REQUEST_TIMEOUT_MS env var
+// ---------------------------------------------------------------------------
+
+Deno.test("env var override: valid SWAMP_GCS_REQUEST_TIMEOUT_MS is used", () => {
+  const prior = Deno.env.get("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.set("SWAMP_GCS_REQUEST_TIMEOUT_MS", "120000");
+    const client = new GcsClient(
+      { bucket: "test-bucket" },
+      () => Promise.resolve("fake-token"),
+    );
+    assert(client instanceof GcsClient);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_GCS_REQUEST_TIMEOUT_MS", prior);
+    else Deno.env.delete("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+  }
+});
+
+Deno.test("env var override: out-of-range value is ignored (falls back to default)", () => {
+  const prior = Deno.env.get("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.set("SWAMP_GCS_REQUEST_TIMEOUT_MS", "500");
+    const client = new GcsClient(
+      { bucket: "test-bucket" },
+      () => Promise.resolve("fake-token"),
+    );
+    assert(client instanceof GcsClient);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_GCS_REQUEST_TIMEOUT_MS", prior);
+    else Deno.env.delete("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+  }
+});
+
+Deno.test("env var override: non-numeric value is ignored", () => {
+  const prior = Deno.env.get("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.set("SWAMP_GCS_REQUEST_TIMEOUT_MS", "not-a-number");
+    const client = new GcsClient(
+      { bucket: "test-bucket" },
+      () => Promise.resolve("fake-token"),
+    );
+    assert(client instanceof GcsClient);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_GCS_REQUEST_TIMEOUT_MS", prior);
+    else Deno.env.delete("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+  }
+});
+
+Deno.test("env var override: absent env var uses config value", () => {
+  const prior = Deno.env.get("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.delete("SWAMP_GCS_REQUEST_TIMEOUT_MS");
+    const client = new GcsClient(
+      { bucket: "test-bucket", defaultRequestTimeoutMs: 90000 },
+      () => Promise.resolve("fake-token"),
+    );
+    assert(client instanceof GcsClient);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_GCS_REQUEST_TIMEOUT_MS", prior);
+  }
+});

@@ -581,7 +581,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     signal?: AbortSignal,
   ): Promise<void> {
     const partition: PartitionIndex = { version: 1, entries };
-    const data = new TextEncoder().encode(JSON.stringify(partition, null, 2));
+    const data = new TextEncoder().encode(JSON.stringify(partition));
     await retryWithBackoff(
       () => this.gcs.putObject(this.shardKey(partitionKey), data, signal),
       { signal },
@@ -592,7 +592,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     meta: PartitionMetaV2,
     signal?: AbortSignal,
   ): Promise<void> {
-    const data = new TextEncoder().encode(JSON.stringify(meta, null, 2));
+    const data = new TextEncoder().encode(JSON.stringify(meta));
     await retryWithBackoff(
       () => this.gcs.putObject(this.metaKey(), data, signal),
       { signal },
@@ -1158,14 +1158,16 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       lastPulled: new Date().toISOString(),
       entries,
     };
-    const indexJson = JSON.stringify(this.index, null, 2);
-    const indexData = new TextEncoder().encode(indexJson);
+    const indexData = new TextEncoder().encode(JSON.stringify(this.index));
     const putResult = await retryWithBackoff(
       () => this.gcs.putObject(this.indexKey(), indexData, signal),
       { signal },
     );
     await ensureDir(this.cachePath);
-    await atomicWriteTextFile(this.indexPath, indexJson);
+    await atomicWriteTextFile(
+      this.indexPath,
+      JSON.stringify(this.index, null, 2),
+    );
     tracePhase(
       "pullIndex.discover",
       discoverStart,
@@ -1353,7 +1355,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           );
           if (this.indexMutated) {
             const indexData = new TextEncoder().encode(
-              JSON.stringify(this.index, null, 2),
+              JSON.stringify(this.index),
             );
             const putResult = await retryWithBackoff(
               () => this.gcs.putObject(this.indexKey(), indexData, signal),
@@ -1642,13 +1644,15 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       if (pushed > 0 || deleted > 0) {
         this.index.lastPulled = new Date().toISOString();
       }
-      const indexJson = JSON.stringify(this.index, null, 2);
-      const indexData = new TextEncoder().encode(indexJson);
+      const indexData = new TextEncoder().encode(JSON.stringify(this.index));
       const putResult = await retryWithBackoff(
         () => this.gcs.putObject(this.indexKey(), indexData, signal),
         { signal },
       );
-      await atomicWriteTextFile(this.indexPath, indexJson);
+      await atomicWriteTextFile(
+        this.indexPath,
+        JSON.stringify(this.index, null, 2),
+      );
       this.indexMutated = false;
 
       const dirtyPartitionKeys = new Set<string>();
@@ -1698,6 +1702,8 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     throwIfAborted(signal);
     await this.ensurePreflight(signal);
 
+    const prepareStart = Date.now();
+
     const emptyManifest: InternalPushManifest = {
       newEntries: {},
       deletedKeys: [],
@@ -1706,12 +1712,20 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       dirtyPartitionKeys: [],
     };
 
+    const fastStart = Date.now();
     const fastResult = await this.tryFastPushChanged(signal);
+    tracePhase(
+      "preparePush.fastpath",
+      fastStart,
+      fastResult !== null ? "hit" : "miss",
+    );
     if (fastResult !== null) {
       return emptyManifest as unknown as PushManifest;
     }
 
+    const indexStart = Date.now();
     await this.pullIndex({ forceRemote: true, signal });
+    tracePhase("preparePush.pullIndex", indexStart);
 
     const toPush: string[] = [];
     const toDelete: string[] = [];
@@ -1797,7 +1811,13 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       }
     }
+    tracePhase(
+      "preparePush.walk",
+      prepareStart,
+      `toPush=${toPush.length} toDelete=${toDelete.length}`,
+    );
 
+    const uploadStart = Date.now();
     const newEntries: Record<string, IndexEntry> = {};
     let pushed = 0;
     const failures: Array<{ file: string; error: unknown }> = [];
@@ -1838,10 +1858,13 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       }
     }
 
+    tracePhase("preparePush.upload", uploadStart, `pushed=${pushed}`);
+
     if (failures.length > 0) {
       throw new Error(formatBatchFailure("push", failures));
     }
 
+    const deleteStart = Date.now();
     const deletedKeys: string[] = [];
     let deleted = 0;
     const deleteFailures: Array<{ file: string; error: unknown }> = [];
@@ -1868,6 +1891,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       }
     }
+    tracePhase("preparePush.delete", deleteStart, `deleted=${deleted}`);
 
     if (deleteFailures.length > 0) {
       throw new Error(formatBatchFailure("delete", deleteFailures));
@@ -1901,6 +1925,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     manifest: PushManifest,
     options?: DatastoreSyncOptions,
   ): Promise<number | void> {
+    const commitStart = Date.now();
     const data = manifest as unknown as InternalPushManifest;
     const signal = options?.signal;
 
@@ -1920,6 +1945,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           // Non-fatal: sidecar update is opportunistic.
         }
       }
+      tracePhase("commitPush", commitStart, "noop");
       return 0;
     }
 
@@ -1930,17 +1956,21 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     const meta = await this.readPartitionMeta(signal);
 
     if (meta && meta.version === 2) {
-      return await this.commitPushShardFirst(
+      const result = await this.commitPushShardFirst(
         data,
         meta as PartitionMetaV2,
         signal,
       );
+      tracePhase("commitPush", commitStart, `shard-first changes=${result}`);
+      return result;
     }
 
     console.info(
       "[gcs-sync] Index is using monolithic format. Run 'swamp datastore migrate-index' to enable shard-first commits for improved concurrency.",
     );
-    return await this.commitPushMonolith(data, signal);
+    const result = await this.commitPushMonolith(data, signal);
+    tracePhase("commitPush", commitStart, `monolith changes=${result}`);
+    return result;
   }
 
   private async commitPushShardFirst(
@@ -1948,6 +1978,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     v2Meta: PartitionMetaV2,
     signal?: AbortSignal,
   ): Promise<number> {
+    const shardStart = Date.now();
     const dirtyKeys = new Set(data.dirtyPartitionKeys);
 
     for (const rel of Object.keys(data.newEntries)) {
@@ -2000,31 +2031,38 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       commitSeq: v2Meta.commitSeq + 1,
     };
     await this.writePartitionMeta(newMeta, signal);
+    tracePhase("commitPush.shards", shardStart, `dirty=${dirtyKeys.size}`);
 
-    // Phase 1 dual-write: monolith outside the shard-first critical section
-    await this.pullIndex({ forceRemote: true, signal });
-    if (this.index) {
-      for (const [rel, entry] of Object.entries(data.newEntries)) {
-        this.index.entries[rel] = entry;
-      }
-      for (const key of data.deletedKeys) {
-        delete this.index.entries[key];
-      }
-      this.index.lastPulled = new Date().toISOString();
-
-      try {
-        const indexJson = JSON.stringify(this.index, null, 2);
-        const indexData = new TextEncoder().encode(indexJson);
-        await retryWithBackoff(
-          () => this.gcs.putObject(this.indexKey(), indexData, signal),
-          { signal },
-        );
-        await atomicWriteTextFile(this.indexPath, indexJson);
-      } catch {
-        // Non-fatal: shards are the source of truth.
-      }
-      this.indexMutated = false;
+    // Update the local index cache from the in-memory state so
+    // pullIndex's TTL cache and the fast-path sidecar stay coherent.
+    // The monolithic remote upload is intentionally skipped — shards
+    // are the source of truth in v2 and the monolith re-upload was
+    // pure overhead (swamp-club#1034).
+    const localStart = Date.now();
+    if (!this.index) {
+      this.index = {
+        version: 1,
+        lastPulled: new Date().toISOString(),
+        entries: {},
+      };
     }
+    for (const [rel, entry] of Object.entries(data.newEntries)) {
+      this.index.entries[rel] = entry;
+    }
+    for (const key of data.deletedKeys) {
+      delete this.index.entries[key];
+    }
+    this.index.lastPulled = new Date().toISOString();
+    try {
+      await atomicWriteTextFile(
+        this.indexPath,
+        JSON.stringify(this.index, null, 2),
+      );
+    } catch {
+      // Non-fatal: local cache is rebuilt on next pull.
+    }
+    this.indexMutated = false;
+    tracePhase("commitPush.localIndex", localStart);
 
     try {
       if (await this.localHasAllRemoteEntries()) {
@@ -2044,6 +2082,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     data: InternalPushManifest,
     signal?: AbortSignal,
   ): Promise<number> {
+    const monolithStart = Date.now();
     await this.pullIndex({ forceRemote: true, signal });
 
     if (this.index) {
@@ -2055,19 +2094,22 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       }
       this.index.lastPulled = new Date().toISOString();
 
-      const indexJson = JSON.stringify(this.index, null, 2);
-      const indexData = new TextEncoder().encode(indexJson);
+      const indexData = new TextEncoder().encode(JSON.stringify(this.index));
       const putResult = await retryWithBackoff(
         () => this.gcs.putObject(this.indexKey(), indexData, signal),
         { signal },
       );
-      await atomicWriteTextFile(this.indexPath, indexJson);
+      await atomicWriteTextFile(
+        this.indexPath,
+        JSON.stringify(this.index, null, 2),
+      );
       this.indexMutated = false;
 
       const dirtyKeys = data.dirtyPartitionKeys.length > 0
         ? new Set(data.dirtyPartitionKeys)
         : undefined;
       await this.writePartitionedIndex(this.index, signal, dirtyKeys);
+      tracePhase("commitPushMonolith.writeback", monolithStart);
 
       if (
         putResult.generation && putResult.generation !== "0" &&
@@ -2239,7 +2281,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       partitionKeys.push(key);
       if (dirtyKeys && !dirtyKeys.has(key)) continue;
       const partition: PartitionIndex = { version: 1, entries };
-      const data = new TextEncoder().encode(JSON.stringify(partition, null, 2));
+      const data = new TextEncoder().encode(JSON.stringify(partition));
       writes.push(
         retryWithBackoff(
           () => this.gcs.putObject(this.shardKey(key), data, signal),
@@ -2263,7 +2305,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
             partitions: partitionKeys,
           };
           const metaData = new TextEncoder().encode(
-            JSON.stringify(meta, null, 2),
+            JSON.stringify(meta),
           );
           await retryWithBackoff(
             () => this.gcs.putObject(this.metaKey(), metaData, signal),
@@ -2343,7 +2385,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     signal?: AbortSignal,
   ): Promise<void> {
     const key = `${namespace}/.catalog-export.json`;
-    const data = new TextEncoder().encode(JSON.stringify(rows, null, 2));
+    const data = new TextEncoder().encode(JSON.stringify(rows));
     await retryWithBackoff(
       () => this.gcs.putObject(key, data, signal),
       { signal },

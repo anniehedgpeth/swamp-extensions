@@ -67,6 +67,16 @@ swamp datastore setup @swamp/s3-datastore \
   --config '{"bucket": "my-bucket", "pullConcurrency": 10, "pushConcurrency": 5}'
 ```
 
+The per-request timeout defaults to 30 seconds and can be overridden via
+the `requestTimeoutMs` config field (1000–600000 ms) or the
+`SWAMP_S3_REQUEST_TIMEOUT_MS` environment variable (env var takes
+precedence). Increase this on slow or high-latency links to avoid
+silent timeout failures on large objects:
+
+```bash
+export SWAMP_S3_REQUEST_TIMEOUT_MS=120000
+```
+
 ## Efficiency features
 
 - **Per-path dirty tracking**: `markDirty({ relPath })` records which
@@ -77,9 +87,11 @@ swamp datastore setup @swamp/s3-datastore \
   the index. On subsequent pushes, files with matching size and mtime skip
   I/O entirely; files with matching size but different mtime are hash-compared
   to avoid redundant uploads across machines with clock skew.
-- **Partitioned index**: Alongside the monolithic `.datastore-index.json`, per-model
-  partition files are written under `_index/`. Scoped pulls read only the
-  relevant partitions instead of the full index.
+- **Shard-first index**: After migration to v2 (`swamp datastore migrate-index`),
+  per-model partition shards under `_index/` are the source of truth.
+  Commits write only the dirty shards and `_meta.json`, skipping the
+  monolithic `.datastore-index.json` upload entirely. Pre-v2 repos
+  continue dual-writing both formats.
 - **Scoped sync**: The extension advertises `scopedSync` capability. When the
   framework passes `context.models`, pull and push operate only on the
   specified models.
@@ -99,7 +111,10 @@ swamp datastore setup @swamp/s3-datastore \
 
 ## Backward compatibility
 
-- Old clients continue to read `.datastore-index.json` (always written first).
+- Pre-v2 repos continue to write the monolithic `.datastore-index.json`
+  alongside partition shards (dual-write). After v2 migration, the
+  monolithic index is no longer written on push — shards are the source
+  of truth. Clients that only read the monolith should migrate.
 - Old clients ignore the `sha256` field in index entries (JSON forward compat).
 - A v1 sidecar read by the new code triggers a full walk (safe fallback).
 - The `_index/` directory is excluded from sync — old clients never see it.

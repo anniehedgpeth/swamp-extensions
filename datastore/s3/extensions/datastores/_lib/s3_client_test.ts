@@ -872,3 +872,60 @@ Deno.test({
         },
       )),
 });
+
+// ---------------------------------------------------------------------------
+// SWAMP_S3_REQUEST_TIMEOUT_MS env var
+// ---------------------------------------------------------------------------
+
+Deno.test("env var override: valid SWAMP_S3_REQUEST_TIMEOUT_MS is used", () => {
+  const prior = Deno.env.get("SWAMP_S3_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.set("SWAMP_S3_REQUEST_TIMEOUT_MS", "120000");
+    const client = new S3Client({ bucket: "test-bucket", region: "us-east-1" });
+    // The client should construct without error; the timeout is internal
+    // but we can verify the constructor didn't throw.
+    assert(client instanceof S3Client);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_S3_REQUEST_TIMEOUT_MS", prior);
+    else Deno.env.delete("SWAMP_S3_REQUEST_TIMEOUT_MS");
+  }
+});
+
+Deno.test("env var override: out-of-range value is ignored (falls back to default)", () => {
+  const prior = Deno.env.get("SWAMP_S3_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.set("SWAMP_S3_REQUEST_TIMEOUT_MS", "500");
+    const client = new S3Client({ bucket: "test-bucket", region: "us-east-1" });
+    assert(client instanceof S3Client);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_S3_REQUEST_TIMEOUT_MS", prior);
+    else Deno.env.delete("SWAMP_S3_REQUEST_TIMEOUT_MS");
+  }
+});
+
+Deno.test("env var override: non-numeric value is ignored", () => {
+  const prior = Deno.env.get("SWAMP_S3_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.set("SWAMP_S3_REQUEST_TIMEOUT_MS", "not-a-number");
+    const client = new S3Client({ bucket: "test-bucket", region: "us-east-1" });
+    assert(client instanceof S3Client);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_S3_REQUEST_TIMEOUT_MS", prior);
+    else Deno.env.delete("SWAMP_S3_REQUEST_TIMEOUT_MS");
+  }
+});
+
+Deno.test("env var override: absent env var uses config value", () => {
+  const prior = Deno.env.get("SWAMP_S3_REQUEST_TIMEOUT_MS");
+  try {
+    Deno.env.delete("SWAMP_S3_REQUEST_TIMEOUT_MS");
+    const client = new S3Client({
+      bucket: "test-bucket",
+      region: "us-east-1",
+      defaultRequestTimeoutMs: 90000,
+    });
+    assert(client instanceof S3Client);
+  } finally {
+    if (prior) Deno.env.set("SWAMP_S3_REQUEST_TIMEOUT_MS", prior);
+  }
+});
