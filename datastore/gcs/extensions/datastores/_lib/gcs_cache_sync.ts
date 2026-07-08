@@ -1938,7 +1938,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     }
 
     console.info(
-      "[gcs-sync] Index is using monolithic format. Run 'swamp datastore sync --migrate-index' to enable shard-first commits for improved concurrency.",
+      "[gcs-sync] Index is using monolithic format. Run 'swamp datastore migrate-index' to enable shard-first commits for improved concurrency.",
     );
     return await this.commitPushMonolith(data, signal);
   }

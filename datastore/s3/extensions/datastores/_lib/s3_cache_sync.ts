@@ -2115,7 +2115,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
     }
 
     console.info(
-      "[s3-sync] Index is using monolithic format. Run 'swamp datastore sync --migrate-index' to enable shard-first commits for improved concurrency.",
+      "[s3-sync] Index is using monolithic format. Run 'swamp datastore migrate-index' to enable shard-first commits for improved concurrency.",
     );
     return await this.commitPushMonolith(data, signal);
   }
