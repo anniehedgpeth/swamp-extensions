@@ -207,7 +207,7 @@ const GlobalArgsSchema = z.object({
     "NetworkConfig contains network configurations for the AgentGateway.",
   ).optional(),
   registries: z.array(z.string()).describe(
-    "Optional. A list of Agent registries containing the agents, MCP servers and tools governed by the Agent Gateway. Note: Currently limited to project-scoped registries Must be of format `//agentregistry.googleapis.com/projects/{project}/locations/{location}/",
+    "Optional. A list of Agent registries containing the agents, MCP servers and tools governed by the Agent Gateway. Note: Currently limited to project-scoped registries Must be of format `//agentregistry.googleapis.com/projects/{project}/locations/{location}/`",
   ).optional(),
   selfManaged: z.object({
     resourceUri: z.string().describe(
@@ -314,7 +314,7 @@ const InputsSchema = z.object({
     "NetworkConfig contains network configurations for the AgentGateway.",
   ).optional(),
   registries: z.array(z.string()).describe(
-    "Optional. A list of Agent registries containing the agents, MCP servers and tools governed by the Agent Gateway. Note: Currently limited to project-scoped registries Must be of format `//agentregistry.googleapis.com/projects/{project}/locations/{location}/",
+    "Optional. A list of Agent registries containing the agents, MCP servers and tools governed by the Agent Gateway. Note: Currently limited to project-scoped registries Must be of format `//agentregistry.googleapis.com/projects/{project}/locations/{location}/`",
   ).optional(),
   selfManaged: z.object({
     resourceUri: z.string().describe(
@@ -346,7 +346,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services AgentGateways. Registered at `@swamp/gcp/networkservices/agentgateways`. */
 export const model = {
   type: "@swamp/gcp/networkservices/agentgateways",
-  version: "2026.06.12.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -365,6 +365,11 @@ export const model = {
         const { protocols: _protocols, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

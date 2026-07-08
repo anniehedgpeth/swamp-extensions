@@ -85,6 +85,9 @@ const GlobalArgsSchema = z.object({
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this managed endpoint.",
   ).optional(),
+  SessionIdleTimeoutInMinutes: z.number().int().min(1).max(1440).describe(
+    "The idle timeout in minutes for sessions on the managed endpoint.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -106,6 +109,8 @@ const StateSchema = z.object({
     CertificateData: z.string(),
   }).optional(),
   Tags: z.array(TagSchema).optional(),
+  SessionIdleTimeoutInMinutes: z.number().optional(),
+  AuthProxyUrl: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -135,6 +140,9 @@ const InputsSchema = z.object({
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this managed endpoint.",
   ).optional(),
+  SessionIdleTimeoutInMinutes: z.number().int().min(1).max(1440).describe(
+    "The idle timeout in minutes for sessions on the managed endpoint.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -156,7 +164,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EMRContainers Endpoint. Registered at `@swamp/aws/emrcontainers/endpoint`. */
 export const model = {
   type: "@swamp/aws/emrcontainers/endpoint",
-  version: "2026.06.15.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -196,6 +204,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
+      description: "Added: SessionIdleTimeoutInMinutes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -312,6 +325,7 @@ export const model = {
             "ReleaseLabel",
             "ExecutionRoleArn",
             "ConfigurationOverrides",
+            "SessionIdleTimeoutInMinutes",
           ],
           credentials,
         );

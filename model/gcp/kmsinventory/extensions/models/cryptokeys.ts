@@ -110,11 +110,13 @@ const StateSchema = z.object({
     destroyTime: z.string(),
     externalDestructionFailureReason: z.string(),
     externalProtectionLevelOptions: z.object({
+      ekmConnectionBackendOverride: z.string(),
       ekmConnectionKeyPath: z.string(),
       externalKeyUri: z.string(),
     }),
     generateTime: z.string(),
     generationFailureReason: z.string(),
+    hsmTrusted: z.boolean(),
     importFailureReason: z.string(),
     importJob: z.string(),
     importTime: z.string(),
@@ -122,6 +124,7 @@ const StateSchema = z.object({
     protectionLevel: z.string(),
     reimportEligible: z.boolean(),
     state: z.string(),
+    trustedWrappingEnabled: z.boolean(),
   }).optional(),
   purpose: z.string().optional(),
   rotationPeriod: z.string().optional(),
@@ -158,7 +161,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud KMS Inventory CryptoKeys. Registered at `@swamp/gcp/kmsinventory/cryptokeys`. */
 export const model = {
   type: "@swamp/gcp/kmsinventory/cryptokeys",
-  version: "2026.06.08.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -227,6 +230,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

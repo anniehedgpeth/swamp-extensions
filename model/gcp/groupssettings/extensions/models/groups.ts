@@ -211,7 +211,7 @@ const GlobalArgsSchema = z.object({
     "Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to invite new members. Possible values are: - ALL_MEMBERS_CAN_INVITE: Managers and members can invite a new member candidate. - ALL_MANAGERS_CAN_INVITE: Only managers can invite a new member. This includes the group's owner. - ALL_OWNERS_CAN_INVITE: Only owners can invite a new member. - NONE_CAN_INVITE: No one can invite a new member candidate.",
   ).optional(),
   whoCanJoin: z.string().describe(
-    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. If you later disable this option, any external addresses already added to users' groups remain in those groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
+    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
   ).optional(),
   whoCanLeaveGroup: z.string().describe(
     "Permission to leave the group. Possible values are: - ALL_MANAGERS_CAN_LEAVE - ALL_MEMBERS_CAN_LEAVE - NONE_CAN_LEAVE",
@@ -474,7 +474,7 @@ const InputsSchema = z.object({
     "Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to invite new members. Possible values are: - ALL_MEMBERS_CAN_INVITE: Managers and members can invite a new member candidate. - ALL_MANAGERS_CAN_INVITE: Only managers can invite a new member. This includes the group's owner. - ALL_OWNERS_CAN_INVITE: Only owners can invite a new member. - NONE_CAN_INVITE: No one can invite a new member candidate.",
   ).optional(),
   whoCanJoin: z.string().describe(
-    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. If you later disable this option, any external addresses already added to users' groups remain in those groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
+    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
   ).optional(),
   whoCanLeaveGroup: z.string().describe(
     "Permission to leave the group. Possible values are: - ALL_MANAGERS_CAN_LEAVE - ALL_MEMBERS_CAN_LEAVE - NONE_CAN_LEAVE",
@@ -553,7 +553,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Groups Settings Groups. Registered at `@swamp/gcp/groupssettings/groups`. */
 export const model = {
   type: "@swamp/gcp/groupssettings/groups",
-  version: "2026.06.08.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -659,6 +659,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

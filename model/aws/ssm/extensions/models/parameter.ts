@@ -92,6 +92,7 @@ const StateSchema = z.object({
   Tags: z.record(z.string(), z.unknown()).optional(),
   DataType: z.string().optional(),
   Name: z.string(),
+  Arn: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -148,7 +149,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for SSM Parameter. Registered at `@swamp/aws/ssm/parameter`. */
 export const model = {
   type: "@swamp/aws/ssm/parameter",
-  version: "2026.06.15.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -187,6 +188,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

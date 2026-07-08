@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/imagebuilder"
-version: "2026.07.03.1"
+version: "2026.07.08.1"
 description: "AWS IMAGEBUILDER infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -10,7 +10,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: image_pipeline, image_recipe
+  - Updated: image_recipe
 models:
   - component.ts
   - container_recipe.ts

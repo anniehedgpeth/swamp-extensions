@@ -246,6 +246,39 @@ const MediaLiveChannelRouterInputConfigurationSchema = z.object({
   ),
 });
 
+const BlackFramesConfigurationSchema = z.object({
+  State: z.enum(["ENABLED", "DISABLED"]),
+  ThresholdSeconds: z.number().int().min(10).max(60).describe(
+    "The number of consecutive seconds of black frames that MediaConnect must detect before it reports an issue.",
+  ),
+});
+
+const FrozenFramesConfigurationSchema = z.object({
+  State: z.enum(["ENABLED", "DISABLED"]),
+  ThresholdSeconds: z.number().int().min(10).max(60).describe(
+    "The number of consecutive seconds of a frozen frame that MediaConnect must detect before it reports an issue.",
+  ),
+});
+
+const SilentAudioConfigurationSchema = z.object({
+  State: z.enum(["ENABLED", "DISABLED"]),
+  ThresholdSeconds: z.number().int().min(10).max(60).describe(
+    "The number of consecutive seconds of silence that MediaConnect must detect before it reports an issue.",
+  ),
+});
+
+const ContentQualityAnalysisFeatureConfigurationSchema = z.object({
+  BlackFrames: BlackFramesConfigurationSchema.describe(
+    "Detects black frames in the router input's source content and reports them through a CloudWatch metric, an EventBridge event, and a router input message.",
+  ).optional(),
+  FrozenFrames: FrozenFramesConfigurationSchema.describe(
+    "Detects frozen video frames in the router input's source content and reports them through a CloudWatch metric, an EventBridge event, and a router input message.",
+  ).optional(),
+  SilentAudio: SilentAudioConfigurationSchema.describe(
+    "Detects silent audio in the router input's source content and reports it through a CloudWatch metric, an EventBridge event, and a router input message.",
+  ).optional(),
+});
+
 const PreferredDayTimeMaintenanceConfigurationSchema = z.object({
   Day: z.enum([
     "MONDAY",
@@ -300,6 +333,13 @@ const GlobalArgsSchema = z.object({
       "Configuration settings for connecting a router input to a MediaLive channel output.",
     ).optional(),
   }).describe("The configuration settings for a router input."),
+  ContentQualityAnalysisConfiguration: z.object({
+    ContentLevel: ContentQualityAnalysisFeatureConfigurationSchema.describe(
+      "Configures the content quality analysis features for the router input.",
+    ).optional(),
+  }).describe(
+    "The content quality analysis configuration for the router input. The content quality analysis feature only monitors the first video stream and the first audio stream it encounters within the router input source.",
+  ).optional(),
   MaintenanceConfiguration: z.object({
     PreferredDayTime: PreferredDayTimeMaintenanceConfigurationSchema.describe(
       "Configuration for preferred day and time maintenance settings.",
@@ -347,6 +387,10 @@ const StateSchema = z.object({
     MediaConnectFlow: MediaConnectFlowRouterInputConfigurationSchema,
     MediaLiveChannel: MediaLiveChannelRouterInputConfigurationSchema,
   }).optional(),
+  ContentQualityAnalysisConfiguration: z.object({
+    ContentLevel: ContentQualityAnalysisFeatureConfigurationSchema,
+  }).optional(),
+  ContentQualityAnalysisType: z.string().optional(),
   CreatedAt: z.string().optional(),
   Id: z.string().optional(),
   InputType: z.string().optional(),
@@ -402,6 +446,13 @@ const InputsSchema = z.object({
       "Configuration settings for connecting a router input to a MediaLive channel output.",
     ).optional(),
   }).describe("The configuration settings for a router input.").optional(),
+  ContentQualityAnalysisConfiguration: z.object({
+    ContentLevel: ContentQualityAnalysisFeatureConfigurationSchema.describe(
+      "Configures the content quality analysis features for the router input.",
+    ).optional(),
+  }).describe(
+    "The content quality analysis configuration for the router input. The content quality analysis feature only monitors the first video stream and the first audio stream it encounters within the router input source.",
+  ).optional(),
   MaintenanceConfiguration: z.object({
     PreferredDayTime: PreferredDayTimeMaintenanceConfigurationSchema.describe(
       "Configuration for preferred day and time maintenance settings.",
@@ -459,7 +510,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MediaConnect RouterInput. Registered at `@swamp/aws/mediaconnect/router-input`. */
 export const model = {
   type: "@swamp/aws/mediaconnect/router-input",
-  version: "2026.06.15.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -509,6 +560,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
+      description: "Added: ContentQualityAnalysisConfiguration",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

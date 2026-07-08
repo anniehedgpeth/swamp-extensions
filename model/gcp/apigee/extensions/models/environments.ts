@@ -308,7 +308,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments. Registered at `@swamp/gcp/apigee/environments`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments",
-  version: "2026.06.24.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -392,6 +392,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1381,6 +1386,7 @@ export const model = {
         endpoint: z.any().optional(),
         exporter: z.any().optional(),
         samplingConfig: z.any().optional(),
+        spanSemantics: z.any().optional(),
         traceProtocol: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -1399,6 +1405,9 @@ export const model = {
         if (args["exporter"] !== undefined) body["exporter"] = args["exporter"];
         if (args["samplingConfig"] !== undefined) {
           body["samplingConfig"] = args["samplingConfig"];
+        }
+        if (args["spanSemantics"] !== undefined) {
+          body["spanSemantics"] = args["spanSemantics"];
         }
         if (args["traceProtocol"] !== undefined) {
           body["traceProtocol"] = args["traceProtocol"];

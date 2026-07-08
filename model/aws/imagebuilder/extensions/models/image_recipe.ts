@@ -142,6 +142,15 @@ const GlobalArgsSchema = z.object({
   AmiTags: z.record(z.string(), z.string()).describe(
     "The tags to apply to the AMI created by this image recipe.",
   ).optional(),
+  AmiWatermarks: z.array(
+    z.string().min(3).max(128).regex(
+      new RegExp(
+        "^[A-Za-z0-9()\\[\\]./'@_\\-][A-Za-z0-9 ()\\[\\]./'@_\\-]{1,126}[A-Za-z0-9()\\[\\]./'@_\\-]$",
+      ),
+    ),
+  ).describe(
+    "The AMI watermark names to attach to the output AMI from this recipe. AMI watermarks are lineage markers that automatically propagate to derivative AMIs when the source AMI is copied or distributed.",
+  ).optional(),
   Tags: z.record(z.string(), z.string()).describe(
     "The tags of the image recipe.",
   ).optional(),
@@ -161,6 +170,7 @@ const StateSchema = z.object({
     UserDataOverride: z.string(),
   }).optional(),
   AmiTags: z.record(z.string(), z.unknown()).optional(),
+  AmiWatermarks: z.array(z.string()).optional(),
   Tags: z.record(z.string(), z.unknown()).optional(),
   LatestVersion: z.object({
     Arn: z.string(),
@@ -206,6 +216,15 @@ const InputsSchema = z.object({
   AmiTags: z.record(z.string(), z.string()).describe(
     "The tags to apply to the AMI created by this image recipe.",
   ).optional(),
+  AmiWatermarks: z.array(
+    z.string().min(3).max(128).regex(
+      new RegExp(
+        "^[A-Za-z0-9()\\[\\]./'@_\\-][A-Za-z0-9 ()\\[\\]./'@_\\-]{1,126}[A-Za-z0-9()\\[\\]./'@_\\-]$",
+      ),
+    ),
+  ).describe(
+    "The AMI watermark names to attach to the output AMI from this recipe. AMI watermarks are lineage markers that automatically propagate to derivative AMIs when the source AMI is copied or distributed.",
+  ).optional(),
   Tags: z.record(z.string(), z.string()).describe(
     "The tags of the image recipe.",
   ).optional(),
@@ -230,7 +249,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ImageBuilder ImageRecipe. Registered at `@swamp/aws/imagebuilder/image-recipe`. */
 export const model = {
   type: "@swamp/aws/imagebuilder/image-recipe",
-  version: "2026.07.03.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -275,6 +294,11 @@ export const model = {
     {
       toVersion: "2026.07.03.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
+      description: "Added: AmiWatermarks",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -394,6 +418,7 @@ export const model = {
             "WorkingDirectory",
             "AdditionalInstanceConfiguration",
             "AmiTags",
+            "AmiWatermarks",
           ],
           credentials,
         );

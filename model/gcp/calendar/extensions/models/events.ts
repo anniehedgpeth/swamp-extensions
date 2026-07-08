@@ -91,6 +91,9 @@ const INSERT_CONFIG = {
     "conferenceDataVersion": {
       "location": "query",
     },
+    "eventLabelVersion": {
+      "location": "query",
+    },
     "maxAttendees": {
       "location": "query",
     },
@@ -128,6 +131,9 @@ const UPDATE_CONFIG = {
     "eventId": {
       "location": "path",
       "required": true,
+    },
+    "eventLabelVersion": {
+      "location": "query",
     },
     "maxAttendees": {
       "location": "query",
@@ -432,6 +438,9 @@ const GlobalArgsSchema = z.object({
   endTimeUnspecified: z.boolean().describe(
     "Whether the end time is actually unspecified. An end time is still provided for compatibility reasons, even if this attribute is set to True. The default is False.",
   ).optional(),
+  eventLabelId: z.string().describe(
+    "The ID of the event label assigned to the event. Optional. This refers to the ID of an entry in the labelProperties.eventLabels property of the calendar (see the Calendars.get endpoint.) This property supersedes the index-based colorId property. To set or change this property, you need to specify eventLabelVersion=1 in the parameters of the insert, import, update, and patch methods. Setting an empty string, or not setting this field at all, will remove the existing label from the event.",
+  ).optional(),
   eventType: z.string().describe(
     'Specific type of the event. This cannot be modified after the event is created. Possible values are: - "birthday" - A special all-day event with an annual recurrence. - "default" - A regular event or not further specified. - "focusTime" - A focus-time event. - "fromGmail" - An event from Gmail. This type of event cannot be created. - "outOfOffice" - An out-of-office event. - "workingLocation" - A working location event.',
   ).optional(),
@@ -635,6 +644,9 @@ const GlobalArgsSchema = z.object({
   conferenceDataVersion: z.string().describe(
     "Version number of conference data supported by the API client. Version 0 assumes no conference data support and ignores conference data in the event's body. Version 1 enables support for copying of ConferenceData as well as for creating new conferences using the createRequest field of conferenceData. The default is 0.",
   ).optional(),
+  eventLabelVersion: z.string().describe(
+    "Version number of the event label feature supported by the API client. Version 0 assumes no event label support and processes the colorId field for color management. Version 1 enables support for event labels, and processes the eventLabelId in the event's body. In this case, the colorId field is ignored. The default is 0.",
+  ).optional(),
   maxAttendees: z.string().describe(
     "The maximum number of attendees to include in the response. If there are more than the specified number of attendees, only the participant is returned. Optional.",
   ).optional(),
@@ -731,6 +743,7 @@ const StateSchema = z.object({
   }).optional(),
   endTimeUnspecified: z.boolean().optional(),
   etag: z.string().optional(),
+  eventLabelId: z.string().optional(),
   eventType: z.string().optional(),
   extendedProperties: z.object({
     private: z.record(z.string(), z.unknown()),
@@ -1004,6 +1017,9 @@ const InputsSchema = z.object({
   endTimeUnspecified: z.boolean().describe(
     "Whether the end time is actually unspecified. An end time is still provided for compatibility reasons, even if this attribute is set to True. The default is False.",
   ).optional(),
+  eventLabelId: z.string().describe(
+    "The ID of the event label assigned to the event. Optional. This refers to the ID of an entry in the labelProperties.eventLabels property of the calendar (see the Calendars.get endpoint.) This property supersedes the index-based colorId property. To set or change this property, you need to specify eventLabelVersion=1 in the parameters of the insert, import, update, and patch methods. Setting an empty string, or not setting this field at all, will remove the existing label from the event.",
+  ).optional(),
   eventType: z.string().describe(
     'Specific type of the event. This cannot be modified after the event is created. Possible values are: - "birthday" - A special all-day event with an annual recurrence. - "default" - A regular event or not further specified. - "focusTime" - A focus-time event. - "fromGmail" - An event from Gmail. This type of event cannot be created. - "outOfOffice" - An out-of-office event. - "workingLocation" - A working location event.',
   ).optional(),
@@ -1207,6 +1223,9 @@ const InputsSchema = z.object({
   conferenceDataVersion: z.string().describe(
     "Version number of conference data supported by the API client. Version 0 assumes no conference data support and ignores conference data in the event's body. Version 1 enables support for copying of ConferenceData as well as for creating new conferences using the createRequest field of conferenceData. The default is 0.",
   ).optional(),
+  eventLabelVersion: z.string().describe(
+    "Version number of the event label feature supported by the API client. Version 0 assumes no event label support and processes the colorId field for color management. Version 1 enables support for event labels, and processes the eventLabelId in the event's body. In this case, the colorId field is ignored. The default is 0.",
+  ).optional(),
   maxAttendees: z.string().describe(
     "The maximum number of attendees to include in the response. If there are more than the specified number of attendees, only the participant is returned. Optional.",
   ).optional(),
@@ -1236,7 +1255,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar Events. Registered at `@swamp/gcp/calendar/events`. */
 export const model = {
   type: "@swamp/gcp/calendar/events",
-  version: "2026.06.08.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1313,6 +1332,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.08.1",
+      description: "Added: eventLabelId, eventLabelVersion",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1363,6 +1387,9 @@ export const model = {
         if (g["end"] !== undefined) body["end"] = g["end"];
         if (g["endTimeUnspecified"] !== undefined) {
           body["endTimeUnspecified"] = g["endTimeUnspecified"];
+        }
+        if (g["eventLabelId"] !== undefined) {
+          body["eventLabelId"] = g["eventLabelId"];
         }
         if (g["eventType"] !== undefined) body["eventType"] = g["eventType"];
         if (g["extendedProperties"] !== undefined) {
@@ -1419,6 +1446,9 @@ export const model = {
         }
         if (g["conferenceDataVersion"] !== undefined) {
           body["conferenceDataVersion"] = g["conferenceDataVersion"];
+        }
+        if (g["eventLabelVersion"] !== undefined) {
+          body["eventLabelVersion"] = g["eventLabelVersion"];
         }
         if (g["maxAttendees"] !== undefined) {
           body["maxAttendees"] = g["maxAttendees"];
@@ -1545,6 +1575,9 @@ export const model = {
         if (g["end"] !== undefined) body["end"] = g["end"];
         if (g["endTimeUnspecified"] !== undefined) {
           body["endTimeUnspecified"] = g["endTimeUnspecified"];
+        }
+        if (g["eventLabelId"] !== undefined) {
+          body["eventLabelId"] = g["eventLabelId"];
         }
         if (g["extendedProperties"] !== undefined) {
           body["extendedProperties"] = g["extendedProperties"];
@@ -1869,6 +1902,7 @@ export const model = {
         end: z.any().optional(),
         endTimeUnspecified: z.any().optional(),
         etag: z.any().optional(),
+        eventLabelId: z.any().optional(),
         eventType: z.any().optional(),
         extendedProperties: z.any().optional(),
         focusTimeProperties: z.any().optional(),
@@ -1938,6 +1972,9 @@ export const model = {
           body["endTimeUnspecified"] = args["endTimeUnspecified"];
         }
         if (args["etag"] !== undefined) body["etag"] = args["etag"];
+        if (args["eventLabelId"] !== undefined) {
+          body["eventLabelId"] = args["eventLabelId"];
+        }
         if (args["eventType"] !== undefined) {
           body["eventType"] = args["eventType"];
         }
@@ -2012,6 +2049,7 @@ export const model = {
             "parameters": {
               "calendarId": { "location": "path", "required": true },
               "conferenceDataVersion": { "location": "query" },
+              "eventLabelVersion": { "location": "query" },
               "supportsAttachments": { "location": "query" },
             },
           },

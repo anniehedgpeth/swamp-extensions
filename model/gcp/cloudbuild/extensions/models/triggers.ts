@@ -577,6 +577,7 @@ const GlobalArgsSchema = z.object({
         "E2_HIGHCPU_8",
         "E2_HIGHCPU_32",
         "E2_MEDIUM",
+        "E2_STANDARD_2",
       ]).describe("Compute Engine machine type on which to run the build.")
         .optional(),
       pool: z.object({
@@ -2441,6 +2442,7 @@ const InputsSchema = z.object({
         "E2_HIGHCPU_8",
         "E2_HIGHCPU_32",
         "E2_MEDIUM",
+        "E2_STANDARD_2",
       ]).describe("Compute Engine machine type on which to run the build.")
         .optional(),
       pool: z.object({
@@ -3403,7 +3405,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Triggers. Registered at `@swamp/gcp/cloudbuild/triggers`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/triggers",
-  version: "2026.06.08.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -3412,6 +3414,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

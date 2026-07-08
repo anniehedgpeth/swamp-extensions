@@ -15,7 +15,7 @@ methods:
 - **sync** — refresh all resource properties from AWS
 
 Use
-`swamp model type describe @swamp/aws/servicecatalog/cloud_formation_provisioned_product`
+`swamp model type describe @swamp/aws/servicecatalog/accepted_portfolio_share`
 to see the full list of configurable properties and available methods for this
 model.
 
@@ -49,17 +49,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new cloud_formation_provisioned_product model
-swamp model create @swamp/aws/servicecatalog/cloud_formation_provisioned_product my-cloud_formation_provisioned_product
+# Create a new accepted_portfolio_share model
+swamp model create @swamp/aws/servicecatalog/accepted_portfolio_share my-accepted_portfolio_share
 
 # Edit the model to configure its properties
-swamp model edit my-cloud_formation_provisioned_product
+swamp model edit my-accepted_portfolio_share
 
 # Create the resource in AWS
-swamp model method run my-cloud_formation_provisioned_product create
+swamp model method run my-accepted_portfolio_share create
 
 # Sync current state from AWS
-swamp model method run my-cloud_formation_provisioned_product sync
+swamp model method run my-accepted_portfolio_share sync
 ```
 
 ## License

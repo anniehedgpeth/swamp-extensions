@@ -103,6 +103,7 @@ const SendNotificationActionSchema = z.object({
   Recipient: NotificationRecipientTypeSchema.describe(
     "Notification recipient.",
   ),
+  Exclusion: NotificationRecipientTypeSchema.optional(),
 });
 
 const FieldValueSchema = z.object({
@@ -132,6 +133,26 @@ const SubmitAutoEvaluationActionSchema = z.object({
       "^$|arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/evaluation-form/[-a-zA-Z0-9]*$",
     ),
   ),
+});
+
+const SlaTargetFieldValueSchema = z.object({
+  StringValue: z.string().optional(),
+});
+
+const AssignSlaActionSchema = z.object({
+  SlaAssignmentType: z.enum(["CASES"]).describe("The type of SLA assignment."),
+  CaseSlaConfiguration: z.object({
+    Type: z.enum(["CaseField"]).describe("The type of SLA."),
+    Name: z.string().min(1).max(500).describe("The name of the SLA."),
+    FieldId: z.string().min(1).max(500).describe("The field Id for the SLA.")
+      .optional(),
+    TargetFieldValues: z.array(SlaTargetFieldValueSchema).describe(
+      "The target field values for the SLA.",
+    ).optional(),
+    TargetSlaMinutes: z.number().min(1).max(1051200).describe(
+      "The target SLA time in minutes.",
+    ),
+  }).describe("The SLA configuration for cases."),
 });
 
 const TagSchema = z.object({
@@ -170,6 +191,7 @@ const GlobalArgsSchema = z.object({
   ).describe("The Amazon Resource Name (ARN) of the instance."),
   TriggerEventSource: z.object({
     EventSourceName: z.enum([
+      "OnEmailAnalysisAvailable",
       "OnContactEvaluationSubmit",
       "OnPostCallAnalysisAvailable",
       "OnRealTimeCallAnalysisAvailable",
@@ -181,6 +203,10 @@ const GlobalArgsSchema = z.object({
       "OnMetricDataUpdate",
       "OnCaseCreate",
       "OnCaseUpdate",
+      "OnSlaBreach",
+      "OnSchedulePublish",
+      "OnScheduleUpdate",
+      "OnScheduleTimeOffRequestActivity",
     ]).describe("The name of the event source."),
     IntegrationAssociationArn: z.string().regex(
       new RegExp(
@@ -211,6 +237,7 @@ const GlobalArgsSchema = z.object({
       .optional(),
     SubmitAutoEvaluationActions: z.array(SubmitAutoEvaluationActionSchema)
       .optional(),
+    AssignSlaActions: z.array(AssignSlaActionSchema).optional(),
   }).describe("A list of actions to be run when the rule is triggered."),
   PublishStatus: z.enum(["DRAFT", "PUBLISHED"]).describe(
     "The publish status of the rule. *Allowed values*: DRAFT | PUBLISHED",
@@ -238,6 +265,7 @@ const StateSchema = z.object({
     UpdateCaseActions: z.array(UpdateCaseActionSchema),
     EndAssociatedTasksActions: z.array(z.record(z.string(), z.unknown())),
     SubmitAutoEvaluationActions: z.array(SubmitAutoEvaluationActionSchema),
+    AssignSlaActions: z.array(AssignSlaActionSchema),
   }).optional(),
   PublishStatus: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
@@ -261,6 +289,7 @@ const InputsSchema = z.object({
   ).describe("The Amazon Resource Name (ARN) of the instance.").optional(),
   TriggerEventSource: z.object({
     EventSourceName: z.enum([
+      "OnEmailAnalysisAvailable",
       "OnContactEvaluationSubmit",
       "OnPostCallAnalysisAvailable",
       "OnRealTimeCallAnalysisAvailable",
@@ -272,6 +301,10 @@ const InputsSchema = z.object({
       "OnMetricDataUpdate",
       "OnCaseCreate",
       "OnCaseUpdate",
+      "OnSlaBreach",
+      "OnSchedulePublish",
+      "OnScheduleUpdate",
+      "OnScheduleTimeOffRequestActivity",
     ]).describe("The name of the event source.").optional(),
     IntegrationAssociationArn: z.string().regex(
       new RegExp(
@@ -302,6 +335,7 @@ const InputsSchema = z.object({
       .optional(),
     SubmitAutoEvaluationActions: z.array(SubmitAutoEvaluationActionSchema)
       .optional(),
+    AssignSlaActions: z.array(AssignSlaActionSchema).optional(),
   }).describe("A list of actions to be run when the rule is triggered.")
     .optional(),
   PublishStatus: z.enum(["DRAFT", "PUBLISHED"]).describe(
@@ -331,7 +365,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect Rule. Registered at `@swamp/aws/connect/rule`. */
 export const model = {
   type: "@swamp/aws/connect/rule",
-  version: "2026.06.15.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -380,6 +414,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

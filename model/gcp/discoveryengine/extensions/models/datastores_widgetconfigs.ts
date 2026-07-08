@@ -496,6 +496,19 @@ const GlobalArgsSchema = z.object({
         "Output only. The `model_id` of the model that should be selected by default in the model selector when the end-user has not made an explicit choice. The value is always one of the `model_id`s present in `resolved_models`.",
       ).optional(),
       resolvedModels: z.array(z.object({
+        adminView: z.object({
+          adminOverridable: z.unknown().describe(
+            'Output only. Whether the admin can toggle this model\'s enabled/disabled state via `UiSettings.model_configs`. Derived from `MODEL_TAG_ADMIN_OVERRIDABLE`. When false, the model is "forced" and its state is governed by `enabled_by_default`.',
+          ).optional(),
+          enabledByDefault: z.unknown().describe(
+            "Output only. Whether the model is enabled when the admin has set no explicit override in `UiSettings.model_configs`. Derived from `MODEL_TAG_ENABLED_BY_DEFAULT`.",
+          ).optional(),
+          regions: z.unknown().describe(
+            "Output only. Regions where this model is launched.",
+          ).optional(),
+        }).describe(
+          'Admin-surface metadata. Populated only when the request originates from the Cloud Console admin "Feature Control" page; left unset for end-user surfaces (Web, Mobile). Lets the admin page render its toggle table directly from the backend instead of a hardcoded client-side registry.',
+        ).optional(),
         description: z.string().describe(
           "Output only. Localized description text (e.g. `State-of-the-art reasoning`). Localized using the same locale as `display_name`.",
         ).optional(),
@@ -710,6 +723,11 @@ const StateSchema = z.object({
     modelConfigInfo: z.object({
       defaultModelId: z.string(),
       resolvedModels: z.array(z.object({
+        adminView: z.object({
+          adminOverridable: z.unknown(),
+          enabledByDefault: z.unknown(),
+          regions: z.unknown(),
+        }),
         description: z.string(),
         displayName: z.string(),
         icon: z.string(),
@@ -1130,6 +1148,19 @@ const InputsSchema = z.object({
         "Output only. The `model_id` of the model that should be selected by default in the model selector when the end-user has not made an explicit choice. The value is always one of the `model_id`s present in `resolved_models`.",
       ).optional(),
       resolvedModels: z.array(z.object({
+        adminView: z.object({
+          adminOverridable: z.unknown().describe(
+            'Output only. Whether the admin can toggle this model\'s enabled/disabled state via `UiSettings.model_configs`. Derived from `MODEL_TAG_ADMIN_OVERRIDABLE`. When false, the model is "forced" and its state is governed by `enabled_by_default`.',
+          ).optional(),
+          enabledByDefault: z.unknown().describe(
+            "Output only. Whether the model is enabled when the admin has set no explicit override in `UiSettings.model_configs`. Derived from `MODEL_TAG_ENABLED_BY_DEFAULT`.",
+          ).optional(),
+          regions: z.unknown().describe(
+            "Output only. Regions where this model is launched.",
+          ).optional(),
+        }).describe(
+          'Admin-surface metadata. Populated only when the request originates from the Cloud Console admin "Feature Control" page; left unset for end-user surfaces (Web, Mobile). Lets the admin page render its toggle table directly from the backend instead of a hardcoded client-side registry.',
+        ).optional(),
         description: z.string().describe(
           "Output only. Localized description text (e.g. `State-of-the-art reasoning`). Localized using the same locale as `display_name`.",
         ).optional(),
@@ -1190,7 +1221,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/datastores-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-widgetconfigs",
-  version: "2026.07.02.1",
+  version: "2026.07.08.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1329,6 +1360,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
