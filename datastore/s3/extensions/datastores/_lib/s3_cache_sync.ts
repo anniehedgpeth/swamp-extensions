@@ -236,6 +236,53 @@ function tracePhase(phase: string, startMs: number, detail?: string): void {
   console.debug(`[s3-sync] ${phase} ${elapsedMs}ms${suffix}`);
 }
 
+/**
+ * Returns true when the first path segment of `rel` is in `namespaceDirs`.
+ * Used by pushChanged/preparePush to skip files inside nested or foreign
+ * namespace directories that should never cross the sync boundary.
+ *
+ * Exported for unit tests; not part of the public extension API.
+ */
+export function isInsideNamespaceDir(
+  rel: string,
+  namespaceDirs: ReadonlySet<string>,
+): boolean {
+  if (namespaceDirs.size === 0) return false;
+  const slash = rel.indexOf("/");
+  const firstSeg = slash === -1 ? rel : rel.substring(0, slash);
+  return namespaceDirs.has(firstSeg);
+}
+
+/**
+ * Scans the cache root for immediate child directories that contain a
+ * `.namespace.json` marker file. Returns a Set of directory names to
+ * exclude from the push walk.
+ *
+ * Only meaningful when a namespace is bound — solo mode (no namespace)
+ * returns an empty set because there is no risk of cross-namespace
+ * pollution.
+ *
+ * The cost is one readDir on the cache root plus one stat per child
+ * directory, which is negligible compared to the full walk that follows.
+ */
+async function detectNamespaceDirs(cachePath: string): Promise<Set<string>> {
+  const namespaceDirs = new Set<string>();
+  try {
+    for await (const entry of Deno.readDir(cachePath)) {
+      if (!entry.isDirectory) continue;
+      try {
+        await Deno.stat(join(cachePath, entry.name, ".namespace.json"));
+        namespaceDirs.add(entry.name);
+      } catch {
+        // No .namespace.json — not a namespace directory
+      }
+    }
+  } catch {
+    // Cache directory may not exist yet
+  }
+  return namespaceDirs;
+}
+
 /** Metadata index entry for a file in S3. */
 interface IndexEntry {
   key: string;
@@ -1609,6 +1656,14 @@ export class S3CacheSyncService implements DatastoreSyncService {
         }
       }
     } else {
+      // Detect namespace directories to exclude from the walk.
+      // Without this, nested copies of the bound namespace or foreign
+      // namespace directories under the cache root would be walked and
+      // uploaded as doubled/foreign index keys (swamp-club#1033).
+      const namespaceDirs = this.namespace
+        ? await detectNamespaceDirs(this.cachePath)
+        : new Set<string>();
+      let namespaceDirSkips = 0;
       const localFiles = new Set<string>();
       try {
         for await (
@@ -1616,6 +1671,10 @@ export class S3CacheSyncService implements DatastoreSyncService {
         ) {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
+          if (isInsideNamespaceDir(rel, namespaceDirs)) {
+            namespaceDirSkips++;
+            continue;
+          }
           localFiles.add(rel);
           if (await this.fileNeedsPush(entry.path, rel)) {
             toPush.push(rel);
@@ -1623,6 +1682,13 @@ export class S3CacheSyncService implements DatastoreSyncService {
         }
       } catch {
         // Cache directory may not exist yet
+      }
+      if (namespaceDirSkips > 0) {
+        console.warn(
+          `[s3-sync] Skipped ${namespaceDirSkips} file(s) inside namespace directories ` +
+            `found under the cache root (${[...namespaceDirs].join(", ")}). ` +
+            `These directories should not be inside this cache — investigate and remove them.`,
+        );
       }
       // Compare index against local files to find deletions (rule #2).
       // Only when per-path dirty tracking overflowed — a no-path
@@ -1632,6 +1698,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       if (this.dirtyPathsOverflowed && !this.lazyPullActive && this.index) {
         for (const rel of Object.keys(this.index.entries)) {
           if (isInternalCacheFile(rel)) continue;
+          if (isInsideNamespaceDir(rel, namespaceDirs)) continue;
           if (!localFiles.has(rel)) {
             toDelete.push(rel);
           }
@@ -1878,6 +1945,9 @@ export class S3CacheSyncService implements DatastoreSyncService {
         }
       }
     } else {
+      const namespaceDirs = this.namespace
+        ? await detectNamespaceDirs(this.cachePath)
+        : new Set<string>();
       const localFiles = new Set<string>();
       try {
         for await (
@@ -1885,6 +1955,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
         ) {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
+          if (isInsideNamespaceDir(rel, namespaceDirs)) continue;
           localFiles.add(rel);
           if (await this.fileNeedsPush(entry.path, rel)) {
             toPush.push(rel);
@@ -1896,6 +1967,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       if (this.dirtyPathsOverflowed && !this.lazyPullActive && this.index) {
         for (const rel of Object.keys(this.index.entries)) {
           if (isInternalCacheFile(rel)) continue;
+          if (isInsideNamespaceDir(rel, namespaceDirs)) continue;
           if (!localFiles.has(rel)) {
             toDelete.push(rel);
           }

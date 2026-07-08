@@ -32,6 +32,7 @@ import {
 import { join } from "jsr:@std/path@1";
 import { ensureDir } from "jsr:@std/fs@1";
 import {
+  isInsideNamespaceDir,
   isInternalCacheFile,
   isLazySkippable,
   isRetryableError,
@@ -5310,6 +5311,199 @@ Deno.test("shard-first commitPush: create and delete in same manifest produces c
       "data/t1/m1/d2/1/raw" in shard.entries,
       "new entry should be present",
     );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+// -- namespace directory exclusion (swamp-club#1033) --------------------------
+
+Deno.test("isInsideNamespaceDir: matches first segment against set", () => {
+  const dirs = new Set(["my-ns", "foreign-ns"]);
+  assert(isInsideNamespaceDir("my-ns/data/file.txt", dirs));
+  assert(isInsideNamespaceDir("foreign-ns/other", dirs));
+  assert(!isInsideNamespaceDir("data/file.txt", dirs));
+  assert(!isInsideNamespaceDir("outputs/model/1/raw", dirs));
+  assert(!isInsideNamespaceDir("topfile.txt", dirs));
+});
+
+Deno.test("isInsideNamespaceDir: empty set always returns false", () => {
+  const dirs = new Set<string>();
+  assert(!isInsideNamespaceDir("my-ns/data/file.txt", dirs));
+  assert(!isInsideNamespaceDir("data/file.txt", dirs));
+});
+
+Deno.test("pushChanged: full walk skips files inside nested namespace directory (swamp-club#1033)", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    // Normal data files (should be pushed)
+    await seedFile(cachePath, "data/model/1/raw", "hello");
+    await seedFile(cachePath, "outputs/model/1/raw", "output");
+
+    // Nested namespace directory (should be skipped)
+    await seedFile(cachePath, "my-ns/data/model/1/raw", "doubled");
+    await seedFile(
+      cachePath,
+      "my-ns/.namespace.json",
+      JSON.stringify({
+        namespace: "my-ns",
+        repoId: "test",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const pushed = await svc.pushChanged({ namespace: "my-ns" });
+
+    // Only the 2 normal files should be pushed, not the nested ones
+    const pushedKeys = s3.puts
+      .filter((p) =>
+        !p.key.includes(".datastore-index") && !p.key.includes("_index/")
+      )
+      .map((p) => p.key);
+
+    assertEquals(pushed, 2);
+    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
+    assert(
+      pushedKeys.includes("outputs/model/1/raw"),
+      "should push normal outputs",
+    );
+    assert(
+      !pushedKeys.includes("my-ns/data/model/1/raw"),
+      "must NOT push nested namespace file",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pushChanged: full walk skips files inside foreign namespace directory (swamp-club#1033)", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    // Normal data files
+    await seedFile(cachePath, "data/model/1/raw", "hello");
+
+    // Foreign namespace directory (different name than bound namespace)
+    await seedFile(cachePath, "foreign-ns/data/other/1/raw", "foreign");
+    await seedFile(
+      cachePath,
+      "foreign-ns/.namespace.json",
+      JSON.stringify({
+        namespace: "foreign-ns",
+        repoId: "other-repo",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const pushed = await svc.pushChanged({ namespace: "my-ns" });
+
+    const pushedKeys = s3.puts
+      .filter((p) =>
+        !p.key.includes(".datastore-index") && !p.key.includes("_index/")
+      )
+      .map((p) => p.key);
+
+    assertEquals(pushed, 1);
+    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
+    assert(
+      !pushedKeys.includes("foreign-ns/data/other/1/raw"),
+      "must NOT push foreign namespace file",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("preparePush: full walk skips namespace directories (swamp-club#1033)", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    // Normal data
+    await seedFile(cachePath, "data/model/1/raw", "hello");
+
+    // Nested + foreign namespace directories
+    await seedFile(cachePath, "my-ns/data/model/1/raw", "doubled");
+    await seedFile(
+      cachePath,
+      "my-ns/.namespace.json",
+      JSON.stringify({
+        namespace: "my-ns",
+        repoId: "test",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+    await seedFile(cachePath, "foreign-ns/data/other/1/raw", "foreign");
+    await seedFile(
+      cachePath,
+      "foreign-ns/.namespace.json",
+      JSON.stringify({
+        namespace: "foreign-ns",
+        repoId: "other",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const manifest = await svc.preparePush({ namespace: "my-ns" });
+
+    const pushedKeys = s3.puts
+      .filter((p) =>
+        !p.key.includes(".datastore-index") && !p.key.includes("_index/")
+      )
+      .map((p) => p.key);
+
+    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
+    assert(
+      !pushedKeys.includes("my-ns/data/model/1/raw"),
+      "must NOT push nested namespace",
+    );
+    assert(
+      !pushedKeys.includes("foreign-ns/data/other/1/raw"),
+      "must NOT push foreign namespace",
+    );
+
+    // manifest.pushed should reflect only the clean file
+    const internal = manifest as unknown as { pushed: number };
+    assertEquals(internal.pushed, 1);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pushChanged: solo mode (no namespace) does not filter any directories (swamp-club#1033)", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    await seedFile(cachePath, "data/model/1/raw", "hello");
+    // A directory with .namespace.json should NOT be filtered in solo mode
+    await seedFile(cachePath, "some-dir/data/file.txt", "data");
+    await seedFile(
+      cachePath,
+      "some-dir/.namespace.json",
+      JSON.stringify({
+        namespace: "some-dir",
+        repoId: "test",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    // No namespace = solo mode
+    const pushed = await svc.pushChanged();
+
+    const pushedKeys = s3.puts
+      .filter((p) =>
+        !p.key.includes(".datastore-index") && !p.key.includes("_index/")
+      )
+      .map((p) => p.key);
+
+    // Solo mode should push everything including the "some-dir" content
+    assert(pushed as number >= 2);
+    assert(pushedKeys.includes("data/model/1/raw"));
+    assert(pushedKeys.includes("some-dir/data/file.txt"));
   } finally {
     await Deno.remove(cachePath, { recursive: true });
   }

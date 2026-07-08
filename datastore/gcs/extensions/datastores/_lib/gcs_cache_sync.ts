@@ -101,6 +101,46 @@ const SYNC_STATE_FILE = ".datastore-sync-state.json";
  *
  * Exported for unit tests; not part of the public extension API.
  */
+/**
+ * Returns true when the first path segment of `rel` is in `namespaceDirs`.
+ * Used by pushChanged/preparePush to skip files inside nested or foreign
+ * namespace directories that should never cross the sync boundary.
+ *
+ * Exported for unit tests; not part of the public extension API.
+ */
+export function isInsideNamespaceDir(
+  rel: string,
+  namespaceDirs: ReadonlySet<string>,
+): boolean {
+  if (namespaceDirs.size === 0) return false;
+  const slash = rel.indexOf("/");
+  const firstSeg = slash === -1 ? rel : rel.substring(0, slash);
+  return namespaceDirs.has(firstSeg);
+}
+
+/**
+ * Scans the cache root for immediate child directories that contain a
+ * `.namespace.json` marker file. Returns a Set of directory names to
+ * exclude from the push walk.
+ */
+async function detectNamespaceDirs(cachePath: string): Promise<Set<string>> {
+  const namespaceDirs = new Set<string>();
+  try {
+    for await (const entry of Deno.readDir(cachePath)) {
+      if (!entry.isDirectory) continue;
+      try {
+        await Deno.stat(join(cachePath, entry.name, ".namespace.json"));
+        namespaceDirs.add(entry.name);
+      } catch {
+        // No .namespace.json — not a namespace directory
+      }
+    }
+  } catch {
+    // Cache directory may not exist yet
+  }
+  return namespaceDirs;
+}
+
 export function isInternalCacheFile(rel: string): boolean {
   if (
     rel === ".datastore-index.json" || rel === ".push-queue.json" ||
@@ -1485,6 +1525,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       }
     } else {
+      const namespaceDirs = this.namespace
+        ? await detectNamespaceDirs(this.cachePath)
+        : new Set<string>();
+      let namespaceDirSkips = 0;
       const localFiles = new Set<string>();
       try {
         for await (
@@ -1492,6 +1536,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         ) {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
+          if (isInsideNamespaceDir(rel, namespaceDirs)) {
+            namespaceDirSkips++;
+            continue;
+          }
           localFiles.add(rel);
           if (await this.fileNeedsPush(entry.path, rel)) {
             toPush.push(rel);
@@ -1500,12 +1548,20 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       } catch {
         // Cache directory may not exist yet
       }
+      if (namespaceDirSkips > 0) {
+        console.warn(
+          `[gcs-sync] Skipped ${namespaceDirSkips} file(s) inside namespace directories ` +
+            `found under the cache root (${[...namespaceDirs].join(", ")}). ` +
+            `These directories should not be inside this cache — investigate and remove them.`,
+        );
+      }
       // Scan index for orphaned entries absent from local disk.
       // Only when per-path dirty tracking overflowed — a no-path
       // markDirty() is a modification signal, not a deletion signal.
       if (this.dirtyPathsOverflowed && !this.lazyPullActive && this.index) {
         for (const key of Object.keys(this.index.entries)) {
           if (isInternalCacheFile(key)) continue;
+          if (isInsideNamespaceDir(key, namespaceDirs)) continue;
           if (localFiles.has(key)) continue;
           // Guard: lazy hydration leaves data/*/raw files un-hydrated
           // locally. Without this check, a bulk push after a lazy pull
@@ -1712,6 +1768,9 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       }
     } else {
+      const namespaceDirs = this.namespace
+        ? await detectNamespaceDirs(this.cachePath)
+        : new Set<string>();
       const localFiles = new Set<string>();
       try {
         for await (
@@ -1719,6 +1778,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         ) {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
+          if (isInsideNamespaceDir(rel, namespaceDirs)) continue;
           localFiles.add(rel);
           if (await this.fileNeedsPush(entry.path, rel)) {
             toPush.push(rel);
@@ -1730,6 +1790,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       if (this.dirtyPathsOverflowed && !this.lazyPullActive && this.index) {
         for (const key of Object.keys(this.index.entries)) {
           if (isInternalCacheFile(key)) continue;
+          if (isInsideNamespaceDir(key, namespaceDirs)) continue;
           if (localFiles.has(key)) continue;
           if (this.lazyPullActive && isLazySkippable(key)) continue;
           toDelete.push(key);
