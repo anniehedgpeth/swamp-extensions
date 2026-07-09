@@ -4099,6 +4099,104 @@ Deno.test("exportCatalog writes to namespace catalog path", async () => {
   }
 });
 
+Deno.test("exportCatalog skips putObject when rows are unchanged", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const rows = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+      { relPath: "data/b.txt", size: 20, lastModified: "2026-01-02" },
+    ];
+
+    await svc.exportCatalog("ns", rows);
+    const putsAfterFirst = s3.puts.filter((p) =>
+      p.key === "ns/.catalog-export.json"
+    ).length;
+    assertEquals(putsAfterFirst, 1, "First export should upload");
+
+    await svc.exportCatalog("ns", rows);
+    const putsAfterSecond = s3.puts.filter((p) =>
+      p.key === "ns/.catalog-export.json"
+    ).length;
+    assertEquals(
+      putsAfterSecond,
+      1,
+      "Second export with same rows should skip",
+    );
+
+    await svc.exportCatalog("ns", rows);
+    const putsAfterThird =
+      s3.puts.filter((p) => p.key === "ns/.catalog-export.json").length;
+    assertEquals(putsAfterThird, 1, "Third export with same rows should skip");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("exportCatalog uploads when rows differ", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const rows1 = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+    ];
+    const rows2 = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+      { relPath: "data/b.txt", size: 20, lastModified: "2026-01-02" },
+    ];
+
+    await svc.exportCatalog("ns", rows1);
+    assertEquals(
+      s3.puts.filter((p) => p.key === "ns/.catalog-export.json").length,
+      1,
+    );
+
+    await svc.exportCatalog("ns", rows2);
+    assertEquals(
+      s3.puts.filter((p) => p.key === "ns/.catalog-export.json").length,
+      2,
+      "Changed rows should trigger upload",
+    );
+
+    const data = JSON.parse(
+      new TextDecoder().decode(s3.storage.get("ns/.catalog-export.json")!),
+    );
+    assertEquals(data.length, 2, "S3 should have the updated catalog");
+    assertEquals(data[1].relPath, "data/b.txt");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("exportCatalog hash survives across service instances via sidecar", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const rows = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+    ];
+
+    const svc1 = new S3CacheSyncService(s3, cachePath);
+    await svc1.exportCatalog("ns", rows);
+    assertEquals(
+      s3.puts.filter((p) => p.key === "ns/.catalog-export.json").length,
+      1,
+    );
+
+    const svc2 = new S3CacheSyncService(s3, cachePath);
+    await svc2.exportCatalog("ns", rows);
+    assertEquals(
+      s3.puts.filter((p) => p.key === "ns/.catalog-export.json").length,
+      1,
+      "New service instance should skip upload when sidecar has matching hash",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 Deno.test("pullForeignCatalogs skips missing catalogs silently", async () => {
   const s3 = createMockS3Client();
   const cachePath = await Deno.makeTempDir();

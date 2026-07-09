@@ -3906,6 +3906,112 @@ Deno.test("exportCatalog writes to namespace catalog path", async () => {
   }
 });
 
+Deno.test("exportCatalog skips putObject when rows are unchanged", async () => {
+  const gcs = createMockGcsClient();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const svc = new GcsCacheSyncService(gcs, cachePath);
+    const rows = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+      { relPath: "data/b.txt", size: 20, lastModified: "2026-01-02" },
+    ];
+
+    await svc.exportCatalog("ns", rows);
+    const putsAfterFirst = gcs.puts.filter((p) =>
+      p.key === "ns/.catalog-export.json"
+    ).length;
+    assertEquals(putsAfterFirst, 1, "First export should upload");
+
+    await svc.exportCatalog("ns", rows);
+    const putsAfterSecond = gcs.puts.filter((p) =>
+      p.key === "ns/.catalog-export.json"
+    ).length;
+    assertEquals(
+      putsAfterSecond,
+      1,
+      "Second export with same rows should skip",
+    );
+
+    await svc.exportCatalog("ns", rows);
+    const putsAfterThird =
+      gcs.puts.filter((p) => p.key === "ns/.catalog-export.json").length;
+    assertEquals(putsAfterThird, 1, "Third export with same rows should skip");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("exportCatalog uploads when rows differ", async () => {
+  const gcs = createMockGcsClient();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const svc = new GcsCacheSyncService(gcs, cachePath);
+    const rows1 = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+    ];
+    const rows2 = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+      { relPath: "data/b.txt", size: 20, lastModified: "2026-01-02" },
+    ];
+
+    await svc.exportCatalog("ns", rows1);
+    assertEquals(
+      gcs.puts.filter((p: { key: string }) =>
+        p.key === "ns/.catalog-export.json"
+      ).length,
+      1,
+    );
+
+    await svc.exportCatalog("ns", rows2);
+    assertEquals(
+      gcs.puts.filter((p: { key: string }) =>
+        p.key === "ns/.catalog-export.json"
+      ).length,
+      2,
+      "Changed rows should trigger upload",
+    );
+
+    const data = JSON.parse(
+      new TextDecoder().decode(gcs.storage.get("ns/.catalog-export.json")!),
+    );
+    assertEquals(data.length, 2, "GCS should have the updated catalog");
+    assertEquals(data[1].relPath, "data/b.txt");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("exportCatalog hash survives across service instances via sidecar", async () => {
+  const gcs = createMockGcsClient();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const rows = [
+      { relPath: "data/a.txt", size: 10, lastModified: "2026-01-01" },
+    ];
+
+    const svc1 = new GcsCacheSyncService(gcs, cachePath);
+    await svc1.exportCatalog("ns", rows);
+    assertEquals(
+      gcs.puts.filter((p: { key: string }) =>
+        p.key === "ns/.catalog-export.json"
+      ).length,
+      1,
+    );
+
+    const svc2 = new GcsCacheSyncService(gcs, cachePath);
+    await svc2.exportCatalog("ns", rows);
+    assertEquals(
+      gcs.puts.filter((p: { key: string }) =>
+        p.key === "ns/.catalog-export.json"
+      ).length,
+      1,
+      "New service instance should skip upload when sidecar has matching hash",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 Deno.test("pullForeignCatalogs skips missing catalogs silently", async () => {
   const gcs = createMockGcsClient();
   const cachePath = await Deno.makeTempDir();

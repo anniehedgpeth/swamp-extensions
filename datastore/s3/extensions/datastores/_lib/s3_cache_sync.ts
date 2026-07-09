@@ -500,6 +500,7 @@ interface DatastoreSyncStateV2 {
   lazyPullActive: boolean;
   dirtyPathsOverflowed?: boolean;
   commitSeq?: number;
+  lastCatalogHash?: string;
 }
 
 type DatastoreSyncState = DatastoreSyncStateV1 | DatastoreSyncStateV2;
@@ -521,6 +522,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
   private bulkInvalidated = false;
   private dirtyPathsOverflowed = false;
   private lazyPullActive = false;
+  private lastCatalogHash: string | null = null;
   private namespace: string | undefined = undefined;
   private namespaceBound = false;
   private preflightDone = false;
@@ -791,6 +793,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
           this.bulkInvalidated = !!v2.bulkInvalidated;
           this.dirtyPathsOverflowed = !!v2.dirtyPathsOverflowed;
           this.lazyPullActive = !!v2.lazyPullActive;
+          this.lastCatalogHash = v2.lastCatalogHash ?? null;
         } else if (parsed.version === 1) {
           this.syncState = parsed as DatastoreSyncStateV1;
         }
@@ -831,6 +834,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       bulkInvalidated: overrides?.bulkInvalidated ?? this.bulkInvalidated,
       lazyPullActive: overrides?.lazyPullActive ?? this.lazyPullActive,
       dirtyPathsOverflowed: this.dirtyPathsOverflowed,
+      lastCatalogHash: this.lastCatalogHash ?? undefined,
     };
   }
 
@@ -930,6 +934,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       bulkInvalidated: false,
       lazyPullActive: this.lazyPullActive,
       dirtyPathsOverflowed: false,
+      lastCatalogHash: this.lastCatalogHash ?? undefined,
     });
   }
 
@@ -2577,10 +2582,18 @@ export class S3CacheSyncService implements DatastoreSyncService {
   ): Promise<void> {
     const key = `${namespace}/.catalog-export.json`;
     const data = new TextEncoder().encode(JSON.stringify(rows));
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hash = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    await this.loadSyncState();
+    if (this.lastCatalogHash === hash) return;
     await retryWithBackoff(
       () => this.s3.putObject(key, data, signal),
       { signal },
     );
+    this.lastCatalogHash = hash;
+    await this.writeSyncState(this.buildV2State());
   }
 
   async pullForeignCatalogs(
