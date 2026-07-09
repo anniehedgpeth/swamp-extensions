@@ -1463,11 +1463,30 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     if (fastResult !== null) return fastResult;
 
     const indexStart = Date.now();
-    const indexGeneration = await this.pullIndex({
-      forceRemote: true,
-      signal,
-    });
-    tracePhase("pushChanged.pullIndex", indexStart);
+    let indexGeneration: string | null = null;
+    let v2CommitSeq: number | null = null;
+    const assembled = await this.assembleIndexFromShards(signal);
+    if (assembled) {
+      this.index = {
+        version: 1,
+        lastPulled: new Date().toISOString(),
+        entries: assembled.entries,
+      };
+      this.scrubIndex();
+      await ensureDir(this.cachePath);
+      await atomicWriteTextFile(
+        this.indexPath,
+        JSON.stringify(this.index, null, 2),
+      );
+      v2CommitSeq = assembled.commitSeq;
+      tracePhase("pushChanged.shardAssembly", indexStart);
+    } else {
+      indexGeneration = await this.pullIndex({
+        forceRemote: true,
+        signal,
+      });
+      tracePhase("pushChanged.pullIndex", indexStart);
+    }
 
     const walkStart = Date.now();
     const toPush: string[] = [];
@@ -1649,16 +1668,6 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       if (pushed > 0 || deleted > 0) {
         this.index.lastPulled = new Date().toISOString();
       }
-      const indexData = new TextEncoder().encode(JSON.stringify(this.index));
-      const putResult = await retryWithBackoff(
-        () => this.gcs.putObject(this.indexKey(), indexData, signal),
-        { signal },
-      );
-      await atomicWriteTextFile(
-        this.indexPath,
-        JSON.stringify(this.index, null, 2),
-      );
-      this.indexMutated = false;
 
       const dirtyPartitionKeys = new Set<string>();
       for (const rel of toPush) {
@@ -1669,24 +1678,113 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         const key = GcsCacheSyncService.partitionKeyFromPath(rel);
         if (key) dirtyPartitionKeys.add(key);
       }
-      await this.writePartitionedIndex(
-        this.index,
-        signal,
-        dirtyPartitionKeys.size > 0 ? dirtyPartitionKeys : undefined,
-      );
 
-      if (
-        putResult.generation && putResult.generation !== "0" &&
-        await this.localHasAllRemoteEntries()
-      ) {
+      if (v2CommitSeq !== null) {
+        // v2: write dirty shards + bump commitSeq. Skip monolith PUT —
+        // shards are the source of truth. Use writeShard directly
+        // (not writePartitionedIndex) so failures propagate.
+        const allPartitions = GcsCacheSyncService.groupEntriesByPartition(
+          this.index.entries,
+        );
+        const survivingPartitions = new Set(allPartitions.keys());
+        for (const partKey of dirtyPartitionKeys) {
+          const entries = allPartitions.get(partKey);
+          if (entries && Object.keys(entries).length > 0) {
+            await this.writeShard(partKey, entries, signal);
+          } else {
+            try {
+              await retryWithBackoff(
+                () =>
+                  this.gcs.deleteObject(
+                    this.shardKey(partKey),
+                    undefined,
+                    signal,
+                  ),
+                { signal },
+              );
+            } catch {
+              // Non-fatal: deleteObject on non-existent key is a no-op
+            }
+            survivingPartitions.delete(partKey);
+          }
+        }
+        const newMeta: PartitionMetaV2 = {
+          version: 2,
+          partitions: [...survivingPartitions].sort(),
+          commitSeq: v2CommitSeq + 1,
+        };
+        await this.writePartitionMeta(newMeta, signal);
+
+        await atomicWriteTextFile(
+          this.indexPath,
+          JSON.stringify(this.index, null, 2),
+        );
+        this.indexMutated = false;
+
         try {
-          await this.markSynced(putResult.generation);
+          if (await this.localHasAllRemoteEntries()) {
+            this.dirtyPaths.clear();
+            this.bulkInvalidated = false;
+            this.dirtyPathsOverflowed = false;
+            const sidecar = this.buildV2State({ localDirty: false });
+            sidecar.commitSeq = newMeta.commitSeq;
+            sidecar.remoteIndexGeneration = "";
+            await this.writeSyncState(sidecar);
+          }
         } catch {
           // Non-fatal: sidecar update is opportunistic.
         }
+        tracePhase("pushChanged.v2writeback", writebackStart);
+      } else {
+        // v1: write monolith + dual-write partitions.
+        const indexData = new TextEncoder().encode(
+          JSON.stringify(this.index),
+        );
+        const putResult = await retryWithBackoff(
+          () => this.gcs.putObject(this.indexKey(), indexData, signal),
+          { signal },
+        );
+        await atomicWriteTextFile(
+          this.indexPath,
+          JSON.stringify(this.index, null, 2),
+        );
+        this.indexMutated = false;
+
+        await this.writePartitionedIndex(
+          this.index,
+          signal,
+          dirtyPartitionKeys.size > 0 ? dirtyPartitionKeys : undefined,
+        );
+
+        if (
+          putResult.generation && putResult.generation !== "0" &&
+          await this.localHasAllRemoteEntries()
+        ) {
+          try {
+            await this.markSynced(putResult.generation);
+          } catch {
+            // Non-fatal: sidecar update is opportunistic.
+          }
+        }
+        tracePhase("pushChanged.writeback", writebackStart);
       }
-      tracePhase("pushChanged.writeback", writebackStart);
+    } else if (v2CommitSeq !== null && this.index) {
+      // v2 no-writeback: update sidecar with current commitSeq.
+      try {
+        if (await this.localHasAllRemoteEntries()) {
+          this.dirtyPaths.clear();
+          this.bulkInvalidated = false;
+          this.dirtyPathsOverflowed = false;
+          const sidecar = this.buildV2State({ localDirty: false });
+          sidecar.commitSeq = v2CommitSeq;
+          sidecar.remoteIndexGeneration = "";
+          await this.writeSyncState(sidecar);
+        }
+      } catch {
+        // Non-fatal: sidecar update is opportunistic.
+      }
     } else if (indexGeneration && this.index) {
+      // v1 no-writeback.
       if (await this.localHasAllRemoteEntries()) {
         try {
           await this.markSynced(indexGeneration);
@@ -1729,8 +1827,24 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     }
 
     const indexStart = Date.now();
-    await this.pullIndex({ forceRemote: true, signal });
-    tracePhase("preparePush.pullIndex", indexStart);
+    const prepAssembled = await this.assembleIndexFromShards(signal);
+    if (prepAssembled) {
+      this.index = {
+        version: 1,
+        lastPulled: new Date().toISOString(),
+        entries: prepAssembled.entries,
+      };
+      this.scrubIndex();
+      await ensureDir(this.cachePath);
+      await atomicWriteTextFile(
+        this.indexPath,
+        JSON.stringify(this.index, null, 2),
+      );
+      tracePhase("preparePush.shardAssembly", indexStart);
+    } else {
+      await this.pullIndex({ forceRemote: true, signal });
+      tracePhase("preparePush.pullIndex", indexStart);
+    }
 
     const toPush: string[] = [];
     const toDelete: string[] = [];
@@ -1935,6 +2049,32 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     const signal = options?.signal;
 
     if (data.pushed === 0 && data.deleted === 0) {
+      const noopMeta = await this.readPartitionMeta(signal);
+      if (noopMeta && noopMeta.version === 2) {
+        // v2: commitSeq in _meta.json is the source of truth — skip the
+        // multi-MB monolith GET. Still verify local cache completeness
+        // before marking clean (swamp-club#1225 shape). The index is
+        // already populated from the preceding preparePush.
+        if (
+          this.index && await this.localHasAllRemoteEntries()
+        ) {
+          try {
+            this.dirtyPaths.clear();
+            this.bulkInvalidated = false;
+            this.dirtyPathsOverflowed = false;
+            const sidecar = this.buildV2State({ localDirty: false });
+            sidecar.commitSeq = (noopMeta as PartitionMetaV2).commitSeq;
+            sidecar.remoteIndexGeneration = "";
+            await this.writeSyncState(sidecar);
+          } catch {
+            // Non-fatal: sidecar update is opportunistic.
+          }
+        }
+        tracePhase("commitPush", commitStart, "v2noop");
+        return 0;
+      }
+
+      // v1: fall back to monolith verification.
       const indexGeneration = await this.pullIndex({
         forceRemote: true,
         signal,

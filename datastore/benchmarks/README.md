@@ -64,7 +64,10 @@ scenario group gets a unique prefix within the bucket for isolation.
 
 ## What it measures
 
-9 scenarios per backend covering the sync lifecycle:
+15 scenarios per backend covering the sync lifecycle across both v1
+(monolithic index) and v2 (shard-first) repos:
+
+### v1 (monolithic index)
 
 1. Push 1000 files cold
 2. Push 1 modified file out of 1000 (dirty sidecar scoped walk)
@@ -75,6 +78,15 @@ scenario group gets a unique prefix within the bucket for isolation.
 7. No-op pull (sidecar fast path — should be <5ms)
 8. Scoped pull 1 model out of 50 (partitioned index)
 9. Writeback with parallel partition writes
+
+### v2 (shard-first, after `migrateMonolithToShards`)
+
+10. Push 1 modified / 1000 (shard assembly slow path)
+11. No-op push (commitSeq fast path — should be <5ms)
+12. Two-phase no-op (preparePush + commitPush, commitSeq fast path)
+13. Two-phase push 1 modified / 1000 (shard assembly + shard-first commit)
+14. Pull 1000 files cold (shard assembly)
+15. No-op pull (commitSeq fast path — should be <5ms)
 
 Results print as a table with min/avg/max per phase. Set
 `BENCHMARK_JSON=/path/to/out.json` to also write structured results.

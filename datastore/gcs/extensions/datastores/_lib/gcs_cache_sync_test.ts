@@ -5232,3 +5232,241 @@ Deno.test("pushChanged: solo mode (no namespace) does not filter any directories
     await Deno.remove(cachePath, { recursive: true });
   }
 });
+
+// ==========================================================================
+// swamp-club#1052: v2 shard-first write-path migration (GCS)
+// ==========================================================================
+
+function seedV2Repo(
+  mock: ReturnType<typeof createMockGcsClient>,
+  entries: Record<
+    string,
+    { key: string; size: number; lastModified: string }
+  >,
+  commitSeq: number,
+): void {
+  const partitions = new Map<string, Record<string, unknown>>();
+  for (const [rel, entry] of Object.entries(entries)) {
+    const key = GcsCacheSyncService.partitionKeyFromPath(rel);
+    if (!key) continue;
+    let bucket = partitions.get(key);
+    if (!bucket) {
+      bucket = {};
+      partitions.set(key, bucket);
+    }
+    bucket[rel] = entry;
+  }
+  for (const [key, shardEntries] of partitions) {
+    mock.storage.set(
+      `_index/${key}.json`,
+      new TextEncoder().encode(
+        JSON.stringify({ version: 1, entries: shardEntries }),
+      ),
+    );
+  }
+  mock.storage.set(
+    "_index/_meta.json",
+    new TextEncoder().encode(JSON.stringify({
+      version: 2,
+      partitions: [...partitions.keys()].sort(),
+      commitSeq,
+    })),
+  );
+}
+
+Deno.test("#1052: GCS commitPush no-op on v2 uses _meta.json, not monolith", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1052-commit-" });
+  try {
+    const mock = createMockGcsClient();
+    const ts = new Date().toISOString();
+    const entries = {
+      "data/t1/m1/d1/1/raw": {
+        key: "data/t1/m1/d1/1/raw",
+        size: 4,
+        lastModified: ts,
+      },
+    };
+    seedV2Repo(mock, entries, 3);
+    mock.storage.set(
+      "data/t1/m1/d1/1/raw",
+      new TextEncoder().encode("aaa\n"),
+    );
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "aaa\n");
+    await service.pullChanged();
+
+    mock.gets.length = 0;
+    mock.puts.length = 0;
+    const manifest = await service.preparePush();
+    const result = await service.commitPush(manifest);
+
+    assertEquals(result, 0, "commitPush must return 0 for no-op");
+    assertEquals(
+      mock.gets.includes(".datastore-index.json"),
+      false,
+      "commitPush no-op on v2 must NOT fetch the monolithic index",
+    );
+    assert(
+      mock.gets.includes("_index/_meta.json"),
+      "commitPush no-op on v2 must read _meta.json",
+    );
+
+    const sidecarPath = join(cachePath, ".datastore-sync-state.json");
+    const sidecar = JSON.parse(await Deno.readTextFile(sidecarPath));
+    assertEquals(sidecar.version, 2, "sidecar must be v2");
+    assertEquals(
+      sidecar.commitSeq,
+      3,
+      "sidecar must have commitSeq from _meta.json",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("#1052: GCS pushChanged slow path on v2 uses shard assembly, not monolith", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1052-push-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "old\n");
+    await service.pushChanged();
+    await service.migrateMonolithToShards();
+
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "new\n");
+    await service.markDirty({ relPath: "data/t1/m1/d1/1/raw" });
+
+    try {
+      await Deno.remove(join(cachePath, ".datastore-sync-state.json"));
+    } catch { /* may not exist */ }
+
+    mock.gets.length = 0;
+    mock.puts.length = 0;
+    const pushed = await service.pushChanged();
+
+    assert((pushed as number) > 0, "should push the changed file");
+    assertEquals(
+      mock.gets.includes(".datastore-index.json"),
+      false,
+      "pushChanged slow path on v2 must NOT fetch the monolithic index",
+    );
+    assert(
+      mock.gets.includes("_index/_meta.json"),
+      "pushChanged slow path on v2 must read _meta.json (via shard assembly)",
+    );
+
+    const monolithPuts = mock.puts.filter((p) =>
+      p.key === ".datastore-index.json"
+    );
+    assertEquals(
+      monolithPuts.length,
+      0,
+      "pushChanged on v2 must NOT write the monolithic index",
+    );
+
+    const metaBody = mock.storage.get("_index/_meta.json");
+    assertExists(metaBody, "_meta.json must exist after pushChanged");
+    const meta = decodeMeta(metaBody);
+    assertEquals(meta.version, 2, "_meta.json must remain v2");
+    assert(
+      typeof meta.commitSeq === "number" && meta.commitSeq > 1,
+      "commitSeq must be bumped after pushChanged writeback",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("#1052: GCS preparePush slow path on v2 uses shard assembly, not monolith", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1052-prep-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "old\n");
+    await service.pushChanged();
+    await service.migrateMonolithToShards();
+
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "new\n");
+    await service.markDirty({ relPath: "data/t1/m1/d1/1/raw" });
+
+    try {
+      await Deno.remove(join(cachePath, ".datastore-sync-state.json"));
+    } catch { /* may not exist */ }
+
+    mock.gets.length = 0;
+    const manifest = await service.preparePush();
+
+    assertEquals(
+      mock.gets.includes(".datastore-index.json"),
+      false,
+      "preparePush slow path on v2 must NOT fetch the monolithic index",
+    );
+    assert(
+      mock.gets.includes("_index/_meta.json"),
+      "preparePush slow path on v2 must read _meta.json (via shard assembly)",
+    );
+
+    const data = manifest as unknown as { pushed: number };
+    assert(data.pushed > 0, "preparePush should report files to push");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("#1052: GCS commitPush v2 no-op does NOT mark sidecar clean when cache is incomplete", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "gcssync-1052-partial-",
+  });
+  try {
+    const mock = createMockGcsClient();
+    const ts = new Date().toISOString();
+    const entries = {
+      "data/t1/m1/d1/1/raw": {
+        key: "data/t1/m1/d1/1/raw",
+        size: 4,
+        lastModified: ts,
+      },
+      "data/t2/m2/d2/1/raw": {
+        key: "data/t2/m2/d2/1/raw",
+        size: 4,
+        lastModified: ts,
+      },
+    };
+    seedV2Repo(mock, entries, 5);
+    mock.storage.set(
+      "data/t1/m1/d1/1/raw",
+      new TextEncoder().encode("aaa\n"),
+    );
+    mock.storage.set(
+      "data/t2/m2/d2/1/raw",
+      new TextEncoder().encode("bbb\n"),
+    );
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "aaa\n");
+    // data/t2/m2/d2/1/raw intentionally absent
+
+    const manifest = await service.preparePush();
+    await service.commitPush(manifest);
+
+    const sidecarPath = join(cachePath, ".datastore-sync-state.json");
+    let sidecarHasCommitSeq = false;
+    try {
+      const sidecar = JSON.parse(await Deno.readTextFile(sidecarPath));
+      sidecarHasCommitSeq = typeof sidecar.commitSeq === "number" &&
+        sidecar.commitSeq > 0;
+    } catch {
+      // No sidecar written — also acceptable
+    }
+    assertEquals(
+      sidecarHasCommitSeq,
+      false,
+      "commitPush no-op must NOT write commitSeq when local cache is incomplete",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});

@@ -5606,3 +5606,264 @@ Deno.test("pushChanged: solo mode (no namespace) does not filter any directories
     await Deno.remove(cachePath, { recursive: true });
   }
 });
+
+// ==========================================================================
+// swamp-club#1052: v2 shard-first write-path migration
+// Tests that commitPush no-op, pushChanged slow path, and preparePush
+// slow path all use shard assembly on v2 repos and never fetch the
+// monolithic index.
+// ==========================================================================
+
+// Helper to seed a fully v2-migrated repo state into a mock S3 client.
+function seedV2Repo(
+  mock: ReturnType<typeof createMockS3Client>,
+  entries: Record<
+    string,
+    { key: string; size: number; lastModified: string }
+  >,
+  commitSeq: number,
+): void {
+  const partitions = new Map<string, Record<string, unknown>>();
+  for (const [rel, entry] of Object.entries(entries)) {
+    const key = S3CacheSyncService.partitionKeyFromPath(rel);
+    if (!key) continue;
+    let bucket = partitions.get(key);
+    if (!bucket) {
+      bucket = {};
+      partitions.set(key, bucket);
+    }
+    bucket[rel] = entry;
+  }
+  for (const [key, shardEntries] of partitions) {
+    mock.storage.set(
+      `_index/${key}.json`,
+      new TextEncoder().encode(
+        JSON.stringify({ version: 1, entries: shardEntries }),
+      ),
+    );
+  }
+  mock.storage.set(
+    "_index/_meta.json",
+    new TextEncoder().encode(JSON.stringify({
+      version: 2,
+      partitions: [...partitions.keys()].sort(),
+      commitSeq,
+    })),
+  );
+}
+
+Deno.test("#1052: commitPush no-op on v2 uses _meta.json, not monolith", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-1052-commit-" });
+  try {
+    const mock = createMockS3Client();
+    const ts = new Date().toISOString();
+    const entries = {
+      "data/t1/m1/d1/1/raw": {
+        key: "data/t1/m1/d1/1/raw",
+        size: 4,
+        lastModified: ts,
+      },
+    };
+    seedV2Repo(mock, entries, 3);
+    mock.storage.set(
+      "data/t1/m1/d1/1/raw",
+      new TextEncoder().encode("aaa\n"),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "aaa\n");
+
+    // Initial pull to populate the cache and sidecar
+    await service.pullChanged();
+
+    // Two-phase push with nothing dirty — should be no-op
+    mock.gets.length = 0;
+    mock.puts.length = 0;
+    const manifest = await service.preparePush();
+    const result = await service.commitPush(manifest);
+
+    assertEquals(result, 0, "commitPush must return 0 for no-op");
+    assertEquals(
+      mock.gets.includes(".datastore-index.json"),
+      false,
+      "commitPush no-op on v2 must NOT fetch the monolithic index",
+    );
+    assert(
+      mock.gets.includes("_index/_meta.json"),
+      "commitPush no-op on v2 must read _meta.json",
+    );
+
+    // Verify sidecar has commitSeq
+    const sidecarPath = join(cachePath, ".datastore-sync-state.json");
+    const sidecar = JSON.parse(await Deno.readTextFile(sidecarPath));
+    assertEquals(sidecar.version, 2, "sidecar must be v2");
+    assertEquals(
+      sidecar.commitSeq,
+      3,
+      "sidecar must have commitSeq from _meta.json",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("#1052: pushChanged slow path on v2 uses shard assembly, not monolith", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-1052-push-" });
+  try {
+    const mock = createMockS3Client();
+    const service = new S3CacheSyncService(mock, cachePath);
+
+    // Bootstrap: push initial data, then migrate to v2
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "old\n");
+    await service.pushChanged();
+    await service.migrateMonolithToShards();
+
+    // Mutate local file to force a real push on the slow path
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "new\n");
+    await service.markDirty({ relPath: "data/t1/m1/d1/1/raw" });
+
+    // Delete sidecar to force the slow path (no fast-path hit)
+    try {
+      await Deno.remove(join(cachePath, ".datastore-sync-state.json"));
+    } catch { /* may not exist */ }
+
+    mock.gets.length = 0;
+    mock.puts.length = 0;
+    const pushed = await service.pushChanged();
+
+    assert((pushed as number) > 0, "should push the changed file");
+    assertEquals(
+      mock.gets.includes(".datastore-index.json"),
+      false,
+      "pushChanged slow path on v2 must NOT fetch the monolithic index",
+    );
+    assert(
+      mock.gets.includes("_index/_meta.json"),
+      "pushChanged slow path on v2 must read _meta.json (via shard assembly)",
+    );
+
+    // Verify monolith was NOT written back
+    const monolithPuts = mock.puts.filter((p) =>
+      p.key === ".datastore-index.json"
+    );
+    assertEquals(
+      monolithPuts.length,
+      0,
+      "pushChanged on v2 must NOT write the monolithic index",
+    );
+
+    // Verify commitSeq was bumped
+    const metaBody = mock.storage.get("_index/_meta.json");
+    assertExists(metaBody, "_meta.json must exist after pushChanged");
+    const meta = decodeMeta(metaBody);
+    assertEquals(meta.version, 2, "_meta.json must remain v2");
+    assert(
+      typeof meta.commitSeq === "number" && meta.commitSeq > 1,
+      "commitSeq must be bumped after pushChanged writeback",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("#1052: preparePush slow path on v2 uses shard assembly, not monolith", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-1052-prep-" });
+  try {
+    const mock = createMockS3Client();
+    const service = new S3CacheSyncService(mock, cachePath);
+
+    // Bootstrap: push initial data, then migrate to v2
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "old\n");
+    await service.pushChanged();
+    await service.migrateMonolithToShards();
+
+    // Mutate local file to have something to prepare
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "new\n");
+    await service.markDirty({ relPath: "data/t1/m1/d1/1/raw" });
+
+    // Delete sidecar to force the slow path
+    try {
+      await Deno.remove(join(cachePath, ".datastore-sync-state.json"));
+    } catch { /* may not exist */ }
+
+    mock.gets.length = 0;
+    const manifest = await service.preparePush();
+
+    assertEquals(
+      mock.gets.includes(".datastore-index.json"),
+      false,
+      "preparePush slow path on v2 must NOT fetch the monolithic index",
+    );
+    assert(
+      mock.gets.includes("_index/_meta.json"),
+      "preparePush slow path on v2 must read _meta.json (via shard assembly)",
+    );
+
+    // Manifest should have the changed file
+    const data = manifest as unknown as { pushed: number };
+    assert(data.pushed > 0, "preparePush should report files to push");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("#1052: commitPush v2 no-op does NOT mark sidecar clean when cache is incomplete", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "s3sync-1052-partial-",
+  });
+  try {
+    const mock = createMockS3Client();
+    const ts = new Date().toISOString();
+    const entries = {
+      "data/t1/m1/d1/1/raw": {
+        key: "data/t1/m1/d1/1/raw",
+        size: 4,
+        lastModified: ts,
+      },
+      "data/t2/m2/d2/1/raw": {
+        key: "data/t2/m2/d2/1/raw",
+        size: 4,
+        lastModified: ts,
+      },
+    };
+    seedV2Repo(mock, entries, 5);
+    mock.storage.set(
+      "data/t1/m1/d1/1/raw",
+      new TextEncoder().encode("aaa\n"),
+    );
+    mock.storage.set(
+      "data/t2/m2/d2/1/raw",
+      new TextEncoder().encode("bbb\n"),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+
+    // Partial pull: only seed ONE of the two files locally
+    await seedFile(cachePath, "data/t1/m1/d1/1/raw", "aaa\n");
+    // data/t2/m2/d2/1/raw is intentionally absent — simulates
+    // a metadataOnly or scoped pull that didn't fetch everything.
+
+    // preparePush populates the index from shards
+    const manifest = await service.preparePush();
+    // commitPush no-op: should NOT mark sidecar clean because
+    // localHasAllRemoteEntries will fail (t2/m2 missing locally)
+    await service.commitPush(manifest);
+
+    const sidecarPath = join(cachePath, ".datastore-sync-state.json");
+    let sidecarHasCommitSeq = false;
+    try {
+      const sidecar = JSON.parse(await Deno.readTextFile(sidecarPath));
+      sidecarHasCommitSeq = typeof sidecar.commitSeq === "number" &&
+        sidecar.commitSeq > 0;
+    } catch {
+      // No sidecar written — that's also acceptable
+    }
+    assertEquals(
+      sidecarHasCommitSeq,
+      false,
+      "commitPush no-op must NOT write commitSeq when local cache is incomplete",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});

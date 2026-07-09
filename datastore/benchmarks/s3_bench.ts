@@ -377,6 +377,184 @@ async function main() {
     }
 
     // -----------------------------------------------------------------------
+    // V2 shard-first scenarios
+    // All start from a fully migrated v2 repo (pushChanged + migrate).
+    // These mirror the v1 scenarios above so regressions in either path
+    // show up as a direct before/after comparison.
+    // -----------------------------------------------------------------------
+
+    // Shared v2 setup: push 1000 files, migrate to shard-first
+    {
+      const v2Bucket = nextBucket(endpoints.s3);
+      const v2Prefix = nextPrefix(endpoints.s3);
+      if (isEmulator(endpoints.s3)) {
+        await createS3Bucket(endpoints.s3, v2Bucket);
+      }
+      const v2Cache = await Deno.makeTempDir({ prefix: "bench-s3-v2-" });
+      const v2Seed = await seedTestData({
+        cachePath: v2Cache,
+        fileCount: 1000,
+        modelCount: 50,
+      });
+      let v2Svc = createSyncService(
+        endpoints.s3,
+        v2Bucket,
+        v2Cache,
+        v2Prefix,
+      );
+      await v2Svc.pushChanged();
+      await v2Svc.migrateMonolithToShards();
+      cleanups.push(v2Cache);
+
+      // Scenario 10: v2 push 1 modified / 1000 (shard assembly slow path)
+      results.push(
+        await runScenario({
+          name: "v2: Push 1 modified / 1000",
+          warmup: 0,
+          async setup() {
+            const relPath = await modifyOneFile(v2Cache, v2Seed.models, 0);
+            v2Svc = createSyncService(
+              endpoints.s3,
+              v2Bucket,
+              v2Cache,
+              v2Prefix,
+            );
+            await v2Svc.markDirty({ relPath });
+          },
+          async run() {
+            await v2Svc.pushChanged();
+          },
+        }),
+      );
+
+      // Scenario 11: v2 no-op push (commitSeq fast path)
+      results.push(
+        await runScenario({
+          name: "v2: No-op push (fast path)",
+          warmup: 0,
+          setup() {
+            v2Svc = createSyncService(
+              endpoints.s3,
+              v2Bucket,
+              v2Cache,
+              v2Prefix,
+            );
+            return Promise.resolve();
+          },
+          async run() {
+            await v2Svc.pushChanged();
+          },
+        }),
+      );
+
+      // Scenario 12: v2 two-phase no-op (commitPush with nothing dirty)
+      results.push(
+        await runScenario({
+          name: "v2: Two-phase no-op (preparePush+commitPush)",
+          warmup: 0,
+          setup() {
+            v2Svc = createSyncService(
+              endpoints.s3,
+              v2Bucket,
+              v2Cache,
+              v2Prefix,
+            );
+            return Promise.resolve();
+          },
+          async run() {
+            const manifest = await v2Svc.preparePush();
+            await v2Svc.commitPush(manifest);
+          },
+        }),
+      );
+
+      // Scenario 13: v2 two-phase push 1 modified
+      results.push(
+        await runScenario({
+          name: "v2: Two-phase push 1 modified / 1000",
+          warmup: 0,
+          async setup() {
+            const relPath = await modifyOneFile(v2Cache, v2Seed.models, 0);
+            v2Svc = createSyncService(
+              endpoints.s3,
+              v2Bucket,
+              v2Cache,
+              v2Prefix,
+            );
+            await v2Svc.markDirty({ relPath });
+          },
+          async run() {
+            const manifest = await v2Svc.preparePush();
+            await v2Svc.commitPush(manifest);
+          },
+        }),
+      );
+
+      // Scenario 14: v2 pull cold (shard assembly)
+      const v2PullCache = await Deno.makeTempDir({
+        prefix: "bench-s3-v2-pull-",
+      });
+      cleanups.push(v2PullCache);
+      results.push(
+        await runScenario({
+          name: "v2: Pull 1000 files (cold, shard assembly)",
+          warmup: 0,
+          async setup() {
+            try {
+              for await (const entry of Deno.readDir(v2PullCache)) {
+                await Deno.remove(join(v2PullCache, entry.name), {
+                  recursive: true,
+                });
+              }
+            } catch (err) {
+              if (!(err instanceof Deno.errors.NotFound)) throw err;
+            }
+          },
+          async run() {
+            const svc = createSyncService(
+              endpoints.s3,
+              v2Bucket,
+              v2PullCache,
+              v2Prefix,
+            );
+            await svc.pullChanged();
+          },
+        }),
+      );
+
+      // Scenario 15: v2 no-op pull (commitSeq fast path)
+      // The sidecar needs commitSeq for the fast path — a no-op push
+      // after the cold pull writes it via the v2 sidecar update.
+      {
+        const pullFpSvc = createSyncService(
+          endpoints.s3,
+          v2Bucket,
+          v2PullCache,
+          v2Prefix,
+        );
+        await pullFpSvc.pushChanged();
+      }
+      results.push(
+        await runScenario({
+          name: "v2: No-op pull (fast path)",
+          warmup: 0,
+          setup() {
+            v2Svc = createSyncService(
+              endpoints.s3,
+              v2Bucket,
+              v2PullCache,
+              v2Prefix,
+            );
+            return Promise.resolve();
+          },
+          async run() {
+            await v2Svc.pullChanged();
+          },
+        }),
+      );
+    }
+
+    // -----------------------------------------------------------------------
     // Output results
     // -----------------------------------------------------------------------
     console.log("\n\nS3 Benchmark Results\n");
