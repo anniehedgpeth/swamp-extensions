@@ -234,6 +234,16 @@ const GlobalArgsSchema = z.object({
   ttl: z.string().describe(
     "Input only. The TTL for the SingleTenantHsmInstanceProposal. Proposals will expire after this duration.",
   ).optional(),
+  upgradeKeyTrust: z.object({
+    name: z.string().describe(
+      "Required. The name of the CryptoKeyVersion to promote.",
+    ).optional(),
+    twoFactorPublicKeyPem: z.string().describe(
+      "Required. The public key associated with the 2FA key that will sign the login nonce for this operation.",
+    ).optional(),
+  }).describe(
+    "Promotes a key with the AES_WRAPPING purpose to a trusted wrapping key. The key must be in the ACTIVE state to perform this operation.",
+  ).optional(),
   singleTenantHsmInstanceProposalId: z.string().describe(
     "Optional. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`.",
   ).optional(),
@@ -285,6 +295,10 @@ const StateSchema = z.object({
   }).optional(),
   state: z.string().optional(),
   ttl: z.string().optional(),
+  upgradeKeyTrust: z.object({
+    name: z.string(),
+    twoFactorPublicKeyPem: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -388,6 +402,16 @@ const InputsSchema = z.object({
   ttl: z.string().describe(
     "Input only. The TTL for the SingleTenantHsmInstanceProposal. Proposals will expire after this duration.",
   ).optional(),
+  upgradeKeyTrust: z.object({
+    name: z.string().describe(
+      "Required. The name of the CryptoKeyVersion to promote.",
+    ).optional(),
+    twoFactorPublicKeyPem: z.string().describe(
+      "Required. The public key associated with the 2FA key that will sign the login nonce for this operation.",
+    ).optional(),
+  }).describe(
+    "Promotes a key with the AES_WRAPPING purpose to a trusted wrapping key. The key must be in the ACTIVE state to perform this operation.",
+  ).optional(),
   singleTenantHsmInstanceProposalId: z.string().describe(
     "Optional. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`.",
   ).optional(),
@@ -411,7 +435,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) SingleTenantHsmInstances.Proposals. Registered at `@swamp/gcp/cloudkms/singletenanthsminstances-proposals`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/singletenanthsminstances-proposals",
-  version: "2026.06.08.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -488,6 +512,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.09.1",
+      description: "Added: upgradeKeyTrust",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -552,6 +581,9 @@ export const model = {
             g["requiredActionQuorumParameters"];
         }
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];
+        if (g["upgradeKeyTrust"] !== undefined) {
+          body["upgradeKeyTrust"] = g["upgradeKeyTrust"];
+        }
         if (g["singleTenantHsmInstanceProposalId"] !== undefined) {
           body["singleTenantHsmInstanceProposalId"] =
             g["singleTenantHsmInstanceProposalId"];

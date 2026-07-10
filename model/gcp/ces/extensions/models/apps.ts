@@ -185,7 +185,7 @@ const GlobalArgsSchema = z.object({
         "Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn't heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.",
       ).optional(),
       disableBargeIn: z.boolean().describe(
-        "Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile.",
+        "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
       ).optional(),
     }).describe(
       "Configuration for how the user barge-in activities should be handled.",
@@ -242,6 +242,8 @@ const GlobalArgsSchema = z.object({
       "CONTACT_CENTER_AS_A_SERVICE",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
+      "WHATSAPP",
+      "INSTAGRAM",
     ]).describe("Optional. The type of the channel profile.").optional(),
     disableBargeInControl: z.boolean().describe(
       "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -249,6 +251,11 @@ const GlobalArgsSchema = z.object({
     disableDtmf: z.boolean().describe(
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
+    instagramConfig: z.object({
+      instagramAccountId: z.string().describe(
+        "Required. The Instagram Account ID.",
+      ).optional(),
+    }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -289,6 +296,12 @@ const GlobalArgsSchema = z.object({
         "Optional. The title of the web widget.",
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
+    whatsappConfig: z.object({
+      phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
+        .optional(),
+      wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
+        .optional(),
+    }).describe("Configuration specific to WhatsApp deployments.").optional(),
   }).describe(
     "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
   ).optional(),
@@ -477,6 +490,19 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe(
       "Configuration for how the audio interactions should be recorded.",
+    ).optional(),
+    unredactedBigqueryExportSettings: z.object({
+      dataset: z.string().describe(
+        "Optional. The BigQuery **dataset ID** to export the data to.",
+      ).optional(),
+      enabled: z.boolean().describe(
+        "Optional. Indicates whether the BigQuery export is enabled.",
+      ).optional(),
+      project: z.string().describe(
+        "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+      ).optional(),
+    }).describe(
+      "Settings to describe the BigQuery export behaviors for the app.",
     ).optional(),
   }).describe("Settings to describe the logging behaviors for the app.")
     .optional(),
@@ -628,6 +654,9 @@ const StateSchema = z.object({
     channelType: z.string(),
     disableBargeInControl: z.boolean(),
     disableDtmf: z.boolean(),
+    instagramConfig: z.object({
+      instagramAccountId: z.string(),
+    }),
     noiseSuppressionLevel: z.string(),
     personaProperty: z.object({
       persona: z.string(),
@@ -643,6 +672,10 @@ const StateSchema = z.object({
       }),
       theme: z.string(),
       webWidgetTitle: z.string(),
+    }),
+    whatsappConfig: z.object({
+      phoneNumberId: z.string(),
+      wabaId: z.string(),
     }),
   }).optional(),
   deploymentCount: z.number().optional(),
@@ -718,6 +751,11 @@ const StateSchema = z.object({
     unredactedAudioRecordingConfig: z.object({
       gcsBucket: z.string(),
       gcsPathPrefix: z.string(),
+    }),
+    unredactedBigqueryExportSettings: z.object({
+      dataset: z.string(),
+      enabled: z.boolean(),
+      project: z.string(),
     }),
   }).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -822,7 +860,7 @@ const InputsSchema = z.object({
         "Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn't heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.",
       ).optional(),
       disableBargeIn: z.boolean().describe(
-        "Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile.",
+        "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
       ).optional(),
     }).describe(
       "Configuration for how the user barge-in activities should be handled.",
@@ -879,6 +917,8 @@ const InputsSchema = z.object({
       "CONTACT_CENTER_AS_A_SERVICE",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
+      "WHATSAPP",
+      "INSTAGRAM",
     ]).describe("Optional. The type of the channel profile.").optional(),
     disableBargeInControl: z.boolean().describe(
       "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -886,6 +926,11 @@ const InputsSchema = z.object({
     disableDtmf: z.boolean().describe(
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
+    instagramConfig: z.object({
+      instagramAccountId: z.string().describe(
+        "Required. The Instagram Account ID.",
+      ).optional(),
+    }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -926,6 +971,12 @@ const InputsSchema = z.object({
         "Optional. The title of the web widget.",
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
+    whatsappConfig: z.object({
+      phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
+        .optional(),
+      wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
+        .optional(),
+    }).describe("Configuration specific to WhatsApp deployments.").optional(),
   }).describe(
     "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
   ).optional(),
@@ -1115,6 +1166,19 @@ const InputsSchema = z.object({
     }).describe(
       "Configuration for how the audio interactions should be recorded.",
     ).optional(),
+    unredactedBigqueryExportSettings: z.object({
+      dataset: z.string().describe(
+        "Optional. The BigQuery **dataset ID** to export the data to.",
+      ).optional(),
+      enabled: z.boolean().describe(
+        "Optional. Indicates whether the BigQuery export is enabled.",
+      ).optional(),
+      project: z.string().describe(
+        "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+      ).optional(),
+    }).describe(
+      "Settings to describe the BigQuery export behaviors for the app.",
+    ).optional(),
   }).describe("Settings to describe the logging behaviors for the app.")
     .optional(),
   metadata: z.record(z.string(), z.string()).describe(
@@ -1249,7 +1313,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps. Registered at `@swamp/gcp/ces/apps`. */
 export const model = {
   type: "@swamp/gcp/ces/apps",
-  version: "2026.06.08.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1377,6 +1441,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.09.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1866,6 +1935,49 @@ export const model = {
           },
           params,
           body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    get_extended_agent_card: {
+      description: "get extended agent card",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["tenant"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "ces.projects.locations.apps.getExtendedAgentCard",
+            "path": "v1/{+tenant}/extendedAgentCard",
+            "httpMethod": "GET",
+            "parameterOrder": ["tenant"],
+            "parameters": {
+              "tenant": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
           undefined,
           undefined,
           undefined,

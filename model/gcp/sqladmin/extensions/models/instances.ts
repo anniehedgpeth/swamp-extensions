@@ -582,7 +582,7 @@ const GlobalArgsSchema = z.object({
         "Whether point in time recovery is enabled.",
       ).optional(),
       replicationLogArchivingEnabled: z.boolean().describe(
-        "Reserved for future use.",
+        "Optional. Deprecated: replication_log_archiving_enabled is deprecated and will be removed from a future version of the API. Use point_in_time_recovery_enabled instead.",
       ).optional(),
       startTime: z.string().describe(
         "Start time for the daily backup configuration in UTC timezone in the 24 hour format - `HH:MM`.",
@@ -788,6 +788,9 @@ const GlobalArgsSchema = z.object({
           consumerProject: z.unknown().describe(
             "Optional. This is the project ID of consumer service project of this consumer endpoint. This is only applicable if `consumer_network` is a shared VPC network.",
           ).optional(),
+          instanceAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning.",
+          ).optional(),
           ipAddress: z.unknown().describe(
             "The IP address of the consumer endpoint.",
           ).optional(),
@@ -799,6 +802,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           status: z.unknown().describe(
             "The connection status of the consumer endpoint.",
+          ).optional(),
+          writeEndpointAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning for the write endpoint.",
           ).optional(),
         })).describe(
           "Optional. The list of settings for requested Private Service Connect consumer endpoints that can be used to connect to this Cloud SQL instance.",
@@ -903,8 +909,17 @@ const GlobalArgsSchema = z.object({
       "Database instance local user password validation policy. This message defines the password policy for local database users. When enabled, it enforces constraints on password complexity, length, and reuse. Keep this policy enabled to help prevent unauthorized access.",
     ).optional(),
     performanceCaptureConfig: z.object({
+      cpuUtilizationThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of CPU utilization to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
+      ).optional(),
       enabled: z.boolean().describe(
         "Optional. Enables or disables the performance capture feature.",
+      ).optional(),
+      historyListLengthThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum number of undo log entries in the history list length to trigger the performance capture. Valid integers range from `10000` to `10000000`. Enter `0` to disable the check.",
+      ).optional(),
+      memoryUsageThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of memory usage to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
       ).optional(),
       probeThreshold: z.number().int().describe(
         "Optional. Specifies the minimum number of consecutive probe threshold that triggers performance capture.",
@@ -918,8 +933,27 @@ const GlobalArgsSchema = z.object({
       secondsBehindSourceThreshold: z.number().int().describe(
         "Optional. Specifies the minimum number of seconds replica must be lagging behind primary instance to trigger the performance capture on replica.",
       ).optional(),
+      semaphoreWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of semaphore waits to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
+      ).optional(),
       transactionDurationThreshold: z.number().int().describe(
         "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts recording it.",
+      ).optional(),
+      transactionKillExcludedUserHosts: z.array(z.string()).describe(
+        "Optional. Specifies a customer-defined list of users to exclude from transaction termination. Entries can be in the format 'user@host' or just 'user'. A standalone 'user' implies 'user@%', excluding the user from any host. Wildcard '%' is allowed in the host part of the 'user@host' format. Example: `[\"app_user\", \"db_admin@10.1.2.3\", \"report_user@%\"]`",
+      ).optional(),
+      transactionKillThresholdSeconds: z.number().int().describe(
+        "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts terminating it. Valid integers range from `60` to `604800` (7 days). Enter `0` to disable. If enabled (i.e., > 0), this value must be greater than or equal to `transaction_duration_threshold`. Configurations where `0 < transaction_kill_threshold_seconds < transaction_duration_threshold` will be rejected.",
+      ).optional(),
+      transactionKillType: z.enum([
+        "TRANSACTION_KILL_TYPE_UNSPECIFIED",
+        "READ_ONLY_TRANSACTIONS",
+        "ALL_TRANSACTIONS",
+      ]).describe(
+        "Optional. Determines which transactions are allowed to be terminated when they exceed `transaction_kill_threshold_seconds`. This allows protecting write-heavy transactions from auto-termination if desired. Defaults to `READ_ONLY_TRANSACTIONS` if unspecified.",
+      ).optional(),
+      transactionLockWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of transactions in lock wait state to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
       ).optional(),
     }).describe("Performance capture configuration.").optional(),
     pricingPlan: z.enum(["SQL_PRICING_PLAN_UNSPECIFIED", "PACKAGE", "PER_USE"])
@@ -1106,10 +1140,12 @@ const StateSchema = z.object({
       consumerNetwork: z.string(),
       consumerNetworkStatus: z.string(),
       consumerProject: z.string(),
+      instanceAutoDnsStatus: z.string(),
       ipAddress: z.string(),
       serviceConnectionPolicy: z.string(),
       serviceConnectionPolicyCreationResult: z.string(),
       status: z.string(),
+      writeEndpointAutoDnsStatus: z.string(),
     })),
     pscServiceAttachmentLink: z.string(),
     state: z.string(),
@@ -1291,10 +1327,12 @@ const StateSchema = z.object({
           consumerNetwork: z.unknown(),
           consumerNetworkStatus: z.unknown(),
           consumerProject: z.unknown(),
+          instanceAutoDnsStatus: z.unknown(),
           ipAddress: z.unknown(),
           serviceConnectionPolicy: z.unknown(),
           serviceConnectionPolicyCreationResult: z.unknown(),
           status: z.unknown(),
+          writeEndpointAutoDnsStatus: z.unknown(),
         })),
         pscAutoDnsEnabled: z.boolean(),
         pscEnabled: z.boolean(),
@@ -1329,12 +1367,20 @@ const StateSchema = z.object({
       reuseInterval: z.number(),
     }),
     performanceCaptureConfig: z.object({
+      cpuUtilizationThresholdPercent: z.number(),
       enabled: z.boolean(),
+      historyListLengthThresholdCount: z.number(),
+      memoryUsageThresholdPercent: z.number(),
       probeThreshold: z.number(),
       probingIntervalSeconds: z.number(),
       runningThreadsThreshold: z.number(),
       secondsBehindSourceThreshold: z.number(),
+      semaphoreWaitThresholdCount: z.number(),
       transactionDurationThreshold: z.number(),
+      transactionKillExcludedUserHosts: z.array(z.string()),
+      transactionKillThresholdSeconds: z.number(),
+      transactionKillType: z.string(),
+      transactionLockWaitThresholdCount: z.number(),
     }),
     pricingPlan: z.string(),
     readPoolAutoScaleConfig: z.object({
@@ -1800,7 +1846,7 @@ const InputsSchema = z.object({
         "Whether point in time recovery is enabled.",
       ).optional(),
       replicationLogArchivingEnabled: z.boolean().describe(
-        "Reserved for future use.",
+        "Optional. Deprecated: replication_log_archiving_enabled is deprecated and will be removed from a future version of the API. Use point_in_time_recovery_enabled instead.",
       ).optional(),
       startTime: z.string().describe(
         "Start time for the daily backup configuration in UTC timezone in the 24 hour format - `HH:MM`.",
@@ -2006,6 +2052,9 @@ const InputsSchema = z.object({
           consumerProject: z.unknown().describe(
             "Optional. This is the project ID of consumer service project of this consumer endpoint. This is only applicable if `consumer_network` is a shared VPC network.",
           ).optional(),
+          instanceAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning.",
+          ).optional(),
           ipAddress: z.unknown().describe(
             "The IP address of the consumer endpoint.",
           ).optional(),
@@ -2017,6 +2066,9 @@ const InputsSchema = z.object({
           ).optional(),
           status: z.unknown().describe(
             "The connection status of the consumer endpoint.",
+          ).optional(),
+          writeEndpointAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning for the write endpoint.",
           ).optional(),
         })).describe(
           "Optional. The list of settings for requested Private Service Connect consumer endpoints that can be used to connect to this Cloud SQL instance.",
@@ -2121,8 +2173,17 @@ const InputsSchema = z.object({
       "Database instance local user password validation policy. This message defines the password policy for local database users. When enabled, it enforces constraints on password complexity, length, and reuse. Keep this policy enabled to help prevent unauthorized access.",
     ).optional(),
     performanceCaptureConfig: z.object({
+      cpuUtilizationThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of CPU utilization to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
+      ).optional(),
       enabled: z.boolean().describe(
         "Optional. Enables or disables the performance capture feature.",
+      ).optional(),
+      historyListLengthThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum number of undo log entries in the history list length to trigger the performance capture. Valid integers range from `10000` to `10000000`. Enter `0` to disable the check.",
+      ).optional(),
+      memoryUsageThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of memory usage to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
       ).optional(),
       probeThreshold: z.number().int().describe(
         "Optional. Specifies the minimum number of consecutive probe threshold that triggers performance capture.",
@@ -2136,8 +2197,27 @@ const InputsSchema = z.object({
       secondsBehindSourceThreshold: z.number().int().describe(
         "Optional. Specifies the minimum number of seconds replica must be lagging behind primary instance to trigger the performance capture on replica.",
       ).optional(),
+      semaphoreWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of semaphore waits to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
+      ).optional(),
       transactionDurationThreshold: z.number().int().describe(
         "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts recording it.",
+      ).optional(),
+      transactionKillExcludedUserHosts: z.array(z.string()).describe(
+        "Optional. Specifies a customer-defined list of users to exclude from transaction termination. Entries can be in the format 'user@host' or just 'user'. A standalone 'user' implies 'user@%', excluding the user from any host. Wildcard '%' is allowed in the host part of the 'user@host' format. Example: `[\"app_user\", \"db_admin@10.1.2.3\", \"report_user@%\"]`",
+      ).optional(),
+      transactionKillThresholdSeconds: z.number().int().describe(
+        "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts terminating it. Valid integers range from `60` to `604800` (7 days). Enter `0` to disable. If enabled (i.e., > 0), this value must be greater than or equal to `transaction_duration_threshold`. Configurations where `0 < transaction_kill_threshold_seconds < transaction_duration_threshold` will be rejected.",
+      ).optional(),
+      transactionKillType: z.enum([
+        "TRANSACTION_KILL_TYPE_UNSPECIFIED",
+        "READ_ONLY_TRANSACTIONS",
+        "ALL_TRANSACTIONS",
+      ]).describe(
+        "Optional. Determines which transactions are allowed to be terminated when they exceed `transaction_kill_threshold_seconds`. This allows protecting write-heavy transactions from auto-termination if desired. Defaults to `READ_ONLY_TRANSACTIONS` if unspecified.",
+      ).optional(),
+      transactionLockWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of transactions in lock wait state to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
       ).optional(),
     }).describe("Performance capture configuration.").optional(),
     pricingPlan: z.enum(["SQL_PRICING_PLAN_UNSPECIFIED", "PACKAGE", "PER_USE"])
@@ -2269,7 +2349,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Instances. Registered at `@swamp/gcp/sqladmin/instances`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/instances",
-  version: "2026.06.10.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2408,6 +2488,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.10.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.09.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

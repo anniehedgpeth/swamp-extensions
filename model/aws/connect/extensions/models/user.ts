@@ -78,6 +78,9 @@ const AfterContactWorkConfigSchema = z.object({
   AfterContactWorkTimeLimit: z.number().int().min(0).describe(
     "The After Call Work (ACW) timeout setting, in seconds.",
   ).optional(),
+  AfterContactWorkMode: z.enum(["ON", "OFF", "ON_DEMAND"]).describe(
+    "The after contact work (ACW) mode for the channel.",
+  ).optional(),
 });
 
 const AfterContactWorkConfigPerChannelSchema = z.object({
@@ -369,7 +372,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect User. Registered at `@swamp/aws/connect/user`. */
 export const model = {
   type: "@swamp/aws/connect/user",
-  version: "2026.06.15.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -408,6 +411,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.09.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

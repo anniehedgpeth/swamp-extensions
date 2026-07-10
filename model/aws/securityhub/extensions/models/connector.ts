@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/securityhub/connector-v2
+// Auto-generated extension model for @swamp/aws/securityhub/connector
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for SecurityHub ConnectorV2 (AWS::SecurityHub::ConnectorV2).
+ * Swamp extension model for SecurityHub Connector (AWS::SecurityHub::Connector).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,6 +41,27 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
+const AzureScopeConfigurationSchema = z.object({
+  ScopeType: z.enum(["TENANT", "SUBSCRIPTION"]).describe(
+    "The scope type for the Azure connector",
+  ),
+  ScopeValues: z.array(z.string()).describe(
+    "The list of scope values for the Azure connector",
+  ).optional(),
+});
+
+const AzureProviderConfigurationSchema = z.object({
+  AWSConfigConnectorArn: z.string().describe(
+    "The ARN of the AWS Config connector used for the Azure integration",
+  ),
+  ScopeConfiguration: AzureScopeConfigurationSchema.describe(
+    "The scope configuration for an Azure connector",
+  ),
+  AzureRegions: z.array(z.string()).describe(
+    "The list of Azure regions to include in the connector scope",
+  ),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -57,18 +78,13 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Name: z.string().min(1).max(64).regex(new RegExp(".*\\S.*")).describe(
-    "The name of the connector",
-  ),
-  Description: z.string().min(0).max(256).regex(new RegExp(".*\\S.*")).describe(
-    "A description of the connector",
-  ).optional(),
-  KmsKeyArn: z.string().min(20).max(2048).regex(new RegExp(".*\\S.*")).describe(
-    "The ARN of KMS key used for the connector",
-  ).optional(),
-  Provider: z.record(z.string(), z.unknown()).describe(
-    "The third-party provider configuration for the connector",
-  ),
+  Name: z.string().describe("The name of the connector"),
+  Description: z.string().describe("A description of the connector").optional(),
+  Provider: z.object({
+    Azure: AzureProviderConfigurationSchema.describe(
+      "The configuration settings for an Azure CSPM provider",
+    ),
+  }).describe("The CSPM provider configuration for the connector"),
   Tags: z.record(z.string(), z.string().min(0).max(256)).describe(
     "A key-value pair to associate with a resource.",
   ).optional(),
@@ -77,18 +93,19 @@ const GlobalArgsSchema = z.object({
 const StateSchema = z.object({
   Name: z.string().optional(),
   Description: z.string().optional(),
-  KmsKeyArn: z.string().optional(),
-  Provider: z.record(z.string(), z.unknown()).optional(),
-  Message: z.string().optional(),
-  ConnectorStatus: z.string().optional(),
+  Provider: z.object({
+    Azure: AzureProviderConfigurationSchema,
+  }).optional(),
   Tags: z.record(z.string(), z.unknown()).optional(),
   ConnectorArn: z.string(),
   ConnectorId: z.string().optional(),
-  LastUpdatedAt: z.string().optional(),
+  ConnectorStatus: z.string().optional(),
+  Message: z.string().optional(),
   LastCheckedAt: z.string().optional(),
   CreatedAt: z.string().optional(),
+  LastUpdatedAt: z.string().optional(),
+  CreatedBy: z.string().optional(),
   EnablementStatus: z.string().optional(),
-  EnablementStatusReason: z.string().optional(),
   Issues: z.array(z.object({
     Code: z.string(),
     Message: z.string(),
@@ -103,18 +120,13 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Name: z.string().min(1).max(64).regex(new RegExp(".*\\S.*")).describe(
-    "The name of the connector",
-  ).optional(),
-  Description: z.string().min(0).max(256).regex(new RegExp(".*\\S.*")).describe(
-    "A description of the connector",
-  ).optional(),
-  KmsKeyArn: z.string().min(20).max(2048).regex(new RegExp(".*\\S.*")).describe(
-    "The ARN of KMS key used for the connector",
-  ).optional(),
-  Provider: z.record(z.string(), z.unknown()).describe(
-    "The third-party provider configuration for the connector",
-  ).optional(),
+  Name: z.string().describe("The name of the connector").optional(),
+  Description: z.string().describe("A description of the connector").optional(),
+  Provider: z.object({
+    Azure: AzureProviderConfigurationSchema.describe(
+      "The configuration settings for an Azure CSPM provider",
+    ).optional(),
+  }).describe("The CSPM provider configuration for the connector").optional(),
   Tags: z.record(z.string(), z.string().min(0).max(256)).describe(
     "A key-value pair to associate with a resource.",
   ).optional(),
@@ -136,67 +148,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for SecurityHub ConnectorV2. Registered at `@swamp/aws/securityhub/connector-v2`. */
+/** Swamp extension model for SecurityHub Connector. Registered at `@swamp/aws/securityhub/connector`. */
 export const model = {
-  type: "@swamp/aws/securityhub/connector-v2",
+  type: "@swamp/aws/securityhub/connector",
   version: "2026.07.09.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.27.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.09.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "SecurityHub ConnectorV2 resource state",
+      description: "SecurityHub Connector resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -204,7 +164,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a SecurityHub ConnectorV2",
+      description: "Create a SecurityHub Connector",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -216,7 +176,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::SecurityHub::ConnectorV2",
+          "AWS::SecurityHub::Connector",
           desiredState,
           credentials,
         ) as StateData;
@@ -233,16 +193,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a SecurityHub ConnectorV2",
+      description: "Get a SecurityHub Connector",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the SecurityHub ConnectorV2",
+          "The primary identifier of the SecurityHub Connector",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::SecurityHub::ConnectorV2",
+          "AWS::SecurityHub::Connector",
           args.identifier,
           credentials,
         ) as StateData;
@@ -260,7 +220,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a SecurityHub ConnectorV2",
+      description: "Update a SecurityHub Connector",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -283,7 +243,7 @@ export const model = {
           throw new Error("No identifier found in existing state");
         }
         const currentState = await readResource(
-          "AWS::SecurityHub::ConnectorV2",
+          "AWS::SecurityHub::Connector",
           identifier,
           credentials,
         ) as StateData;
@@ -294,11 +254,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::SecurityHub::ConnectorV2",
+          "AWS::SecurityHub::Connector",
           identifier,
           currentState,
           desiredState,
-          ["Name", "KmsKeyArn", "InstanceName", "AWSConfigConnectorArn"],
+          ["Name", "AWSConfigConnectorArn"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -310,16 +270,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a SecurityHub ConnectorV2",
+      description: "Delete a SecurityHub Connector",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the SecurityHub ConnectorV2",
+          "The primary identifier of the SecurityHub Connector",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::SecurityHub::ConnectorV2",
+          "AWS::SecurityHub::Connector",
           args.identifier,
           credentials,
         );
@@ -338,7 +298,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync SecurityHub ConnectorV2 state from AWS",
+      description: "Sync SecurityHub Connector state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -362,7 +322,7 @@ export const model = {
         }
         try {
           const result = await readResource(
-            "AWS::SecurityHub::ConnectorV2",
+            "AWS::SecurityHub::Connector",
             identifier,
             credentials,
           ) as StateData;

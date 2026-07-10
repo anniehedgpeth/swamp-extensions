@@ -372,7 +372,7 @@ const GlobalArgsSchema = z.object({
             "Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn't heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.",
           ).optional(),
           disableBargeIn: z.boolean().describe(
-            "Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile.",
+            "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
           ).optional(),
         }).describe(
           "Configuration for how the user barge-in activities should be handled.",
@@ -429,6 +429,8 @@ const GlobalArgsSchema = z.object({
           "CONTACT_CENTER_AS_A_SERVICE",
           "FIVE9",
           "CONTACT_CENTER_INTEGRATION",
+          "WHATSAPP",
+          "INSTAGRAM",
         ]).describe("Optional. The type of the channel profile.").optional(),
         disableBargeInControl: z.boolean().describe(
           "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -436,6 +438,12 @@ const GlobalArgsSchema = z.object({
         disableDtmf: z.boolean().describe(
           "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
         ).optional(),
+        instagramConfig: z.object({
+          instagramAccountId: z.string().describe(
+            "Required. The Instagram Account ID.",
+          ).optional(),
+        }).describe("Configuration specific to Instagram deployments.")
+          .optional(),
         noiseSuppressionLevel: z.string().describe(
           'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
         ).optional(),
@@ -476,6 +484,15 @@ const GlobalArgsSchema = z.object({
             "Optional. The title of the web widget.",
           ).optional(),
         }).describe("Message for configuration for the web widget.").optional(),
+        whatsappConfig: z.object({
+          phoneNumberId: z.string().describe(
+            "Required. The Meta phone number ID.",
+          ).optional(),
+          wabaId: z.string().describe(
+            "Required. The WhatsApp Business Account ID.",
+          ).optional(),
+        }).describe("Configuration specific to WhatsApp deployments.")
+          .optional(),
       }).describe(
         "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
       ).optional(),
@@ -667,6 +684,19 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         }).describe(
           "Configuration for how the audio interactions should be recorded.",
+        ).optional(),
+        unredactedBigqueryExportSettings: z.object({
+          dataset: z.string().describe(
+            "Optional. The BigQuery **dataset ID** to export the data to.",
+          ).optional(),
+          enabled: z.boolean().describe(
+            "Optional. Indicates whether the BigQuery export is enabled.",
+          ).optional(),
+          project: z.string().describe(
+            "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+          ).optional(),
+        }).describe(
+          "Settings to describe the BigQuery export behaviors for the app.",
         ).optional(),
       }).describe("Settings to describe the logging behaviors for the app.")
         .optional(),
@@ -1107,9 +1137,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         name: z.string().describe("Required. The name of the agent tool.")
           .optional(),
-        rootAgent: z.string().describe(
-          "Optional. Deprecated: Use `agent` instead. The resource name of the root agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
-        ).optional(),
       }).describe(
         "Represents a tool that allows the agent to call another agent.",
       ).optional(),
@@ -2037,6 +2064,9 @@ const StateSchema = z.object({
         channelType: z.string(),
         disableBargeInControl: z.boolean(),
         disableDtmf: z.boolean(),
+        instagramConfig: z.object({
+          instagramAccountId: z.string(),
+        }),
         noiseSuppressionLevel: z.string(),
         personaProperty: z.object({
           persona: z.string(),
@@ -2052,6 +2082,10 @@ const StateSchema = z.object({
           }),
           theme: z.string(),
           webWidgetTitle: z.string(),
+        }),
+        whatsappConfig: z.object({
+          phoneNumberId: z.string(),
+          wabaId: z.string(),
         }),
       }),
       deploymentCount: z.number(),
@@ -2127,6 +2161,11 @@ const StateSchema = z.object({
         unredactedAudioRecordingConfig: z.object({
           gcsBucket: z.string(),
           gcsPathPrefix: z.string(),
+        }),
+        unredactedBigqueryExportSettings: z.object({
+          dataset: z.string(),
+          enabled: z.boolean(),
+          project: z.string(),
         }),
       }),
       metadata: z.record(z.string(), z.unknown()),
@@ -2298,7 +2337,6 @@ const StateSchema = z.object({
         agent: z.string(),
         description: z.string(),
         name: z.string(),
-        rootAgent: z.string(),
       }),
       clientFunction: z.object({
         description: z.string(),
@@ -2855,7 +2893,7 @@ const InputsSchema = z.object({
             "Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn't heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.",
           ).optional(),
           disableBargeIn: z.boolean().describe(
-            "Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile.",
+            "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
           ).optional(),
         }).describe(
           "Configuration for how the user barge-in activities should be handled.",
@@ -2912,6 +2950,8 @@ const InputsSchema = z.object({
           "CONTACT_CENTER_AS_A_SERVICE",
           "FIVE9",
           "CONTACT_CENTER_INTEGRATION",
+          "WHATSAPP",
+          "INSTAGRAM",
         ]).describe("Optional. The type of the channel profile.").optional(),
         disableBargeInControl: z.boolean().describe(
           "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -2919,6 +2959,12 @@ const InputsSchema = z.object({
         disableDtmf: z.boolean().describe(
           "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
         ).optional(),
+        instagramConfig: z.object({
+          instagramAccountId: z.string().describe(
+            "Required. The Instagram Account ID.",
+          ).optional(),
+        }).describe("Configuration specific to Instagram deployments.")
+          .optional(),
         noiseSuppressionLevel: z.string().describe(
           'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
         ).optional(),
@@ -2959,6 +3005,15 @@ const InputsSchema = z.object({
             "Optional. The title of the web widget.",
           ).optional(),
         }).describe("Message for configuration for the web widget.").optional(),
+        whatsappConfig: z.object({
+          phoneNumberId: z.string().describe(
+            "Required. The Meta phone number ID.",
+          ).optional(),
+          wabaId: z.string().describe(
+            "Required. The WhatsApp Business Account ID.",
+          ).optional(),
+        }).describe("Configuration specific to WhatsApp deployments.")
+          .optional(),
       }).describe(
         "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
       ).optional(),
@@ -3150,6 +3205,19 @@ const InputsSchema = z.object({
           ).optional(),
         }).describe(
           "Configuration for how the audio interactions should be recorded.",
+        ).optional(),
+        unredactedBigqueryExportSettings: z.object({
+          dataset: z.string().describe(
+            "Optional. The BigQuery **dataset ID** to export the data to.",
+          ).optional(),
+          enabled: z.boolean().describe(
+            "Optional. Indicates whether the BigQuery export is enabled.",
+          ).optional(),
+          project: z.string().describe(
+            "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+          ).optional(),
+        }).describe(
+          "Settings to describe the BigQuery export behaviors for the app.",
         ).optional(),
       }).describe("Settings to describe the logging behaviors for the app.")
         .optional(),
@@ -3590,9 +3658,6 @@ const InputsSchema = z.object({
         ).optional(),
         name: z.string().describe("Required. The name of the agent tool.")
           .optional(),
-        rootAgent: z.string().describe(
-          "Optional. Deprecated: Use `agent` instead. The resource name of the root agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
-        ).optional(),
       }).describe(
         "Represents a tool that allows the agent to call another agent.",
       ).optional(),
@@ -4422,7 +4487,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Versions. Registered at `@swamp/gcp/ces/apps-versions`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-versions",
-  version: "2026.06.12.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4571,6 +4636,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.09.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

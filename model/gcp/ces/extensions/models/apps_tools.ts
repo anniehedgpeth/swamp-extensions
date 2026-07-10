@@ -170,9 +170,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     name: z.string().describe("Required. The name of the agent tool.")
       .optional(),
-    rootAgent: z.string().describe(
-      "Optional. Deprecated: Use `agent` instead. The resource name of the root agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
-    ).optional(),
   }).describe("Represents a tool that allows the agent to call another agent.")
     .optional(),
   clientFunction: z.object({
@@ -1118,7 +1115,6 @@ const StateSchema = z.object({
     agent: z.string(),
     description: z.string(),
     name: z.string(),
-    rootAgent: z.string(),
   }).optional(),
   clientFunction: z.object({
     description: z.string(),
@@ -1503,9 +1499,6 @@ const InputsSchema = z.object({
     ).optional(),
     name: z.string().describe("Required. The name of the agent tool.")
       .optional(),
-    rootAgent: z.string().describe(
-      "Optional. Deprecated: Use `agent` instead. The resource name of the root agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
-    ).optional(),
   }).describe("Represents a tool that allows the agent to call another agent.")
     .optional(),
   clientFunction: z.object({
@@ -2461,7 +2454,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Tools. Registered at `@swamp/gcp/ces/apps-tools`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-tools",
-  version: "2026.06.12.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -2626,6 +2619,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.09.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

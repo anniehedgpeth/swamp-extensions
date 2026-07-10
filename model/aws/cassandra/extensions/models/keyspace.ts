@@ -65,28 +65,7 @@ const GlobalArgsSchema = z.object({
   ReplicationSpecification: z.object({
     ReplicationStrategy: z.enum(["SINGLE_REGION", "MULTI_REGION"]).optional(),
     RegionList: z.array(
-      z.enum([
-        "af-south-1",
-        "ap-east-1",
-        "ap-northeast-1",
-        "ap-northeast-2",
-        "ap-south-1",
-        "ap-southeast-1",
-        "ap-southeast-2",
-        "ca-central-1",
-        "eu-central-1",
-        "eu-north-1",
-        "eu-west-1",
-        "eu-west-2",
-        "eu-west-3",
-        "me-central-1",
-        "me-south-1",
-        "sa-east-1",
-        "us-east-1",
-        "us-east-2",
-        "us-west-1",
-        "us-west-2",
-      ]),
+      z.string().regex(new RegExp("^[a-z]{2,}-[a-z]+-[0-9]+$")),
     ).optional(),
   }).optional(),
   ClientSideTimestampsEnabled: z.boolean().describe(
@@ -117,28 +96,7 @@ const InputsSchema = z.object({
   ReplicationSpecification: z.object({
     ReplicationStrategy: z.enum(["SINGLE_REGION", "MULTI_REGION"]).optional(),
     RegionList: z.array(
-      z.enum([
-        "af-south-1",
-        "ap-east-1",
-        "ap-northeast-1",
-        "ap-northeast-2",
-        "ap-south-1",
-        "ap-southeast-1",
-        "ap-southeast-2",
-        "ca-central-1",
-        "eu-central-1",
-        "eu-north-1",
-        "eu-west-1",
-        "eu-west-2",
-        "eu-west-3",
-        "me-central-1",
-        "me-south-1",
-        "sa-east-1",
-        "us-east-1",
-        "us-east-2",
-        "us-west-1",
-        "us-west-2",
-      ]),
+      z.string().regex(new RegExp("^[a-z]{2,}-[a-z]+-[0-9]+$")),
     ).optional(),
   }).optional(),
   ClientSideTimestampsEnabled: z.boolean().describe(
@@ -165,7 +123,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Cassandra Keyspace. Registered at `@swamp/aws/cassandra/keyspace`. */
 export const model = {
   type: "@swamp/aws/cassandra/keyspace",
-  version: "2026.06.15.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -204,6 +162,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.09.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

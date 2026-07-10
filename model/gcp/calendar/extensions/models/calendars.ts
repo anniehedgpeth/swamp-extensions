@@ -134,7 +134,7 @@ const GlobalArgsSchema = z.object({
         'Background color of the label in hexadecimal format, such as "#039be5". Events with this label are displayed in this color. Required.',
       ).optional(),
       id: z.string().describe(
-        "The id of the label. Optional when inserting a new label. If not provided, a unique id will be generated. Required when updating a label. If provided, the id must be unique within the calendar and follow UUID format.",
+        "The ID of the label. Optional when inserting a new label. If not provided, a unique ID will be generated. Required when updating a label. If provided, the ID must be unique within the calendar and follow UUID format.",
       ).optional(),
       name: z.string().describe(
         "Name of the label. Optional. If provided this must have at most 50 characters.",
@@ -203,7 +203,7 @@ const InputsSchema = z.object({
         'Background color of the label in hexadecimal format, such as "#039be5". Events with this label are displayed in this color. Required.',
       ).optional(),
       id: z.string().describe(
-        "The id of the label. Optional when inserting a new label. If not provided, a unique id will be generated. Required when updating a label. If provided, the id must be unique within the calendar and follow UUID format.",
+        "The ID of the label. Optional when inserting a new label. If not provided, a unique ID will be generated. Required when updating a label. If provided, the ID must be unique within the calendar and follow UUID format.",
       ).optional(),
       name: z.string().describe(
         "Name of the label. Optional. If provided this must have at most 50 characters.",
@@ -236,7 +236,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar Calendars. Registered at `@swamp/gcp/calendar/calendars`. */
 export const model = {
   type: "@swamp/gcp/calendar/calendars",
-  version: "2026.07.08.1",
+  version: "2026.07.09.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -316,6 +316,11 @@ export const model = {
     {
       toVersion: "2026.07.08.1",
       description: "Added: labelProperties",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.09.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
