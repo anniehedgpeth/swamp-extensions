@@ -568,7 +568,7 @@ const GlobalArgsSchema = z.object({
     "CONTENT_ANALYSIS",
   ]).describe("Required. The type of the connector.").optional(),
   connectorConfigId: z.string().describe(
-    "Optional. ID to use for the connector config, which becomes the final component of the connector config's resource name. If provided, the ID must be 1-63 characters long, and contain only lowercase letters, digits, and hyphens. It must start with a letter, and end with a letter or number. If not provided, the connector config will be assigned a random UUID.",
+    "Optional. ID to use for the connector config, which becomes the final component of the connector config's resource name. If provided, the ID must be 1-36 characters long, and contain only lowercase letters, digits, and hyphens. It must start with a letter, and end with a letter or number. If not provided, the connector config will be assigned a random UUID.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -1092,7 +1092,7 @@ const InputsSchema = z.object({
     "CONTENT_ANALYSIS",
   ]).describe("Required. The type of the connector.").optional(),
   connectorConfigId: z.string().describe(
-    "Optional. ID to use for the connector config, which becomes the final component of the connector config's resource name. If provided, the ID must be 1-63 characters long, and contain only lowercase letters, digits, and hyphens. It must start with a letter, and end with a letter or number. If not provided, the connector config will be assigned a random UUID.",
+    "Optional. ID to use for the connector config, which becomes the final component of the connector config's resource name. If provided, the ID must be 1-36 characters long, and contain only lowercase letters, digits, and hyphens. It must start with a letter, and end with a letter or number. If not provided, the connector config will be assigned a random UUID.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -1114,7 +1114,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Chrome Management Customers.ConnectorConfigs. Registered at `@swamp/gcp/chromemanagement/customers-connectorconfigs`. */
 export const model = {
   type: "@swamp/gcp/chromemanagement/customers-connectorconfigs",
-  version: "2026.06.08.1",
+  version: "2026.07.10.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -1123,6 +1123,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.10.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

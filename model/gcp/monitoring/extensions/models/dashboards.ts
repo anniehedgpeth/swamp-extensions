@@ -188,6 +188,8 @@ const GlobalArgsSchema = z.object({
         "SAP_OPERATIONS",
         "INTERCONNECT_MAINTENANCE_STARTED",
         "INTERCONNECT_MAINTENANCE_COMPLETED",
+        "VPN_TRAFFIC_SELECTOR_NARROWING",
+        "VPN_MAINTENANCE",
       ]).describe("The type of event to display.").optional(),
       filter: z.string().describe(
         "string filtering the events - event dependant. Example values: \"resource.labels.pod_name = 'pod-1'\" \"protoPayload.authenticationInfo.principalEmail='user@example.com'\"",
@@ -1441,6 +1443,8 @@ const InputsSchema = z.object({
         "SAP_OPERATIONS",
         "INTERCONNECT_MAINTENANCE_STARTED",
         "INTERCONNECT_MAINTENANCE_COMPLETED",
+        "VPN_TRAFFIC_SELECTOR_NARROWING",
+        "VPN_MAINTENANCE",
       ]).describe("The type of event to display.").optional(),
       filter: z.string().describe(
         "string filtering the events - event dependant. Example values: \"resource.labels.pod_name = 'pod-1'\" \"protoPayload.authenticationInfo.principalEmail='user@example.com'\"",
@@ -2306,7 +2310,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring Dashboards. Registered at `@swamp/gcp/monitoring/dashboards`. */
 export const model = {
   type: "@swamp/gcp/monitoring/dashboards",
-  version: "2026.06.24.1",
+  version: "2026.07.10.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -2325,6 +2329,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.10.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -223,6 +223,13 @@ const GlobalArgsSchema = z.object({
     authproxyPoolerCount: z.number().int().describe(
       "Output only. The number of running AuthProxy poolers per instance.",
     ).optional(),
+    authproxyPoolerScalingType: z.enum([
+      "POOLER_SCALING_TYPE_UNSPECIFIED",
+      "POOLER_NONE",
+      "POOLER_MACHINE_SIZED",
+      "POOLER_MANUAL_OVERRIDE",
+    ]).describe("Optional. The scaling type of the AuthProxy pooler.")
+      .optional(),
     enabled: z.boolean().describe(
       "Optional. Whether to enable Managed Connection Pool (MCP).",
     ).optional(),
@@ -232,6 +239,12 @@ const GlobalArgsSchema = z.object({
     poolerCount: z.number().int().describe(
       "Output only. The number of running poolers per instance.",
     ).optional(),
+    poolerScalingType: z.enum([
+      "POOLER_SCALING_TYPE_UNSPECIFIED",
+      "POOLER_NONE",
+      "POOLER_MACHINE_SIZED",
+      "POOLER_MANUAL_OVERRIDE",
+    ]).describe("Optional. The scaling type of the regular pooler.").optional(),
   }).describe("Configuration for Managed Connection Pool (MCP).").optional(),
   dataApiAccess: z.enum([
     "DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES",
@@ -415,9 +428,11 @@ const StateSchema = z.object({
   }).optional(),
   connectionPoolConfig: z.object({
     authproxyPoolerCount: z.number(),
+    authproxyPoolerScalingType: z.string(),
     enabled: z.boolean(),
     flags: z.record(z.string(), z.unknown()),
     poolerCount: z.number(),
+    poolerScalingType: z.string(),
   }).optional(),
   createTime: z.string().optional(),
   dataApiAccess: z.string().optional(),
@@ -546,6 +561,13 @@ const InputsSchema = z.object({
     authproxyPoolerCount: z.number().int().describe(
       "Output only. The number of running AuthProxy poolers per instance.",
     ).optional(),
+    authproxyPoolerScalingType: z.enum([
+      "POOLER_SCALING_TYPE_UNSPECIFIED",
+      "POOLER_NONE",
+      "POOLER_MACHINE_SIZED",
+      "POOLER_MANUAL_OVERRIDE",
+    ]).describe("Optional. The scaling type of the AuthProxy pooler.")
+      .optional(),
     enabled: z.boolean().describe(
       "Optional. Whether to enable Managed Connection Pool (MCP).",
     ).optional(),
@@ -555,6 +577,12 @@ const InputsSchema = z.object({
     poolerCount: z.number().int().describe(
       "Output only. The number of running poolers per instance.",
     ).optional(),
+    poolerScalingType: z.enum([
+      "POOLER_SCALING_TYPE_UNSPECIFIED",
+      "POOLER_NONE",
+      "POOLER_MACHINE_SIZED",
+      "POOLER_MANUAL_OVERRIDE",
+    ]).describe("Optional. The scaling type of the regular pooler.").optional(),
   }).describe("Configuration for Managed Connection Pool (MCP).").optional(),
   dataApiAccess: z.enum([
     "DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES",
@@ -740,7 +768,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AlloyDB Clusters.Instances. Registered at `@swamp/gcp/alloydb/clusters-instances`. */
 export const model = {
   type: "@swamp/gcp/alloydb/clusters-instances",
-  version: "2026.06.08.1",
+  version: "2026.07.10.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -839,6 +867,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.10.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

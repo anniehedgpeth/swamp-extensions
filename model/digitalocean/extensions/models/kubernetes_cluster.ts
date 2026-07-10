@@ -99,6 +99,11 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "An object specifying whether the routing-agent component should be enabled for the Kubernetes cluster.",
   ).optional(),
+  p2p_oci_registry_plugin: z.object({
+    enabled: z.boolean().optional(),
+  }).describe(
+    "An object specifying whether the Peer-to-peer OCI registry component should be enabled for the Kubernetes cluster.",
+  ).optional(),
   amd_gpu_device_plugin: z.object({
     enabled: z.boolean().optional(),
   }).describe(
@@ -280,6 +285,9 @@ const ResourceSchema = z.object({
   coredns_autoscaler: z.object({
     enabled: z.boolean().optional(),
   }).nullable().optional(),
+  p2p_oci_registry_plugin: z.object({
+    enabled: z.boolean().optional(),
+  }).nullable().optional(),
 }).passthrough();
 
 type ResourceData = z.infer<typeof ResourceSchema>;
@@ -321,6 +329,9 @@ const InputsSchema = z.object({
     client_id: z.string().optional(),
   }).optional(),
   routing_agent: z.object({
+    enabled: z.boolean().optional(),
+  }).optional(),
+  p2p_oci_registry_plugin: z.object({
     enabled: z.boolean().optional(),
   }).optional(),
   amd_gpu_device_plugin: z.object({
@@ -394,7 +405,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for DigitalOcean kubernetes cluster. Registered at `@swamp/digitalocean/kubernetes-cluster`. */
 export const model = {
   type: "@swamp/digitalocean/kubernetes-cluster",
-  version: "2026.06.08.1",
+  version: "2026.07.10.1",
   upgrades: [
     {
       toVersion: "2026.03.27.1",
@@ -459,6 +470,11 @@ export const model = {
     {
       toVersion: "2026.06.08.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.10.1",
+      description: "Added: p2p_oci_registry_plugin",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -534,6 +550,9 @@ export const model = {
         }
         if (g.sso !== undefined) body.sso = g.sso;
         if (g.routing_agent !== undefined) body.routing_agent = g.routing_agent;
+        if (g.p2p_oci_registry_plugin !== undefined) {
+          body.p2p_oci_registry_plugin = g.p2p_oci_registry_plugin;
+        }
         if (g.amd_gpu_device_plugin !== undefined) {
           body.amd_gpu_device_plugin = g.amd_gpu_device_plugin;
         }
@@ -641,6 +660,9 @@ export const model = {
         }
         if (g.sso !== undefined) body.sso = g.sso;
         if (g.routing_agent !== undefined) body.routing_agent = g.routing_agent;
+        if (g.p2p_oci_registry_plugin !== undefined) {
+          body.p2p_oci_registry_plugin = g.p2p_oci_registry_plugin;
+        }
         if (g.amd_gpu_device_plugin !== undefined) {
           body.amd_gpu_device_plugin = g.amd_gpu_device_plugin;
         }

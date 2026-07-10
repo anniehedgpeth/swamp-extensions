@@ -187,6 +187,16 @@ const GlobalArgsSchema = z.object({
     videoGameRating: z.enum(["anyone", "m15Plus", "m16Plus", "m17Plus"])
       .describe("Video game rating, if any.").optional(),
   }).optional(),
+  brandPartner: z.object({
+    channelHandle: z.string().describe(
+      'Required. Channel handle, must begin with "@"',
+    ).optional(),
+    channelId: z.string().describe(
+      'Required. External Channel ID, must begin with "UC"',
+    ).optional(),
+  }).describe(
+    "Details about the brand partner linked to the video for Creator Initiated Linking (CIL). Next ID: 6",
+  ).optional(),
   contentDetails: z.object({
     caption: z.enum(["true", "false"]).describe(
       "The value of captions indicates whether the video has captions or not.",
@@ -1545,6 +1555,10 @@ const StateSchema = z.object({
     restricted: z.boolean(),
     videoGameRating: z.string(),
   }).optional(),
+  brandPartner: z.object({
+    channelHandle: z.string(),
+    channelId: z.string(),
+  }).optional(),
   contentDetails: z.object({
     caption: z.string(),
     contentRating: z.object({
@@ -1807,6 +1821,16 @@ const InputsSchema = z.object({
     videoGameRating: z.enum(["anyone", "m15Plus", "m16Plus", "m17Plus"])
       .describe("Video game rating, if any.").optional(),
   }).optional(),
+  brandPartner: z.object({
+    channelHandle: z.string().describe(
+      'Required. Channel handle, must begin with "@"',
+    ).optional(),
+    channelId: z.string().describe(
+      'Required. External Channel ID, must begin with "UC"',
+    ).optional(),
+  }).describe(
+    "Details about the brand partner linked to the video for Creator Initiated Linking (CIL). Next ID: 6",
+  ).optional(),
   contentDetails: z.object({
     caption: z.enum(["true", "false"]).describe(
       "The value of captions indicates whether the video has captions or not.",
@@ -3174,7 +3198,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Videos. Registered at `@swamp/gcp/youtube/videos`. */
 export const model = {
   type: "@swamp/gcp/youtube/videos",
-  version: "2026.06.24.2",
+  version: "2026.07.10.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3261,6 +3285,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.10.1",
+      description: "Added: brandPartner",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3284,6 +3313,9 @@ export const model = {
         if (g["part"] !== undefined) params["part"] = String(g["part"]);
         const body: Record<string, unknown> = {};
         if (g["ageGating"] !== undefined) body["ageGating"] = g["ageGating"];
+        if (g["brandPartner"] !== undefined) {
+          body["brandPartner"] = g["brandPartner"];
+        }
         if (g["contentDetails"] !== undefined) {
           body["contentDetails"] = g["contentDetails"];
         }
@@ -3417,6 +3449,9 @@ export const model = {
         params["part"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["ageGating"] !== undefined) body["ageGating"] = g["ageGating"];
+        if (g["brandPartner"] !== undefined) {
+          body["brandPartner"] = g["brandPartner"];
+        }
         if (g["contentDetails"] !== undefined) {
           body["contentDetails"] = g["contentDetails"];
         }

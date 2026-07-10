@@ -17,15 +17,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/gcp/cloudsupport/supporteventsubscriptions
+// Auto-generated extension model for @swamp/gcp/parametermanager/templates
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Google Cloud Support SupportEventSubscriptions.
+ * Swamp extension model for Google Cloud Parameter Manager Templates.
  *
- * A support event subscription.
+ * Message describing Template resource
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -47,14 +47,14 @@ import {
 
 /** Construct the fully-qualified resource name from parent and short name. */
 function buildResourceName(parent: string, shortName: string): string {
-  return `${parent}/supportEventSubscriptions/${shortName}`;
+  return `${parent}/templates/${shortName}`;
 }
 
-const BASE_URL = "https://cloudsupport.googleapis.com/";
+const BASE_URL = "https://parametermanager.googleapis.com/";
 
 const GET_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.get",
-  "path": "v2/{+name}",
+  "id": "parametermanager.projects.locations.templates.get",
+  "path": "v1/{+name}",
   "httpMethod": "GET",
   "parameterOrder": [
     "name",
@@ -68,8 +68,8 @@ const GET_CONFIG = {
 } as const;
 
 const INSERT_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.create",
-  "path": "v2/{+parent}/supportEventSubscriptions",
+  "id": "parametermanager.projects.locations.templates.create",
+  "path": "v1/{+parent}/templates",
   "httpMethod": "POST",
   "parameterOrder": [
     "parent",
@@ -79,12 +79,18 @@ const INSERT_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "requestId": {
+      "location": "query",
+    },
+    "templateId": {
+      "location": "query",
+    },
   },
 } as const;
 
 const PATCH_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.patch",
-  "path": "v2/{+name}",
+  "id": "parametermanager.projects.locations.templates.patch",
+  "path": "v1/{+name}",
   "httpMethod": "PATCH",
   "parameterOrder": [
     "name",
@@ -94,6 +100,9 @@ const PATCH_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "requestId": {
+      "location": "query",
+    },
     "updateMask": {
       "location": "query",
     },
@@ -101,8 +110,8 @@ const PATCH_CONFIG = {
 } as const;
 
 const DELETE_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.delete",
-  "path": "v2/{+name}",
+  "id": "parametermanager.projects.locations.templates.delete",
+  "path": "v1/{+name}",
   "httpMethod": "DELETE",
   "parameterOrder": [
     "name",
@@ -112,18 +121,24 @@ const DELETE_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "requestId": {
+      "location": "query",
+    },
   },
 } as const;
 
 const LIST_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.list",
-  "path": "v2/{+parent}/supportEventSubscriptions",
+  "id": "parametermanager.projects.locations.templates.list",
+  "path": "v1/{+parent}/templates",
   "httpMethod": "GET",
   "parameterOrder": [
     "parent",
   ],
   "parameters": {
     "filter": {
+      "location": "query",
+    },
+    "orderBy": {
       "location": "query",
     },
     "pageSize": {
@@ -135,9 +150,6 @@ const LIST_CONFIG = {
     "parent": {
       "location": "path",
       "required": true,
-    },
-    "showDeleted": {
-      "location": "query",
     },
   },
 } as const;
@@ -152,25 +164,32 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  format: z.enum([
+    "TEMPLATE_FORMAT_UNSPECIFIED",
+    "TEMPLATE_FORMAT_YAML",
+    "TEMPLATE_FORMAT_JSON",
+  ]).describe("Optional. Specifies the format of a Template.").optional(),
+  labels: z.record(z.string(), z.string()).describe(
+    "Optional. Labels as key value pairs",
+  ).optional(),
   name: z.string().describe(
-    "Identifier. The resource name of the support event subscription.",
+    "Identifier. The resource name of the Template in the format `projects/*/locations/*/templates/*`.",
   ).optional(),
-  pubSubTopic: z.string().describe(
-    "Required. The name of the Pub/Sub topic to publish notifications to. Format: projects/{project}/topics/{topic}",
+  requestId: z.string().describe(
+    "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
-  parent: z.string().describe(
-    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
+  templateId: z.string().describe("Required. Id of the Template resource")
+    .optional(),
+  location: z.string().describe(
+    "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
 });
 
 const StateSchema = z.object({
   createTime: z.string().optional(),
-  deleteTime: z.string().optional(),
-  failureReason: z.string().optional(),
+  format: z.string().optional(),
+  labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
-  pubSubTopic: z.string().optional(),
-  purgeTime: z.string().optional(),
-  state: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
 
@@ -180,14 +199,24 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  format: z.enum([
+    "TEMPLATE_FORMAT_UNSPECIFIED",
+    "TEMPLATE_FORMAT_YAML",
+    "TEMPLATE_FORMAT_JSON",
+  ]).describe("Optional. Specifies the format of a Template.").optional(),
+  labels: z.record(z.string(), z.string()).describe(
+    "Optional. Labels as key value pairs",
+  ).optional(),
   name: z.string().describe(
-    "Identifier. The resource name of the support event subscription.",
+    "Identifier. The resource name of the Template in the format `projects/*/locations/*/templates/*`.",
   ).optional(),
-  pubSubTopic: z.string().describe(
-    "Required. The name of the Pub/Sub topic to publish notifications to. Format: projects/{project}/topics/{topic}",
+  requestId: z.string().describe(
+    "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
-  parent: z.string().describe(
-    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
+  templateId: z.string().describe("Required. Id of the Template resource")
+    .optional(),
+  location: z.string().describe(
+    "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
 });
 
@@ -203,22 +232,15 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Google Cloud Support SupportEventSubscriptions. Registered at `@swamp/gcp/cloudsupport/supporteventsubscriptions`. */
+/** Swamp extension model for Google Cloud Parameter Manager Templates. Registered at `@swamp/gcp/parametermanager/templates`. */
 export const model = {
-  type: "@swamp/gcp/cloudsupport/supporteventsubscriptions",
+  type: "@swamp/gcp/parametermanager/templates",
   version: "2026.07.10.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.10.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A support event subscription.",
+      description: "Message describing Template resource",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -226,22 +248,25 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a supportEventSubscriptions",
+      description: "Create a templates",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
+        params["parent"] = `projects/${projectId}/locations/${
+          String(g["location"] ?? "")
+        }`;
         const body: Record<string, unknown> = {};
+        if (g["format"] !== undefined) body["format"] = g["format"];
+        if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["pubSubTopic"] !== undefined) {
-          body["pubSubTopic"] = g["pubSubTopic"];
-        }
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
+        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["templateId"] !== undefined) body["templateId"] = g["templateId"];
+        if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            String(g["parent"]),
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
             String(g["name"]),
           );
         }
@@ -255,7 +280,9 @@ export const model = {
           {
             listConfig: LIST_CONFIG,
             listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
+              "parent": `projects/${projectId}/locations/${
+                String(g["location"] ?? "")
+              }`,
             },
             matchField: "name",
             matchValue: String(g["name"] ?? ""),
@@ -273,11 +300,9 @@ export const model = {
       },
     },
     get: {
-      description: "Get a supportEventSubscriptions",
+      description: "Get a templates",
       arguments: z.object({
-        identifier: z.string().describe(
-          "The name of the supportEventSubscriptions",
-        ),
+        identifier: z.string().describe("The name of the templates"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
@@ -285,7 +310,7 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          String(g["parent"] ?? ""),
+          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
           args.identifier,
         );
         const result = await readResource(
@@ -308,7 +333,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update supportEventSubscriptions attributes",
+      description: "Update templates attributes",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -329,13 +354,12 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          String(g["parent"] ?? ""),
+          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
           existing["name"]?.toString() ?? g["name"]?.toString() ?? "",
         );
         const body: Record<string, unknown> = {};
-        if (g["pubSubTopic"] !== undefined) {
-          body["pubSubTopic"] = g["pubSubTopic"];
-        }
+        if (g["format"] !== undefined) body["format"] = g["format"];
+        if (g["labels"] !== undefined) body["labels"] = g["labels"];
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||
@@ -362,11 +386,9 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete the supportEventSubscriptions",
+      description: "Delete the templates",
       arguments: z.object({
-        identifier: z.string().describe(
-          "The name of the supportEventSubscriptions",
-        ),
+        identifier: z.string().describe("The name of the templates"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
@@ -374,7 +396,7 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          String(g["parent"] ?? ""),
+          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
           args.identifier,
         );
         const { existed } = await deleteResource(
@@ -397,7 +419,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync supportEventSubscriptions state from GCP",
+      description: "Sync templates state from GCP",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -421,7 +443,7 @@ export const model = {
           const shortName = existing.name?.toString() ?? g["name"]?.toString();
           if (!shortName) throw new Error("No identifier found");
           params["name"] = buildResourceName(
-            String(g["parent"] ?? ""),
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
             shortName,
           );
           const result = await readResource(
@@ -449,16 +471,14 @@ export const model = {
       },
     },
     list: {
-      description: "List supportEventSubscriptions resources",
+      description: "List templates resources",
       arguments: z.object({
-        filter: z.string().describe(
-          'Optional. Filter expression based on AIP-160. Supported fields: - pub_sub_topic - state Examples: - `pub_sub_topic="projects/example-project/topics/example-topic"` - `state=WORKING` - `pub_sub_topic="projects/example-project/topics/example-topic" AND state=WORKING`',
+        filter: z.string().describe("Optional. Filtering results").optional(),
+        orderBy: z.string().describe(
+          "Optional. Hint for how to order the results",
         ).optional(),
         pageSize: z.number().describe(
-          "Optional. The maximum number of support event subscriptions to return.",
-        ).optional(),
-        showDeleted: z.boolean().describe(
-          "Optional. Whether to show deleted subscriptions. By default, deleted subscriptions are not returned.",
+          "Optional. Requested page size. Server may return fewer items than requested. If unspecified, server will pick an appropriate default.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
@@ -469,21 +489,23 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
+        params["parent"] = `projects/${projectId}/locations/${
+          String(g["location"] ?? "")
+        }`;
         if (args["filter"] !== undefined) {
           params["filter"] = String(args["filter"]);
         }
+        if (args["orderBy"] !== undefined) {
+          params["orderBy"] = String(args["orderBy"]);
+        }
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
-        }
-        if (args["showDeleted"] !== undefined) {
-          params["showDeleted"] = String(args["showDeleted"]);
         }
         const { items, nextPageToken } = await listResources(
           BASE_URL,
           LIST_CONFIG,
           params,
-          "supportEventSubscriptions",
+          "templates",
           (args.maxPages as number | undefined) ?? 10,
           credentials,
         );
@@ -502,72 +524,6 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
-      },
-    },
-    expunge: {
-      description: "expunge",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "cloudsupport.supportEventSubscriptions.expunge",
-            "path": "v2/{+name}:expunge",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    undelete: {
-      description: "undelete",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "cloudsupport.supportEventSubscriptions.undelete",
-            "path": "v2/{+name}:undelete",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
       },
     },
   },

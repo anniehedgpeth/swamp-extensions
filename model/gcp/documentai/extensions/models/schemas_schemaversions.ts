@@ -159,7 +159,7 @@ const GlobalArgsSchema = z.object({
     description: z.string().describe("Description of the schema.").optional(),
     displayName: z.string().describe("Display name to show users.").optional(),
     documentPrompt: z.string().describe(
-      "Optional. Document level prompt provided by the user. This custom text is injected into the AI model's prompt to provide extra, document-wide guidance for processing.",
+      "Optional. Document-level prompt provided by the user. This custom text is injected into the AI model's prompt to provide extra, document-wide guidance for processing.",
     ).optional(),
     entityTypes: z.array(z.object({
       baseTypes: z.array(z.string()).describe(
@@ -173,7 +173,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       }).describe("Defines the a list of enum values.").optional(),
       name: z.string().describe(
-        'Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use `snake_casing`. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters `[a-z0-9_-]`. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The `/` is sometimes used to denote a property of a type. For example `line_item/amount`. This convention is deprecated, but will still be honored for backward compatibility.',
+        'Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use `snake_casing`. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters `[a-z0-9_-]`. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The `/` is sometimes used to denote a property of a type. For example, `line_item/amount`. This convention is deprecated, but will still be honored for backward compatibility.',
       ).optional(),
       properties: z.array(z.object({
         displayName: z.unknown().describe("User defined name for the property.")
@@ -268,7 +268,7 @@ const InputsSchema = z.object({
     description: z.string().describe("Description of the schema.").optional(),
     displayName: z.string().describe("Display name to show users.").optional(),
     documentPrompt: z.string().describe(
-      "Optional. Document level prompt provided by the user. This custom text is injected into the AI model's prompt to provide extra, document-wide guidance for processing.",
+      "Optional. Document-level prompt provided by the user. This custom text is injected into the AI model's prompt to provide extra, document-wide guidance for processing.",
     ).optional(),
     entityTypes: z.array(z.object({
       baseTypes: z.array(z.string()).describe(
@@ -282,7 +282,7 @@ const InputsSchema = z.object({
         ).optional(),
       }).describe("Defines the a list of enum values.").optional(),
       name: z.string().describe(
-        'Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use `snake_casing`. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters `[a-z0-9_-]`. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The `/` is sometimes used to denote a property of a type. For example `line_item/amount`. This convention is deprecated, but will still be honored for backward compatibility.',
+        'Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use `snake_casing`. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters `[a-z0-9_-]`. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The `/` is sometimes used to denote a property of a type. For example, `line_item/amount`. This convention is deprecated, but will still be honored for backward compatibility.',
       ).optional(),
       properties: z.array(z.object({
         displayName: z.unknown().describe("User defined name for the property.")
@@ -340,7 +340,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Document AI Schemas.SchemaVersions. Registered at `@swamp/gcp/documentai/schemas-schemaversions`. */
 export const model = {
   type: "@swamp/gcp/documentai/schemas-schemaversions",
-  version: "2026.06.08.1",
+  version: "2026.07.10.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -419,6 +419,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.10.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

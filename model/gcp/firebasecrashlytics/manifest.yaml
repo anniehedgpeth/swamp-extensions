@@ -1,22 +1,22 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
-name: "@swamp/gcp/cloudsupport"
+name: "@swamp/gcp/firebasecrashlytics"
 version: "2026.07.10.1"
-description: "Google Cloud cloudsupport infrastructure models"
+description: "Google Cloud firebasecrashlytics infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
   - gcp
   - google-cloud
-  - cloudsupport
+  - firebasecrashlytics
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: supporteventsubscriptions
+  - Added: apps_events, apps_issues, apps_issues_notes, apps_reports
 models:
-  - cases.ts
-  - cases_attachments.ts
-  - cases_comments.ts
-  - supporteventsubscriptions.ts
+  - apps_events.ts
+  - apps_issues.ts
+  - apps_issues_notes.ts
+  - apps_reports.ts
 additionalFiles:
   - LICENSE.txt
   - README.md
