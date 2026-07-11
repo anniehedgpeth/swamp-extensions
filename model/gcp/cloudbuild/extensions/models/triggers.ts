@@ -203,7 +203,8 @@ const GlobalArgsSchema = z.object({
       hostUri: z.string().describe(
         "Required. Immutable. The URI of the Bitbucket Server host. Once this field has been set, it cannot be changed. If you need to change it, please create another BitbucketServerConfig.",
       ).optional(),
-      name: z.string().describe("The resource name for the config.").optional(),
+      name: z.string().describe("Identifier. The resource name for the config.")
+        .optional(),
       peeredNetwork: z.string().describe(
         "Optional. The network to be used when reaching out to the Bitbucket Server instance. The VPC network must be enabled for private service connection. This should be set if the Bitbucket Server instance is hosted on-premises and not reachable by public internet. If this field is left empty, no network peering will occur and calls to the Bitbucket Server instance will be made over the public internet. Must be in the format `projects/{project}/global/networks/{network}`, where {project} is a project number or id and {network} is the name of a VPC network in the project.",
       ).optional(),
@@ -1264,102 +1265,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe(
     "GitHubEventsConfig describes the configuration of a trigger that creates a build whenever a GitHub event is received.",
-  ).optional(),
-  gitlabEnterpriseEventsConfig: z.object({
-    gitlabConfig: z.object({
-      connectedRepositories: z.array(z.object({
-        id: z.string().describe(
-          'Required. Identifier for the repository. example: "namespace/project-slug", namespace is usually the username or group ID',
-        ).optional(),
-        webhookId: z.number().int().describe(
-          "Output only. The ID of the webhook that was created for receiving events from this repo. We only create and manage a single webhook for each repo.",
-        ).optional(),
-      })).describe(
-        "Connected GitLab.com or GitLabEnterprise repositories for this config.",
-      ).optional(),
-      createTime: z.string().describe(
-        "Output only. Time when the config was created.",
-      ).optional(),
-      enterpriseConfig: z.object({
-        hostUri: z.string().describe(
-          "Immutable. The URI of the GitlabEnterprise host.",
-        ).optional(),
-        serviceDirectoryConfig: z.object({
-          service: z.string().describe(
-            "The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
-          ).optional(),
-        }).describe(
-          "ServiceDirectoryConfig represents Service Directory configuration for a SCM host connection.",
-        ).optional(),
-        sslCa: z.string().describe(
-          "The SSL certificate to use in requests to GitLab Enterprise instances.",
-        ).optional(),
-      }).describe(
-        "GitLabEnterpriseConfig represents the configuration for a GitLabEnterprise integration.",
-      ).optional(),
-      name: z.string().describe("The resource name for the config.").optional(),
-      secrets: z.object({
-        apiAccessTokenVersion: z.string().describe(
-          "Required. The resource name for the api access token’s secret version",
-        ).optional(),
-        apiKeyVersion: z.string().describe(
-          "Required. Immutable. API Key that will be attached to webhook requests from GitLab to Cloud Build.",
-        ).optional(),
-        readAccessTokenVersion: z.string().describe(
-          "Required. The resource name for the read access token’s secret version",
-        ).optional(),
-        webhookSecretVersion: z.string().describe(
-          "Required. Immutable. The resource name for the webhook secret’s secret version. Once this field has been set, it cannot be changed. If you need to change it, please create another GitLabConfig.",
-        ).optional(),
-      }).describe(
-        "GitLabSecrets represents the secrets in Secret Manager for a GitLab integration.",
-      ).optional(),
-      username: z.string().describe(
-        "Username of the GitLab.com or GitLab Enterprise account Cloud Build will use.",
-      ).optional(),
-      webhookKey: z.string().describe(
-        "Output only. UUID included in webhook requests. The UUID is used to look up the corresponding config.",
-      ).optional(),
-    }).describe(
-      "GitLabConfig represents the configuration for a GitLab integration.",
-    ).optional(),
-    gitlabConfigResource: z.string().describe(
-      "The GitLab config resource that this trigger config maps to.",
-    ).optional(),
-    projectNamespace: z.string().describe("Namespace of the GitLab project.")
-      .optional(),
-    pullRequest: z.object({
-      branch: z.string().describe(
-        "Regex of branches to match. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-      commentControl: z.enum([
-        "COMMENTS_DISABLED",
-        "COMMENTS_ENABLED",
-        "COMMENTS_ENABLED_FOR_EXTERNAL_CONTRIBUTORS_ONLY",
-      ]).describe(
-        "If CommentControl is enabled, depending on the setting, builds may not fire until a repository writer comments `/gcbrun` on a pull request or `/gcbrun` is in the pull request description. Only PR comments that contain `/gcbrun` will trigger builds. If CommentControl is set to disabled, comments with `/gcbrun` from a user with repository write permission or above will still trigger builds to run.",
-      ).optional(),
-      invertRegex: z.boolean().describe(
-        "If true, branches that do NOT match the git_ref will trigger a build.",
-      ).optional(),
-    }).describe(
-      "PullRequestFilter contains filter properties for matching GitHub Pull Requests.",
-    ).optional(),
-    push: z.object({
-      branch: z.string().describe(
-        "Regexes matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-      invertRegex: z.boolean().describe(
-        "When true, only trigger a build if the revision regex does NOT match the git_ref regex.",
-      ).optional(),
-      tag: z.string().describe(
-        "Regexes matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-    }).describe(
-      "Push contains filter properties for matching GitHub git pushes.",
-    ).optional(),
-  }).describe(
-    "GitLabEventsConfig describes the configuration of a trigger that creates a build whenever a GitLab event is received.",
   ).optional(),
   ignoredFiles: z.array(z.string()).describe(
     'ignored_files and included_files are file glob matches using https://golang.org/pkg/path/filepath/#Match extended with support for "**". If ignored_files and changed files are both empty, then they are not used to determine whether or not to trigger a build. If ignored_files is not empty, then we ignore any files that match any of the ignored_file globs. If the change has no files that are outside of the ignored_files globs, then we do not trigger a build.',
@@ -2068,7 +1973,8 @@ const InputsSchema = z.object({
       hostUri: z.string().describe(
         "Required. Immutable. The URI of the Bitbucket Server host. Once this field has been set, it cannot be changed. If you need to change it, please create another BitbucketServerConfig.",
       ).optional(),
-      name: z.string().describe("The resource name for the config.").optional(),
+      name: z.string().describe("Identifier. The resource name for the config.")
+        .optional(),
       peeredNetwork: z.string().describe(
         "Optional. The network to be used when reaching out to the Bitbucket Server instance. The VPC network must be enabled for private service connection. This should be set if the Bitbucket Server instance is hosted on-premises and not reachable by public internet. If this field is left empty, no network peering will occur and calls to the Bitbucket Server instance will be made over the public internet. Must be in the format `projects/{project}/global/networks/{network}`, where {project} is a project number or id and {network} is the name of a VPC network in the project.",
       ).optional(),
@@ -3130,102 +3036,6 @@ const InputsSchema = z.object({
   }).describe(
     "GitHubEventsConfig describes the configuration of a trigger that creates a build whenever a GitHub event is received.",
   ).optional(),
-  gitlabEnterpriseEventsConfig: z.object({
-    gitlabConfig: z.object({
-      connectedRepositories: z.array(z.object({
-        id: z.string().describe(
-          'Required. Identifier for the repository. example: "namespace/project-slug", namespace is usually the username or group ID',
-        ).optional(),
-        webhookId: z.number().int().describe(
-          "Output only. The ID of the webhook that was created for receiving events from this repo. We only create and manage a single webhook for each repo.",
-        ).optional(),
-      })).describe(
-        "Connected GitLab.com or GitLabEnterprise repositories for this config.",
-      ).optional(),
-      createTime: z.string().describe(
-        "Output only. Time when the config was created.",
-      ).optional(),
-      enterpriseConfig: z.object({
-        hostUri: z.string().describe(
-          "Immutable. The URI of the GitlabEnterprise host.",
-        ).optional(),
-        serviceDirectoryConfig: z.object({
-          service: z.string().describe(
-            "The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
-          ).optional(),
-        }).describe(
-          "ServiceDirectoryConfig represents Service Directory configuration for a SCM host connection.",
-        ).optional(),
-        sslCa: z.string().describe(
-          "The SSL certificate to use in requests to GitLab Enterprise instances.",
-        ).optional(),
-      }).describe(
-        "GitLabEnterpriseConfig represents the configuration for a GitLabEnterprise integration.",
-      ).optional(),
-      name: z.string().describe("The resource name for the config.").optional(),
-      secrets: z.object({
-        apiAccessTokenVersion: z.string().describe(
-          "Required. The resource name for the api access token’s secret version",
-        ).optional(),
-        apiKeyVersion: z.string().describe(
-          "Required. Immutable. API Key that will be attached to webhook requests from GitLab to Cloud Build.",
-        ).optional(),
-        readAccessTokenVersion: z.string().describe(
-          "Required. The resource name for the read access token’s secret version",
-        ).optional(),
-        webhookSecretVersion: z.string().describe(
-          "Required. Immutable. The resource name for the webhook secret’s secret version. Once this field has been set, it cannot be changed. If you need to change it, please create another GitLabConfig.",
-        ).optional(),
-      }).describe(
-        "GitLabSecrets represents the secrets in Secret Manager for a GitLab integration.",
-      ).optional(),
-      username: z.string().describe(
-        "Username of the GitLab.com or GitLab Enterprise account Cloud Build will use.",
-      ).optional(),
-      webhookKey: z.string().describe(
-        "Output only. UUID included in webhook requests. The UUID is used to look up the corresponding config.",
-      ).optional(),
-    }).describe(
-      "GitLabConfig represents the configuration for a GitLab integration.",
-    ).optional(),
-    gitlabConfigResource: z.string().describe(
-      "The GitLab config resource that this trigger config maps to.",
-    ).optional(),
-    projectNamespace: z.string().describe("Namespace of the GitLab project.")
-      .optional(),
-    pullRequest: z.object({
-      branch: z.string().describe(
-        "Regex of branches to match. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-      commentControl: z.enum([
-        "COMMENTS_DISABLED",
-        "COMMENTS_ENABLED",
-        "COMMENTS_ENABLED_FOR_EXTERNAL_CONTRIBUTORS_ONLY",
-      ]).describe(
-        "If CommentControl is enabled, depending on the setting, builds may not fire until a repository writer comments `/gcbrun` on a pull request or `/gcbrun` is in the pull request description. Only PR comments that contain `/gcbrun` will trigger builds. If CommentControl is set to disabled, comments with `/gcbrun` from a user with repository write permission or above will still trigger builds to run.",
-      ).optional(),
-      invertRegex: z.boolean().describe(
-        "If true, branches that do NOT match the git_ref will trigger a build.",
-      ).optional(),
-    }).describe(
-      "PullRequestFilter contains filter properties for matching GitHub Pull Requests.",
-    ).optional(),
-    push: z.object({
-      branch: z.string().describe(
-        "Regexes matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-      invertRegex: z.boolean().describe(
-        "When true, only trigger a build if the revision regex does NOT match the git_ref regex.",
-      ).optional(),
-      tag: z.string().describe(
-        "Regexes matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-    }).describe(
-      "Push contains filter properties for matching GitHub git pushes.",
-    ).optional(),
-  }).describe(
-    "GitLabEventsConfig describes the configuration of a trigger that creates a build whenever a GitLab event is received.",
-  ).optional(),
   ignoredFiles: z.array(z.string()).describe(
     'ignored_files and included_files are file glob matches using https://golang.org/pkg/path/filepath/#Match extended with support for "**". If ignored_files and changed files are both empty, then they are not used to determine whether or not to trigger a build. If ignored_files is not empty, then we ignore any files that match any of the ignored_file globs. If the change has no files that are outside of the ignored_files globs, then we do not trigger a build.',
   ).optional(),
@@ -3405,7 +3215,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Triggers. Registered at `@swamp/gcp/cloudbuild/triggers`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/triggers",
-  version: "2026.07.08.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -3421,6 +3231,17 @@ export const model = {
       toVersion: "2026.07.08.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.11.1",
+      description: "Removed: gitlabEnterpriseEventsConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          gitlabEnterpriseEventsConfig: _gitlabEnterpriseEventsConfig,
+          ...rest
+        } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -3471,10 +3292,6 @@ export const model = {
           body["gitFileSource"] = g["gitFileSource"];
         }
         if (g["github"] !== undefined) body["github"] = g["github"];
-        if (g["gitlabEnterpriseEventsConfig"] !== undefined) {
-          body["gitlabEnterpriseEventsConfig"] =
-            g["gitlabEnterpriseEventsConfig"];
-        }
         if (g["ignoredFiles"] !== undefined) {
           body["ignoredFiles"] = g["ignoredFiles"];
         }
@@ -3626,10 +3443,6 @@ export const model = {
           body["gitFileSource"] = g["gitFileSource"];
         }
         if (g["github"] !== undefined) body["github"] = g["github"];
-        if (g["gitlabEnterpriseEventsConfig"] !== undefined) {
-          body["gitlabEnterpriseEventsConfig"] =
-            g["gitlabEnterpriseEventsConfig"];
-        }
         if (g["ignoredFiles"] !== undefined) {
           body["ignoredFiles"] = g["ignoredFiles"];
         }

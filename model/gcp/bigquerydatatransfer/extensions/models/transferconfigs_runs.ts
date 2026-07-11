@@ -137,11 +137,6 @@ const StateSchema = z.object({
     details: z.array(z.record(z.string(), z.unknown())),
     message: z.string(),
   }).optional(),
-  metadataDestination: z.object({
-    dataplexConfiguration: z.object({
-      entryGroup: z.string(),
-    }),
-  }).optional(),
   name: z.string(),
   notificationPubsubTopic: z.string().optional(),
   params: z.record(z.string(), z.unknown()).optional(),
@@ -181,7 +176,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Data Transfer TransferConfigs.Runs. Registered at `@swamp/gcp/bigquerydatatransfer/transferconfigs-runs`. */
 export const model = {
   type: "@swamp/gcp/bigquerydatatransfer/transferconfigs-runs",
-  version: "2026.06.08.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -255,6 +250,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

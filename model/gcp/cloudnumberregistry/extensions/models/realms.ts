@@ -220,7 +220,7 @@ const GlobalArgsSchema = z.object({
     "Optional. User-defined labels.",
   ).optional(),
   managementType: z.enum(["MANAGEMENT_TYPE_UNSPECIFIED", "CNR", "USER"])
-    .describe("Required. Management type of the Realm.").optional(),
+    .describe("Optional. Management type of the Realm.").optional(),
   name: z.string().describe(
     "Required. Identifier. The resource name of the Realm.",
   ).optional(),
@@ -323,7 +323,7 @@ const InputsSchema = z.object({
     "Optional. User-defined labels.",
   ).optional(),
   managementType: z.enum(["MANAGEMENT_TYPE_UNSPECIFIED", "CNR", "USER"])
-    .describe("Required. Management type of the Realm.").optional(),
+    .describe("Optional. Management type of the Realm.").optional(),
   name: z.string().describe(
     "Required. Identifier. The resource name of the Realm.",
   ).optional(),
@@ -363,7 +363,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Number Registry Realms. Registered at `@swamp/gcp/cloudnumberregistry/realms`. */
 export const model = {
   type: "@swamp/gcp/cloudnumberregistry/realms",
-  version: "2026.06.08.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.05.19.1",
@@ -407,6 +407,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

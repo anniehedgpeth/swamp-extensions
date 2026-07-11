@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Build GitLabConfigs.
  *
- * GitLabConfig represents the configuration for a GitLab integration.
+ * Deprecated: CloudBuild GitLab V1 integration is deprecated. GitLabConfig represents the configuration for a GitLab integration.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -159,40 +159,8 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Connected GitLab.com or GitLabEnterprise repositories for this config.",
   ).optional(),
-  enterpriseConfig: z.object({
-    hostUri: z.string().describe(
-      "Immutable. The URI of the GitlabEnterprise host.",
-    ).optional(),
-    serviceDirectoryConfig: z.object({
-      service: z.string().describe(
-        "The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
-      ).optional(),
-    }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a SCM host connection.",
-    ).optional(),
-    sslCa: z.string().describe(
-      "The SSL certificate to use in requests to GitLab Enterprise instances.",
-    ).optional(),
-  }).describe(
-    "GitLabEnterpriseConfig represents the configuration for a GitLabEnterprise integration.",
-  ).optional(),
-  name: z.string().describe("The resource name for the config.").optional(),
-  secrets: z.object({
-    apiAccessTokenVersion: z.string().describe(
-      "Required. The resource name for the api access token’s secret version",
-    ).optional(),
-    apiKeyVersion: z.string().describe(
-      "Required. Immutable. API Key that will be attached to webhook requests from GitLab to Cloud Build.",
-    ).optional(),
-    readAccessTokenVersion: z.string().describe(
-      "Required. The resource name for the read access token’s secret version",
-    ).optional(),
-    webhookSecretVersion: z.string().describe(
-      "Required. Immutable. The resource name for the webhook secret’s secret version. Once this field has been set, it cannot be changed. If you need to change it, please create another GitLabConfig.",
-    ).optional(),
-  }).describe(
-    "GitLabSecrets represents the secrets in Secret Manager for a GitLab integration.",
-  ).optional(),
+  name: z.string().describe("Identifier. The resource name for the config.")
+    .optional(),
   username: z.string().describe(
     "Username of the GitLab.com or GitLab Enterprise account Cloud Build will use.",
   ).optional(),
@@ -244,40 +212,8 @@ const InputsSchema = z.object({
   })).describe(
     "Connected GitLab.com or GitLabEnterprise repositories for this config.",
   ).optional(),
-  enterpriseConfig: z.object({
-    hostUri: z.string().describe(
-      "Immutable. The URI of the GitlabEnterprise host.",
-    ).optional(),
-    serviceDirectoryConfig: z.object({
-      service: z.string().describe(
-        "The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
-      ).optional(),
-    }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a SCM host connection.",
-    ).optional(),
-    sslCa: z.string().describe(
-      "The SSL certificate to use in requests to GitLab Enterprise instances.",
-    ).optional(),
-  }).describe(
-    "GitLabEnterpriseConfig represents the configuration for a GitLabEnterprise integration.",
-  ).optional(),
-  name: z.string().describe("The resource name for the config.").optional(),
-  secrets: z.object({
-    apiAccessTokenVersion: z.string().describe(
-      "Required. The resource name for the api access token’s secret version",
-    ).optional(),
-    apiKeyVersion: z.string().describe(
-      "Required. Immutable. API Key that will be attached to webhook requests from GitLab to Cloud Build.",
-    ).optional(),
-    readAccessTokenVersion: z.string().describe(
-      "Required. The resource name for the read access token’s secret version",
-    ).optional(),
-    webhookSecretVersion: z.string().describe(
-      "Required. Immutable. The resource name for the webhook secret’s secret version. Once this field has been set, it cannot be changed. If you need to change it, please create another GitLabConfig.",
-    ).optional(),
-  }).describe(
-    "GitLabSecrets represents the secrets in Secret Manager for a GitLab integration.",
-  ).optional(),
+  name: z.string().describe("Identifier. The resource name for the config.")
+    .optional(),
   username: z.string().describe(
     "Username of the GitLab.com or GitLab Enterprise account Cloud Build will use.",
   ).optional(),
@@ -304,7 +240,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build GitLabConfigs. Registered at `@swamp/gcp/cloudbuild/gitlabconfigs`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/gitlabconfigs",
-  version: "2026.06.08.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -316,13 +252,25 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.11.1",
+      description: "Removed: enterpriseConfig, secrets",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          enterpriseConfig: _enterpriseConfig,
+          secrets: _secrets,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "GitLabConfig represents the configuration for a GitLab integration.",
+        "Deprecated: CloudBuild GitLab V1 integration is deprecated. GitLabConfig repr...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -344,11 +292,7 @@ export const model = {
         if (g["connectedRepositories"] !== undefined) {
           body["connectedRepositories"] = g["connectedRepositories"];
         }
-        if (g["enterpriseConfig"] !== undefined) {
-          body["enterpriseConfig"] = g["enterpriseConfig"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["secrets"] !== undefined) body["secrets"] = g["secrets"];
         if (g["username"] !== undefined) body["username"] = g["username"];
         if (g["gitlabConfigId"] !== undefined) {
           body["gitlabConfigId"] = g["gitlabConfigId"];
@@ -450,10 +394,6 @@ export const model = {
         if (g["connectedRepositories"] !== undefined) {
           body["connectedRepositories"] = g["connectedRepositories"];
         }
-        if (g["enterpriseConfig"] !== undefined) {
-          body["enterpriseConfig"] = g["enterpriseConfig"];
-        }
-        if (g["secrets"] !== undefined) body["secrets"] = g["secrets"];
         if (g["username"] !== undefined) body["username"] = g["username"];
         for (const key of Object.keys(existing)) {
           if (

@@ -2014,9 +2014,8 @@ const GlobalArgsSchema = z.object({
     displayName: z.string().describe("Required. The display name of the food.")
       .optional(),
     energyAvg: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -2028,9 +2027,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyFromFat: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -2042,9 +2040,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyMax: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -2056,9 +2053,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyMin: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -2127,11 +2123,10 @@ const GlobalArgsSchema = z.object({
         "VITAMIN_K",
         "ZINC",
         "FOLATE",
-      ]).describe("Required. Value representing the nutrient.").optional(),
+      ]).describe("Required. The nutrient type.").optional(),
       quantity: z.object({
-        grams: z.number().describe(
-          "Required. Value representing the weight in grams.",
-        ).optional(),
+        grams: z.number().describe("Required. The weight value in grams.")
+          .optional(),
         userProvidedUnit: z.enum([
           "WEIGHT_UNIT_UNSPECIFIED",
           "GRAM",
@@ -2166,9 +2161,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Optional. The serving of the food.").optional(),
     totalCarbohydrate: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -2183,9 +2177,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
     }).describe("Represents the weight quantity.").optional(),
     totalFat: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -2687,9 +2680,8 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   nutritionLog: z.object({
     energy: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -2701,9 +2693,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyFromFat: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -2714,9 +2705,11 @@ const GlobalArgsSchema = z.object({
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
-    food: z.string().describe("Required. Represents the food ID.").optional(),
+    food: z.string().describe(
+      "Optional. The resource name of the Food item. Required when creating a nutrition log from an identified food. For anonymous food logs, use the `food_display_name` field instead.",
+    ).optional(),
     foodDisplayName: z.string().describe(
-      "Value representing the display name of the food. For nutrition logs created from an identified food, this field will be populated based on the referenced food. For anonymous food, this field will be populated manually.",
+      "The display name of the food. For identified food logs, this is populated automatically from the referenced food.",
     ).optional(),
     interval: z.object({
       civilEndTime: z.object({
@@ -2812,7 +2805,7 @@ const GlobalArgsSchema = z.object({
       "SNACK",
       "ANYTIME",
     ]).describe(
-      "Optional. Value representing the meal type of the nutrition log.",
+      "Optional. The meal category. One of `BREAKFAST`, `LUNCH`, `DINNER`, or `SNACK`.",
     ).optional(),
     nutrients: z.array(z.object({
       nutrient: z.enum([
@@ -2856,11 +2849,10 @@ const GlobalArgsSchema = z.object({
         "VITAMIN_K",
         "ZINC",
         "FOLATE",
-      ]).describe("Required. Value representing the nutrient.").optional(),
+      ]).describe("Required. The nutrient type.").optional(),
       quantity: z.object({
-        grams: z.number().describe(
-          "Required. Value representing the weight in grams.",
-        ).optional(),
+        grams: z.number().describe("Required. The weight value in grams.")
+          .optional(),
         userProvidedUnit: z.enum([
           "WEIGHT_UNIT_UNSPECIFIED",
           "GRAM",
@@ -2875,12 +2867,11 @@ const GlobalArgsSchema = z.object({
           .optional(),
       }).describe("Represents the weight quantity.").optional(),
     })).describe(
-      "Optional. Value representing the nutrients of the nutrition log.",
+      "Optional. An array of individual nutrient values for the nutrition log.",
     ).optional(),
     serving: z.object({
-      amount: z.number().describe(
-        "Optional. Amount of food consumed, fractional values are supported.",
-      ).optional(),
+      amount: z.number().describe("Optional. The number of servings.")
+        .optional(),
       foodMeasurementUnit: z.string().describe(
         "Required. Food measurement unit",
       ).optional(),
@@ -2891,9 +2882,8 @@ const GlobalArgsSchema = z.object({
       "Represents different properties and information about the serving of a specific food.",
     ).optional(),
     totalCarbohydrate: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -2908,9 +2898,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
     }).describe("Represents the weight quantity.").optional(),
     totalFat: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -2925,7 +2914,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
     }).describe("Represents the weight quantity.").optional(),
   }).describe(
-    "Holds information about a user logged food. There are two ways of creating a nutrition log based on the food type: 1. Identified food: Using the food field, which is a reference to a Food resource. In this case fields `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat`, `food_display_name` will be populated based on the referenced food. 2. Anonymous food: Using the `food_display_name` field and setting the `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat` fields manually. The identified food is preferred over the anonymous food. Nutrition logs created from anonymous food are not be editable.",
+    "Holds information about food logged by a user. There are two ways of creating a nutrition log based on the food type: 1. Identified food: Using the food field, which is a reference to a Food resource. In this case fields `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat`, `food_display_name` will be populated based on the referenced food. 2. Anonymous food: Using the `food_display_name` field and setting the `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat` fields manually. The identified food is preferred over the anonymous food. Nutrition logs created from anonymous food are not editable.",
   ).optional(),
   oxygenSaturation: z.object({
     percentage: z.number().describe(
@@ -6939,9 +6928,8 @@ const InputsSchema = z.object({
     displayName: z.string().describe("Required. The display name of the food.")
       .optional(),
     energyAvg: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -6953,9 +6941,8 @@ const InputsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyFromFat: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -6967,9 +6954,8 @@ const InputsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyMax: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -6981,9 +6967,8 @@ const InputsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyMin: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -7052,11 +7037,10 @@ const InputsSchema = z.object({
         "VITAMIN_K",
         "ZINC",
         "FOLATE",
-      ]).describe("Required. Value representing the nutrient.").optional(),
+      ]).describe("Required. The nutrient type.").optional(),
       quantity: z.object({
-        grams: z.number().describe(
-          "Required. Value representing the weight in grams.",
-        ).optional(),
+        grams: z.number().describe("Required. The weight value in grams.")
+          .optional(),
         userProvidedUnit: z.enum([
           "WEIGHT_UNIT_UNSPECIFIED",
           "GRAM",
@@ -7091,9 +7075,8 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Optional. The serving of the food.").optional(),
     totalCarbohydrate: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -7108,9 +7091,8 @@ const InputsSchema = z.object({
         .optional(),
     }).describe("Represents the weight quantity.").optional(),
     totalFat: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -7612,9 +7594,8 @@ const InputsSchema = z.object({
   ).optional(),
   nutritionLog: z.object({
     energy: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -7626,9 +7607,8 @@ const InputsSchema = z.object({
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
     energyFromFat: z.object({
-      kcal: z.number().describe(
-        "Required. Value representing the energy in kilocalories.",
-      ).optional(),
+      kcal: z.number().describe("Required. The energy value in kilocalories.")
+        .optional(),
       userProvidedUnit: z.enum([
         "ENERGY_UNIT_UNSPECIFIED",
         "JOULE",
@@ -7639,9 +7619,11 @@ const InputsSchema = z.object({
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
     }).describe("Represents the energy quantity.").optional(),
-    food: z.string().describe("Required. Represents the food ID.").optional(),
+    food: z.string().describe(
+      "Optional. The resource name of the Food item. Required when creating a nutrition log from an identified food. For anonymous food logs, use the `food_display_name` field instead.",
+    ).optional(),
     foodDisplayName: z.string().describe(
-      "Value representing the display name of the food. For nutrition logs created from an identified food, this field will be populated based on the referenced food. For anonymous food, this field will be populated manually.",
+      "The display name of the food. For identified food logs, this is populated automatically from the referenced food.",
     ).optional(),
     interval: z.object({
       civilEndTime: z.object({
@@ -7737,7 +7719,7 @@ const InputsSchema = z.object({
       "SNACK",
       "ANYTIME",
     ]).describe(
-      "Optional. Value representing the meal type of the nutrition log.",
+      "Optional. The meal category. One of `BREAKFAST`, `LUNCH`, `DINNER`, or `SNACK`.",
     ).optional(),
     nutrients: z.array(z.object({
       nutrient: z.enum([
@@ -7781,11 +7763,10 @@ const InputsSchema = z.object({
         "VITAMIN_K",
         "ZINC",
         "FOLATE",
-      ]).describe("Required. Value representing the nutrient.").optional(),
+      ]).describe("Required. The nutrient type.").optional(),
       quantity: z.object({
-        grams: z.number().describe(
-          "Required. Value representing the weight in grams.",
-        ).optional(),
+        grams: z.number().describe("Required. The weight value in grams.")
+          .optional(),
         userProvidedUnit: z.enum([
           "WEIGHT_UNIT_UNSPECIFIED",
           "GRAM",
@@ -7800,12 +7781,11 @@ const InputsSchema = z.object({
           .optional(),
       }).describe("Represents the weight quantity.").optional(),
     })).describe(
-      "Optional. Value representing the nutrients of the nutrition log.",
+      "Optional. An array of individual nutrient values for the nutrition log.",
     ).optional(),
     serving: z.object({
-      amount: z.number().describe(
-        "Optional. Amount of food consumed, fractional values are supported.",
-      ).optional(),
+      amount: z.number().describe("Optional. The number of servings.")
+        .optional(),
       foodMeasurementUnit: z.string().describe(
         "Required. Food measurement unit",
       ).optional(),
@@ -7816,9 +7796,8 @@ const InputsSchema = z.object({
       "Represents different properties and information about the serving of a specific food.",
     ).optional(),
     totalCarbohydrate: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -7833,9 +7812,8 @@ const InputsSchema = z.object({
         .optional(),
     }).describe("Represents the weight quantity.").optional(),
     totalFat: z.object({
-      grams: z.number().describe(
-        "Required. Value representing the weight in grams.",
-      ).optional(),
+      grams: z.number().describe("Required. The weight value in grams.")
+        .optional(),
       userProvidedUnit: z.enum([
         "WEIGHT_UNIT_UNSPECIFIED",
         "GRAM",
@@ -7850,7 +7828,7 @@ const InputsSchema = z.object({
         .optional(),
     }).describe("Represents the weight quantity.").optional(),
   }).describe(
-    "Holds information about a user logged food. There are two ways of creating a nutrition log based on the food type: 1. Identified food: Using the food field, which is a reference to a Food resource. In this case fields `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat`, `food_display_name` will be populated based on the referenced food. 2. Anonymous food: Using the `food_display_name` field and setting the `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat` fields manually. The identified food is preferred over the anonymous food. Nutrition logs created from anonymous food are not be editable.",
+    "Holds information about food logged by a user. There are two ways of creating a nutrition log based on the food type: 1. Identified food: Using the food field, which is a reference to a Food resource. In this case fields `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat`, `food_display_name` will be populated based on the referenced food. 2. Anonymous food: Using the `food_display_name` field and setting the `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat` fields manually. The identified food is preferred over the anonymous food. Nutrition logs created from anonymous food are not editable.",
   ).optional(),
   oxygenSaturation: z.object({
     percentage: z.number().describe(
@@ -8722,7 +8700,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Health Users.DataTypes.DataPoints. Registered at `@swamp/gcp/health/users-datatypes-datapoints`. */
 export const model = {
   type: "@swamp/gcp/health/users-datatypes-datapoints",
-  version: "2026.06.18.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -8871,6 +8849,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

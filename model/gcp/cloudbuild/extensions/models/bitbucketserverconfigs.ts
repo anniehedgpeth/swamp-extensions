@@ -157,7 +157,8 @@ const GlobalArgsSchema = z.object({
   hostUri: z.string().describe(
     "Required. Immutable. The URI of the Bitbucket Server host. Once this field has been set, it cannot be changed. If you need to change it, please create another BitbucketServerConfig.",
   ).optional(),
-  name: z.string().describe("The resource name for the config.").optional(),
+  name: z.string().describe("Identifier. The resource name for the config.")
+    .optional(),
   peeredNetwork: z.string().describe(
     "Optional. The network to be used when reaching out to the Bitbucket Server instance. The VPC network must be enabled for private service connection. This should be set if the Bitbucket Server instance is hosted on-premises and not reachable by public internet. If this field is left empty, no network peering will occur and calls to the Bitbucket Server instance will be made over the public internet. Must be in the format `projects/{project}/global/networks/{network}`, where {project} is a project number or id and {network} is the name of a VPC network in the project.",
   ).optional(),
@@ -227,7 +228,8 @@ const InputsSchema = z.object({
   hostUri: z.string().describe(
     "Required. Immutable. The URI of the Bitbucket Server host. Once this field has been set, it cannot be changed. If you need to change it, please create another BitbucketServerConfig.",
   ).optional(),
-  name: z.string().describe("The resource name for the config.").optional(),
+  name: z.string().describe("Identifier. The resource name for the config.")
+    .optional(),
   peeredNetwork: z.string().describe(
     "Optional. The network to be used when reaching out to the Bitbucket Server instance. The VPC network must be enabled for private service connection. This should be set if the Bitbucket Server instance is hosted on-premises and not reachable by public internet. If this field is left empty, no network peering will occur and calls to the Bitbucket Server instance will be made over the public internet. Must be in the format `projects/{project}/global/networks/{network}`, where {project} is a project number or id and {network} is the name of a VPC network in the project.",
   ).optional(),
@@ -276,7 +278,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build BitbucketServerConfigs. Registered at `@swamp/gcp/cloudbuild/bitbucketserverconfigs`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/bitbucketserverconfigs",
-  version: "2026.06.08.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -285,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

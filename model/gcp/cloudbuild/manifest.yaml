@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/cloudbuild"
-version: "2026.07.08.1"
+version: "2026.07.11.1"
 description: "Google Cloud cloudbuild infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: builds, triggers
+  - Updated: githubenterpriseconfigs, bitbucketserverconfigs, gitlabconfigs, gitlabconfigs_repos, triggers
 models:
   - bitbucketserverconfigs.ts
   - bitbucketserverconfigs_repos.ts

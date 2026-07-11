@@ -170,7 +170,7 @@ const GlobalArgsSchema = z.object({
     "The URL of the github enterprise host the configuration is for.",
   ).optional(),
   name: z.string().describe(
-    'The full resource name for the GitHubEnterpriseConfig For example: "projects/{$project_id}/locations/{$location_id}/githubEnterpriseConfigs/{$config_id}"',
+    'Identifier. The full resource name for the GitHubEnterpriseConfig For example: "projects/{$project_id}/locations/{$location_id}/githubEnterpriseConfigs/{$config_id}"',
   ).optional(),
   peeredNetwork: z.string().describe(
     "Optional. The network to be used when reaching out to the GitHub Enterprise server. The VPC network must be enabled for private service connection. This should be set if the GitHub Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, no network peering will occur and calls to the GitHub Enterprise server will be made over the public internet. Must be in the format `projects/{project}/global/networks/{network}`, where {project} is a project number or id and {network} is the name of a VPC network in the project.",
@@ -253,7 +253,7 @@ const InputsSchema = z.object({
     "The URL of the github enterprise host the configuration is for.",
   ).optional(),
   name: z.string().describe(
-    'The full resource name for the GitHubEnterpriseConfig For example: "projects/{$project_id}/locations/{$location_id}/githubEnterpriseConfigs/{$config_id}"',
+    'Identifier. The full resource name for the GitHubEnterpriseConfig For example: "projects/{$project_id}/locations/{$location_id}/githubEnterpriseConfigs/{$config_id}"',
   ).optional(),
   peeredNetwork: z.string().describe(
     "Optional. The network to be used when reaching out to the GitHub Enterprise server. The VPC network must be enabled for private service connection. This should be set if the GitHub Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, no network peering will occur and calls to the GitHub Enterprise server will be made over the public internet. Must be in the format `projects/{project}/global/networks/{network}`, where {project} is a project number or id and {network} is the name of a VPC network in the project.",
@@ -315,7 +315,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build GithubEnterpriseConfigs. Registered at `@swamp/gcp/cloudbuild/githubenterpriseconfigs`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/githubenterpriseconfigs",
-  version: "2026.06.08.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -324,6 +324,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

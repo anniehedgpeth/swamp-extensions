@@ -17,15 +17,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/gcp/cloudbuild/gitlabconfigs-repos
+// Auto-generated extension model for @swamp/gcp/health/shl-r
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Build GitLabConfigs.Repos.
+ * Swamp extension model for Google Cloud Google Health Shl.R.
  *
- * Deprecated: CloudBuild GitLab V1 integration is deprecated. Proto Representing a GitLabRepository
+ * Message that represents an arbitrary HTTP body. It should only be used for payload formats that can't be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -38,27 +38,25 @@ import {
   type ExplicitGcpCredentials,
   getProjectId,
   isResourceNotFoundError,
-  listResources,
-  readViaList,
+  readResource,
 } from "./_lib/gcp.ts";
 
-const BASE_URL = "https://cloudbuild.googleapis.com/";
+const BASE_URL = "https://health.googleapis.com/";
 
-const LIST_CONFIG = {
-  "id": "cloudbuild.projects.locations.gitLabConfigs.repos.list",
-  "path": "v1/{+parent}/repos",
+const GET_CONFIG = {
+  "id": "health.shl.r.get",
+  "path": "v4/shl/r/{externalShlId}/{resourceToken}",
   "httpMethod": "GET",
   "parameterOrder": [
-    "parent",
+    "externalShlId",
+    "resourceToken",
   ],
   "parameters": {
-    "pageSize": {
-      "location": "query",
+    "externalShlId": {
+      "location": "path",
+      "required": true,
     },
-    "pageToken": {
-      "location": "query",
-    },
-    "parent": {
+    "resourceToken": {
       "location": "path",
       "required": true,
     },
@@ -78,20 +76,12 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
-  location: z.string().describe(
-    "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
-  ).optional(),
 });
 
 const StateSchema = z.object({
-  browseUri: z.string().optional(),
-  description: z.string().optional(),
-  displayName: z.string().optional(),
-  name: z.string(),
-  repositoryId: z.object({
-    id: z.string(),
-    webhookId: z.number(),
-  }).optional(),
+  contentType: z.string().optional(),
+  data: z.string().optional(),
+  extensions: z.array(z.record(z.string(), z.unknown())).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -101,9 +91,6 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  location: z.string().describe(
-    "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
-  ).optional(),
 });
 
 const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
@@ -118,33 +105,16 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Build GitLabConfigs.Repos. Registered at `@swamp/gcp/cloudbuild/gitlabconfigs-repos`. */
+/** Swamp extension model for Google Cloud Google Health Shl.R. Registered at `@swamp/gcp/health/shl-r`. */
 export const model = {
-  type: "@swamp/gcp/cloudbuild/gitlabconfigs-repos",
+  type: "@swamp/gcp/health/shl-r",
   version: "2026.07.11.1",
-  upgrades: [
-    {
-      toVersion: "2026.06.07.1",
-      description: "Added: accessToken, credentialsJson, project",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.11.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "Deprecated: CloudBuild GitLab V1 integration is deprecated. Proto Representin...",
+        "Message that represents an arbitrary HTTP body. It should only be used for pa...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -152,22 +122,23 @@ export const model = {
   },
   methods: {
     get: {
-      description: "Get a repos",
+      description: "Get a r",
       arguments: z.object({
-        identifier: z.string().describe("The name of the repos"),
+        identifier: z.string().describe("The name of the r"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
-        const result = await readViaList(
+        if (g["externalShlId"] !== undefined) {
+          params["externalShlId"] = String(g["externalShlId"]);
+        }
+        params["resourceToken"] = args.identifier;
+        const result = await readResource(
           BASE_URL,
-          LIST_CONFIG,
+          GET_CONFIG,
           params,
-          "name",
-          args.identifier,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? args.identifier).replace(
@@ -183,7 +154,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync repos state from GCP",
+      description: "Sync r state from GCP",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -204,9 +175,10 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
-          else if (existing["parent"]) {
-            params["parent"] = String(existing["parent"]);
+          if (g["externalShlId"] !== undefined) {
+            params["externalShlId"] = String(g["externalShlId"]);
+          } else if (existing["externalShlId"]) {
+            params["externalShlId"] = String(existing["externalShlId"]);
           }
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) {
@@ -214,12 +186,11 @@ export const model = {
               "No identifier found in existing state or globalArgs",
             );
           }
-          const result = await readViaList(
+          params["resourceToken"] = identifier;
+          const result = await readResource(
             BASE_URL,
-            LIST_CONFIG,
+            GET_CONFIG,
             params,
-            "name",
-            identifier,
             credentials,
           ) as StateData;
           const handle = await context.writeResource(
@@ -238,52 +209,6 @@ export const model = {
           }
           throw error;
         }
-      },
-    },
-    list: {
-      description: "List repos resources",
-      arguments: z.object({
-        pageSize: z.number().describe(
-          "The maximum number of repositories to return. The service may return fewer than this value.",
-        ).optional(),
-        maxPages: z.number().describe(
-          "Maximum number of pages to fetch (default: 10)",
-        ).optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
-        if (args["pageSize"] !== undefined) {
-          params["pageSize"] = String(args["pageSize"]);
-        }
-        const { items, nextPageToken } = await listResources(
-          BASE_URL,
-          LIST_CONFIG,
-          params,
-          "gitlabRepositories",
-          (args.maxPages as number | undefined) ?? 10,
-          credentials,
-        );
-        const dataHandles = [];
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i] as StateData;
-          const instanceName = (item.name?.toString() ?? String(i)).replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-          const handle = await context.writeResource(
-            "state",
-            instanceName,
-            item,
-          );
-          dataHandles.push(handle);
-        }
-        return { dataHandles, result: { count: items.length, nextPageToken } };
       },
     },
   },

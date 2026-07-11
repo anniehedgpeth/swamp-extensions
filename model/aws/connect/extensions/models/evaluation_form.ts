@@ -45,10 +45,10 @@ const EvaluationFormScoreThresholdSchema = z.object({
   PerformanceCategory: z.enum(["NEEDS_IMPROVEMENT", "EXCEEDS_EXPECTATIONS"])
     .describe("The performance category name."),
   MinScorePercentage: z.number().min(0).max(100).describe(
-    "The minimum score percentage for this threshold.",
+    "The minimum score percentage for the performance category.",
   ).optional(),
   MaxScorePercentage: z.number().min(0).max(100).describe(
-    "The maximum score percentage for this threshold.",
+    "The maximum score percentage for the performance category.",
   ).optional(),
 });
 
@@ -282,7 +282,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect EvaluationForm. Registered at `@swamp/aws/connect/evaluation-form`. */
 export const model = {
   type: "@swamp/aws/connect/evaluation-form",
-  version: "2026.06.30.1",
+  version: "2026.07.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -331,6 +331,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.30.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
