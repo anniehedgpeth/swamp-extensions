@@ -383,11 +383,20 @@ const GlobalArgsSchema = z.object({
         synthesizeSpeechConfigs: z.record(
           z.string(),
           z.object({
+            instruction: z.unknown().describe(
+              "Optional. The instruction used to synthesize speech when using a generative model.",
+            ).optional(),
+            model: z.unknown().describe(
+              'Optional. The model used to synthesize audio. Currently supported values: - "gemini-3.1-flash-tts-preview" If empty, Chirp3-HD is used.',
+            ).optional(),
             speakingRate: z.unknown().describe(
               "Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.",
             ).optional(),
             voice: z.unknown().describe(
               "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
+            ).optional(),
+            voiceSampleGcsUri: z.unknown().describe(
+              "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
             ).optional(),
           }),
         ).describe(
@@ -427,6 +436,7 @@ const GlobalArgsSchema = z.object({
           "TWILIO",
           "GOOGLE_TELEPHONY_PLATFORM",
           "CONTACT_CENTER_AS_A_SERVICE",
+          "CONTACT_CENTER_AS_A_SERVICE_CHAT",
           "FIVE9",
           "CONTACT_CENTER_INTEGRATION",
           "WHATSAPP",
@@ -439,8 +449,17 @@ const GlobalArgsSchema = z.object({
           "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
         ).optional(),
         instagramConfig: z.object({
+          description: z.string().describe(
+            "Output only. The description of the Meta business page or profile.",
+          ).optional(),
+          displayName: z.string().describe(
+            "Output only. The fetched Meta business page name.",
+          ).optional(),
           instagramAccountId: z.string().describe(
             "Required. The Instagram Account ID.",
+          ).optional(),
+          thumbnailUrl: z.string().describe(
+            "Output only. The fetched Meta business profile thumbnail URL.",
           ).optional(),
         }).describe("Configuration specific to Instagram deployments.")
           .optional(),
@@ -485,8 +504,20 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         }).describe("Message for configuration for the web widget.").optional(),
         whatsappConfig: z.object({
+          description: z.string().describe(
+            "Output only. The description of the Meta business page or profile.",
+          ).optional(),
+          displayName: z.string().describe(
+            "Output only. The fetched Meta business page name.",
+          ).optional(),
+          phoneNumber: z.string().describe(
+            "Optional. The phone number in E.164 format.",
+          ).optional(),
           phoneNumberId: z.string().describe(
             "Required. The Meta phone number ID.",
+          ).optional(),
+          thumbnailUrl: z.string().describe(
+            "Output only. The fetched Meta business profile thumbnail URL.",
           ).optional(),
           wabaId: z.string().describe(
             "Required. The WhatsApp Business Account ID.",
@@ -1927,6 +1958,9 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "A toolset that contains a list of tools that are defined by an OpenAPI schema.",
       ).optional(),
+      timeout: z.string().describe(
+        "Optional. The timeout for the toolset execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` toolsets and 60 seconds for `ASYNCHRONOUS` toolsets.",
+      ).optional(),
       toolFakeConfig: z.object({
         codeBlock: z.object({
           pythonCode: z.unknown().describe(
@@ -2065,7 +2099,10 @@ const StateSchema = z.object({
         disableBargeInControl: z.boolean(),
         disableDtmf: z.boolean(),
         instagramConfig: z.object({
+          description: z.string(),
+          displayName: z.string(),
           instagramAccountId: z.string(),
+          thumbnailUrl: z.string(),
         }),
         noiseSuppressionLevel: z.string(),
         personaProperty: z.object({
@@ -2084,7 +2121,11 @@ const StateSchema = z.object({
           webWidgetTitle: z.string(),
         }),
         whatsappConfig: z.object({
+          description: z.string(),
+          displayName: z.string(),
+          phoneNumber: z.string(),
           phoneNumberId: z.string(),
+          thumbnailUrl: z.string(),
           wabaId: z.string(),
         }),
       }),
@@ -2643,6 +2684,7 @@ const StateSchema = z.object({
         }),
         url: z.string(),
       }),
+      timeout: z.string(),
       toolFakeConfig: z.object({
         codeBlock: z.object({
           pythonCode: z.unknown(),
@@ -2904,11 +2946,20 @@ const InputsSchema = z.object({
         synthesizeSpeechConfigs: z.record(
           z.string(),
           z.object({
+            instruction: z.unknown().describe(
+              "Optional. The instruction used to synthesize speech when using a generative model.",
+            ).optional(),
+            model: z.unknown().describe(
+              'Optional. The model used to synthesize audio. Currently supported values: - "gemini-3.1-flash-tts-preview" If empty, Chirp3-HD is used.',
+            ).optional(),
             speakingRate: z.unknown().describe(
               "Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.",
             ).optional(),
             voice: z.unknown().describe(
               "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
+            ).optional(),
+            voiceSampleGcsUri: z.unknown().describe(
+              "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
             ).optional(),
           }),
         ).describe(
@@ -2948,6 +2999,7 @@ const InputsSchema = z.object({
           "TWILIO",
           "GOOGLE_TELEPHONY_PLATFORM",
           "CONTACT_CENTER_AS_A_SERVICE",
+          "CONTACT_CENTER_AS_A_SERVICE_CHAT",
           "FIVE9",
           "CONTACT_CENTER_INTEGRATION",
           "WHATSAPP",
@@ -2960,8 +3012,17 @@ const InputsSchema = z.object({
           "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
         ).optional(),
         instagramConfig: z.object({
+          description: z.string().describe(
+            "Output only. The description of the Meta business page or profile.",
+          ).optional(),
+          displayName: z.string().describe(
+            "Output only. The fetched Meta business page name.",
+          ).optional(),
           instagramAccountId: z.string().describe(
             "Required. The Instagram Account ID.",
+          ).optional(),
+          thumbnailUrl: z.string().describe(
+            "Output only. The fetched Meta business profile thumbnail URL.",
           ).optional(),
         }).describe("Configuration specific to Instagram deployments.")
           .optional(),
@@ -3006,8 +3067,20 @@ const InputsSchema = z.object({
           ).optional(),
         }).describe("Message for configuration for the web widget.").optional(),
         whatsappConfig: z.object({
+          description: z.string().describe(
+            "Output only. The description of the Meta business page or profile.",
+          ).optional(),
+          displayName: z.string().describe(
+            "Output only. The fetched Meta business page name.",
+          ).optional(),
+          phoneNumber: z.string().describe(
+            "Optional. The phone number in E.164 format.",
+          ).optional(),
           phoneNumberId: z.string().describe(
             "Required. The Meta phone number ID.",
+          ).optional(),
+          thumbnailUrl: z.string().describe(
+            "Output only. The fetched Meta business profile thumbnail URL.",
           ).optional(),
           wabaId: z.string().describe(
             "Required. The WhatsApp Business Account ID.",
@@ -4448,6 +4521,9 @@ const InputsSchema = z.object({
       }).describe(
         "A toolset that contains a list of tools that are defined by an OpenAPI schema.",
       ).optional(),
+      timeout: z.string().describe(
+        "Optional. The timeout for the toolset execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` toolsets and 60 seconds for `ASYNCHRONOUS` toolsets.",
+      ).optional(),
       toolFakeConfig: z.object({
         codeBlock: z.object({
           pythonCode: z.unknown().describe(
@@ -4487,7 +4563,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Versions. Registered at `@swamp/gcp/ces/apps-versions`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-versions",
-  version: "2026.07.09.1",
+  version: "2026.07.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4641,6 +4717,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.09.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -4889,6 +4970,49 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
+      },
+    },
+    get_extended_agent_card: {
+      description: "get extended agent card",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["tenant"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "ces.projects.locations.apps.versions.getExtendedAgentCard",
+            "path": "v1/{+tenant}/extendedAgentCard",
+            "httpMethod": "GET",
+            "parameterOrder": ["tenant"],
+            "parameters": {
+              "tenant": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
       },
     },
     restore: {

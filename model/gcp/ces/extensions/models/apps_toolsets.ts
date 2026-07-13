@@ -526,6 +526,9 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "A toolset that contains a list of tools that are defined by an OpenAPI schema.",
   ).optional(),
+  timeout: z.string().describe(
+    "Optional. The timeout for the toolset execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` toolsets and 60 seconds for `ASYNCHRONOUS` toolsets.",
+  ).optional(),
   toolFakeConfig: z.object({
     codeBlock: z.object({
       pythonCode: z.string().describe(
@@ -695,6 +698,7 @@ const StateSchema = z.object({
     }),
     url: z.string(),
   }).optional(),
+  timeout: z.string().optional(),
   toolFakeConfig: z.object({
     codeBlock: z.object({
       pythonCode: z.string(),
@@ -1075,6 +1079,9 @@ const InputsSchema = z.object({
   }).describe(
     "A toolset that contains a list of tools that are defined by an OpenAPI schema.",
   ).optional(),
+  timeout: z.string().describe(
+    "Optional. The timeout for the toolset execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` toolsets and 60 seconds for `ASYNCHRONOUS` toolsets.",
+  ).optional(),
   toolFakeConfig: z.object({
     codeBlock: z.object({
       pythonCode: z.string().describe(
@@ -1109,7 +1116,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Toolsets. Registered at `@swamp/gcp/ces/apps-toolsets`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-toolsets",
-  version: "2026.06.12.1",
+  version: "2026.07.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -1221,6 +1228,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.13.1",
+      description: "Added: timeout",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1263,6 +1275,7 @@ export const model = {
         if (g["openApiToolset"] !== undefined) {
           body["openApiToolset"] = g["openApiToolset"];
         }
+        if (g["timeout"] !== undefined) body["timeout"] = g["timeout"];
         if (g["toolFakeConfig"] !== undefined) {
           body["toolFakeConfig"] = g["toolFakeConfig"];
         }
@@ -1377,6 +1390,7 @@ export const model = {
         if (g["openApiToolset"] !== undefined) {
           body["openApiToolset"] = g["openApiToolset"];
         }
+        if (g["timeout"] !== undefined) body["timeout"] = g["timeout"];
         if (g["toolFakeConfig"] !== undefined) {
           body["toolFakeConfig"] = g["toolFakeConfig"];
         }

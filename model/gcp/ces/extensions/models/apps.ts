@@ -196,11 +196,20 @@ const GlobalArgsSchema = z.object({
     synthesizeSpeechConfigs: z.record(
       z.string(),
       z.object({
+        instruction: z.string().describe(
+          "Optional. The instruction used to synthesize speech when using a generative model.",
+        ).optional(),
+        model: z.string().describe(
+          'Optional. The model used to synthesize audio. Currently supported values: - "gemini-3.1-flash-tts-preview" If empty, Chirp3-HD is used.',
+        ).optional(),
         speakingRate: z.number().describe(
           "Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.",
         ).optional(),
         voice: z.string().describe(
           "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
+        ).optional(),
+        voiceSampleGcsUri: z.string().describe(
+          "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
         ).optional(),
       }),
     ).describe(
@@ -240,6 +249,7 @@ const GlobalArgsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
+      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
       "WHATSAPP",
@@ -252,8 +262,17 @@ const GlobalArgsSchema = z.object({
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
     instagramConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
       instagramAccountId: z.string().describe(
         "Required. The Instagram Account ID.",
+      ).optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
     }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
@@ -297,8 +316,20 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
     whatsappConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
+      phoneNumber: z.string().describe(
+        "Optional. The phone number in E.164 format.",
+      ).optional(),
       phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
         .optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
+      ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
     }).describe("Configuration specific to WhatsApp deployments.").optional(),
@@ -655,7 +686,10 @@ const StateSchema = z.object({
     disableBargeInControl: z.boolean(),
     disableDtmf: z.boolean(),
     instagramConfig: z.object({
+      description: z.string(),
+      displayName: z.string(),
       instagramAccountId: z.string(),
+      thumbnailUrl: z.string(),
     }),
     noiseSuppressionLevel: z.string(),
     personaProperty: z.object({
@@ -674,7 +708,11 @@ const StateSchema = z.object({
       webWidgetTitle: z.string(),
     }),
     whatsappConfig: z.object({
+      description: z.string(),
+      displayName: z.string(),
+      phoneNumber: z.string(),
       phoneNumberId: z.string(),
+      thumbnailUrl: z.string(),
       wabaId: z.string(),
     }),
   }).optional(),
@@ -871,11 +909,20 @@ const InputsSchema = z.object({
     synthesizeSpeechConfigs: z.record(
       z.string(),
       z.object({
+        instruction: z.string().describe(
+          "Optional. The instruction used to synthesize speech when using a generative model.",
+        ).optional(),
+        model: z.string().describe(
+          'Optional. The model used to synthesize audio. Currently supported values: - "gemini-3.1-flash-tts-preview" If empty, Chirp3-HD is used.',
+        ).optional(),
         speakingRate: z.number().describe(
           "Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.",
         ).optional(),
         voice: z.string().describe(
           "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
+        ).optional(),
+        voiceSampleGcsUri: z.string().describe(
+          "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
         ).optional(),
       }),
     ).describe(
@@ -915,6 +962,7 @@ const InputsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
+      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
       "WHATSAPP",
@@ -927,8 +975,17 @@ const InputsSchema = z.object({
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
     instagramConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
       instagramAccountId: z.string().describe(
         "Required. The Instagram Account ID.",
+      ).optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
     }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
@@ -972,8 +1029,20 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
     whatsappConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
+      phoneNumber: z.string().describe(
+        "Optional. The phone number in E.164 format.",
+      ).optional(),
       phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
         .optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
+      ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
     }).describe("Configuration specific to WhatsApp deployments.").optional(),
@@ -1313,7 +1382,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps. Registered at `@swamp/gcp/ces/apps`. */
 export const model = {
   type: "@swamp/gcp/ces/apps",
-  version: "2026.07.09.1",
+  version: "2026.07.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1446,6 +1515,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.09.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -166,6 +166,7 @@ const GlobalArgsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
+      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
       "WHATSAPP",
@@ -178,8 +179,17 @@ const GlobalArgsSchema = z.object({
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
     instagramConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
       instagramAccountId: z.string().describe(
         "Required. The Instagram Account ID.",
+      ).optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
     }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
@@ -223,8 +233,20 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
     whatsappConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
+      phoneNumber: z.string().describe(
+        "Optional. The phone number in E.164 format.",
+      ).optional(),
       phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
         .optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
+      ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
     }).describe("Configuration specific to WhatsApp deployments.").optional(),
@@ -260,6 +282,9 @@ const GlobalArgsSchema = z.object({
     authCode: z.string().describe(
       "Required. The Meta auth code provided by the embedded signup flow.",
     ).optional(),
+    conversationProfileId: z.string().describe(
+      "Optional. The Conversation Profile ID to use for the deployment.",
+    ).optional(),
   }).describe("Ephemeral Meta credentials for Instagram native integration.")
     .optional(),
   name: z.string().describe(
@@ -272,12 +297,17 @@ const GlobalArgsSchema = z.object({
     businessAccountId: z.string().describe(
       "Required. The Business Account ID to use for the phone number.",
     ).optional(),
+    conversationProfileId: z.string().describe(
+      "Optional. The Conversation Profile ID to use for the deployment.",
+    ).optional(),
     phoneNumber: z.string().describe(
       "Required. The phone number to register with WhatsApp.",
     ).optional(),
     pin: z.string().describe(
       "Required. The 6-digit PIN created by the user for two-step verification.",
     ).optional(),
+    wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
+      .optional(),
   }).describe("Ephemeral Meta credentials for WhatsApp native integration.")
     .optional(),
   deploymentId: z.string().describe(
@@ -295,7 +325,10 @@ const StateSchema = z.object({
     disableBargeInControl: z.boolean(),
     disableDtmf: z.boolean(),
     instagramConfig: z.object({
+      description: z.string(),
+      displayName: z.string(),
       instagramAccountId: z.string(),
+      thumbnailUrl: z.string(),
     }),
     noiseSuppressionLevel: z.string(),
     personaProperty: z.object({
@@ -314,7 +347,11 @@ const StateSchema = z.object({
       webWidgetTitle: z.string(),
     }),
     whatsappConfig: z.object({
+      description: z.string(),
+      displayName: z.string(),
+      phoneNumber: z.string(),
       phoneNumberId: z.string(),
+      thumbnailUrl: z.string(),
       wabaId: z.string(),
     }),
   }).optional(),
@@ -333,14 +370,17 @@ const StateSchema = z.object({
   }).optional(),
   instagramCredentials: z.object({
     authCode: z.string(),
+    conversationProfileId: z.string(),
   }).optional(),
   name: z.string(),
   updateTime: z.string().optional(),
   whatsappCredentials: z.object({
     authCode: z.string(),
     businessAccountId: z.string(),
+    conversationProfileId: z.string(),
     phoneNumber: z.string(),
     pin: z.string(),
+    wabaId: z.string(),
   }).optional(),
 }).passthrough();
 
@@ -361,6 +401,7 @@ const InputsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
+      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
       "WHATSAPP",
@@ -373,8 +414,17 @@ const InputsSchema = z.object({
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
     instagramConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
       instagramAccountId: z.string().describe(
         "Required. The Instagram Account ID.",
+      ).optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
     }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
@@ -418,8 +468,20 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
     whatsappConfig: z.object({
+      description: z.string().describe(
+        "Output only. The description of the Meta business page or profile.",
+      ).optional(),
+      displayName: z.string().describe(
+        "Output only. The fetched Meta business page name.",
+      ).optional(),
+      phoneNumber: z.string().describe(
+        "Optional. The phone number in E.164 format.",
+      ).optional(),
       phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
         .optional(),
+      thumbnailUrl: z.string().describe(
+        "Output only. The fetched Meta business profile thumbnail URL.",
+      ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
     }).describe("Configuration specific to WhatsApp deployments.").optional(),
@@ -455,6 +517,9 @@ const InputsSchema = z.object({
     authCode: z.string().describe(
       "Required. The Meta auth code provided by the embedded signup flow.",
     ).optional(),
+    conversationProfileId: z.string().describe(
+      "Optional. The Conversation Profile ID to use for the deployment.",
+    ).optional(),
   }).describe("Ephemeral Meta credentials for Instagram native integration.")
     .optional(),
   name: z.string().describe(
@@ -467,12 +532,17 @@ const InputsSchema = z.object({
     businessAccountId: z.string().describe(
       "Required. The Business Account ID to use for the phone number.",
     ).optional(),
+    conversationProfileId: z.string().describe(
+      "Optional. The Conversation Profile ID to use for the deployment.",
+    ).optional(),
     phoneNumber: z.string().describe(
       "Required. The phone number to register with WhatsApp.",
     ).optional(),
     pin: z.string().describe(
       "Required. The 6-digit PIN created by the user for two-step verification.",
     ).optional(),
+    wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
+      .optional(),
   }).describe("Ephemeral Meta credentials for WhatsApp native integration.")
     .optional(),
   deploymentId: z.string().describe(
@@ -498,7 +568,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Deployments. Registered at `@swamp/gcp/ces/apps-deployments`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-deployments",
-  version: "2026.07.09.1",
+  version: "2026.07.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -607,6 +677,11 @@ export const model = {
     {
       toVersion: "2026.07.09.1",
       description: "Added: instagramCredentials, whatsappCredentials",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.13.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -924,6 +999,50 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
+      },
+    },
+    get_extended_agent_card: {
+      description: "get extended agent card",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["tenant"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "ces.projects.locations.apps.deployments.getExtendedAgentCard",
+            "path": "v1/{+tenant}/extendedAgentCard",
+            "httpMethod": "GET",
+            "parameterOrder": ["tenant"],
+            "parameters": {
+              "tenant": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
       },
     },
   },

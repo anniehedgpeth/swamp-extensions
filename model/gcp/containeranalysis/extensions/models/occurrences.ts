@@ -172,10 +172,15 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       }).describe("Location details with file path and line number.")
         .optional(),
-      scanner: z.enum(["SCANNER_UNSPECIFIED", "STATIC", "LLM", "WS_POLICY"])
-        .describe(
-          "Scanner determines which engine (e.g. static, llm) emitted the finding.",
-        ).optional(),
+      scanner: z.enum([
+        "SCANNER_UNSPECIFIED",
+        "STATIC",
+        "LLM",
+        "WS_POLICY",
+        "GOOGLE_ANTIVIRUS",
+      ]).describe(
+        "Scanner determines which engine (e.g. static, llm) emitted the finding.",
+      ).optional(),
       severity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"]).describe(
         "Severity of the finding.",
       ).optional(),
@@ -2568,10 +2573,15 @@ const InputsSchema = z.object({
         ).optional(),
       }).describe("Location details with file path and line number.")
         .optional(),
-      scanner: z.enum(["SCANNER_UNSPECIFIED", "STATIC", "LLM", "WS_POLICY"])
-        .describe(
-          "Scanner determines which engine (e.g. static, llm) emitted the finding.",
-        ).optional(),
+      scanner: z.enum([
+        "SCANNER_UNSPECIFIED",
+        "STATIC",
+        "LLM",
+        "WS_POLICY",
+        "GOOGLE_ANTIVIRUS",
+      ]).describe(
+        "Scanner determines which engine (e.g. static, llm) emitted the finding.",
+      ).optional(),
       severity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"]).describe(
         "Severity of the finding.",
       ).optional(),
@@ -4302,7 +4312,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Container Analysis Occurrences. Registered at `@swamp/gcp/containeranalysis/occurrences`. */
 export const model = {
   type: "@swamp/gcp/containeranalysis/occurrences",
-  version: "2026.06.30.1",
+  version: "2026.07.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4455,6 +4465,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.30.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
