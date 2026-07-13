@@ -145,14 +145,14 @@ function _buildGcpCredentials(
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
-    project: undefined,
+    project: g.project as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Google Analytics Admin Properties.FirebaseLinks. Registered at `@swamp/gcp/analyticsadmin/properties-firebaselinks`. */
 export const model = {
   type: "@swamp/gcp/analyticsadmin/properties-firebaselinks",
-  version: "2026.06.08.1",
+  version: "2026.07.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -241,6 +241,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

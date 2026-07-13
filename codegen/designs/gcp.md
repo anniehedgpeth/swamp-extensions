@@ -470,10 +470,12 @@ globalArguments:
 
 **Collision guard:** If a GCP resource already has a domain property named
 `accessToken`, `credentialsJson`, or `project`, that credential field is not
-injected for that specific service. The collision guard mirrors the AWS pattern.
-A few services (apigee, cloudshell, connectors, dialogflow, integrations) have
-`accessToken` as a domain property — those services fall back to the env-var
-chain for token auth but can still use `credentialsJson`.
+injected as a separate `GlobalArgsSchema` entry for that specific service — it
+already exists in the schema as a domain property. The collision guard mirrors
+the AWS pattern. The colliding field is still forwarded in
+`_buildGcpCredentials` so it reaches credential resolution (e.g. `project` as a
+domain property carries the same GCP project ID that the credential chain
+needs).
 
 **Enrichment limitation:** Enrichment methods (e.g., serviceaccounts, storage-
 buckets) call `request()` directly and do not currently thread credentials from

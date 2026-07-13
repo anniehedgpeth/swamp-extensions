@@ -340,17 +340,14 @@ export function generateGcpExtensionModel(
     `const _credentialKeys = new Set(${JSON.stringify(credKeyNames)});`,
   );
   lines.push("");
-  const injectedCredNames = new Set(injectedCredFields.map((f) => f.name));
   lines.push(
     `function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {`,
   );
   lines.push(`  return {`);
   for (const f of credentialFields) {
-    if (injectedCredNames.has(f.name)) {
-      lines.push(`    ${f.name}: g.${f.name} as string | undefined,`);
-    } else {
-      lines.push(`    ${f.name}: undefined,`);
-    }
+    // Always forward from g — even when not injected as a separate global arg,
+    // the value exists as a domain property and should reach credential resolution.
+    lines.push(`    ${f.name}: g.${f.name} as string | undefined,`);
   }
   lines.push(`  };`);
   lines.push(`}`);
