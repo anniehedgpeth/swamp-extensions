@@ -14,6 +14,7 @@ on:
           - all
           - aws
           - gcp
+          - cloudflare
           - hetzner
           - digitalocean
 
@@ -68,6 +69,20 @@ jobs:
           echo "::endgroup::"
           echo "::group::Generate GCP models"
           deno task generate:gcp
+          echo "::endgroup::"
+
+      - name: Fetch and generate Cloudflare models
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.provider == 'all' ||
+          inputs.provider == 'cloudflare'
+        working-directory: codegen
+        run: |
+          echo "::group::Fetch Cloudflare schema"
+          deno task fetch-schema:cloudflare
+          echo "::endgroup::"
+          echo "::group::Generate Cloudflare models"
+          deno task generate:cloudflare
           echo "::endgroup::"
 
       - name: Fetch and generate Hetzner models
@@ -126,7 +141,7 @@ jobs:
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
           SUMMARY=""
-          for provider in aws gcp hetzner-cloud digitalocean; do
+          for provider in aws gcp cloudflare hetzner-cloud digitalocean; do
             count=$(git status --porcelain -- "model/$provider/" | wc -l | tr -d ' ')
             if [ "$count" -gt 0 ]; then
               SUMMARY="${SUMMARY}- **${provider}**: ${count} files changed"$'\n'
@@ -188,6 +203,7 @@ jobs:
 
           - **AWS**: CloudFormation Resource Schema
           - **GCP**: Google Discovery Documents
+          - **Cloudflare**: Cloudflare OpenAPI spec
           - **Hetzner**: Hetzner Cloud OpenAPI spec
           - **DigitalOcean**: DigitalOcean OpenAPI spec
 
