@@ -95,6 +95,7 @@ const GlobalArgsSchema = z.object({
     "@cf/google/embeddinggemma-300m",
     "google-ai-studio/gemini-embedding-001",
     "google-ai-studio/gemini-embedding-2-preview",
+    "google-ai-studio/gemini-embedding-2",
     "openai/text-embedding-3-small",
     "openai/text-embedding-3-large",
     "",
@@ -120,6 +121,7 @@ const GlobalArgsSchema = z.object({
     chat_completions_endpoint: z.object({
       disabled: z.boolean().optional(),
     }).optional(),
+    custom_domains: z.array(z.string().min(1).max(253)).optional(),
     enabled: z.boolean().optional(),
     mcp: z.object({
       description: z.string().optional(),
@@ -302,6 +304,7 @@ const ResourceSchema = z.object({
     chat_completions_endpoint: z.object({
       disabled: z.boolean().optional(),
     }).optional(),
+    custom_domains: z.array(z.string()).optional(),
     enabled: z.boolean().optional(),
     mcp: z.object({
       description: z.string().optional(),
@@ -415,6 +418,7 @@ const InputsSchema = z.object({
     "@cf/google/embeddinggemma-300m",
     "google-ai-studio/gemini-embedding-001",
     "google-ai-studio/gemini-embedding-2-preview",
+    "google-ai-studio/gemini-embedding-2",
     "openai/text-embedding-3-small",
     "openai/text-embedding-3-large",
     "",
@@ -438,6 +442,7 @@ const InputsSchema = z.object({
     chat_completions_endpoint: z.object({
       disabled: z.boolean().optional(),
     }).optional(),
+    custom_domains: z.array(z.string().min(1).max(253)).optional(),
     enabled: z.boolean().optional(),
     mcp: z.object({
       description: z.string().optional(),
@@ -570,7 +575,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Instances. Registered at `@swamp/cloudflare/ai-search/instances`. */
 export const model = {
   type: "@swamp/cloudflare/ai-search/instances",
-  version: "2026.06.24.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -589,6 +594,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

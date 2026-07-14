@@ -121,6 +121,14 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  androidPackageRegistrationState: z.enum([
+    "ANDROID_PACKAGE_REGISTRATION_STATE_UNSPECIFIED",
+    "REGISTERED",
+    "NOT_REGISTERED",
+    "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT",
+  ]).describe(
+    "Output only. Registration state of the Android package (BinaryType.APK).",
+  ).optional(),
   binaryDownloadUri: z.string().describe(
     "Output only. A signed link (which expires in one hour) to directly download the app binary (IPA/APK/AAB) file.",
   ).optional(),
@@ -157,6 +165,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  androidPackageRegistrationState: z.string().optional(),
   binaryDownloadUri: z.string().optional(),
   buildVersion: z.string().optional(),
   createTime: z.string().optional(),
@@ -177,6 +186,14 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  androidPackageRegistrationState: z.enum([
+    "ANDROID_PACKAGE_REGISTRATION_STATE_UNSPECIFIED",
+    "REGISTERED",
+    "NOT_REGISTERED",
+    "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT",
+  ]).describe(
+    "Output only. Registration state of the Android package (BinaryType.APK).",
+  ).optional(),
   binaryDownloadUri: z.string().describe(
     "Output only. A signed link (which expires in one hour) to directly download the app binary (IPA/APK/AAB) file.",
   ).optional(),
@@ -227,7 +244,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Distribution Apps.Releases. Registered at `@swamp/gcp/firebaseappdistribution/apps-releases`. */
 export const model = {
   type: "@swamp/gcp/firebaseappdistribution/apps-releases",
-  version: "2026.06.08.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -304,6 +321,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.14.1",
+      description: "Added: androidPackageRegistrationState",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -375,6 +397,10 @@ export const model = {
           existing["name"]?.toString() ?? g["name"]?.toString() ?? "",
         );
         const body: Record<string, unknown> = {};
+        if (g["androidPackageRegistrationState"] !== undefined) {
+          body["androidPackageRegistrationState"] =
+            g["androidPackageRegistrationState"];
+        }
         if (g["binaryDownloadUri"] !== undefined) {
           body["binaryDownloadUri"] = g["binaryDownloadUri"];
         }
@@ -475,10 +501,10 @@ export const model = {
       description: "List releases resources",
       arguments: z.object({
         filter: z.string().describe(
-          'Optional. The expression to filter releases listed in the response. To learn more about filtering, refer to [Google\'s AIP-160 standard](http://aip.dev/160). Supported fields: - `releaseNotes.text` supports `=` (can contain a wildcard character (`*`) at the beginning or end of the string) - `createTime` supports `<`, `<=`, `>` and `>=`, and expects an RFC-3339 formatted string Examples: - `createTime <= "2021-09-08T00:00:00+04:00"` - `releaseNotes.text="fixes" AND createTime >= "2021-09-08T00:00:00.0Z"` - `releaseNotes.text="*v1.0.0-rc*"`',
+          'Optional. The expression to filter releases listed in the response. To learn more about filtering, refer to the [AIP-160 standard](http://aip.dev/160). Supported fields: - Time fields supporting `<`, `<=`, `>` and `>=`; expecting an RFC-3339 formatted string: - `create_time` (or `createTime`) - `update_time` (or `updateTime`) - `expire_time` (or `expireTime`) - Text fields supporting `=`. The compared text can contain a wildcard character (`*`) at the beginning and/or end of the string which also enables case-insensitive matching: - `release_notes.text` (or `releaseNotes.text`) - `display_version` (or `displayVersion`) - `build_version` (or `buildVersion`). Examples: - `createTime <= "2021-09-08T00:00:00+04:00"` - `expire_time > "2021-09-08T00:00:00+04:00"` - `releaseNotes.text="fixes" AND createTime >= "2021-09-08T00:00:00.0Z"` - `releaseNotes.text="*v1.0.0-rc*"` - `(display_version = "v1.0.0-rc2" AND `build_version = "123") OR release_notes = "*v1.0.0-rc2 (123)*"`',
         ).optional(),
         orderBy: z.string().describe(
-          'Optional. The fields used to order releases. Supported fields: - `createTime` To specify descending order for a field, append a "desc" suffix, for example, `createTime desc`. If this parameter is not set, releases are ordered by `createTime` in descending order.',
+          'Optional. The fields used to order releases. Supported fields: - `create_time` (or `createTime`) - `update_time` (or `updateTime`) - `expire_time` (or `expireTime`) To specify descending order for a field, append a "desc" suffix, for example, `createTime desc`. If this parameter is not set, releases are ordered by `createTime` in descending order.',
         ).optional(),
         pageSize: z.number().describe(
           "Optional. The maximum number of releases to return. The service may return fewer than this value. The valid range is [1-100]; If unspecified (0), at most 25 releases are returned. Values above 100 are coerced to 100.",

@@ -142,6 +142,13 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "Required. The user-friendly display name for the EvaluationMetric.",
   ).optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string().describe(
+      "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
+    ).optional(),
+  }).describe(
+    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+  ).optional(),
   gcsUri: z.string().describe(
     "Optional. The Google Cloud Storage URI that stores the metric specification..",
   ).optional(),
@@ -628,6 +635,9 @@ const StateSchema = z.object({
   createTime: z.string().optional(),
   description: z.string().optional(),
   displayName: z.string().optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string(),
+  }).optional(),
   gcsUri: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   metric: z.object({
@@ -817,6 +827,13 @@ const InputsSchema = z.object({
   ).optional(),
   displayName: z.string().describe(
     "Required. The user-friendly display name for the EvaluationMetric.",
+  ).optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string().describe(
+      "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
+    ).optional(),
+  }).describe(
+    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
   ).optional(),
   gcsUri: z.string().describe(
     "Optional. The Google Cloud Storage URI that stores the metric specification..",
@@ -1315,7 +1332,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationMetrics. Registered at `@swamp/gcp/aiplatform/evaluationmetrics`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationmetrics",
-  version: "2026.07.04.1",
+  version: "2026.07.14.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.14.1",
+      description: "Added: encryptionSpec",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1345,6 +1369,9 @@ export const model = {
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
+        }
+        if (g["encryptionSpec"] !== undefined) {
+          body["encryptionSpec"] = g["encryptionSpec"];
         }
         if (g["gcsUri"] !== undefined) body["gcsUri"] = g["gcsUri"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];

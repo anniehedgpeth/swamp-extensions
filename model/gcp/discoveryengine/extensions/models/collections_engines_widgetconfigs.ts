@@ -131,6 +131,33 @@ const GlobalArgsSchema = z.object({
       "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
     ]).describe("Optional. The type of web grounding to use.").optional(),
   }).describe("Describes the assistant settings of the widget.").optional(),
+  batchAuthStatuses: z.array(z.object({
+    batchAuthorizationGroup: z.string().describe(
+      "Output only. The batch authorization group the placeholder belongs to.",
+    ).optional(),
+    connectorAuthState: z.object({
+      authState: z.enum([
+        "AUTH_STATE_UNSPECIFIED",
+        "AUTHORIZED",
+        "EXPIRED",
+        "ACTIONS_DISABLED",
+        "NO_AUTH",
+      ]).describe("Output only. The authorization state of the data connector.")
+        .optional(),
+      authorizationUri: z.string().describe(
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. The authorization state update timestamp.",
+      ).optional(),
+    }).describe("Read-only connector in CollectionComponent auth state.")
+      .optional(),
+    placeholder: z.string().describe(
+      "Output only. It is the batch authorization group placeholder full resource name. This is not a real data connector (not existed in DataConnector table in spanner). It's a resource name existing only in the connector_authorization in the user table. E.g. projects/{project}/locations/{location}/collections/oauth_placeholder_google_workspace/dataStores/dataConnector.",
+    ).optional(),
+  })).describe(
+    "Output only. The batch authorization statuses for the widget's connectors.",
+  ).optional(),
   collectionComponents: z.array(z.object({
     connectorAuthState: z.object({
       authState: z.enum([
@@ -142,7 +169,7 @@ const GlobalArgsSchema = z.object({
       ]).describe("Output only. The authorization state of the data connector.")
         .optional(),
       authorizationUri: z.string().describe(
-        "Output only. The authorization uri for the data connector.",
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
       ).optional(),
       updateTime: z.string().describe(
         "Output only. The authorization state update timestamp.",
@@ -182,13 +209,13 @@ const GlobalArgsSchema = z.object({
     displayName: z.string().describe("The display name of the collection.")
       .optional(),
     id: z.string().describe(
-      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID.",
+      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
     ).optional(),
     name: z.string().describe(
-      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field.",
+      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field. For synthetic placeholder entries (see message-level comment) this carries a synthetic placeholder collection id that does not correspond to a real collection. Callers must not attempt to resolve / GET this resource until the user authorizes the connector.",
     ).optional(),
   })).describe(
-    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources.",
+    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources. For SaaS / Business engines, when `LookupWidgetConfig` is called with `view = WITH_AVAILABLE_CONNECTORS`, this list is additionally augmented with synthetic placeholder entries for connectors the caller may attach but has not yet attached (see `CollectionComponent` for the placeholder contract). The frontend can therefore render a unified list of already-attached and available-to-attach sources by iterating this single field. For Enterprise engines and for the default `view`, only already-attached connectors are returned (today's behavior).",
   ).optional(),
   configId: z.string().describe(
     "Output only. Unique obfuscated identifier of a WidgetConfig.",
@@ -572,6 +599,15 @@ const StateSchema = z.object({
     googleSearchGroundingEnabled: z.boolean(),
     webGroundingType: z.string(),
   }).optional(),
+  batchAuthStatuses: z.array(z.object({
+    batchAuthorizationGroup: z.string(),
+    connectorAuthState: z.object({
+      authState: z.string(),
+      authorizationUri: z.string(),
+      updateTime: z.string(),
+    }),
+    placeholder: z.string(),
+  })).optional(),
   collectionComponents: z.array(z.object({
     connectorAuthState: z.object({
       authState: z.string(),
@@ -783,6 +819,33 @@ const InputsSchema = z.object({
       "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
     ]).describe("Optional. The type of web grounding to use.").optional(),
   }).describe("Describes the assistant settings of the widget.").optional(),
+  batchAuthStatuses: z.array(z.object({
+    batchAuthorizationGroup: z.string().describe(
+      "Output only. The batch authorization group the placeholder belongs to.",
+    ).optional(),
+    connectorAuthState: z.object({
+      authState: z.enum([
+        "AUTH_STATE_UNSPECIFIED",
+        "AUTHORIZED",
+        "EXPIRED",
+        "ACTIONS_DISABLED",
+        "NO_AUTH",
+      ]).describe("Output only. The authorization state of the data connector.")
+        .optional(),
+      authorizationUri: z.string().describe(
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. The authorization state update timestamp.",
+      ).optional(),
+    }).describe("Read-only connector in CollectionComponent auth state.")
+      .optional(),
+    placeholder: z.string().describe(
+      "Output only. It is the batch authorization group placeholder full resource name. This is not a real data connector (not existed in DataConnector table in spanner). It's a resource name existing only in the connector_authorization in the user table. E.g. projects/{project}/locations/{location}/collections/oauth_placeholder_google_workspace/dataStores/dataConnector.",
+    ).optional(),
+  })).describe(
+    "Output only. The batch authorization statuses for the widget's connectors.",
+  ).optional(),
   collectionComponents: z.array(z.object({
     connectorAuthState: z.object({
       authState: z.enum([
@@ -794,7 +857,7 @@ const InputsSchema = z.object({
       ]).describe("Output only. The authorization state of the data connector.")
         .optional(),
       authorizationUri: z.string().describe(
-        "Output only. The authorization uri for the data connector.",
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
       ).optional(),
       updateTime: z.string().describe(
         "Output only. The authorization state update timestamp.",
@@ -834,13 +897,13 @@ const InputsSchema = z.object({
     displayName: z.string().describe("The display name of the collection.")
       .optional(),
     id: z.string().describe(
-      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID.",
+      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
     ).optional(),
     name: z.string().describe(
-      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field.",
+      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field. For synthetic placeholder entries (see message-level comment) this carries a synthetic placeholder collection id that does not correspond to a real collection. Callers must not attempt to resolve / GET this resource until the user authorizes the connector.",
     ).optional(),
   })).describe(
-    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources.",
+    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources. For SaaS / Business engines, when `LookupWidgetConfig` is called with `view = WITH_AVAILABLE_CONNECTORS`, this list is additionally augmented with synthetic placeholder entries for connectors the caller may attach but has not yet attached (see `CollectionComponent` for the placeholder contract). The frontend can therefore render a unified list of already-attached and available-to-attach sources by iterating this single field. For Enterprise engines and for the default `view`, only already-attached connectors are returned (today's behavior).",
   ).optional(),
   configId: z.string().describe(
     "Output only. Unique obfuscated identifier of a WidgetConfig.",
@@ -1223,7 +1286,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/collections-engines-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-widgetconfigs",
-  version: "2026.07.08.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1370,6 +1433,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.14.1",
+      description: "Added: batchAuthStatuses",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1440,6 +1508,9 @@ export const model = {
         }
         if (g["assistantSettings"] !== undefined) {
           body["assistantSettings"] = g["assistantSettings"];
+        }
+        if (g["batchAuthStatuses"] !== undefined) {
+          body["batchAuthStatuses"] = g["batchAuthStatuses"];
         }
         if (g["collectionComponents"] !== undefined) {
           body["collectionComponents"] = g["collectionComponents"];

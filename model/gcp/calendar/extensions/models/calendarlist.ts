@@ -128,6 +128,9 @@ const LIST_CONFIG = {
     "showHidden": {
       "location": "query",
     },
+    "showOwnOrganizationOnly": {
+      "location": "query",
+    },
     "syncToken": {
       "location": "query",
     },
@@ -148,7 +151,7 @@ const GlobalArgsSchema = z.object({
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
   accessRole: z.string().describe(
-    'The effective access role that the authenticated user has on the calendar. Read-only. Possible values are: - "freeBusyReader" - Provides read access to free/busy information. - "reader" - Provides read access to the calendar. Private events will appear to users with reader access, but event details will be hidden. - "writer" - Provides read and write access to the calendar. Private events will appear to users with writer access, and event details will be visible. - "owner" - Provides manager access to the calendar. This role has all of the permissions of the writer role with the additional ability to see and modify access levels of other users. Important: the owner role is different from the calendar\'s data owner. A calendar has a single data owner, but can have multiple users with owner role.',
+    'The effective access role that the authenticated user has on the calendar. Read-only. Possible values are: - "freeBusyReader" - Provides read access to free/busy information. - "reader" - Provides read access to the calendar. Private events will appear to users with reader access, but event details will be hidden. - "writerWithoutPrivateAccess" - Provides read and write access to the calendar. Private events will appear to users with writerWithoutPrivateAccess access, but event details will be hidden. - "writer" - Provides read and write access to the calendar. Private events will appear to users with writer access, and event details will be visible. - "owner" - Provides manager access to the calendar. This role has all of the permissions of the writer role with the additional ability to see and modify access levels of other users. Important: the owner role is different from the calendar\'s data owner. A calendar has a single data owner, but can have multiple users with owner role.',
   ).optional(),
   autoAcceptInvitations: z.boolean().describe(
     "Whether this calendar automatically accepts invitations. Only valid for resource calendars. Read-only.",
@@ -265,7 +268,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   accessRole: z.string().describe(
-    'The effective access role that the authenticated user has on the calendar. Read-only. Possible values are: - "freeBusyReader" - Provides read access to free/busy information. - "reader" - Provides read access to the calendar. Private events will appear to users with reader access, but event details will be hidden. - "writer" - Provides read and write access to the calendar. Private events will appear to users with writer access, and event details will be visible. - "owner" - Provides manager access to the calendar. This role has all of the permissions of the writer role with the additional ability to see and modify access levels of other users. Important: the owner role is different from the calendar\'s data owner. A calendar has a single data owner, but can have multiple users with owner role.',
+    'The effective access role that the authenticated user has on the calendar. Read-only. Possible values are: - "freeBusyReader" - Provides read access to free/busy information. - "reader" - Provides read access to the calendar. Private events will appear to users with reader access, but event details will be hidden. - "writerWithoutPrivateAccess" - Provides read and write access to the calendar. Private events will appear to users with writerWithoutPrivateAccess access, but event details will be hidden. - "writer" - Provides read and write access to the calendar. Private events will appear to users with writer access, and event details will be visible. - "owner" - Provides manager access to the calendar. This role has all of the permissions of the writer role with the additional ability to see and modify access levels of other users. Important: the owner role is different from the calendar\'s data owner. A calendar has a single data owner, but can have multiple users with owner role.',
   ).optional(),
   autoAcceptInvitations: z.boolean().describe(
     "Whether this calendar automatically accepts invitations. Only valid for resource calendars. Read-only.",
@@ -355,7 +358,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar CalendarList. Registered at `@swamp/gcp/calendar/calendarlist`. */
 export const model = {
   type: "@swamp/gcp/calendar/calendarlist",
-  version: "2026.06.08.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -429,6 +432,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -729,6 +737,9 @@ export const model = {
         showHidden: z.boolean().describe(
           "Whether to show hidden entries. Optional. The default is False.",
         ).optional(),
+        showOwnOrganizationOnly: z.boolean().describe(
+          "Whether to show only entries for calendars from the organization. This parameter is only applicable to Google Workspace users. Optional. The default is False.",
+        ).optional(),
         syncToken: z.string().describe(
           "Token obtained from the nextSyncToken field returned on the last page of results from the previous list request. It makes the result of this list request contain only entries that have changed since then. If only read-only fields such as calendar properties or ACLs have changed, the entry won't be returned. All entries deleted and hidden since the previous list request will always be in the result set and it is not allowed to set showDeleted neither showHidden to False.",
         ).optional(),
@@ -752,6 +763,11 @@ export const model = {
         }
         if (args["showHidden"] !== undefined) {
           params["showHidden"] = String(args["showHidden"]);
+        }
+        if (args["showOwnOrganizationOnly"] !== undefined) {
+          params["showOwnOrganizationOnly"] = String(
+            args["showOwnOrganizationOnly"],
+          );
         }
         if (args["syncToken"] !== undefined) {
           params["syncToken"] = String(args["syncToken"]);
@@ -830,6 +846,7 @@ export const model = {
               "pageToken": { "location": "query" },
               "showDeleted": { "location": "query" },
               "showHidden": { "location": "query" },
+              "showOwnOrganizationOnly": { "location": "query" },
               "syncToken": { "location": "query" },
             },
           },

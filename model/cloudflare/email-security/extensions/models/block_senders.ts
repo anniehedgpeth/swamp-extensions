@@ -45,9 +45,11 @@ const GlobalArgsSchema = z.object({
   is_regex: z.boolean().optional(),
   last_modified: z.string().optional(),
   modified_at: z.string().optional(),
-  pattern: z.string().min(1).max(1024).optional(),
+  pattern: z.string().min(1).max(1024).describe(
+    "The pattern value to match against. Format depends on `pattern_type`:\n- EMAIL: a valid email address, e.g. `user@example.com`\n- DOMAIN: a valid domain name, e.g. `example.com`\n- IP: a plain IPv4 address (e.g. `1.2.3.4`) or an IPv4 CIDR block (e.g. `1.2.3.0/24`). Only globally reachable addresses are accepted; private, loopback, link-local, and unspecified addresses are rejected.\n",
+  ).optional(),
   pattern_type: z.enum(["EMAIL", "DOMAIN", "IP", "UNKNOWN"]).describe(
-    "Type of pattern matching.\nNote: UNKNOWN is deprecated and cannot be used when creating or updating policies, but may be returned for existing entries.\n",
+    "Type of pattern matching.\n- EMAIL: matches a full email address (e.g. `user@example.com`)\n- DOMAIN: matches a domain name (e.g. `example.com`)\n- IP: matches a plain IPv4 address (e.g. `1.2.3.4`) or an IPv4 CIDR block (e.g. `1.2.3.0/24`). Only globally reachable addresses are accepted.\n- UNKNOWN: deprecated, cannot be used when creating or updating policies, but may be returned for existing entries.\n",
   ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -92,7 +94,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Block Senders. Registered at `@swamp/cloudflare/email-security/block-senders`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/block-senders",
-  version: "2026.06.08.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -101,6 +103,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

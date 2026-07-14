@@ -301,6 +301,11 @@ const TransformSchema = z.object({
   UrlRewriteConfig: RewriteConfigObjectSchema.optional(),
 });
 
+const TagSchema = z.object({
+  Value: z.string(),
+  Key: z.string(),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -330,6 +335,7 @@ const GlobalArgsSchema = z.object({
     "The conditions. The rule can optionally include up to one of each of the following conditions: http-request-method, host-header, path-pattern, and source-ip. A rule can also optionally include one or more of each of the following conditions: http-header and query-string.",
   ),
   Transforms: z.array(TransformSchema).optional(),
+  Tags: z.array(TagSchema).optional(),
 });
 
 const StateSchema = z.object({
@@ -339,6 +345,7 @@ const StateSchema = z.object({
   Priority: z.number().optional(),
   Conditions: z.array(RuleConditionSchema).optional(),
   Transforms: z.array(TransformSchema).optional(),
+  Tags: z.array(TagSchema).optional(),
   IsDefault: z.boolean().optional(),
 }).passthrough();
 
@@ -363,6 +370,7 @@ const InputsSchema = z.object({
     "The conditions. The rule can optionally include up to one of each of the following conditions: http-request-method, host-header, path-pattern, and source-ip. A rule can also optionally include one or more of each of the following conditions: http-header and query-string.",
   ).optional(),
   Transforms: z.array(TransformSchema).optional(),
+  Tags: z.array(TagSchema).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -384,7 +392,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ElasticLoadBalancingV2 ListenerRule. Registered at `@swamp/aws/elasticloadbalancingv2/listener-rule`. */
 export const model = {
   type: "@swamp/aws/elasticloadbalancingv2/listener-rule",
-  version: "2026.06.15.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -424,6 +432,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.14.1",
+      description: "Added: Tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

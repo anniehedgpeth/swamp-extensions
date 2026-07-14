@@ -120,6 +120,17 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "[Availability](https://support.google.com/merchants/answer/3061342) of the product at this store.",
     ).optional(),
+    customAttributes: z.array(z.object({
+      groupValues: z.array(z.record(z.string(), z.unknown())).describe(
+        "Subattributes within this attribute group. If `group_values` is not empty, `value` must be empty.",
+      ).optional(),
+      name: z.string().describe("The name of the attribute.").optional(),
+      value: z.string().describe(
+        "The value of the attribute. If `value` is not empty, `group_values` must be empty.",
+      ).optional(),
+    })).describe(
+      'Optional. A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the data specification in its generic form (for example, `{ "name": "size type", "value": "regular" }`). This is useful for submitting attributes not explicitly exposed by the API. Maximum allowed number of characters for each custom attribute is 10240 (represents sum of characters for name and value). Maximum 2500 custom attributes can be set, with total size of 102.4kB. Underscores in custom attribute names are replaced by spaces upon insertion.',
+    ).optional(),
     instoreProductLocation: z.string().describe(
       "Optional. Location of the product inside the store. Maximum length is 20 bytes.",
     ).optional(),
@@ -234,6 +245,11 @@ const StateSchema = z.object({
   base64EncodedName: z.string().optional(),
   localInventoryAttributes: z.object({
     availability: z.string(),
+    customAttributes: z.array(z.object({
+      groupValues: z.array(z.record(z.string(), z.unknown())),
+      name: z.string(),
+      value: z.string(),
+    })),
     instoreProductLocation: z.string(),
     localShippingLabel: z.string(),
     loyaltyPrograms: z.array(z.object({
@@ -290,6 +306,17 @@ const InputsSchema = z.object({
       "OUT_OF_STOCK",
     ]).describe(
       "[Availability](https://support.google.com/merchants/answer/3061342) of the product at this store.",
+    ).optional(),
+    customAttributes: z.array(z.object({
+      groupValues: z.array(z.record(z.string(), z.unknown())).describe(
+        "Subattributes within this attribute group. If `group_values` is not empty, `value` must be empty.",
+      ).optional(),
+      name: z.string().describe("The name of the attribute.").optional(),
+      value: z.string().describe(
+        "The value of the attribute. If `value` is not empty, `group_values` must be empty.",
+      ).optional(),
+    })).describe(
+      'Optional. A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the data specification in its generic form (for example, `{ "name": "size type", "value": "regular" }`). This is useful for submitting attributes not explicitly exposed by the API. Maximum allowed number of characters for each custom attribute is 10240 (represents sum of characters for name and value). Maximum 2500 custom attributes can be set, with total size of 102.4kB. Underscores in custom attribute names are replaced by spaces upon insertion.',
     ).optional(),
     instoreProductLocation: z.string().describe(
       "Optional. Location of the product inside the store. Maximum length is 20 bytes.",
@@ -415,7 +442,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Products.LocalInventories. Registered at `@swamp/gcp/merchantapi/accounts-products-localinventories`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-products-localinventories",
-  version: "2026.06.26.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -429,6 +456,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.26.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

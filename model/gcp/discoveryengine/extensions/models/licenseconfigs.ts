@@ -168,6 +168,9 @@ const GlobalArgsSchema = z.object({
   freeTrial: z.boolean().describe(
     "Optional. Whether the license config is for free trial.",
   ).optional(),
+  lastUserUpdateTime: z.string().describe(
+    "Optional. Timestamp of the most recent user-initiated update (seat count change or subscription term change). Unlike `update_time`, this field is only stamped when a customer explicitly updates the license (e.g. via the UI), and is not touched by system-driven writes (subscription pipeline, BALC propagation, etc.).",
+  ).optional(),
   licenseCount: z.string().describe("Required. Number of licenses purchased.")
     .optional(),
   name: z.string().describe(
@@ -209,6 +212,7 @@ const GlobalArgsSchema = z.object({
     "SUBSCRIPTION_TIER_EDU_PRO_EMERGING",
     "SUBSCRIPTION_TIER_FRONTLINE_STARTER",
     "SUBSCRIPTION_TIER_CONSUMPTION_ONLY",
+    "SUBSCRIPTION_TIER_EDU_GOV_EMERGING",
   ]).describe("Required. Subscription tier information for the license config.")
     .optional(),
   licenseConfigId: z.string().describe(
@@ -234,6 +238,7 @@ const StateSchema = z.object({
   }).optional(),
   freeTrial: z.boolean().optional(),
   geminiBundle: z.boolean().optional(),
+  lastUserUpdateTime: z.string().optional(),
   licenseCount: z.string().optional(),
   name: z.string(),
   startDate: z.object({
@@ -284,6 +289,9 @@ const InputsSchema = z.object({
   freeTrial: z.boolean().describe(
     "Optional. Whether the license config is for free trial.",
   ).optional(),
+  lastUserUpdateTime: z.string().describe(
+    "Optional. Timestamp of the most recent user-initiated update (seat count change or subscription term change). Unlike `update_time`, this field is only stamped when a customer explicitly updates the license (e.g. via the UI), and is not touched by system-driven writes (subscription pipeline, BALC propagation, etc.).",
+  ).optional(),
   licenseCount: z.string().describe("Required. Number of licenses purchased.")
     .optional(),
   name: z.string().describe(
@@ -325,6 +333,7 @@ const InputsSchema = z.object({
     "SUBSCRIPTION_TIER_EDU_PRO_EMERGING",
     "SUBSCRIPTION_TIER_FRONTLINE_STARTER",
     "SUBSCRIPTION_TIER_CONSUMPTION_ONLY",
+    "SUBSCRIPTION_TIER_EDU_GOV_EMERGING",
   ]).describe("Required. Subscription tier information for the license config.")
     .optional(),
   licenseConfigId: z.string().describe(
@@ -350,7 +359,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine LicenseConfigs. Registered at `@swamp/gcp/discoveryengine/licenseconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/licenseconfigs",
-  version: "2026.06.16.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -450,6 +459,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.14.1",
+      description: "Added: lastUserUpdateTime",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -484,6 +498,9 @@ export const model = {
         }
         if (g["endDate"] !== undefined) body["endDate"] = g["endDate"];
         if (g["freeTrial"] !== undefined) body["freeTrial"] = g["freeTrial"];
+        if (g["lastUserUpdateTime"] !== undefined) {
+          body["lastUserUpdateTime"] = g["lastUserUpdateTime"];
+        }
         if (g["licenseCount"] !== undefined) {
           body["licenseCount"] = g["licenseCount"];
         }
@@ -608,6 +625,9 @@ export const model = {
         }
         if (g["endDate"] !== undefined) body["endDate"] = g["endDate"];
         if (g["freeTrial"] !== undefined) body["freeTrial"] = g["freeTrial"];
+        if (g["lastUserUpdateTime"] !== undefined) {
+          body["lastUserUpdateTime"] = g["lastUserUpdateTime"];
+        }
         if (g["licenseCount"] !== undefined) {
           body["licenseCount"] = g["licenseCount"];
         }

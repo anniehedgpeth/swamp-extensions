@@ -32,10 +32,13 @@
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead } from "./_lib/cloudflare.ts";
+import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   zone_id: z.string().describe("Cloudflare zone ID"),
+  preview_enabled: z.boolean().describe(
+    "Whether sent messages from this subdomain can be previewed in the activity log.",
+  ).optional(),
   name: z.string().describe("The subdomain name. Must be within the zone."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -54,6 +57,7 @@ const ResourceSchema = z.object({
   enabled: z.boolean().optional(),
   modified: z.string().optional(),
   name: z.string().optional(),
+  preview_enabled: z.boolean().optional(),
   return_path_domain: z.string().optional(),
   tag: z.string().optional(),
   id: z.string(),
@@ -63,6 +67,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 
 const InputsSchema = z.object({
   zone_id: z.string().optional(),
+  preview_enabled: z.boolean().optional(),
   name: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
@@ -72,7 +77,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Subdomains. Registered at `@swamp/cloudflare/email/subdomains`. */
 export const model = {
   type: "@swamp/cloudflare/email/subdomains",
-  version: "2026.06.08.1",
+  version: "2026.07.14.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -82,6 +87,11 @@ export const model = {
     {
       toVersion: "2026.06.08.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.14.1",
+      description: "Added: preview_enabled",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -138,6 +148,40 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update Subdomains attributes",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/zones/" + g.zone_id + "/email/sending/subdomains";
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) throw new Error("No data found - run create first");
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const body: Record<string, unknown> = {};
+        if (g.preview_enabled !== undefined) {
+          body.preview_enabled = g.preview_enabled;
+        }
+        const result = await update(endpoint, existing.id, body, "PATCH", {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
         const handle = await context.writeResource(
           "state",
           instanceName,

@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/cloudflare/email-security"
-version: "2026.06.24.1"
+version: "2026.07.14.1"
 description: "Cloudflare email-security infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -10,11 +10,14 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Added: bulk
+  - Updated: allow_policies
+  - Updated: block_senders
+  - Added: domains
 models:
   - allow_policies.ts
   - block_senders.ts
   - bulk.ts
+  - domains.ts
   - impersonation_registry.ts
   - sending_domain_restrictions.ts
   - trusted_domains.ts
