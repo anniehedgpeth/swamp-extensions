@@ -302,7 +302,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Replies. Registered at `@swamp/gcp/drive/replies`. */
 export const model = {
   type: "@swamp/gcp/drive/replies",
-  version: "2026.06.08.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -371,6 +371,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -642,7 +647,7 @@ export const model = {
           "Whether to include deleted replies. Deleted replies don't include their original content.",
         ).optional(),
         pageSize: z.number().describe(
-          "The maximum number of replies to return per page.",
+          "The maximum number of replies to return. The service may return fewer than this value. If unspecified, at most 20 replies will be returned. The maximum value is 100; values above 100 will be coerced to 100.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

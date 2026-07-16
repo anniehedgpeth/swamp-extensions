@@ -334,6 +334,9 @@ const GlobalArgsSchema = z.object({
         "One of the publicly available Maven repositories supported by Artifact Registry.",
       ).optional(),
     }).describe("Configuration for a Maven remote repository.").optional(),
+    noCache: z.object({}).describe(
+      "The configuration for the no-cache fetching mode, which acts as a non-caching proxy.",
+    ).optional(),
     npmRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
@@ -490,6 +493,7 @@ const StateSchema = z.object({
       }),
       publicRepository: z.string(),
     }),
+    noCache: z.object({}),
     npmRepository: z.object({
       customRepository: z.object({
         uri: z.string(),
@@ -722,6 +726,9 @@ const InputsSchema = z.object({
         "One of the publicly available Maven repositories supported by Artifact Registry.",
       ).optional(),
     }).describe("Configuration for a Maven remote repository.").optional(),
+    noCache: z.object({}).describe(
+      "The configuration for the no-cache fetching mode, which acts as a non-caching proxy.",
+    ).optional(),
     npmRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
@@ -843,7 +850,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Artifact Registry Repositories. Registered at `@swamp/gcp/artifactregistry/repositories`. */
 export const model = {
   type: "@swamp/gcp/artifactregistry/repositories",
-  version: "2026.06.12.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -927,6 +934,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

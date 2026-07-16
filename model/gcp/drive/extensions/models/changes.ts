@@ -507,7 +507,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Changes. Registered at `@swamp/gcp/drive/changes`. */
 export const model = {
   type: "@swamp/gcp/drive/changes",
-  version: "2026.06.25.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -616,6 +616,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -745,7 +750,7 @@ export const model = {
           "Whether to include changes indicating that items have been removed from the list of changes, for example by deletion or loss of access.",
         ).optional(),
         pageSize: z.number().describe(
-          "The maximum number of changes to return per page.",
+          "The maximum number of changes to return. The service may return fewer than this value. If unspecified, at most 100 changes will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.",
         ).optional(),
         restrictToMyDrive: z.boolean().describe(
           "Whether to restrict the results to changes inside the My Drive hierarchy. This omits changes to files such as those in the Application Data folder or shared files which have not been added to My Drive.",

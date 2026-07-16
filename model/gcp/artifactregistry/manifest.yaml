@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/artifactregistry"
-version: "2026.06.12.1"
+version: "2026.07.15.1"
 description: "Google Cloud artifactregistry infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: repositories, repositories_prewarmedartifacts
+  - Updated: repositories
 models:
   - locations.ts
   - repositories.ts

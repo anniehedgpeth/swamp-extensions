@@ -106,6 +106,7 @@ const StateSchema = z.object({
   completeTime: z.string().optional(),
   createTime: z.string().optional(),
   dueTime: z.string().optional(),
+  fileContentChangeBehavior: z.string().optional(),
   initiator: z.object({
     displayName: z.string(),
     emailAddress: z.string(),
@@ -156,7 +157,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Approvals. Registered at `@swamp/gcp/drive/approvals`. */
 export const model = {
   type: "@swamp/gcp/drive/approvals",
-  version: "2026.06.08.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -250,6 +251,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -659,6 +665,7 @@ export const model = {
       description: "start",
       arguments: z.object({
         dueTime: z.any().optional(),
+        fileContentChangeBehavior: z.any().optional(),
         lockFile: z.any().optional(),
         message: z.any().optional(),
         reviewerEmails: z.any().optional(),
@@ -684,6 +691,9 @@ export const model = {
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["dueTime"] !== undefined) body["dueTime"] = args["dueTime"];
+        if (args["fileContentChangeBehavior"] !== undefined) {
+          body["fileContentChangeBehavior"] = args["fileContentChangeBehavior"];
+        }
         if (args["lockFile"] !== undefined) body["lockFile"] = args["lockFile"];
         if (args["message"] !== undefined) body["message"] = args["message"];
         if (args["reviewerEmails"] !== undefined) {

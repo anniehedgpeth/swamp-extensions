@@ -83,7 +83,9 @@ const GlobalArgsSchema = z.object({
     "The function code. For more information about writing a CloudFront function, see [Writing function code for CloudFront Functions](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/writing-function-code.html) in the *Amazon CloudFront Developer Guide*.",
   ),
   FunctionConfig: z.object({
-    Comment: z.string().describe("A comment to describe the function."),
+    Comment: z.string().describe(
+      "A comment to describe the function. The comment cannot be longer than 128 characters.",
+    ),
     Runtime: z.string().describe("The function's runtime environment version."),
     KeyValueStoreAssociations: z.array(KeyValueStoreAssociationSchema).describe(
       "The configuration for the key value store associations.",
@@ -129,8 +131,9 @@ const InputsSchema = z.object({
     "The function code. For more information about writing a CloudFront function, see [Writing function code for CloudFront Functions](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/writing-function-code.html) in the *Amazon CloudFront Developer Guide*.",
   ).optional(),
   FunctionConfig: z.object({
-    Comment: z.string().describe("A comment to describe the function.")
-      .optional(),
+    Comment: z.string().describe(
+      "A comment to describe the function. The comment cannot be longer than 128 characters.",
+    ).optional(),
     Runtime: z.string().describe("The function's runtime environment version.")
       .optional(),
     KeyValueStoreAssociations: z.array(KeyValueStoreAssociationSchema).describe(
@@ -163,7 +166,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFront Function. Registered at `@swamp/aws/cloudfront/function`. */
 export const model = {
   type: "@swamp/aws/cloudfront/function",
-  version: "2026.06.15.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -212,6 +215,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

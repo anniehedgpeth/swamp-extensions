@@ -369,7 +369,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Permissions. Registered at `@swamp/gcp/drive/permissions`. */
 export const model = {
   type: "@swamp/gcp/drive/permissions",
-  version: "2026.06.08.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -475,6 +475,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -756,7 +761,7 @@ export const model = {
           "Specifies which additional view's permissions to include in the response. Only `published` is supported.",
         ).optional(),
         pageSize: z.number().describe(
-          "The maximum number of permissions to return per page. When not set for files in a shared drive, at most 100 results will be returned. When not set for files that are not in a shared drive, the entire list will be returned.",
+          "The maximum number of permissions to return. The service may return fewer than this value. If unspecified, at most 100 permissions will be returned for shared drives, and the entire list of permissions for non-shared drives. The maximum value is 100; values above 100 will be coerced to 100.",
         ).optional(),
         supportsAllDrives: z.boolean().describe(
           "Whether the requesting application supports both My Drives and shared drives.",

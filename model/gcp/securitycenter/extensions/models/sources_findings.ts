@@ -131,12 +131,38 @@ const GlobalArgsSchema = z.object({
   affectedResources: z.object({
     count: z.string().optional(),
   }).optional(),
+  agent: z.object({
+    displayName: z.string().optional(),
+    id: z.string().optional(),
+  }).optional(),
+  agentAnomaly: z.object({
+    confidenceScore: z.number().optional(),
+    detectorReferences: z.array(z.object({
+      detectorId: z.string().optional(),
+      displayName: z.string().optional(),
+      explanation: z.string().optional(),
+      recommendation: z.string().optional(),
+      severity: z.enum([
+        "SEVERITY_UNSPECIFIED",
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+      ]).optional(),
+    })).optional(),
+    invocationReferences: z.array(z.object({
+      invocationId: z.string().optional(),
+    })).optional(),
+  }).optional(),
   agentDataAccessEvents: z.array(z.object({
     eventId: z.string().optional(),
     eventTime: z.string().optional(),
     operation: z.enum(["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"])
       .optional(),
     principalSubject: z.string().optional(),
+  })).optional(),
+  agentSessions: z.array(z.object({
+    sessionId: z.string().optional(),
   })).optional(),
   aiModel: z.object({
     deploymentPlatform: z.enum([
@@ -1251,11 +1277,31 @@ const StateSchema = z.object({
     affectedResources: z.object({
       count: z.string(),
     }),
+    agent: z.object({
+      displayName: z.string(),
+      id: z.string(),
+    }),
+    agentAnomaly: z.object({
+      confidenceScore: z.number(),
+      detectorReferences: z.array(z.object({
+        detectorId: z.string(),
+        displayName: z.string(),
+        explanation: z.string(),
+        recommendation: z.string(),
+        severity: z.string(),
+      })),
+      invocationReferences: z.array(z.object({
+        invocationId: z.string(),
+      })),
+    }),
     agentDataAccessEvents: z.array(z.object({
       eventId: z.string(),
       eventTime: z.string(),
       operation: z.string(),
       principalSubject: z.string(),
+    })),
+    agentSessions: z.array(z.object({
+      sessionId: z.string(),
     })),
     aiModel: z.object({
       deploymentPlatform: z.string(),
@@ -1934,12 +1980,38 @@ const InputsSchema = z.object({
   affectedResources: z.object({
     count: z.string().optional(),
   }).optional(),
+  agent: z.object({
+    displayName: z.string().optional(),
+    id: z.string().optional(),
+  }).optional(),
+  agentAnomaly: z.object({
+    confidenceScore: z.number().optional(),
+    detectorReferences: z.array(z.object({
+      detectorId: z.string().optional(),
+      displayName: z.string().optional(),
+      explanation: z.string().optional(),
+      recommendation: z.string().optional(),
+      severity: z.enum([
+        "SEVERITY_UNSPECIFIED",
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+      ]).optional(),
+    })).optional(),
+    invocationReferences: z.array(z.object({
+      invocationId: z.string().optional(),
+    })).optional(),
+  }).optional(),
   agentDataAccessEvents: z.array(z.object({
     eventId: z.string().optional(),
     eventTime: z.string().optional(),
     operation: z.enum(["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"])
       .optional(),
     principalSubject: z.string().optional(),
+  })).optional(),
+  agentSessions: z.array(z.object({
+    sessionId: z.string().optional(),
   })).optional(),
   aiModel: z.object({
     deploymentPlatform: z.enum([
@@ -3046,7 +3118,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center Sources.Findings. Registered at `@swamp/gcp/securitycenter/sources-findings`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/sources-findings",
-  version: "2026.06.27.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -3181,6 +3253,11 @@ export const model = {
       description: "Added: iamDetails",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.15.1",
+      description: "Added: agent, agentAnomaly, agentSessions",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3252,8 +3329,15 @@ export const model = {
         if (g["affectedResources"] !== undefined) {
           body["affectedResources"] = g["affectedResources"];
         }
+        if (g["agent"] !== undefined) body["agent"] = g["agent"];
+        if (g["agentAnomaly"] !== undefined) {
+          body["agentAnomaly"] = g["agentAnomaly"];
+        }
         if (g["agentDataAccessEvents"] !== undefined) {
           body["agentDataAccessEvents"] = g["agentDataAccessEvents"];
+        }
+        if (g["agentSessions"] !== undefined) {
+          body["agentSessions"] = g["agentSessions"];
         }
         if (g["aiModel"] !== undefined) body["aiModel"] = g["aiModel"];
         if (g["application"] !== undefined) {

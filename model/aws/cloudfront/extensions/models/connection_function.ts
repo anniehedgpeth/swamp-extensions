@@ -81,7 +81,9 @@ const GlobalArgsSchema = z.object({
     "The code for the connection function.",
   ),
   ConnectionFunctionConfig: z.object({
-    Comment: z.string().describe("A comment to describe the function."),
+    Comment: z.string().describe(
+      "A comment to describe the function. The comment cannot be longer than 128 characters.",
+    ),
     Runtime: z.enum(["cloudfront-js-2.0"]).describe(
       "The function's runtime environment version.",
     ),
@@ -131,8 +133,9 @@ const InputsSchema = z.object({
     "The code for the connection function.",
   ).optional(),
   ConnectionFunctionConfig: z.object({
-    Comment: z.string().describe("A comment to describe the function.")
-      .optional(),
+    Comment: z.string().describe(
+      "A comment to describe the function. The comment cannot be longer than 128 characters.",
+    ).optional(),
     Runtime: z.enum(["cloudfront-js-2.0"]).describe(
       "The function's runtime environment version.",
     ).optional(),
@@ -168,7 +171,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFront ConnectionFunction. Registered at `@swamp/aws/cloudfront/connection-function`. */
 export const model = {
   type: "@swamp/aws/cloudfront/connection-function",
-  version: "2026.06.15.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -207,6 +210,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

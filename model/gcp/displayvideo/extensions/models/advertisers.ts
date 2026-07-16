@@ -237,6 +237,12 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Settings that control how advertiser related data may be accessed.",
   ).optional(),
+  defaultBusinessName: z.string().describe(
+    "Optional. The default business name for the advertiser. This is the value used by YouTube and Demand Gen ads under this advertiser if a business name is not provided.",
+  ).optional(),
+  defaultLogoAssetId: z.string().describe(
+    "Optional. The asset ID of the default logo image for the advertiser. This is the asset ID that will be used by YouTube and Demand ads under this advertiser if a logo asset is not provided. You must use advertisers.adAssets.upload to upload this asset using the API.",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the advertiser. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -318,6 +324,8 @@ const StateSchema = z.object({
       }),
     }),
   }).optional(),
+  defaultBusinessName: z.string().optional(),
+  defaultLogoAssetId: z.string().optional(),
   displayName: z.string().optional(),
   entityStatus: z.string().optional(),
   generalConfig: z.object({
@@ -442,6 +450,12 @@ const InputsSchema = z.object({
   }).describe(
     "Settings that control how advertiser related data may be accessed.",
   ).optional(),
+  defaultBusinessName: z.string().describe(
+    "Optional. The default business name for the advertiser. This is the value used by YouTube and Demand Gen ads under this advertiser if a business name is not provided.",
+  ).optional(),
+  defaultLogoAssetId: z.string().describe(
+    "Optional. The asset ID of the default logo image for the advertiser. This is the asset ID that will be used by YouTube and Demand ads under this advertiser if a logo asset is not provided. You must use advertisers.adAssets.upload to upload this asset using the API.",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the advertiser. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -503,7 +517,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers. Registered at `@swamp/gcp/displayvideo/advertisers`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers",
-  version: "2026.06.09.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -585,6 +599,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.15.1",
+      description: "Added: defaultBusinessName, defaultLogoAssetId",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -620,6 +639,12 @@ export const model = {
         }
         if (g["dataAccessConfig"] !== undefined) {
           body["dataAccessConfig"] = g["dataAccessConfig"];
+        }
+        if (g["defaultBusinessName"] !== undefined) {
+          body["defaultBusinessName"] = g["defaultBusinessName"];
+        }
+        if (g["defaultLogoAssetId"] !== undefined) {
+          body["defaultLogoAssetId"] = g["defaultLogoAssetId"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
@@ -734,6 +759,12 @@ export const model = {
         }
         if (g["dataAccessConfig"] !== undefined) {
           body["dataAccessConfig"] = g["dataAccessConfig"];
+        }
+        if (g["defaultBusinessName"] !== undefined) {
+          body["defaultBusinessName"] = g["defaultBusinessName"];
+        }
+        if (g["defaultLogoAssetId"] !== undefined) {
+          body["defaultLogoAssetId"] = g["defaultLogoAssetId"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];

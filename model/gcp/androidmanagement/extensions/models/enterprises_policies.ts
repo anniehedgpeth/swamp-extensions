@@ -333,7 +333,7 @@ const GlobalArgsSchema = z.object({
         "Optional, a map containing configuration variables defined for the configuration.",
       ).optional(),
       templateId: z.string().describe(
-        "The ID of the managed configurations template.",
+        'The ID of the managed configurations template. This value must be a numeric string containing exactly one or more digits (for example, "123456").',
       ).optional(),
     }).describe(
       "The managed configurations template for the app, saved from the managed configurations iframe.",
@@ -2110,7 +2110,7 @@ const InputsSchema = z.object({
         "Optional, a map containing configuration variables defined for the configuration.",
       ).optional(),
       templateId: z.string().describe(
-        "The ID of the managed configurations template.",
+        'The ID of the managed configurations template. This value must be a numeric string containing exactly one or more digits (for example, "123456").',
       ).optional(),
     }).describe(
       "The managed configurations template for the app, saved from the managed configurations iframe.",
@@ -3296,7 +3296,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Policies. Registered at `@swamp/gcp/androidmanagement/enterprises-policies`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-policies",
-  version: "2026.07.03.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3409,6 +3409,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.03.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

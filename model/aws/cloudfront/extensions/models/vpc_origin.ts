@@ -76,6 +76,7 @@ const GlobalArgsSchema = z.object({
     HTTPSPort: z.number().int().describe(
       "The HTTPS port of the CloudFront VPC origin endpoint configuration. The default value is 443.",
     ).optional(),
+    IpAddressType: z.enum(["ipv4", "dualstack"]).optional(),
     Name: z.string().describe(
       "The name of the CloudFront VPC origin endpoint configuration.",
     ),
@@ -100,6 +101,7 @@ const StateSchema = z.object({
     Arn: z.string(),
     HTTPPort: z.number(),
     HTTPSPort: z.number(),
+    IpAddressType: z.string(),
     Name: z.string(),
     OriginProtocolPolicy: z.string(),
     OriginSSLProtocols: z.array(z.string()),
@@ -124,6 +126,7 @@ const InputsSchema = z.object({
     HTTPSPort: z.number().int().describe(
       "The HTTPS port of the CloudFront VPC origin endpoint configuration. The default value is 443.",
     ).optional(),
+    IpAddressType: z.enum(["ipv4", "dualstack"]).optional(),
     Name: z.string().describe(
       "The name of the CloudFront VPC origin endpoint configuration.",
     ).optional(),
@@ -155,7 +158,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFront VpcOrigin. Registered at `@swamp/aws/cloudfront/vpc-origin`. */
 export const model = {
   type: "@swamp/aws/cloudfront/vpc-origin",
-  version: "2026.06.15.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -194,6 +197,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

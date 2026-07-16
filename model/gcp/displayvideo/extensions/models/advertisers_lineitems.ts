@@ -375,7 +375,7 @@ const GlobalArgsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_MACROMILL`",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -805,7 +805,7 @@ const GlobalArgsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_MACROMILL`",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -1385,7 +1385,7 @@ const InputsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_MACROMILL`",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -1815,7 +1815,7 @@ const InputsSchema = z.object({
           "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
         ]).describe("The third-party measurement vendor.").optional(),
       })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_MACROMILL` *Warning*: Starting **July 13, 2026**, this field will no longer support `THIRD_PARTY_VENDOR_NIELSEN`.",
+        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_MACROMILL`",
       ).optional(),
       brandSafetyVendorConfigs: z.array(z.object({
         placementId: z.string().describe(
@@ -1998,7 +1998,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.LineItems. Registered at `@swamp/gcp/displayvideo/advertisers-lineitems`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-lineitems",
-  version: "2026.07.02.1",
+  version: "2026.07.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2131,6 +2131,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
