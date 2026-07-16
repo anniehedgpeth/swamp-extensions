@@ -478,9 +478,12 @@ domain property carries the same GCP project ID that the credential chain
 needs).
 
 **Enrichment limitation:** Enrichment methods (e.g., serviceaccounts, storage-
-buckets) call `request()` directly and do not currently thread credentials from
-global args. Enrichment method calls fall back to the env-var chain even when
-vault-expression credentials are configured.
+buckets) call `request()` directly without explicit credentials; HTTP
+authentication falls back to the env-var chain even when vault-expression
+credentials are configured. The storage-buckets enrichment threads credentials
+to `getProjectId()` so the `project` global arg is honored for project ID
+resolution, but the underlying `request()` calls do not yet forward explicit
+credentials.
 
 ### Service account activation
 

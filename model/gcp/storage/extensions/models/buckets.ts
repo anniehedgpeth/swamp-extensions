@@ -613,7 +613,8 @@ const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
-      const projectId = await getProjectId();
+      const credentials = _buildGcpCredentials(g);
+      const projectId = await getProjectId(credentials);
       const bucketName = g["name"]?.toString() ?? "";
       const userProject = g["userProject"]?.toString() ?? projectId;
 
@@ -719,7 +720,8 @@ const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
-      const projectId = await getProjectId();
+      const credentials = _buildGcpCredentials(g);
+      const projectId = await getProjectId(credentials);
       const bucketName = g["name"]?.toString() ?? "";
       const userProject = g["userProject"]?.toString() ?? projectId;
 
@@ -1369,7 +1371,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON Buckets. Registered at `@swamp/gcp/storage/buckets`. */
 export const model = {
   type: "@swamp/gcp/storage/buckets",
-  version: "2026.07.13.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1468,6 +1470,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

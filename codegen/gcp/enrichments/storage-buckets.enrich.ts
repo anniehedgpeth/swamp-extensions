@@ -24,7 +24,8 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
-      const projectId = await getProjectId();
+      const credentials = _buildGcpCredentials(g);
+      const projectId = await getProjectId(credentials);
       const bucketName = g["name"]?.toString() ?? "";
       const userProject = g["userProject"]?.toString() ?? projectId;
 
@@ -130,7 +131,8 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
-      const projectId = await getProjectId();
+      const credentials = _buildGcpCredentials(g);
+      const projectId = await getProjectId(credentials);
       const bucketName = g["name"]?.toString() ?? "";
       const userProject = g["userProject"]?.toString() ?? projectId;
 
