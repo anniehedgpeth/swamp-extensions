@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/auditmanager"
-version: "2026.06.15.1"
+version: "2026.07.16.1"
 description: "AWS AUDITMANAGER infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -10,9 +10,10 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: assessment
+  - Added: assessment_framework
 models:
   - assessment.ts
+  - assessment_framework.ts
 additionalFiles:
   - LICENSE.txt
   - README.md

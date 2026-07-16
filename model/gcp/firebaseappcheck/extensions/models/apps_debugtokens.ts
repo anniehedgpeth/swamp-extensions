@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
     "Required. The relative resource name of the debug token, in the format: ` projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} `",
   ).optional(),
   token: z.string().describe(
-    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during an UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
+    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during a UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -184,7 +184,7 @@ const InputsSchema = z.object({
     "Required. The relative resource name of the debug token, in the format: ` projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} `",
   ).optional(),
   token: z.string().describe(
-    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during an UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
+    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during a UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -206,7 +206,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Check Apps.DebugTokens. Registered at `@swamp/gcp/firebaseappcheck/apps-debugtokens`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/apps-debugtokens",
-  version: "2026.06.08.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -300,6 +300,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

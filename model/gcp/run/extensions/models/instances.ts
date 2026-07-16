@@ -495,6 +495,13 @@ const GlobalArgsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -660,6 +667,7 @@ const StateSchema = z.object({
   clientVersion: z.string().optional(),
   conditions: z.array(z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -801,6 +809,7 @@ const StateSchema = z.object({
   serviceAccount: z.string().optional(),
   terminalCondition: z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -1186,6 +1195,13 @@ const InputsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -1355,7 +1371,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Instances. Registered at `@swamp/gcp/run/instances`. */
 export const model = {
   type: "@swamp/gcp/run/instances",
-  version: "2026.06.25.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1491,6 +1507,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

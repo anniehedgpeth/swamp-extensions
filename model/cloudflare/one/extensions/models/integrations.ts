@@ -50,15 +50,18 @@ const GlobalArgsSchema = z.object({
     "List of use case or feature slugs to enroll (e.g., ['casb', 'ces', 'auto_remediation']).",
   ).optional(),
   application: z.enum([
+    "BITBUCKET",
     "BOX",
+    "CONFLUENCE",
     "DROPBOX",
     "GITHUB",
     "GOOGLE_WORKSPACE",
+    "JIRA",
     "MICROSOFT_INTERNAL",
     "SALESFORCE",
     "SLACK",
   ]).describe(
-    "Vendor/application slug (e.g., GOOGLE_WORKSPACE).\n\n* `BOX` - BOX\n* `DROPBOX` - DROPBOX\n* `GITHUB` - GITHUB\n* `GOOGLE_WORKSPACE` - GOOGLE_WORKSPACE\n* `MICROSOFT_INTERNAL` - MICROSOFT_INTERNAL\n* `SALESFORCE` - SALESFORCE\n* `SLACK` - SLACK",
+    "Vendor/application slug (e.g., GOOGLE_WORKSPACE).\n\n* `BITBUCKET` - BITBUCKET\n* `BOX` - BOX\n* `CONFLUENCE` - CONFLUENCE\n* `DROPBOX` - DROPBOX\n* `GITHUB` - GITHUB\n* `GOOGLE_WORKSPACE` - GOOGLE_WORKSPACE\n* `JIRA` - JIRA\n* `MICROSOFT_INTERNAL` - MICROSOFT_INTERNAL\n* `SALESFORCE` - SALESFORCE\n* `SLACK` - SLACK",
   ),
   auth_method: z.string().min(1).describe(
     "Authentication method slug (uses default if omitted).",
@@ -105,10 +108,13 @@ const InputsSchema = z.object({
   permissions: z.array(z.string().min(1)).optional(),
   use_cases: z.array(z.enum(["casb", "ces", "auto_remediation"])).optional(),
   application: z.enum([
+    "BITBUCKET",
     "BOX",
+    "CONFLUENCE",
     "DROPBOX",
     "GITHUB",
     "GOOGLE_WORKSPACE",
+    "JIRA",
     "MICROSOFT_INTERNAL",
     "SALESFORCE",
     "SLACK",
@@ -122,7 +128,14 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Integrations. Registered at `@swamp/cloudflare/one/integrations`. */
 export const model = {
   type: "@swamp/cloudflare/one/integrations",
-  version: "2026.07.14.1",
+  version: "2026.07.16.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

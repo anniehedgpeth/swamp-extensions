@@ -284,6 +284,9 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Scaling settings applied at the service level rather than at the revision level.",
   ).optional(),
+  sshEnabled: z.boolean().describe(
+    "Optional. Enables SSH access to the Service.",
+  ).optional(),
   template: z.object({
     annotations: z.record(z.string(), z.string()).describe(
       "Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with `run.googleapis.com`, `cloud.googleapis.com`, `serving.knative.dev`, or `autoscaling.knative.dev` namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 RevisionTemplate. This field follows Kubernetes annotations' namespacing, limits, and rules.",
@@ -693,6 +696,13 @@ const GlobalArgsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -797,6 +807,7 @@ const StateSchema = z.object({
   clientVersion: z.string().optional(),
   conditions: z.array(z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -836,6 +847,7 @@ const StateSchema = z.object({
     minInstanceCount: z.number(),
     scalingMode: z.string(),
   }).optional(),
+  sshEnabled: z.boolean().optional(),
   template: z.object({
     annotations: z.record(z.string(), z.unknown()),
     client: z.string(),
@@ -998,6 +1010,7 @@ const StateSchema = z.object({
   }).optional(),
   terminalCondition: z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -1145,6 +1158,9 @@ const InputsSchema = z.object({
       .describe("Optional. The scaling mode for the service.").optional(),
   }).describe(
     "Scaling settings applied at the service level rather than at the revision level.",
+  ).optional(),
+  sshEnabled: z.boolean().describe(
+    "Optional. Enables SSH access to the Service.",
   ).optional(),
   template: z.object({
     annotations: z.record(z.string(), z.string()).describe(
@@ -1555,6 +1571,13 @@ const InputsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -1652,7 +1675,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Services. Registered at `@swamp/gcp/run/services`. */
 export const model = {
   type: "@swamp/gcp/run/services",
-  version: "2026.06.25.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1764,6 +1787,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.16.1",
+      description: "Added: sshEnabled",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1825,6 +1853,7 @@ export const model = {
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["scaling"] !== undefined) body["scaling"] = g["scaling"];
+        if (g["sshEnabled"] !== undefined) body["sshEnabled"] = g["sshEnabled"];
         if (g["template"] !== undefined) body["template"] = g["template"];
         if (g["terminalCondition"] !== undefined) {
           body["terminalCondition"] = g["terminalCondition"];
@@ -1960,6 +1989,7 @@ export const model = {
           body["multiRegionSettings"] = g["multiRegionSettings"];
         }
         if (g["scaling"] !== undefined) body["scaling"] = g["scaling"];
+        if (g["sshEnabled"] !== undefined) body["sshEnabled"] = g["sshEnabled"];
         if (g["template"] !== undefined) body["template"] = g["template"];
         if (g["terminalCondition"] !== undefined) {
           body["terminalCondition"] = g["terminalCondition"];

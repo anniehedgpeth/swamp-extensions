@@ -403,6 +403,25 @@ const StateSchema = z.object({
       relationshipType: z.string(),
     })),
     returnPolicyLabel: z.string(),
+    returns: z.array(z.object({
+      countries: z.array(z.string()),
+      itemConditions: z.array(z.string()),
+      methods: z.array(z.string()),
+      outcomes: z.array(z.string()),
+      policyUrl: z.string(),
+      restockingFee: z.object({
+        amountMicros: z.string(),
+        currencyCode: z.string(),
+      }),
+      restockingPercentageFee: z.number(),
+      shippingFee: z.object({
+        amountMicros: z.string(),
+        currencyCode: z.string(),
+      }),
+      shippingFeeType: z.string(),
+      windowDays: z.string(),
+      windowType: z.string(),
+    })),
     salePrice: z.object({
       amountMicros: z.string(),
       currencyCode: z.string(),
@@ -585,7 +604,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Products. Registered at `@swamp/gcp/merchantapi/accounts-products`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-products",
-  version: "2026.06.12.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -599,6 +618,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

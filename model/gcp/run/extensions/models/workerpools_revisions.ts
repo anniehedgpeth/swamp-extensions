@@ -134,6 +134,7 @@ const StateSchema = z.object({
   clientVersion: z.string().optional(),
   conditions: z.array(z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -348,7 +349,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin WorkerPools.Revisions. Registered at `@swamp/gcp/run/workerpools-revisions`. */
 export const model = {
   type: "@swamp/gcp/run/workerpools-revisions",
-  version: "2026.06.25.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -437,6 +438,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

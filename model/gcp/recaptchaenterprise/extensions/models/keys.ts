@@ -204,6 +204,9 @@ const GlobalArgsSchema = z.object({
       "Optional. All assessments for this Key return this score. Must be between 0 (likely not legitimate) and 1 (likely legitimate) inclusive.",
     ).optional(),
   }).describe("Options for user acceptance testing.").optional(),
+  universalSettings: z.object({}).describe(
+    "Settings for keys that are configured through their Policy.",
+  ).optional(),
   wafSettings: z.object({
     wafFeature: z.enum([
       "WAF_FEATURE_UNSPECIFIED",
@@ -303,6 +306,7 @@ const StateSchema = z.object({
     testingChallenge: z.string(),
     testingScore: z.number(),
   }).optional(),
+  universalSettings: z.object({}).optional(),
   wafSettings: z.object({
     wafFeature: z.string(),
     wafService: z.string(),
@@ -386,6 +390,9 @@ const InputsSchema = z.object({
       "Optional. All assessments for this Key return this score. Must be between 0 (likely not legitimate) and 1 (likely legitimate) inclusive.",
     ).optional(),
   }).describe("Options for user acceptance testing.").optional(),
+  universalSettings: z.object({}).describe(
+    "Settings for keys that are configured through their Policy.",
+  ).optional(),
   wafSettings: z.object({
     wafFeature: z.enum([
       "WAF_FEATURE_UNSPECIFIED",
@@ -476,7 +483,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud reCAPTCHA Enterprise Keys. Registered at `@swamp/gcp/recaptchaenterprise/keys`. */
 export const model = {
   type: "@swamp/gcp/recaptchaenterprise/keys",
-  version: "2026.06.08.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -553,6 +560,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.16.1",
+      description: "Added: universalSettings",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -594,6 +606,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["testingOptions"] !== undefined) {
           body["testingOptions"] = g["testingOptions"];
+        }
+        if (g["universalSettings"] !== undefined) {
+          body["universalSettings"] = g["universalSettings"];
         }
         if (g["wafSettings"] !== undefined) {
           body["wafSettings"] = g["wafSettings"];
@@ -710,6 +725,9 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["testingOptions"] !== undefined) {
           body["testingOptions"] = g["testingOptions"];
+        }
+        if (g["universalSettings"] !== undefined) {
+          body["universalSettings"] = g["universalSettings"];
         }
         if (g["wafSettings"] !== undefined) {
           body["wafSettings"] = g["wafSettings"];
@@ -945,6 +963,39 @@ export const model = {
         return { result };
       },
     },
+    get_policy: {
+      description: "get policy",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["name"]),
+          );
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "recaptchaenterprise.projects.keys.getPolicy",
+            "path": "v1/{+name}",
+            "httpMethod": "GET",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     list_ip_overrides: {
       description: "list ip overrides",
       arguments: z.object({}),
@@ -1051,6 +1102,54 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    update_policy: {
+      description: "update policy",
+      arguments: z.object({
+        challengeRuleGroups: z.any().optional(),
+        clientSettings: z.any().optional(),
+        name: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["name"]),
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (args["challengeRuleGroups"] !== undefined) {
+          body["challengeRuleGroups"] = args["challengeRuleGroups"];
+        }
+        if (args["clientSettings"] !== undefined) {
+          body["clientSettings"] = args["clientSettings"];
+        }
+        if (args["name"] !== undefined) body["name"] = args["name"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "recaptchaenterprise.projects.keys.updatePolicy",
+            "path": "v1/{+name}",
+            "httpMethod": "PATCH",
+            "parameterOrder": ["name"],
+            "parameters": {
+              "name": { "location": "path", "required": true },
+              "updateMask": { "location": "query" },
+            },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,

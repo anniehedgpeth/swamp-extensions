@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/bedrock/automated-reasoning-policy
+// Auto-generated extension model for @swamp/aws/auditmanager/assessment-framework
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Bedrock AutomatedReasoningPolicy (AWS::Bedrock::AutomatedReasoningPolicy).
+ * Swamp extension model for AuditManager AssessmentFramework (AWS::AuditManager::AssessmentFramework).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,51 +41,28 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const PolicyDefinitionTypeValueSchema = z.object({
-  Value: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("The value of the type value."),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "A natural language description of the type's value.",
-  ).optional(),
+const ControlSetControlSchema = z.object({
+  Id: z.string().min(36).max(36).regex(
+    new RegExp(
+      "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
+    ),
+  ).describe("The unique identifier of the control."),
 });
 
-const PolicyDefinitionTypeSchema = z.object({
-  Name: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("A name for this type."),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "A natural language description of this type.",
-  ).optional(),
-  Values: z.array(PolicyDefinitionTypeValueSchema).describe(
-    "A list of valid values for this type.",
+const ControlSetSchema = z.object({
+  Name: z.string().min(1).max(300).regex(new RegExp("^[^\\\\_]*$")).describe(
+    "The name of the control set.",
   ),
-});
-
-const PolicyDefinitionRuleSchema = z.object({
-  Id: z.string().min(12).max(12).regex(new RegExp("^[A-Z][0-9A-Z]{11}$"))
-    .describe("A unique id within the PolicyDefinition"),
-  Expression: z.string().max(2048).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "The SMT expression for this rule",
-  ),
-  AlternateExpression: z.string().max(2048).regex(new RegExp("^[\\s\\S]+$"))
-    .describe("An alternate expression for this rule").optional(),
-});
-
-const PolicyDefinitionVariableSchema = z.object({
-  Name: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("A name from this variable."),
-  Type: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("A type for this variable."),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "A natural language description of this variable.",
+  Controls: z.array(ControlSetControlSchema).describe(
+    "The list of controls within the control set.",
   ),
 });
 
 const TagSchema = z.object({
-  Key: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))
-    .describe("Tag Key"),
-  Value: z.string().min(0).max(256).regex(
-    new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"),
-  ).describe("Tag Value"),
+  Key: z.string().min(1).max(128).regex(
+    new RegExp("^(?!aws:)[a-zA-Z+-=._:/]+$"),
+  ).describe("The key name of the tag."),
+  Value: z.string().min(0).max(256).describe("The value for the tag."),
 });
 
 const GlobalArgsSchema = z.object({
@@ -104,51 +81,37 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Name: z.string().min(1).max(256).regex(new RegExp("^[0-9a-zA-Z-_ ]+$")),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).optional(),
-  PolicyDefinition: z.object({
-    Types: z.array(PolicyDefinitionTypeSchema).describe(
-      "The types definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Rules: z.array(PolicyDefinitionRuleSchema).describe(
-      "The rules definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Variables: z.array(PolicyDefinitionVariableSchema).describe(
-      "The variables definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-  }).optional(),
-  KmsKeyId: z.string().min(1).max(2048).regex(
-    new RegExp(
-      "^(arn:aws(-[^:]+)?:kms:[a-zA-Z0-9-]*:[0-9]{12}:((key/[a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)))|([a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)$",
-    ),
+  Name: z.string().min(1).max(300).regex(new RegExp("^[^\\\\]*$")).describe(
+    "The name of the framework.",
+  ),
+  Description: z.string().min(1).max(1000).regex(
+    new RegExp("^[\\w\\W\\s\\S]*$"),
+  ).describe("The description of the framework.").optional(),
+  ComplianceType: z.string().min(0).max(100).regex(
+    new RegExp("^[\\w\\W\\s\\S]*$"),
   ).describe(
-    "The KMS key with which the Policy's assets will be encrypted at rest.",
+    "The compliance type that the framework supports, such as CIS or HIPAA.",
   ).optional(),
-  Tags: z.array(TagSchema).optional(),
-  ForceDelete: z.boolean().describe(
-    "Specifies whether to force delete the automated reasoning policy even if it has active resources. When false, Amazon Bedrock validates if all artifacts have been deleted (e.g. policy version, test case, test result) for a policy before deletion. When true, Amazon Bedrock will delete the policy and all its artifacts without validation. Default is false",
-  ).optional(),
+  ControlSets: z.array(ControlSetSchema).describe(
+    "The control sets that are associated with the framework.",
+  ),
+  Tags: z.array(TagSchema).describe("The tags associated with the framework.")
+    .optional(),
 });
 
 const StateSchema = z.object({
+  Arn: z.string(),
+  FrameworkId: z.string().optional(),
   Name: z.string().optional(),
   Description: z.string().optional(),
-  PolicyDefinition: z.object({
-    Version: z.string(),
-    Types: z.array(PolicyDefinitionTypeSchema),
-    Rules: z.array(PolicyDefinitionRuleSchema),
-    Variables: z.array(PolicyDefinitionVariableSchema),
-  }).optional(),
-  PolicyArn: z.string(),
-  KmsKeyId: z.string().optional(),
-  KmsKeyArn: z.string().optional(),
-  Version: z.string().optional(),
-  DefinitionHash: z.string().optional(),
+  ComplianceType: z.string().optional(),
+  Type: z.string().optional(),
+  ControlSets: z.array(ControlSetSchema).optional(),
   CreatedAt: z.string().optional(),
-  UpdatedAt: z.string().optional(),
-  PolicyId: z.string().optional(),
+  LastUpdatedAt: z.string().optional(),
+  CreatedBy: z.string().optional(),
+  LastUpdatedBy: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
-  ForceDelete: z.boolean().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -159,31 +122,22 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Name: z.string().min(1).max(256).regex(new RegExp("^[0-9a-zA-Z-_ ]+$"))
-    .optional(),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).optional(),
-  PolicyDefinition: z.object({
-    Types: z.array(PolicyDefinitionTypeSchema).describe(
-      "The types definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Rules: z.array(PolicyDefinitionRuleSchema).describe(
-      "The rules definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Variables: z.array(PolicyDefinitionVariableSchema).describe(
-      "The variables definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-  }).optional(),
-  KmsKeyId: z.string().min(1).max(2048).regex(
-    new RegExp(
-      "^(arn:aws(-[^:]+)?:kms:[a-zA-Z0-9-]*:[0-9]{12}:((key/[a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)))|([a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)$",
-    ),
+  Name: z.string().min(1).max(300).regex(new RegExp("^[^\\\\]*$")).describe(
+    "The name of the framework.",
+  ).optional(),
+  Description: z.string().min(1).max(1000).regex(
+    new RegExp("^[\\w\\W\\s\\S]*$"),
+  ).describe("The description of the framework.").optional(),
+  ComplianceType: z.string().min(0).max(100).regex(
+    new RegExp("^[\\w\\W\\s\\S]*$"),
   ).describe(
-    "The KMS key with which the Policy's assets will be encrypted at rest.",
+    "The compliance type that the framework supports, such as CIS or HIPAA.",
   ).optional(),
-  Tags: z.array(TagSchema).optional(),
-  ForceDelete: z.boolean().describe(
-    "Specifies whether to force delete the automated reasoning policy even if it has active resources. When false, Amazon Bedrock validates if all artifacts have been deleted (e.g. policy version, test case, test result) for a policy before deletion. When true, Amazon Bedrock will delete the policy and all its artifacts without validation. Default is false",
+  ControlSets: z.array(ControlSetSchema).describe(
+    "The control sets that are associated with the framework.",
   ).optional(),
+  Tags: z.array(TagSchema).describe("The tags associated with the framework.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -202,62 +156,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for Bedrock AutomatedReasoningPolicy. Registered at `@swamp/aws/bedrock/automated-reasoning-policy`. */
+/** Swamp extension model for AuditManager AssessmentFramework. Registered at `@swamp/aws/auditmanager/assessment-framework`. */
 export const model = {
-  type: "@swamp/aws/bedrock/automated-reasoning-policy",
+  type: "@swamp/aws/auditmanager/assessment-framework",
   version: "2026.07.16.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.16.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Bedrock AutomatedReasoningPolicy resource state",
+      description: "AuditManager AssessmentFramework resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -265,7 +172,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a Bedrock AutomatedReasoningPolicy",
+      description: "Create a AuditManager AssessmentFramework",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -277,7 +184,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::AuditManager::AssessmentFramework",
           desiredState,
           credentials,
         ) as StateData;
@@ -294,16 +201,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a Bedrock AutomatedReasoningPolicy",
+      description: "Get a AuditManager AssessmentFramework",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Bedrock AutomatedReasoningPolicy",
+          "The primary identifier of the AuditManager AssessmentFramework",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::AuditManager::AssessmentFramework",
           args.identifier,
           credentials,
         ) as StateData;
@@ -321,7 +228,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a Bedrock AutomatedReasoningPolicy",
+      description: "Update a AuditManager AssessmentFramework",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -339,12 +246,12 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.PolicyArn?.toString();
+        const identifier = existing.Arn?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         const currentState = await readResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::AuditManager::AssessmentFramework",
           identifier,
           credentials,
         ) as StateData;
@@ -355,11 +262,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::AuditManager::AssessmentFramework",
           identifier,
           currentState,
           desiredState,
-          ["KmsKeyId"],
+          undefined,
           credentials,
         );
         const handle = await context.writeResource(
@@ -371,16 +278,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a Bedrock AutomatedReasoningPolicy",
+      description: "Delete a AuditManager AssessmentFramework",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Bedrock AutomatedReasoningPolicy",
+          "The primary identifier of the AuditManager AssessmentFramework",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::AuditManager::AssessmentFramework",
           args.identifier,
           credentials,
         );
@@ -399,7 +306,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync Bedrock AutomatedReasoningPolicy state from AWS",
+      description: "Sync AuditManager AssessmentFramework state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -417,13 +324,13 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.PolicyArn?.toString();
+        const identifier = existing.Arn?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         try {
           const result = await readResource(
-            "AWS::Bedrock::AutomatedReasoningPolicy",
+            "AWS::AuditManager::AssessmentFramework",
             identifier,
             credentials,
           ) as StateData;

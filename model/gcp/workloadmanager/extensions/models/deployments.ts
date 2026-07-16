@@ -266,7 +266,7 @@ const GlobalArgsSchema = z.object({
     activeDirectory: z.object({
       dnsAddress: z.string().describe("Optional. DNS IP address.").optional(),
       domain: z.string().describe(
-        "Optional. Human readable form of a domain such as “google.com”.",
+        "Optional. Human readable form of a domain such as `example.com`.",
       ).optional(),
       domainUsername: z.string().describe("Optional. Domain username.")
         .optional(),
@@ -694,7 +694,7 @@ const InputsSchema = z.object({
     activeDirectory: z.object({
       dnsAddress: z.string().describe("Optional. DNS IP address.").optional(),
       domain: z.string().describe(
-        "Optional. Human readable form of a domain such as “google.com”.",
+        "Optional. Human readable form of a domain such as `example.com`.",
       ).optional(),
       domainUsername: z.string().describe("Optional. Domain username.")
         .optional(),
@@ -886,7 +886,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workload Manager Deployments. Registered at `@swamp/gcp/workloadmanager/deployments`. */
 export const model = {
   type: "@swamp/gcp/workloadmanager/deployments",
-  version: "2026.06.12.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -965,6 +965,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

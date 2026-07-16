@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/cleanrooms"
-version: "2026.06.15.1"
+version: "2026.07.16.1"
 description: "AWS CLEANROOMS infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -10,7 +10,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: analysis_template, collaboration, configured_table, configured_table_association, id_mapping_table, id_namespace_association, membership, privacy_budget_template
+  - Added: intermediate_table
 models:
   - analysis_template.ts
   - collaboration.ts
@@ -18,6 +18,7 @@ models:
   - configured_table_association.ts
   - id_mapping_table.ts
   - id_namespace_association.ts
+  - intermediate_table.ts
   - membership.ts
   - privacy_budget_template.ts
 additionalFiles:

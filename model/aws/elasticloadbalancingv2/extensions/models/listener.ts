@@ -218,6 +218,11 @@ const CertificateSchema = z.object({
   ).optional(),
 });
 
+const TagSchema = z.object({
+  Value: z.string(),
+  Key: z.string(),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -273,6 +278,7 @@ const GlobalArgsSchema = z.object({
   Protocol: z.string().describe(
     "The protocol for connections from clients to the load balancer. For Application Load Balancers, the supported protocols are HTTP and HTTPS. For Network Load Balancers, the supported protocols are TCP, TLS, UDP, TCP_UDP, QUIC, and TCP_QUIC. You can’t specify the UDP, TCP_UDP, QUIC, or TCP_QUIC protocol if dual-stack mode is enabled. You can't specify a protocol for a Gateway Load Balancer.",
   ).optional(),
+  Tags: z.array(TagSchema).optional(),
 });
 
 const StateSchema = z.object({
@@ -291,6 +297,7 @@ const StateSchema = z.object({
   Port: z.number().optional(),
   Certificates: z.array(CertificateSchema).optional(),
   Protocol: z.string().optional(),
+  Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -340,6 +347,7 @@ const InputsSchema = z.object({
   Protocol: z.string().describe(
     "The protocol for connections from clients to the load balancer. For Application Load Balancers, the supported protocols are HTTP and HTTPS. For Network Load Balancers, the supported protocols are TCP, TLS, UDP, TCP_UDP, QUIC, and TCP_QUIC. You can’t specify the UDP, TCP_UDP, QUIC, or TCP_QUIC protocol if dual-stack mode is enabled. You can't specify a protocol for a Gateway Load Balancer.",
   ).optional(),
+  Tags: z.array(TagSchema).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -361,7 +369,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ElasticLoadBalancingV2 Listener. Registered at `@swamp/aws/elasticloadbalancingv2/listener`. */
 export const model = {
   type: "@swamp/aws/elasticloadbalancingv2/listener",
-  version: "2026.06.15.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -406,6 +414,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
+      description: "Added: Tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

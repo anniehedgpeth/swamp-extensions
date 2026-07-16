@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/bedrock/automated-reasoning-policy
+// Auto-generated extension model for @swamp/aws/cleanrooms/intermediate-table
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Bedrock AutomatedReasoningPolicy (AWS::Bedrock::AutomatedReasoningPolicy).
+ * Swamp extension model for CleanRooms IntermediateTable (AWS::CleanRooms::IntermediateTable).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,51 +41,56 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const PolicyDefinitionTypeValueSchema = z.object({
-  Value: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("The value of the type value."),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "A natural language description of the type's value.",
+const PopulationAnalysisSqlParametersSchema = z.object({
+  QueryString: z.string().max(500000).optional(),
+  AnalysisTemplateArn: z.string().max(256).optional(),
+});
+
+const DifferentialPrivacyColumnSchema = z.object({
+  Name: z.string(),
+});
+
+const DifferentialPrivacySchema = z.object({
+  Columns: z.array(DifferentialPrivacyColumnSchema),
+});
+
+const IntermediateTableAnalysisRuleCustomSchema = z.object({
+  AllowedAnalyses: z.array(
+    z.string().min(0).max(200).regex(
+      new RegExp(
+        "(ANY_QUERY|ANY_JOB|arn:[\\w]{3}:cleanrooms:[\\w]{2}-[\\w]{4,9}-[\\d]:[\\d]{12}:membership/[\\d\\w-]+/analysistemplate/[\\d\\w-]+)",
+      ),
+    ),
+  ),
+  AllowedAnalysisProviders: z.array(
+    z.string().min(12).max(12).regex(new RegExp("\\d+")),
+  ).optional(),
+  AdditionalAnalyses: z.enum(["ALLOWED", "REQUIRED", "NOT_ALLOWED"]).optional(),
+  AllowedResultReceivers: z.array(
+    z.string().min(12).max(12).regex(new RegExp("\\d+")),
+  ).optional(),
+  DifferentialPrivacy: DifferentialPrivacySchema.optional(),
+  DisallowedOutputColumns: z.array(
+    z.string().min(1).max(127).regex(
+      new RegExp("^[a-z0-9_](([a-z0-9_ ]+-)*([a-z0-9_ ]+))?$"),
+    ),
   ).optional(),
 });
 
-const PolicyDefinitionTypeSchema = z.object({
-  Name: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("A name for this type."),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "A natural language description of this type.",
-  ).optional(),
-  Values: z.array(PolicyDefinitionTypeValueSchema).describe(
-    "A list of valid values for this type.",
-  ),
+const V1Schema = z.object({
+  V1: z.object({
+    Custom: IntermediateTableAnalysisRuleCustomSchema.optional(),
+  }),
 });
 
-const PolicyDefinitionRuleSchema = z.object({
-  Id: z.string().min(12).max(12).regex(new RegExp("^[A-Z][0-9A-Z]{11}$"))
-    .describe("A unique id within the PolicyDefinition"),
-  Expression: z.string().max(2048).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "The SMT expression for this rule",
-  ),
-  AlternateExpression: z.string().max(2048).regex(new RegExp("^[\\s\\S]+$"))
-    .describe("An alternate expression for this rule").optional(),
-});
-
-const PolicyDefinitionVariableSchema = z.object({
-  Name: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("A name from this variable."),
-  Type: z.string().min(1).max(64).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]+$"))
-    .describe("A type for this variable."),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).describe(
-    "A natural language description of this variable.",
-  ),
+const IntermediateTableAnalysisRuleSchema = z.object({
+  Type: z.enum(["CUSTOM"]),
+  Policy: V1Schema,
 });
 
 const TagSchema = z.object({
-  Key: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))
-    .describe("Tag Key"),
-  Value: z.string().min(0).max(256).regex(
-    new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"),
-  ).describe("Tag Value"),
+  Key: z.string().min(1).max(128),
+  Value: z.string().min(1).max(256),
 });
 
 const GlobalArgsSchema = z.object({
@@ -104,51 +109,45 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Name: z.string().min(1).max(256).regex(new RegExp("^[0-9a-zA-Z-_ ]+$")),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).optional(),
-  PolicyDefinition: z.object({
-    Types: z.array(PolicyDefinitionTypeSchema).describe(
-      "The types definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Rules: z.array(PolicyDefinitionRuleSchema).describe(
-      "The rules definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Variables: z.array(PolicyDefinitionVariableSchema).describe(
-      "The variables definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-  }).optional(),
-  KmsKeyId: z.string().min(1).max(2048).regex(
+  MembershipIdentifier: z.string().min(36).max(36).regex(
     new RegExp(
-      "^(arn:aws(-[^:]+)?:kms:[a-zA-Z0-9-]*:[0-9]{12}:((key/[a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)))|([a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)$",
+      "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
     ),
-  ).describe(
-    "The KMS key with which the Policy's assets will be encrypted at rest.",
+  ),
+  Name: z.string().min(1).max(100).regex(
+    new RegExp(
+      "^(?!\\s*$)[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDBFF-\\uDC00\\uDFFF\\t]*$",
+    ),
+  ),
+  Description: z.string().max(255).regex(
+    new RegExp(
+      "^[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDBFF-\\uDC00\\uDFFF\\t\\r\\n]*$",
+    ),
   ).optional(),
+  PopulationAnalysisConfiguration: z.object({
+    SqlParameters: PopulationAnalysisSqlParametersSchema.optional(),
+  }),
+  KmsKeyArn: z.string().min(4).max(2048).optional(),
+  AnalysisRules: z.array(IntermediateTableAnalysisRuleSchema).optional(),
   Tags: z.array(TagSchema).optional(),
-  ForceDelete: z.boolean().describe(
-    "Specifies whether to force delete the automated reasoning policy even if it has active resources. When false, Amazon Bedrock validates if all artifacts have been deleted (e.g. policy version, test case, test result) for a policy before deletion. When true, Amazon Bedrock will delete the policy and all its artifacts without validation. Default is false",
-  ).optional(),
 });
 
 const StateSchema = z.object({
+  IntermediateTableIdentifier: z.string(),
+  Arn: z.string().optional(),
+  MembershipIdentifier: z.string(),
+  MembershipArn: z.string().optional(),
+  CollaborationIdentifier: z.string().optional(),
+  CollaborationArn: z.string().optional(),
   Name: z.string().optional(),
   Description: z.string().optional(),
-  PolicyDefinition: z.object({
-    Version: z.string(),
-    Types: z.array(PolicyDefinitionTypeSchema),
-    Rules: z.array(PolicyDefinitionRuleSchema),
-    Variables: z.array(PolicyDefinitionVariableSchema),
+  PopulationAnalysisConfiguration: z.object({
+    SqlParameters: PopulationAnalysisSqlParametersSchema,
   }).optional(),
-  PolicyArn: z.string(),
-  KmsKeyId: z.string().optional(),
+  Status: z.string().optional(),
   KmsKeyArn: z.string().optional(),
-  Version: z.string().optional(),
-  DefinitionHash: z.string().optional(),
-  CreatedAt: z.string().optional(),
-  UpdatedAt: z.string().optional(),
-  PolicyId: z.string().optional(),
+  AnalysisRules: z.array(IntermediateTableAnalysisRuleSchema).optional(),
   Tags: z.array(TagSchema).optional(),
-  ForceDelete: z.boolean().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -159,31 +158,27 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Name: z.string().min(1).max(256).regex(new RegExp("^[0-9a-zA-Z-_ ]+$"))
-    .optional(),
-  Description: z.string().max(1024).regex(new RegExp("^[\\s\\S]+$")).optional(),
-  PolicyDefinition: z.object({
-    Types: z.array(PolicyDefinitionTypeSchema).describe(
-      "The types definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Rules: z.array(PolicyDefinitionRuleSchema).describe(
-      "The rules definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-    Variables: z.array(PolicyDefinitionVariableSchema).describe(
-      "The variables definition block of an AutomatedReasoningPolicyDefinition.",
-    ).optional(),
-  }).optional(),
-  KmsKeyId: z.string().min(1).max(2048).regex(
+  MembershipIdentifier: z.string().min(36).max(36).regex(
     new RegExp(
-      "^(arn:aws(-[^:]+)?:kms:[a-zA-Z0-9-]*:[0-9]{12}:((key/[a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)))|([a-zA-Z0-9-]{36})|(alias/[a-zA-Z0-9-_/]+)$",
+      "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
     ),
-  ).describe(
-    "The KMS key with which the Policy's assets will be encrypted at rest.",
   ).optional(),
+  Name: z.string().min(1).max(100).regex(
+    new RegExp(
+      "^(?!\\s*$)[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDBFF-\\uDC00\\uDFFF\\t]*$",
+    ),
+  ).optional(),
+  Description: z.string().max(255).regex(
+    new RegExp(
+      "^[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDBFF-\\uDC00\\uDFFF\\t\\r\\n]*$",
+    ),
+  ).optional(),
+  PopulationAnalysisConfiguration: z.object({
+    SqlParameters: PopulationAnalysisSqlParametersSchema.optional(),
+  }).optional(),
+  KmsKeyArn: z.string().min(4).max(2048).optional(),
+  AnalysisRules: z.array(IntermediateTableAnalysisRuleSchema).optional(),
   Tags: z.array(TagSchema).optional(),
-  ForceDelete: z.boolean().describe(
-    "Specifies whether to force delete the automated reasoning policy even if it has active resources. When false, Amazon Bedrock validates if all artifacts have been deleted (e.g. policy version, test case, test result) for a policy before deletion. When true, Amazon Bedrock will delete the policy and all its artifacts without validation. Default is false",
-  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -202,62 +197,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for Bedrock AutomatedReasoningPolicy. Registered at `@swamp/aws/bedrock/automated-reasoning-policy`. */
+/** Swamp extension model for CleanRooms IntermediateTable. Registered at `@swamp/aws/cleanrooms/intermediate-table`. */
 export const model = {
-  type: "@swamp/aws/bedrock/automated-reasoning-policy",
+  type: "@swamp/aws/cleanrooms/intermediate-table",
   version: "2026.07.16.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.16.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Bedrock AutomatedReasoningPolicy resource state",
+      description: "CleanRooms IntermediateTable resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -265,7 +213,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a Bedrock AutomatedReasoningPolicy",
+      description: "Create a CleanRooms IntermediateTable",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -277,7 +225,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::CleanRooms::IntermediateTable",
           desiredState,
           credentials,
         ) as StateData;
@@ -294,16 +242,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a Bedrock AutomatedReasoningPolicy",
+      description: "Get a CleanRooms IntermediateTable",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Bedrock AutomatedReasoningPolicy",
+          "The primary identifier of the CleanRooms IntermediateTable",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::CleanRooms::IntermediateTable",
           args.identifier,
           credentials,
         ) as StateData;
@@ -321,7 +269,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a Bedrock AutomatedReasoningPolicy",
+      description: "Update a CleanRooms IntermediateTable",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -339,12 +287,18 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.PolicyArn?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.IntermediateTableIdentifier?.toString(),
+          existing.MembershipIdentifier?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         const currentState = await readResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::CleanRooms::IntermediateTable",
           identifier,
           credentials,
         ) as StateData;
@@ -355,11 +309,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::CleanRooms::IntermediateTable",
           identifier,
           currentState,
           desiredState,
-          ["KmsKeyId"],
+          ["MembershipIdentifier", "Name", "PopulationAnalysisConfiguration"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -371,16 +325,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a Bedrock AutomatedReasoningPolicy",
+      description: "Delete a CleanRooms IntermediateTable",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Bedrock AutomatedReasoningPolicy",
+          "The primary identifier of the CleanRooms IntermediateTable",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::Bedrock::AutomatedReasoningPolicy",
+          "AWS::CleanRooms::IntermediateTable",
           args.identifier,
           credentials,
         );
@@ -399,7 +353,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync Bedrock AutomatedReasoningPolicy state from AWS",
+      description: "Sync CleanRooms IntermediateTable state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -417,13 +371,19 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.PolicyArn?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.IntermediateTableIdentifier?.toString(),
+          existing.MembershipIdentifier?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::Bedrock::AutomatedReasoningPolicy",
+            "AWS::CleanRooms::IntermediateTable",
             identifier,
             credentials,
           ) as StateData;

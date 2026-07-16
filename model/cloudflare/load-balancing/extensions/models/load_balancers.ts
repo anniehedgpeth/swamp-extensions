@@ -107,6 +107,9 @@ const GlobalArgsSchema = z.object({
         mode: z.enum(["pop", "resolver_ip"]).optional(),
         prefer_ecs: z.enum(["always", "never", "proximity", "geo"]).optional(),
       }).optional(),
+      pool_default_weight: z.number().min(0).max(1).optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
       pop_pools: z.record(z.string(), z.unknown()).optional(),
       random_steering: z.object({
         default_weight: z.number().min(0).max(1).optional(),
@@ -207,6 +210,31 @@ const ResourceSchema = z.object({
   modified_on: z.string().optional(),
   name: z.string().optional(),
   networks: z.array(z.string()).optional(),
+  pool_sets: z.array(z.object({
+    disabled: z.boolean().optional(),
+    fixed_response: z.object({
+      content_type: z.string().optional(),
+      location: z.string().optional(),
+      message_body: z.string().optional(),
+      status_code: z.number().optional(),
+    }).optional(),
+    match: z.object({
+      default: z.boolean().optional(),
+      topology: z.object({
+        countries: z.array(z.string()).optional(),
+        pops: z.array(z.string()).optional(),
+        regions: z.array(z.string()).optional(),
+      }).optional(),
+    }).optional(),
+    name: z.string().optional(),
+    overrides: z.object({
+      fallback_pool: z.string().optional(),
+      pool_default_weight: z.number().optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
+      steering_policy: z.string().optional(),
+    }).optional(),
+  })).optional(),
   pop_pools: z.record(z.string(), z.unknown()).optional(),
   proxied: z.boolean().optional(),
   random_steering: z.object({
@@ -235,6 +263,9 @@ const ResourceSchema = z.object({
         mode: z.string().optional(),
         prefer_ecs: z.string().optional(),
       }).optional(),
+      pool_default_weight: z.number().optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
       pop_pools: z.record(z.string(), z.unknown()).optional(),
       random_steering: z.object({
         default_weight: z.number().optional(),
@@ -319,6 +350,9 @@ const InputsSchema = z.object({
         mode: z.enum(["pop", "resolver_ip"]).optional(),
         prefer_ecs: z.enum(["always", "never", "proximity", "geo"]).optional(),
       }).optional(),
+      pool_default_weight: z.number().min(0).max(1).optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
       pop_pools: z.record(z.string(), z.unknown()).optional(),
       random_steering: z.object({
         default_weight: z.number().min(0).max(1).optional(),
@@ -386,7 +420,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Load Balancers. Registered at `@swamp/cloudflare/load-balancing/load-balancers`. */
 export const model = {
   type: "@swamp/cloudflare/load-balancing/load-balancers",
-  version: "2026.07.14.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -401,6 +435,11 @@ export const model = {
     {
       toVersion: "2026.07.14.1",
       description: "Added: account_id",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -14,8 +14,9 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/auditmanager/assessment` to see the
-full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/auditmanager/assessment_framework` to
+see the full list of configurable properties and available methods for this
+model.
 
 ## Authentication
 
@@ -47,17 +48,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new assessment model
-swamp model create @swamp/aws/auditmanager/assessment my-assessment
+# Create a new assessment_framework model
+swamp model create @swamp/aws/auditmanager/assessment_framework my-assessment_framework
 
 # Edit the model to configure its properties
-swamp model edit my-assessment
+swamp model edit my-assessment_framework
 
 # Create the resource in AWS
-swamp model method run my-assessment create
+swamp model method run my-assessment_framework create
 
 # Sync current state from AWS
-swamp model method run my-assessment sync
+swamp model method run my-assessment_framework sync
 ```
 
 ## License

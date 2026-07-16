@@ -45,11 +45,11 @@ const ScheduleConfigurationSchema = z.object({
   ScheduleExpression: z.string().describe(
     "The expression that defines when the scheduled query runs, e.g. rate(1 minute).",
   ),
-  StartTimeOffset: z.number().int().describe(
-    "The number of seconds into the past to start the query window.",
-  ).optional(),
-  EndTimeOffset: z.number().int().describe(
-    "The number of seconds into the past to end the query window.",
+  StartTimeOffset: z.number().int().min(1).max(2592000).describe(
+    "The number of seconds into the past to start the query window. Must be a positive value and cannot exceed 2592000 seconds (30 days).",
+  ),
+  EndTimeOffset: z.number().int().min(0).max(2592000).describe(
+    "The number of seconds into the past to end the query window. Must be a non-negative value and cannot exceed 2592000 seconds (30 days).",
   ).optional(),
 });
 
@@ -110,18 +110,21 @@ const GlobalArgsSchema = z.object({
     QueryString: z.string().describe(
       "The query string to execute against the specified log groups.",
     ),
-    AggregationExpression: z.string().describe(
+    AggregationExpression: z.string().max(2048).describe(
       "The aggregation expression for the scheduled query, e.g. count(*) or avg(latency) by host.",
     ),
     LogGroupIdentifiers: z.array(z.string()).describe(
       "The log groups to query.",
-    ),
+    ).optional(),
     ScheduledQueryRoleARN: z.string().describe(
       "The ARN of the IAM role that grants permissions to execute the scheduled query.",
     ),
     ScheduleConfiguration: ScheduleConfigurationSchema.describe(
       "The schedule configuration.",
     ),
+    Tags: z.array(TagSchema).describe(
+      "A list of key-value pairs to associate with the scheduled query that backs the log alarm.",
+    ).optional(),
   }).describe("The scheduled query configuration for the log alarm."),
   ActionLogLineCount: z.number().int().min(0).max(50).describe(
     "The number of log lines to include in alarm notifications. Valid values are 0 to 50.",
@@ -152,6 +155,7 @@ const StateSchema = z.object({
     LogGroupIdentifiers: z.array(z.string()),
     ScheduledQueryRoleARN: z.string(),
     ScheduleConfiguration: ScheduleConfigurationSchema,
+    Tags: z.array(TagSchema),
   }).optional(),
   ActionLogLineCount: z.number().optional(),
   ActionLogLineRoleArn: z.string().optional(),
@@ -201,7 +205,7 @@ const InputsSchema = z.object({
     QueryString: z.string().describe(
       "The query string to execute against the specified log groups.",
     ).optional(),
-    AggregationExpression: z.string().describe(
+    AggregationExpression: z.string().max(2048).describe(
       "The aggregation expression for the scheduled query, e.g. count(*) or avg(latency) by host.",
     ).optional(),
     LogGroupIdentifiers: z.array(z.string()).describe(
@@ -212,6 +216,9 @@ const InputsSchema = z.object({
     ).optional(),
     ScheduleConfiguration: ScheduleConfigurationSchema.describe(
       "The schedule configuration.",
+    ).optional(),
+    Tags: z.array(TagSchema).describe(
+      "A list of key-value pairs to associate with the scheduled query that backs the log alarm.",
     ).optional(),
   }).describe("The scheduled query configuration for the log alarm.")
     .optional(),
@@ -245,10 +252,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudWatch LogAlarm. Registered at `@swamp/aws/cloudwatch/log-alarm`. */
 export const model = {
   type: "@swamp/aws/cloudwatch/log-alarm",
-  version: "2026.06.16.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.06.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

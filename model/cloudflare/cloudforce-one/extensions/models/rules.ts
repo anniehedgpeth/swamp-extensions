@@ -84,6 +84,12 @@ const ResourceSchema = z.object({
   enabled: z.boolean().optional(),
   id: z.string(),
   is_public: z.boolean().optional(),
+  meta: z.array(z.object({
+    key: z.string().optional(),
+    ordinal: z.number().optional(),
+    type: z.string().optional(),
+    value: z.string().optional(),
+  })).optional(),
   name: z.string().optional(),
   namespaces: z.array(z.string()).optional(),
   path: z.string().optional(),
@@ -125,7 +131,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Rules. Registered at `@swamp/cloudflare/cloudforce-one/rules`. */
 export const model = {
   type: "@swamp/cloudflare/cloudforce-one/rules",
-  version: "2026.06.24.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -140,6 +146,11 @@ export const model = {
     {
       toVersion: "2026.06.24.1",
       description: "Added: path",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
