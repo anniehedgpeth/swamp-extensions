@@ -346,21 +346,39 @@ function buildResourceName(parent: string, shortName: string): string {
 This is used by create (for post-LRO read-back), get, update, delete, sync, and
 action methods to construct the fully-qualified name.
 
-### Parent resolution: project-only vs multi-scope
+### Parent resolution: project-only vs multi-scope vs nested
 
 The `parent` argument to `buildResourceName` is resolved differently depending
-on whether the resource is project-only or multi-scope:
+on the resource's scope and nesting depth:
 
-- **Project-only resources** (`availableScopes: ["projects"]`): the parent is
-  constructed from `projectId` and `location` globalArgs:
+- **Top-level project-only resources** (`availableScopes: ["projects"]`,
+  `resourcePath.length === 1`): the parent is constructed from `projectId` and
+  `location` globalArgs:
   `` `projects/${projectId}/locations/${g["location"]}` ``. The `parent` field
   is not exposed in `GlobalArgsSchema` — users set `location` instead, and the
   generated code derives the parent path.
+
+- **Nested project-only resources** (`availableScopes: ["projects"]`,
+  `resourcePath.length > 1`): the parent is read from `globalArgs.parent`, which
+  includes the full ancestor chain. For example,
+  `workloadIdentityPools.providers` requires
+  `parent: "projects/my-project/locations/global/workloadIdentityPools/my-pool"`.
+  Auto-constructing the parent from just `projectId` and `location` would omit
+  the intermediate resource segments.
 
 - **Multi-scope resources** (organizations, folders, billing accounts): the
   parent is read directly from `globalArgs.parent`, which is declared in
   `GlobalArgsSchema`. Users provide the full parent path (e.g.,
   `organizations/123/locations/us-central1`).
+
+### Query parameter routing
+
+Some GCP APIs declare parameters with `location: "query"` on the create method
+(e.g., `workloadIdentityPoolId`, `workloadIdentityPoolProviderId`). These must
+be sent as URL query parameters, not in the request body. The code generator
+checks `insertConfig.parameters[propName].location === "query"` and routes
+matching properties to the `params` map (where `buildUrl` appends them as query
+strings) instead of the `body` object.
 
 ---
 

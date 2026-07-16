@@ -42,6 +42,7 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
+  request,
   updateResource,
 } from "./_lib/gcp.ts";
 
@@ -154,6 +155,215 @@ const GlobalArgsSchema = z.object({
   ).optional(),
 });
 
+const iamBindingMethods = {
+  add_iam_binding: {
+    description:
+      "add an IAM binding to the project (read-modify-write with etag)",
+    arguments: z.object({
+      role: z.string().describe(
+        "IAM role to grant, e.g. roles/editor, roles/viewer",
+      ),
+      members: z.array(z.string()).describe(
+        "Members to bind, e.g. ['serviceAccount:my-sa@my-project.iam.gserviceaccount.com']",
+      ),
+      condition: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        expression: z.string(),
+      }).optional().describe("Optional IAM condition for conditional bindings"),
+    }),
+    execute: async (
+      args: Record<string, unknown>,
+      context: { globalArgs: Record<string, unknown> },
+    ) => {
+      const g = context.globalArgs;
+      const credentials = _buildGcpCredentials(g);
+      const projectId = await getProjectId(credentials);
+      const resource = g["name"]?.toString() ?? `projects/${projectId}`;
+
+      const getResp = await request(
+        "POST",
+        `${BASE_URL}v3/${resource}:getIamPolicy`,
+        { options: { requestedPolicyVersion: 3 } },
+        credentials,
+      );
+      if (!getResp.ok) {
+        const body = await getResp.text();
+        throw new Error(`Failed to get IAM policy: ${getResp.status} ${body}`);
+      }
+      const policy = await getResp.json() as {
+        bindings?: Array<{
+          role: string;
+          members: string[];
+          condition?: {
+            title: string;
+            description?: string;
+            expression: string;
+          };
+        }>;
+        etag: string;
+        version?: number;
+      };
+
+      const role = args["role"] as string;
+      const members = args["members"] as string[];
+      const condition = args["condition"] as
+        | { title: string; description?: string; expression: string }
+        | undefined;
+
+      const bindings = policy.bindings ?? [];
+      const existing = bindings.find((b) => {
+        if (b.role !== role) return false;
+        if (condition && b.condition) {
+          return b.condition.title === condition.title &&
+            b.condition.expression === condition.expression;
+        }
+        return !condition && !b.condition;
+      });
+
+      if (existing) {
+        const memberSet = new Set(existing.members);
+        for (const m of members) memberSet.add(m);
+        existing.members = [...memberSet];
+      } else {
+        const newBinding: {
+          role: string;
+          members: string[];
+          condition?: {
+            title: string;
+            description?: string;
+            expression: string;
+          };
+        } = { role, members: [...new Set(members)] };
+        if (condition) newBinding.condition = condition;
+        bindings.push(newBinding);
+      }
+
+      const setResp = await request(
+        "POST",
+        `${BASE_URL}v3/${resource}:setIamPolicy`,
+        {
+          policy: {
+            bindings,
+            etag: policy.etag,
+            version: 3,
+          },
+        },
+        credentials,
+      );
+      if (!setResp.ok) {
+        const body = await setResp.text();
+        throw new Error(`Failed to set IAM policy: ${setResp.status} ${body}`);
+      }
+      const result = await setResp.json();
+      return { result };
+    },
+  },
+  remove_iam_binding: {
+    description:
+      "remove an IAM binding or specific members from a project (read-modify-write with etag)",
+    arguments: z.object({
+      role: z.string().describe(
+        "IAM role to revoke, e.g. roles/editor, roles/viewer",
+      ),
+      members: z.array(z.string()).optional().describe(
+        "Specific members to remove. If omitted, removes the entire binding for this role.",
+      ),
+      condition: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        expression: z.string(),
+      }).optional().describe(
+        "Match condition when removing a conditional binding",
+      ),
+    }),
+    execute: async (
+      args: Record<string, unknown>,
+      context: { globalArgs: Record<string, unknown> },
+    ) => {
+      const g = context.globalArgs;
+      const credentials = _buildGcpCredentials(g);
+      const projectId = await getProjectId(credentials);
+      const resource = g["name"]?.toString() ?? `projects/${projectId}`;
+
+      const getResp = await request(
+        "POST",
+        `${BASE_URL}v3/${resource}:getIamPolicy`,
+        { options: { requestedPolicyVersion: 3 } },
+        credentials,
+      );
+      if (!getResp.ok) {
+        const body = await getResp.text();
+        throw new Error(`Failed to get IAM policy: ${getResp.status} ${body}`);
+      }
+      const policy = await getResp.json() as {
+        bindings?: Array<{
+          role: string;
+          members: string[];
+          condition?: {
+            title: string;
+            description?: string;
+            expression: string;
+          };
+        }>;
+        etag: string;
+        version?: number;
+      };
+
+      const role = args["role"] as string;
+      const members = args["members"] as string[] | undefined;
+      const condition = args["condition"] as
+        | { title: string; description?: string; expression: string }
+        | undefined;
+
+      let bindings = policy.bindings ?? [];
+      const idx = bindings.findIndex((b) => {
+        if (b.role !== role) return false;
+        if (condition && b.condition) {
+          return b.condition.title === condition.title &&
+            b.condition.expression === condition.expression;
+        }
+        return !condition && !b.condition;
+      });
+
+      if (idx === -1) {
+        return { result: { bindings, message: "No matching binding found" } };
+      }
+
+      if (members) {
+        const removeSet = new Set(members);
+        bindings[idx].members = bindings[idx].members.filter((m) =>
+          !removeSet.has(m)
+        );
+        if (bindings[idx].members.length === 0) {
+          bindings = bindings.filter((_, i) => i !== idx);
+        }
+      } else {
+        bindings = bindings.filter((_, i) => i !== idx);
+      }
+
+      const setResp = await request(
+        "POST",
+        `${BASE_URL}v3/${resource}:setIamPolicy`,
+        {
+          policy: {
+            bindings,
+            etag: policy.etag,
+            version: 3,
+          },
+        },
+        credentials,
+      );
+      if (!setResp.ok) {
+        const body = await setResp.text();
+        throw new Error(`Failed to set IAM policy: ${setResp.status} ${body}`);
+      }
+      const result = await setResp.json();
+      return { result };
+    },
+  },
+};
+
 const StateSchema = z.object({
   configuredCapabilities: z.array(z.string()).optional(),
   createTime: z.string().optional(),
@@ -208,7 +418,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Resource Manager Projects. Registered at `@swamp/gcp/cloudresourcemanager/projects`. */
 export const model = {
   type: "@swamp/gcp/cloudresourcemanager/projects",
-  version: "2026.06.08.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -302,6 +512,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -843,5 +1058,6 @@ export const model = {
         return { result };
       },
     },
+    ...iamBindingMethods,
   },
 };

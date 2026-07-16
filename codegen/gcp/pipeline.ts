@@ -1427,7 +1427,9 @@ function buildGcpParsedResource(
     !domainProperties["parent"];
   const isProjectOnly = availableScopes?.length === 1 &&
     availableScopes[0] === "projects";
-  const needsExplicitParent = apiNeedsParent && !isProjectOnly;
+  const isNestedResource = resourcePath.length > 1;
+  const needsExplicitParent = apiNeedsParent &&
+    (!isProjectOnly || isNestedResource);
 
   if (needsExplicitParent) {
     domainProperties["parent"] = {

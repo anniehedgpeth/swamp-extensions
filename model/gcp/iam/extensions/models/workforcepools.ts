@@ -264,7 +264,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkforcePools. Registered at `@swamp/gcp/iam/workforcepools`. */
 export const model = {
   type: "@swamp/gcp/iam/workforcepools",
-  version: "2026.06.08.1",
+  version: "2026.07.16.1",
   upgrades: [
     {
       toVersion: "2026.06.06.2",
@@ -278,6 +278,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -326,7 +331,7 @@ export const model = {
           body["sessionDuration"] = g["sessionDuration"];
         }
         if (g["workforcePoolId"] !== undefined) {
-          body["workforcePoolId"] = g["workforcePoolId"];
+          params["workforcePoolId"] = String(g["workforcePoolId"]);
         }
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(

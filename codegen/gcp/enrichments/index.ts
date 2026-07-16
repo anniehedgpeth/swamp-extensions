@@ -1,11 +1,16 @@
 import type { GcpEnrichment } from "./types.ts";
 export { parseEnrichmentSource } from "./parser.ts";
+import { enrichment as cloudresourcemanagerProjects } from "./cloudresourcemanager-projects.ts";
 import { enrichment as serviceaccounts } from "./serviceaccounts.ts";
 import { enrichment as storageBuckets } from "./storage-buckets.ts";
 
 export type { GcpEnrichment };
 
-const ENRICHMENTS: GcpEnrichment[] = [serviceaccounts, storageBuckets];
+const ENRICHMENTS: GcpEnrichment[] = [
+  cloudresourcemanagerProjects,
+  serviceaccounts,
+  storageBuckets,
+];
 
 export function getEnrichment(
   resourceId: string,

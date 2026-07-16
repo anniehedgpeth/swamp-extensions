@@ -440,18 +440,28 @@ export function generateGcpExtensionModel(
 
     // Build request body from insert properties only (not the full domain union).
     // This prevents update-only properties from being sent in the create body.
+    // Query-location parameters go into params (for buildUrl), not body.
     const pathParamSet = new Set(insertConfig.parameterOrder);
+    const insertParameters = insertConfig.parameters;
     lines.push(`        const body: Record<string, unknown> = {};`);
     for (const propName of Object.keys(resource.domainProperties)) {
       if (pathParamSet.has(propName)) continue;
       if (propName === "parent" && shouldConstructParent) continue;
       if (propName === "name" && isSyntheticName) continue;
       if (!resource.insertProperties.has(propName)) continue;
-      lines.push(
-        `        if (g[${JSON.stringify(propName)}] !== undefined) body[${
-          JSON.stringify(propName)
-        }] = g[${JSON.stringify(propName)}];`,
-      );
+      if (insertParameters[propName]?.location === "query") {
+        lines.push(
+          `        if (g[${JSON.stringify(propName)}] !== undefined) params[${
+            JSON.stringify(propName)
+          }] = String(g[${JSON.stringify(propName)}]);`,
+        );
+      } else {
+        lines.push(
+          `        if (g[${JSON.stringify(propName)}] !== undefined) body[${
+            JSON.stringify(propName)
+          }] = g[${JSON.stringify(propName)}];`,
+        );
+      }
     }
 
     // Generate read config reference for post-create read
@@ -786,15 +796,32 @@ export function generateGcpExtensionModel(
           paramName === "name" && resource.usesFullResourceName &&
           resource.resourceSegment
         ) {
-          lines.push(
-            `        params["name"] = buildResourceName(${parentExpr}, ${
-              updateNeedsExisting
-                ? `existing[${
-                  JSON.stringify(idField)
-                }]?.toString() ?? g["name"]?.toString() ?? ""`
-                : `g["name"]?.toString() ?? ""`
-            });`,
-          );
+          if (updateNeedsExisting) {
+            lines.push(
+              `        const existingName = existing[${
+                JSON.stringify(idField)
+              }]?.toString();`,
+            );
+            lines.push(
+              `        if (existingName && existingName.includes("/")) {`,
+            );
+            lines.push(
+              `          params["name"] = existingName;`,
+            );
+            lines.push(
+              `        } else {`,
+            );
+            lines.push(
+              `          params["name"] = buildResourceName(${parentExpr}, existingName ?? g["name"]?.toString() ?? "");`,
+            );
+            lines.push(
+              `        }`,
+            );
+          } else {
+            lines.push(
+              `        params["name"] = buildResourceName(${parentExpr}, g["name"]?.toString() ?? "");`,
+            );
+          }
         } else {
           lines.push(
             `        params[${JSON.stringify(paramName)}] = existing[${
@@ -1070,23 +1097,44 @@ export function generateGcpExtensionModel(
             paramName === "name" && resource.usesFullResourceName &&
             resource.resourceSegment
           ) {
-            // For full-name resources, construct from parent + short name
-            // The short name is stored in existing state or available from globalArgs
+            // For full-name resources, use existing.name directly if it's
+            // already a fully-qualified path; otherwise build from parent + short name.
             if (syncNeedsExisting) {
               lines.push(
-                `          const shortName = existing.${primaryId}?.toString() ?? g["name"]?.toString();`,
+                `          const existingName = existing.${primaryId}?.toString();`,
+              );
+              lines.push(
+                `          if (existingName && existingName.includes("/")) {`,
+              );
+              lines.push(
+                `            params["name"] = existingName;`,
+              );
+              lines.push(
+                `          } else {`,
+              );
+              lines.push(
+                `            const shortName = existingName ?? g["name"]?.toString();`,
+              );
+              lines.push(
+                `            if (!shortName) throw new Error("No identifier found");`,
+              );
+              lines.push(
+                `            params["name"] = buildResourceName(${parentExpr}, shortName);`,
+              );
+              lines.push(
+                `          }`,
               );
             } else {
               lines.push(
                 `          const shortName = g["name"]?.toString();`,
               );
+              lines.push(
+                `          if (!shortName) throw new Error("No identifier found");`,
+              );
+              lines.push(
+                `          params["name"] = buildResourceName(${parentExpr}, shortName);`,
+              );
             }
-            lines.push(
-              `          if (!shortName) throw new Error("No identifier found");`,
-            );
-            lines.push(
-              `          params["name"] = buildResourceName(${parentExpr}, shortName);`,
-            );
           } else {
             lines.push(
               `          const identifier = existing.${primaryId}?.toString() ?? g[${
