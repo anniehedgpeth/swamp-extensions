@@ -1434,7 +1434,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps.Services.Versions. Registered at `@swamp/gcp/appengine/apps-services-versions`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps-services-versions",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1513,6 +1513,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1810,6 +1815,10 @@ export const model = {
           body["vpcAccessConnector"] = g["vpcAccessConnector"];
         }
         if (g["zones"] !== undefined) body["zones"] = g["zones"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

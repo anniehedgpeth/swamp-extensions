@@ -153,7 +153,7 @@ const GlobalArgsSchema = z.object({
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service.",
+    "Required. The baseline protection EnforcementMode for this resource. This will override the service-level baseline protection EnforcementMode.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The relative name of the resource policy object, in the format: ` projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `oauth2.googleapis.com` (Google Identity for iOS) `resource_policy_id` is a system-generated UID.",
@@ -184,7 +184,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service.",
+    "Required. The baseline protection EnforcementMode for this resource. This will override the service-level baseline protection EnforcementMode.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The relative name of the resource policy object, in the format: ` projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `oauth2.googleapis.com` (Google Identity for iOS) `resource_policy_id` is a system-generated UID.",
@@ -215,7 +215,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Check Services.ResourcePolicies. Registered at `@swamp/gcp/firebaseappcheck/services-resourcepolicies`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/services-resourcepolicies",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -302,6 +302,11 @@ export const model = {
       description: "Added: parent",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -355,7 +360,7 @@ export const model = {
           },
           credentials,
         ) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current")
+        const instanceName = ((g.name ?? result.name)?.toString() ?? "current")
           .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
@@ -386,7 +391,7 @@ export const model = {
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.name ?? g.name)?.toString() ?? args.identifier).replace(
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -434,6 +439,10 @@ export const model = {
         }
         if (g["targetResource"] !== undefined) {
           body["targetResource"] = g["targetResource"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

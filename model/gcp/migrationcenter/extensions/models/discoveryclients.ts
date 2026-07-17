@@ -275,7 +275,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Migration Center DiscoveryClients. Registered at `@swamp/gcp/migrationcenter/discoveryclients`. */
 export const model = {
   type: "@swamp/gcp/migrationcenter/discoveryclients",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -354,6 +354,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -527,6 +532,10 @@ export const model = {
           body["serviceAccount"] = g["serviceAccount"];
         }
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

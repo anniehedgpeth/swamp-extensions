@@ -212,10 +212,15 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications.Ctas. Registered at `@swamp/gcp/webcontentpublisher/publications-ctas`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications-ctas",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -284,7 +289,7 @@ export const model = {
           },
           credentials,
         ) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current")
+        const instanceName = ((g.name ?? result.name)?.toString() ?? "current")
           .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
@@ -315,7 +320,7 @@ export const model = {
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.name ?? g.name)?.toString() ?? args.identifier).replace(
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");

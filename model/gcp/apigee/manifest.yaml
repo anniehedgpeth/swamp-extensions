@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/apigee"
-version: "2026.07.17.2"
+version: "2026.07.17.3"
 description: "Google Cloud apigee infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: developers
+  - Updated: apimserviceextensions, apiproducts, apis, apis_keyvaluemaps, apis_keyvaluemaps_entries, appgroups, appgroups_apps, datacollectors, developers_apps, dnszones, endpointattachments, envgroups, envgroups_attachments, environments, environments_analytics_exports, environments_apis_revisions_debugsessions, environments_archivedeployments, environments_keystores, environments_keyvaluemaps, environments_keyvaluemaps_entries, environments_queries, environments_references, environments_resourcefiles, environments_securityactions, environments_securityincidents, environments_targetservers, environments_traceconfig_overrides, hostqueries, instances, instances_nataddresses, keyvaluemaps, keyvaluemaps_entries, reports, securityfeedback, securitymonitoringconditions, securityprofiles, securityprofilesv2, sharedflows, sites_apicategories, spaces
 models:
   - analytics_datastores.ts
   - apimserviceextensions.ts

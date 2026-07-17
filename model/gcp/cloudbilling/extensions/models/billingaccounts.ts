@@ -178,7 +178,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Billing BillingAccounts. Registered at `@swamp/gcp/cloudbilling/billingaccounts`. */
 export const model = {
   type: "@swamp/gcp/cloudbilling/billingaccounts",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -252,6 +252,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -373,6 +378,10 @@ export const model = {
         }
         if (g["masterBillingAccount"] !== undefined) {
           body["masterBillingAccount"] = g["masterBillingAccount"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

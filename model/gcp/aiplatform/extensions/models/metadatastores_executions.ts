@@ -276,7 +276,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform MetadataStores.Executions. Registered at `@swamp/gcp/aiplatform/metadatastores-executions`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/metadatastores-executions",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -376,6 +376,11 @@ export const model = {
     {
       toVersion: "2026.07.17.1",
       description: "Added: parent",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -545,6 +550,10 @@ export const model = {
           body["schemaVersion"] = g["schemaVersion"];
         }
         if (g["state"] !== undefined) body["state"] = g["state"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

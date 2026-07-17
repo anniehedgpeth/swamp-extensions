@@ -1129,7 +1129,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Creatives. Registered at `@swamp/gcp/displayvideo/advertisers-creatives`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-creatives",
-  version: "2026.06.09.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1203,6 +1203,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.09.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1475,6 +1480,10 @@ export const model = {
           body["universalAdId"] = g["universalAdId"];
         }
         if (g["vastTagUrl"] !== undefined) body["vastTagUrl"] = g["vastTagUrl"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

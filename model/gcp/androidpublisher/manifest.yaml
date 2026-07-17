@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/androidpublisher"
-version: "2026.07.17.2"
+version: "2026.07.17.3"
 description: "Google Cloud androidpublisher infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: purchases_subscriptionsv2
+  - Updated: monetization_onetimeproducts, monetization_subscriptions, monetization_subscriptions_baseplans_offers, users
 models:
   - applications_devicetierconfigs.ts
   - applications_tracks_releases.ts

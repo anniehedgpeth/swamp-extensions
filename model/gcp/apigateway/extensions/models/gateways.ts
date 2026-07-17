@@ -221,7 +221,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API Gateway Gateways. Registered at `@swamp/gcp/apigateway/gateways`. */
 export const model = {
   type: "@swamp/gcp/apigateway/gateways",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -300,6 +300,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -455,6 +460,10 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

@@ -1125,7 +1125,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AI Platform Training & Prediction Jobs. Registered at `@swamp/gcp/ml/jobs`. */
 export const model = {
   type: "@swamp/gcp/ml/jobs",
-  version: "2026.07.17.2",
+  version: "2026.07.17.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1214,6 +1214,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1382,6 +1387,10 @@ export const model = {
         }
         if (g["trainingInput"] !== undefined) {
           body["trainingInput"] = g["trainingInput"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

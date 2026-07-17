@@ -279,7 +279,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase Crashlytics Apps.Issues. Registered at `@swamp/gcp/firebasecrashlytics/apps-issues`. */
 export const model = {
   type: "@swamp/gcp/firebasecrashlytics/apps-issues",
-  version: "2026.07.10.1",
+  version: "2026.07.17.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -310,7 +317,7 @@ export const model = {
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.name ?? g.name)?.toString() ?? args.identifier).replace(
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -372,6 +379,10 @@ export const model = {
         if (g["title"] !== undefined) body["title"] = g["title"];
         if (g["uri"] !== undefined) body["uri"] = g["uri"];
         if (g["variants"] !== undefined) body["variants"] = g["variants"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

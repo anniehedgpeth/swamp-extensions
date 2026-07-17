@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
     "Required. The relative resource name of the debug token, in the format: ` projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} `",
   ).optional(),
   token: z.string().describe(
-    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during an UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
+    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during a UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -187,7 +187,7 @@ const InputsSchema = z.object({
     "Required. The relative resource name of the debug token, in the format: ` projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} `",
   ).optional(),
   token: z.string().describe(
-    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during an UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
+    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during a UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -212,7 +212,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Check Apps.DebugTokens. Registered at `@swamp/gcp/firebaseappcheck/apps-debugtokens`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/apps-debugtokens",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -319,6 +319,11 @@ export const model = {
       description: "Added: parent",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -370,7 +375,7 @@ export const model = {
           },
           credentials,
         ) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current")
+        const instanceName = ((g.name ?? result.name)?.toString() ?? "current")
           .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
@@ -401,7 +406,7 @@ export const model = {
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.name ?? g.name)?.toString() ?? args.identifier).replace(
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -446,6 +451,10 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

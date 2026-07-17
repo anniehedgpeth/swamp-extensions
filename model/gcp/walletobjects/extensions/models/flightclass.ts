@@ -4235,7 +4235,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Wallet Flightclass. Registered at `@swamp/gcp/walletobjects/flightclass`. */
 export const model = {
   type: "@swamp/gcp/walletobjects/flightclass",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4314,6 +4314,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -4459,7 +4464,7 @@ export const model = {
           },
           credentials,
         ) as StateData;
-        const instanceName = ((result.id ?? g.id)?.toString() ?? "current")
+        const instanceName = ((g.id ?? result.id)?.toString() ?? "current")
           .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
@@ -4487,7 +4492,7 @@ export const model = {
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.id ?? g.id)?.toString() ?? args.identifier).replace(
+          ((g.id ?? result.id)?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");

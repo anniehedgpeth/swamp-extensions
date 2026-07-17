@@ -362,7 +362,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Hub Applications. Registered at `@swamp/gcp/apphub/applications`. */
 export const model = {
   type: "@swamp/gcp/apphub/applications",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -444,6 +444,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -519,7 +524,7 @@ export const model = {
           },
           credentials,
         ) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current")
+        const instanceName = ((g.name ?? result.name)?.toString() ?? "current")
           .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
@@ -550,7 +555,7 @@ export const model = {
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.name ?? g.name)?.toString() ?? args.identifier).replace(
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -605,6 +610,10 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["scope"] !== undefined) body["scope"] = g["scope"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

@@ -394,7 +394,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.CourseWork.AddOnAttachments. Registered at `@swamp/gcp/classroom/courses-coursework-addonattachments`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-coursework-addonattachments",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -468,6 +468,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -622,6 +627,10 @@ export const model = {
           body["teacherViewUri"] = g["teacherViewUri"];
         }
         if (g["title"] !== undefined) body["title"] = g["title"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

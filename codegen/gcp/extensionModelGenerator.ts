@@ -623,7 +623,7 @@ export function generateGcpExtensionModel(
       lines.push(
         `        const instanceName = ${
           wrapWithSanitize(
-            `(result.${namingField} ?? g.${namingField})?.toString() ?? "current"`,
+            `(g.${namingField} ?? result.${namingField})?.toString() ?? "current"`,
           )
         };`,
       );
@@ -719,7 +719,7 @@ export function generateGcpExtensionModel(
       lines.push(
         `        const instanceName = ${
           wrapWithSanitize(
-            `(result.${namingField} ?? g.${namingField})?.toString() ?? args.identifier`,
+            `(g.${namingField} ?? result.${namingField})?.toString() ?? args.identifier`,
           )
         };`,
       );
@@ -872,6 +872,17 @@ export function generateGcpExtensionModel(
         `        if (g[${JSON.stringify(propName)}] !== undefined) body[${
           JSON.stringify(propName)
         }] = g[${JSON.stringify(propName)}];`,
+      );
+    }
+
+    // Auto-compute updateMask from body keys before fingerprint carry-forward.
+    const updateParameters = updateConfig.parameters;
+    if (updateParameters?.["updateMask"]?.location === "query") {
+      lines.push(
+        `        const updateMaskKeys = Object.keys(body);`,
+      );
+      lines.push(
+        `        if (updateMaskKeys.length > 0) params["updateMask"] = updateMaskKeys.join(",");`,
       );
     }
 

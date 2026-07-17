@@ -176,7 +176,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Relationships. Registered at `@swamp/gcp/merchantapi/accounts-relationships`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-relationships",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -190,6 +190,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -227,7 +232,7 @@ export const model = {
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.name ?? g.name)?.toString() ?? args.identifier).replace(
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -276,6 +281,10 @@ export const model = {
         if (g["provider"] !== undefined) body["provider"] = g["provider"];
         if (g["providerDisplayName"] !== undefined) {
           body["providerDisplayName"] = g["providerDisplayName"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

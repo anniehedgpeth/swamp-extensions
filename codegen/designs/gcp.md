@@ -380,6 +380,12 @@ checks `insertConfig.parameters[propName].location === "query"` and routes
 matching properties to the `params` map (where `buildUrl` appends them as query
 strings) instead of the `body` object.
 
+For update/patch methods, `updateMask` is auto-computed when the method config
+declares it as a query parameter (`location: "query"`). The mask is set to the
+comma-joined keys of the request body _before_ fingerprint/etag carry-forward,
+so it contains only user-supplied field names. This follows the protobuf
+FieldMask JSON encoding convention (camelCase field paths).
+
 ---
 
 ## 6. Identifying Field Resolution
@@ -433,10 +439,14 @@ bodies. It is only used for:
 
 ### How instance names flow through methods
 
+All methods prefer `g.name` (the user-supplied globalArg) as the primary state
+key. This ensures consistency — `get` and `create` store under the same key that
+`update` and `sync` use for lookup.
+
 | Method   | Instance name source                                                |
 | -------- | ------------------------------------------------------------------- |
-| `create` | Natural: `result.name ?? g.name`, Synthetic: `g.name ?? "current"`  |
-| `get`    | Natural: `result.name ?? g.name`, Synthetic: `g.name ?? identifier` |
+| `create` | Natural: `g.name ?? result.name`, Synthetic: `g.name ?? "current"`  |
+| `get`    | Natural: `g.name ?? result.name`, Synthetic: `g.name ?? identifier` |
 | `update` | `g.name ?? "current"`                                               |
 | `delete` | `g.name ?? identifier`                                              |
 | `sync`   | `g.name ?? "current"`                                               |

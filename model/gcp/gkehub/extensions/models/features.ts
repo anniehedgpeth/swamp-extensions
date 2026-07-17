@@ -270,7 +270,7 @@ const GlobalArgsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+        "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -636,7 +636,7 @@ const GlobalArgsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+          "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -1443,7 +1443,7 @@ const InputsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+        "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -1809,7 +1809,7 @@ const InputsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+          "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -2277,7 +2277,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Features. Registered at `@swamp/gcp/gkehub/features`. */
 export const model = {
   type: "@swamp/gcp/gkehub/features",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -2306,6 +2306,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2466,6 +2471,10 @@ export const model = {
         if (g["scopeSpecs"] !== undefined) body["scopeSpecs"] = g["scopeSpecs"];
         if (g["spec"] !== undefined) body["spec"] = g["spec"];
         if (g["state"] !== undefined) body["state"] = g["state"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

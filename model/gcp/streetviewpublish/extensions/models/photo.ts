@@ -328,7 +328,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Street View Publish Photo. Registered at `@swamp/gcp/streetviewpublish/photo`. */
 export const model = {
   type: "@swamp/gcp/streetviewpublish/photo",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -397,6 +397,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -520,6 +525,10 @@ export const model = {
         if (g["pose"] !== undefined) body["pose"] = g["pose"];
         if (g["uploadReference"] !== undefined) {
           body["uploadReference"] = g["uploadReference"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

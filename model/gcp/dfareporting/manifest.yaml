@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/dfareporting"
-version: "2026.06.09.1"
+version: "2026.07.17.1"
 description: "Google Cloud dfareporting infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -10,6 +10,8 @@ labels:
   - dfareporting
   - cloud
   - infrastructure
+releaseNotes: |
+  - Updated: accountuserprofiles, accounts, ads, advertisergroups, advertiserlandingpages, advertisers, billingprofiles, campaigns, contentcategories, creativefieldvalues, creativefields, creativegroups, creatives, directorysites, dynamicprofiles, dynamictargetingkeys, eventtags, floodlightactivities, floodlightactivitygroups, floodlightconfigurations, placementgroups, placementstrategies, placements, remarketinglists, reports, sites, sizes, studiocreatives, subaccounts, targetingtemplates, userroles
 models:
   - accountactiveadsummaries.ts
   - accountpermissiongroups.ts

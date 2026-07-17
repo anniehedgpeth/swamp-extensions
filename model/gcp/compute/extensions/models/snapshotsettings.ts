@@ -192,7 +192,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine SnapshotSettings. Registered at `@swamp/gcp/compute/snapshotsettings`. */
 export const model = {
   type: "@swamp/gcp/compute/snapshotsettings",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -311,6 +311,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -369,6 +374,10 @@ export const model = {
         }
         if (g["storageLocation"] !== undefined) {
           body["storageLocation"] = g["storageLocation"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         const result = await updateResource(
           BASE_URL,

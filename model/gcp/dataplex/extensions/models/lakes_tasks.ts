@@ -736,7 +736,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex Lakes.Tasks. Registered at `@swamp/gcp/dataplex/lakes-tasks`. */
 export const model = {
   type: "@swamp/gcp/dataplex/lakes-tasks",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -816,6 +816,11 @@ export const model = {
     {
       toVersion: "2026.07.17.1",
       description: "Added: parent",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -988,6 +993,10 @@ export const model = {
         if (g["spark"] !== undefined) body["spark"] = g["spark"];
         if (g["triggerSpec"] !== undefined) {
           body["triggerSpec"] = g["triggerSpec"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

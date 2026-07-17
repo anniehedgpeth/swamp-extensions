@@ -180,7 +180,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Networking Services.Connections. Registered at `@swamp/gcp/servicenetworking/services-connections`. */
 export const model = {
   type: "@swamp/gcp/servicenetworking/services-connections",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -249,6 +249,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -365,6 +370,10 @@ export const model = {
         if (g["network"] !== undefined) body["network"] = g["network"];
         if (g["reservedPeeringRanges"] !== undefined) {
           body["reservedPeeringRanges"] = g["reservedPeeringRanges"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

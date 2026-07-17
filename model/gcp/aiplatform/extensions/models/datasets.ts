@@ -322,7 +322,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Datasets. Registered at `@swamp/gcp/aiplatform/datasets`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/datasets",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -426,6 +426,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -570,6 +575,10 @@ export const model = {
         }
         if (g["savedQueries"] !== undefined) {
           body["savedQueries"] = g["savedQueries"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
         }
         for (const key of Object.keys(existing)) {
           if (

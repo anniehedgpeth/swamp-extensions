@@ -556,7 +556,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play EMM Devices. Registered at `@swamp/gcp/androidenterprise/devices`. */
 export const model = {
   type: "@swamp/gcp/androidenterprise/devices",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -635,6 +635,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -733,6 +738,10 @@ export const model = {
           body["retailBrand"] = g["retailBrand"];
         }
         if (g["sdkVersion"] !== undefined) body["sdkVersion"] = g["sdkVersion"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||
