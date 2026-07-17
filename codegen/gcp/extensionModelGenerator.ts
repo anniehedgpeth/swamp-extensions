@@ -584,12 +584,24 @@ export function generateGcpExtensionModel(
         }
       }
 
+      const segmentIdField = matchField === namingField
+        ? detectSegmentIdField(resource)
+        : undefined;
+      let matchValueExpr = `String(g[${JSON.stringify(matchField)}] ?? "")`;
+      if (segmentIdField && resource.resourceSegment) {
+        matchValueExpr = `String(g[${
+          JSON.stringify(matchField)
+        }] ?? "") || buildResourceName(${parentExpr}, String(g[${
+          JSON.stringify(segmentIdField)
+        }] ?? ""))`;
+      }
+
       createArgs.push(
         `{ listConfig: LIST_CONFIG, listParams: { ${
           listParamParts.join(", ")
-        } }, matchField: ${JSON.stringify(matchField)}, matchValue: String(g[${
+        } }, matchField: ${
           JSON.stringify(matchField)
-        }] ?? "") }`,
+        }, matchValue: ${matchValueExpr} }`,
       );
     } else {
       createArgs.push("undefined");
@@ -1560,4 +1572,39 @@ export function resolveGcpMatchField(
     return "shortName";
   }
   return namingField;
+}
+
+function singularize(segment: string): string {
+  if (segment.endsWith("ies")) return segment.slice(0, -3) + "y";
+  if (segment.endsWith("ses")) return segment.slice(0, -2);
+  if (segment.endsWith("s")) return segment.slice(0, -1);
+  return segment;
+}
+
+/**
+ * Detect the segment-ID insert property for wrapper-request create patterns.
+ *
+ * GCP APIs like IAM roles use a wrapper request (CreateRoleRequest) where the
+ * resource's `name` must NOT be set on create — instead, a short identifier
+ * like `roleId` is passed in the body. The full resource name in the response
+ * is `{parent}/roles/{roleId}`.
+ *
+ * Returns the matching field name (e.g., "roleId") when:
+ *   - usesFullResourceName is true and resourceSegment is set
+ *   - "name" is NOT in insertProperties (wrapper request pattern)
+ *   - an insert property matches singularize(resourceSegment) + "Id"
+ *
+ * Returns undefined otherwise (safe fallback to current behavior).
+ */
+export function detectSegmentIdField(
+  resource: GcpParsedResource,
+): string | undefined {
+  if (!resource.usesFullResourceName || !resource.resourceSegment) {
+    return undefined;
+  }
+  if (resource.insertProperties.has("name")) return undefined;
+
+  const expectedField = singularize(resource.resourceSegment) + "Id";
+  if (resource.insertProperties.has(expectedField)) return expectedField;
+  return undefined;
 }

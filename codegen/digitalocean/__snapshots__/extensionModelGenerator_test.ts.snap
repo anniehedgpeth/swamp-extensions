@@ -1,7 +1,26 @@
 export const snapshot = {};
 
 snapshot[`generateDigitalOceanExtensionModel - all handlers, natural name 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/droplet
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/droplet
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -157,7 +176,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - resource with actions 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/droplet
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/droplet
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -350,7 +388,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - resource with sub-resource methods 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/database-cluster
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/database-cluster
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -529,7 +586,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - synthetic name 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/reserved-ip
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/reserved-ip
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -675,7 +751,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - resource with readiness polling 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/droplet
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/droplet
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -835,7 +930,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - checkExists direct lookup 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/domain
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/domain
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -979,7 +1093,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - checkExists list filter 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/firewall
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/firewall
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -1133,7 +1266,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - discovery endpoint 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/kubernetes-cluster
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/kubernetes-cluster
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -1293,7 +1445,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - no update, no delete 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/snapshot
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/snapshot
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -1407,7 +1578,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - child resource with forceSyntheticName 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/domain-record
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/domain-record
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -1564,7 +1754,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - child resource with natural name 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/database-pool
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/database-pool
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any
@@ -1727,7 +1936,26 @@ export const model = {
 `;
 
 snapshot[`generateDigitalOceanExtensionModel - with upgrades block 1`] = `
-'// Auto-generated extension model for @swamp/digitalocean/volume
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/digitalocean/volume
 // Do not edit manually. Re-generate with: deno task generate:digitalocean
 
 // deno-lint-ignore-file no-explicit-any

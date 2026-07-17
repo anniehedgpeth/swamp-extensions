@@ -377,7 +377,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Spanner InstanceConfigs. Registered at `@swamp/gcp/spanner/instanceconfigs`. */
 export const model = {
   type: "@swamp/gcp/spanner/instanceconfigs",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -459,6 +459,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -524,7 +529,13 @@ export const model = {
               }`,
             },
             matchField: "name",
-            matchValue: String(g["name"] ?? ""),
+            matchValue: String(g["name"] ?? "") ||
+              buildResourceName(
+                `projects/${projectId}/locations/${
+                  String(g["location"] ?? "")
+                }`,
+                String(g["instanceConfigId"] ?? ""),
+              ),
           },
           credentials,
         ) as StateData;

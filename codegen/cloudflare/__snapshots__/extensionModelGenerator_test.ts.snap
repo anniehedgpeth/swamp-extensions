@@ -1,7 +1,26 @@
 export const snapshot = {};
 
 snapshot[`generateCloudflareExtensionModel - account-scoped, all handlers 1`] = `
-'// Auto-generated extension model for @swamp/cloudflare/d1/database
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/cloudflare/d1/database
 // Do not edit manually. Re-generate with: deno task generate:cloudflare
 
 // deno-lint-ignore-file no-explicit-any
@@ -137,7 +156,26 @@ export const model = {
 `;
 
 snapshot[`generateCloudflareExtensionModel - zone-scoped, PATCH update 1`] = `
-'// Auto-generated extension model for @swamp/cloudflare/dns/dns-records
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/cloudflare/dns/dns-records
 // Do not edit manually. Re-generate with: deno task generate:cloudflare
 
 // deno-lint-ignore-file no-explicit-any
@@ -305,7 +343,26 @@ export const model = {
 `;
 
 snapshot[`generateCloudflareExtensionModel - dual-scoped resource 1`] = `
-'// Auto-generated extension model for @swamp/cloudflare/rulesets/rulesets
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/cloudflare/rulesets/rulesets
 // Do not edit manually. Re-generate with: deno task generate:cloudflare
 
 // deno-lint-ignore-file no-explicit-any
@@ -473,7 +530,26 @@ export const model = {
 `;
 
 snapshot[`generateCloudflareExtensionModel - synthetic name 1`] = `
-'// Auto-generated extension model for @swamp/cloudflare/addressing/address-maps
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/cloudflare/addressing/address-maps
 // Do not edit manually. Re-generate with: deno task generate:cloudflare
 
 // deno-lint-ignore-file no-explicit-any
@@ -625,7 +701,26 @@ export const model = {
 `;
 
 snapshot[`generateCloudflareExtensionModel - with upgrades block 1`] = `
-'// Auto-generated extension model for @swamp/cloudflare/workers/scripts
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/cloudflare/workers/scripts
 // Do not edit manually. Re-generate with: deno task generate:cloudflare
 
 // deno-lint-ignore-file no-explicit-any

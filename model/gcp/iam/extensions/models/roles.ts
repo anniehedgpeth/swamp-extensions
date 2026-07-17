@@ -290,7 +290,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) Roles. Registered at `@swamp/gcp/iam/roles`. */
 export const model = {
   type: "@swamp/gcp/iam/roles",
-  version: "2026.07.16.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.06.2",
@@ -309,6 +309,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -355,7 +360,11 @@ export const model = {
               "parent": String(body["parent"] ?? g["parent"] ?? ""),
             },
             matchField: "name",
-            matchValue: String(g["name"] ?? ""),
+            matchValue: String(g["name"] ?? "") ||
+              buildResourceName(
+                String(g["parent"] ?? ""),
+                String(g["roleId"] ?? ""),
+              ),
           },
           credentials,
         ) as StateData;

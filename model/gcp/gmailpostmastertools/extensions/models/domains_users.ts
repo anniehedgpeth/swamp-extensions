@@ -225,10 +225,15 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Postmaster Tools Domains.Users. Registered at `@swamp/gcp/gmailpostmastertools/domains-users`. */
 export const model = {
   type: "@swamp/gcp/gmailpostmastertools/domains-users",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -276,7 +281,11 @@ export const model = {
               "parent": String(body["parent"] ?? g["parent"] ?? ""),
             },
             matchField: "name",
-            matchValue: String(g["name"] ?? ""),
+            matchValue: String(g["name"] ?? "") ||
+              buildResourceName(
+                String(g["parent"] ?? ""),
+                String(g["userId"] ?? ""),
+              ),
           },
           credentials,
         ) as StateData;

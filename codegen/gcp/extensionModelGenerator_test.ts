@@ -1,6 +1,7 @@
 import { assertSnapshot } from "@std/testing/snapshot";
 import { assertEquals } from "@std/assert";
 import {
+  detectSegmentIdField,
   type GcpExtensionModelInput,
   generateGcpExtensionModel,
   resolveGcpMatchField,
@@ -172,6 +173,97 @@ Deno.test("resolveGcpMatchField - falls back to namingField when neither present
     },
   });
   assertEquals(resolveGcpMatchField(resource, "name"), "name");
+});
+
+// ---------------------------------------------------------------------------
+// detectSegmentIdField unit tests
+// ---------------------------------------------------------------------------
+
+Deno.test("detectSegmentIdField - returns roleId for segment 'roles'", () => {
+  const resource = makeResource({
+    resourcePath: ["roles"],
+    usesFullResourceName: true,
+    resourceSegment: "roles",
+    insertProperties: new Set(["role", "roleId"]),
+    domainProperties: {
+      role: { type: "object" },
+      roleId: { type: "string" },
+      name: { type: "string" },
+    },
+  });
+  assertEquals(detectSegmentIdField(resource), "roleId");
+});
+
+Deno.test("detectSegmentIdField - returns instanceId for segment 'instances'", () => {
+  const resource = makeResource({
+    resourcePath: ["instances"],
+    usesFullResourceName: true,
+    resourceSegment: "instances",
+    insertProperties: new Set(["instance", "instanceId"]),
+    domainProperties: {
+      instance: { type: "object" },
+      instanceId: { type: "string" },
+      name: { type: "string" },
+    },
+  });
+  assertEquals(detectSegmentIdField(resource), "instanceId");
+});
+
+Deno.test("detectSegmentIdField - returns undefined when name IS in insertProperties", () => {
+  const resource = makeResource({
+    resourcePath: ["instances"],
+    usesFullResourceName: true,
+    resourceSegment: "instances",
+    insertProperties: new Set(["name", "zone", "machineType"]),
+    domainProperties: {
+      name: { type: "string" },
+      zone: { type: "string" },
+      machineType: { type: "string" },
+    },
+  });
+  assertEquals(detectSegmentIdField(resource), undefined);
+});
+
+Deno.test("detectSegmentIdField - returns undefined when no matching *Id field", () => {
+  const resource = makeResource({
+    resourcePath: ["customers"],
+    usesFullResourceName: true,
+    resourceSegment: "customers",
+    insertProperties: new Set(["channelPartnerId", "correlationId"]),
+    domainProperties: {
+      channelPartnerId: { type: "string" },
+      correlationId: { type: "string" },
+      name: { type: "string" },
+    },
+  });
+  assertEquals(detectSegmentIdField(resource), undefined);
+});
+
+Deno.test("detectSegmentIdField - returns undefined when usesFullResourceName is false", () => {
+  const resource = makeResource({
+    resourcePath: ["roles"],
+    usesFullResourceName: false,
+    insertProperties: new Set(["roleId"]),
+    domainProperties: {
+      roleId: { type: "string" },
+      name: { type: "string" },
+    },
+  });
+  assertEquals(detectSegmentIdField(resource), undefined);
+});
+
+Deno.test("detectSegmentIdField - handles 'ies' plural (dataPolicies -> dataPolicyId)", () => {
+  const resource = makeResource({
+    resourcePath: ["dataPolicies"],
+    usesFullResourceName: true,
+    resourceSegment: "dataPolicies",
+    insertProperties: new Set(["dataPolicyId"]),
+    domainProperties: {
+      dataPolicyId: { type: "string" },
+      name: { type: "string" },
+    },
+  });
+  assertEquals(detectSegmentIdField(resource), "dataPolicyId");
 });
 
 // ---------------------------------------------------------------------------

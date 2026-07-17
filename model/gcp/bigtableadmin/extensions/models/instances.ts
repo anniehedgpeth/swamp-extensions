@@ -453,7 +453,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances. Registered at `@swamp/gcp/bigtableadmin/instances`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances",
-  version: "2026.07.17.1",
+  version: "2026.07.17.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -555,6 +555,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -610,7 +615,11 @@ export const model = {
               "parent": String(body["parent"] ?? g["parent"] ?? ""),
             },
             matchField: "name",
-            matchValue: String(g["name"] ?? ""),
+            matchValue: String(g["name"] ?? "") ||
+              buildResourceName(
+                String(g["parent"] ?? ""),
+                String(g["instanceId"] ?? ""),
+              ),
           },
           credentials,
         ) as StateData;

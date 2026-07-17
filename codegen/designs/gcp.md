@@ -659,6 +659,23 @@ that picks the best user-facing unique identifier:
   auto-generated or not part of the insert body)
 - Otherwise: match by the resource's naming field
 
+### Segment-ID fallback for wrapper create requests
+
+Some GCP APIs use a wrapper request schema (e.g., `CreateRoleRequest`) where
+`name` must NOT be set on create — instead, a short identifier like `roleId` is
+passed in the body. The full resource name in the response is
+`{parent}/{segment}/{roleId}`.
+
+When `matchField` is `name` and `name` is not in `insertProperties` (wrapper
+request pattern), `detectSegmentIdField()` looks for an insert property matching
+`singularize(resourceSegment) + "Id"` (e.g., segment `roles` → `roleId`). If
+found, the match value falls back to constructing the full resource name via
+`buildResourceName(parent, g[segmentIdField])` when `g["name"]` is unset.
+
+This covers 18 GCP resources including IAM roles (`roleId`), Spanner instances
+(`instanceId`), Bigtable tables (`tableId`), and others where the create body
+uses a wrapper pattern.
+
 ### List params
 
 The generator populates list params from:

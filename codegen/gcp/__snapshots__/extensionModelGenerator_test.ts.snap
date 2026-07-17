@@ -1,7 +1,26 @@
 export const snapshot = {};
 
 snapshot[`generateGcpExtensionModel - all handlers, natural naming 1`] = `
-'// Auto-generated extension model for @swamp/gcp/compute/instances
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/gcp/compute/instances
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
@@ -18,7 +37,7 @@ snapshot[`generateGcpExtensionModel - all handlers, natural naming 1`] = `
  */
 
 import { z } from "npm:zod@4.3.6";
-import { createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://compute.googleapis.com/compute/v1";
 
@@ -118,6 +137,9 @@ const DELETE_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
   name: z.string().describe("Instance name"),
   zone: z.string().describe("Zone"),
   machineType: z.string().describe("Machine type"),
@@ -134,10 +156,23 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
   name: z.string().describe("Instance name").optional(),
   zone: z.string().describe("Zone").optional(),
   machineType: z.string().describe("Machine type").optional(),
 });
+
+const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+
+function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+  };
+}
 
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at \`@swamp/gcp/compute/instances\`. */
 export const model = {
@@ -159,14 +194,15 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         const body: Record<string, unknown> = {};
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["machineType"] !== undefined) body["machineType"] = g["machineType"];
         if (g["name"] !== undefined) params["instance"] = String(g["name"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG) as StateData;
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -176,12 +212,13 @@ export const model = {
       description: "Get a instances",
       arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         params["instance"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -192,7 +229,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -210,7 +248,7 @@ export const model = {
             body[key] = existing[key];
           }
         }
-        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG) as StateData;
+        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -220,11 +258,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         params["instance"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params);
+        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, {
           identifier: args.identifier,
@@ -240,7 +279,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -254,7 +294,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
           params["instance"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource("state", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -275,7 +315,26 @@ export const model = {
 `;
 
 snapshot[`generateGcpExtensionModel - readiness polling 1`] = `
-'// Auto-generated extension model for @swamp/gcp/compute/instances
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/gcp/compute/instances
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
@@ -292,7 +351,7 @@ snapshot[`generateGcpExtensionModel - readiness polling 1`] = `
  */
 
 import { z } from "npm:zod@4.3.6";
-import { createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://compute.googleapis.com/compute/v1";
 
@@ -392,6 +451,9 @@ const DELETE_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
   name: z.string().describe("Instance name"),
   zone: z.string().describe("Zone"),
 });
@@ -405,9 +467,22 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
   name: z.string().describe("Instance name").optional(),
   zone: z.string().describe("Zone").optional(),
 });
+
+const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+
+function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+  };
+}
 
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at \`@swamp/gcp/compute/instances\`. */
 export const model = {
@@ -429,13 +504,14 @@ export const model = {
       arguments: z.object({ waitForReady: z.boolean().describe("Wait for the resource to reach a ready state after creation (default: true)").optional() }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         const body: Record<string, unknown> = {};
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["name"] !== undefined) params["instance"] = String(g["name"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {"statusField":"status","readyValues":["RUNNING"],"failedValues":["TERMINATED","SUSPENDED"]} : undefined) as StateData;
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {"statusField":"status","readyValues":["RUNNING"],"failedValues":["TERMINATED","SUSPENDED"]} : undefined, undefined, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -445,12 +521,13 @@ export const model = {
       description: "Get a instances",
       arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         params["instance"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -461,7 +538,8 @@ export const model = {
       arguments: z.object({ waitForReady: z.boolean().describe("Wait for the resource to reach a ready state after update (default: true)").optional() }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -479,7 +557,7 @@ export const model = {
             body[key] = existing[key];
           }
         }
-        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {"statusField":"status","readyValues":["RUNNING"],"failedValues":["TERMINATED","SUSPENDED"]} : undefined) as StateData;
+        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {"statusField":"status","readyValues":["RUNNING"],"failedValues":["TERMINATED","SUSPENDED"]} : undefined, credentials) as StateData;
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -489,11 +567,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         params["instance"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params);
+        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, {
           identifier: args.identifier,
@@ -509,7 +588,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -523,7 +603,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
           params["instance"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource("state", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -544,7 +624,26 @@ export const model = {
 `;
 
 snapshot[`generateGcpExtensionModel - listOnly resource 1`] = `
-'// Auto-generated extension model for @swamp/gcp/compute/regions
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/gcp/compute/regions
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
@@ -561,7 +660,7 @@ snapshot[`generateGcpExtensionModel - listOnly resource 1`] = `
  */
 
 import { z } from "npm:zod@4.3.6";
-import { createResource, getProjectId, isResourceNotFoundError, readViaList } from "./_lib/gcp.ts";
+import { type ExplicitGcpCredentials, createResource, getProjectId, isResourceNotFoundError, readViaList } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://compute.googleapis.com/compute/v1";
 
@@ -596,6 +695,9 @@ const INSERT_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
   name: z.string().describe("Region name"),
 });
 
@@ -608,8 +710,21 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
   name: z.string().describe("Region name").optional(),
 });
+
+const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+
+function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+  };
+}
 
 /** Swamp extension model for Google Cloud Compute Engine Regions. Registered at \`@swamp/gcp/compute/regions\`. */
 export const model = {
@@ -631,11 +746,12 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
         if (g["name"] !== undefined) body["name"] = g["name"];
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, undefined, undefined, { listConfig: LIST_CONFIG, listParams: { "project": projectId }, matchField: "name", matchValue: String(g["name"] ?? "") }) as StateData;
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, undefined, undefined, { listConfig: LIST_CONFIG, listParams: { "project": projectId }, matchField: "name", matchValue: String(g["name"] ?? "") }, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -645,10 +761,11 @@ export const model = {
       description: "Get a regions",
       arguments: z.object({ identifier: z.string().describe("The name of the regions") }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
-        const result = await readViaList(BASE_URL, LIST_CONFIG, params, "name", args.identifier) as StateData;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const result = await readViaList(BASE_URL, LIST_CONFIG, params, "name", args.identifier, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -659,7 +776,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -670,7 +788,7 @@ export const model = {
           const params: Record<string, string> = { project: projectId };
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
-          const result = await readViaList(BASE_URL, LIST_CONFIG, params, "name", identifier) as StateData;
+          const result = await readViaList(BASE_URL, LIST_CONFIG, params, "name", identifier, credentials) as StateData;
           const handle = await context.writeResource("state", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -691,7 +809,26 @@ export const model = {
 `;
 
 snapshot[`generateGcpExtensionModel - full resource name pattern 1`] = `
-'// Auto-generated extension model for @swamp/gcp/serviceusage/services
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/gcp/serviceusage/services
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
@@ -708,7 +845,7 @@ snapshot[`generateGcpExtensionModel - full resource name pattern 1`] = `
  */
 
 import { z } from "npm:zod@4.3.6";
-import { createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
 
 /** Construct the fully-qualified resource name from parent and short name. */
 function buildResourceName(parent: string, shortName: string): string {
@@ -763,6 +900,9 @@ const DELETE_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
   name: z.string().describe("Service name"),
   parent: z.string().describe("Parent resource"),
 });
@@ -775,9 +915,22 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
   name: z.string().describe("Service name").optional(),
   parent: z.string().describe("Parent resource").optional(),
 });
+
+const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+
+function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+  };
+}
 
 /** Swamp extension model for Google Cloud Service Usage Services. Registered at \`@swamp/gcp/serviceusage/services\`. */
 export const model = {
@@ -799,12 +952,13 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const body: Record<string, unknown> = {};
         if (g["parent"] !== undefined) body["parent"] = g["parent"];
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG) as StateData;
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -814,11 +968,12 @@ export const model = {
       description: "Get a services",
       arguments: z.object({ identifier: z.string().describe("The name of the services") }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(String(g["parent"] ?? ""), args.identifier);
-        const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -829,10 +984,11 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe("The name of the services") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(String(g["parent"] ?? ""), args.identifier);
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params);
+        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, {
           identifier: args.identifier,
@@ -848,7 +1004,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -857,10 +1014,15 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(String(g["parent"] ?? ""), shortName);
-          const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(String(g["parent"] ?? ""), shortName);
+          }
+          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource("state", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -881,7 +1043,26 @@ export const model = {
 `;
 
 snapshot[`generateGcpExtensionModel - action methods 1`] = `
-'// Auto-generated extension model for @swamp/gcp/compute/instances
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/gcp/compute/instances
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
@@ -898,7 +1079,7 @@ snapshot[`generateGcpExtensionModel - action methods 1`] = `
  */
 
 import { z } from "npm:zod@4.3.6";
-import { createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://compute.googleapis.com/compute/v1";
 
@@ -973,6 +1154,9 @@ const DELETE_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
   name: z.string().describe("Instance name"),
   zone: z.string().describe("Zone"),
 });
@@ -986,9 +1170,22 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
   name: z.string().describe("Instance name").optional(),
   zone: z.string().describe("Zone").optional(),
 });
+
+const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+
+function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+  };
+}
 
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at \`@swamp/gcp/compute/instances\`. */
 export const model = {
@@ -1010,13 +1207,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         const body: Record<string, unknown> = {};
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["name"] !== undefined) params["instance"] = String(g["name"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG) as StateData;
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -1026,12 +1224,13 @@ export const model = {
       description: "Get a instances",
       arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         params["instance"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -1042,11 +1241,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         params["instance"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params);
+        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, {
           identifier: args.identifier,
@@ -1062,7 +1262,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -1076,7 +1277,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
           params["instance"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource("state", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -1096,7 +1297,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         const content = await context.dataRepository.getContent(
@@ -1105,7 +1307,7 @@ export const model = {
         if (!content) throw new Error("No existing state found - run create or get first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         params["instance"] = existing["name"]?.toString() ?? g["name"]?.toString() ?? "";
-        const result = await createResource(BASE_URL, {"id":"compute.instances.start","path":"projects/{project}/zones/{zone}/instances/{instance}/start","httpMethod":"POST","parameterOrder":["project","zone","instance"],"parameters":{"project":{"location":"path","required":true},"zone":{"location":"path","required":true},"instance":{"location":"path","required":true}}}, params, {});
+        const result = await createResource(BASE_URL, {"id":"compute.instances.start","path":"projects/{project}/zones/{zone}/instances/{instance}/start","httpMethod":"POST","parameterOrder":["project","zone","instance"],"parameters":{"project":{"location":"path","required":true},"zone":{"location":"path","required":true},"instance":{"location":"path","required":true}}}, params, {}, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
@@ -1114,7 +1316,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
         const content = await context.dataRepository.getContent(
@@ -1123,7 +1326,7 @@ export const model = {
         if (!content) throw new Error("No existing state found - run create or get first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         params["instance"] = existing["name"]?.toString() ?? g["name"]?.toString() ?? "";
-        const result = await createResource(BASE_URL, {"id":"compute.instances.stop","path":"projects/{project}/zones/{zone}/instances/{instance}/stop","httpMethod":"POST","parameterOrder":["project","zone","instance"],"parameters":{"project":{"location":"path","required":true},"zone":{"location":"path","required":true},"instance":{"location":"path","required":true}}}, params, {});
+        const result = await createResource(BASE_URL, {"id":"compute.instances.stop","path":"projects/{project}/zones/{zone}/instances/{instance}/stop","httpMethod":"POST","parameterOrder":["project","zone","instance"],"parameters":{"project":{"location":"path","required":true},"zone":{"location":"path","required":true},"instance":{"location":"path","required":true}}}, params, {}, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
@@ -1133,7 +1336,26 @@ export const model = {
 `;
 
 snapshot[`generateGcpExtensionModel - no update or delete handlers 1`] = `
-'// Auto-generated extension model for @swamp/gcp/compute/snapshots
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/gcp/compute/snapshots
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
@@ -1150,7 +1372,7 @@ snapshot[`generateGcpExtensionModel - no update or delete handlers 1`] = `
  */
 
 import { z } from "npm:zod@4.3.6";
-import { createResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
+import { type ExplicitGcpCredentials, createResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://compute.googleapis.com/compute/v1";
 
@@ -1190,6 +1412,9 @@ const INSERT_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
   name: z.string().describe("Snapshot name"),
   sourceDisk: z.string().describe("Source disk"),
 });
@@ -1204,9 +1429,22 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
   name: z.string().describe("Snapshot name").optional(),
   sourceDisk: z.string().describe("Source disk").optional(),
 });
+
+const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+
+function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+  };
+}
 
 /** Swamp extension model for Google Cloud Compute Engine Snapshots. Registered at \`@swamp/gcp/compute/snapshots\`. */
 export const model = {
@@ -1228,13 +1466,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["sourceDisk"] !== undefined) body["sourceDisk"] = g["sourceDisk"];
         if (g["name"] !== undefined) params["snapshot"] = String(g["name"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG) as StateData;
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -1244,11 +1483,12 @@ export const model = {
       description: "Get a snapshots",
       arguments: z.object({ identifier: z.string().describe("The name of the snapshots") }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
         params["snapshot"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -1259,7 +1499,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -1271,7 +1512,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
           params["snapshot"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource("state", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -1292,7 +1533,26 @@ export const model = {
 `;
 
 snapshot[`generateGcpExtensionModel - with upgrades block 1`] = `
-'// Auto-generated extension model for @swamp/gcp/compute/firewalls
+'// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/gcp/compute/firewalls
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
@@ -1309,7 +1569,7 @@ snapshot[`generateGcpExtensionModel - with upgrades block 1`] = `
  */
 
 import { z } from "npm:zod@4.3.6";
-import { createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://compute.googleapis.com/compute/v1";
 
@@ -1389,6 +1649,9 @@ const DELETE_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
+  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
   name: z.string().describe("Firewall name"),
   network: z.string().describe("Network"),
 });
@@ -1402,9 +1665,22 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
   name: z.string().describe("Firewall name").optional(),
   network: z.string().describe("Network").optional(),
 });
+
+const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+
+function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+  };
+}
 
 /** Swamp extension model for Google Cloud Compute Engine Firewalls. Registered at \`@swamp/gcp/compute/firewalls\`. */
 export const model = {
@@ -1433,13 +1709,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["network"] !== undefined) body["network"] = g["network"];
         if (g["name"] !== undefined) params["firewall"] = String(g["name"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG) as StateData;
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -1449,11 +1726,12 @@ export const model = {
       description: "Get a firewalls",
       arguments: z.object({ identifier: z.string().describe("The name of the firewalls") }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
         params["firewall"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
@@ -1464,7 +1742,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -1480,7 +1759,7 @@ export const model = {
             body[key] = existing[key];
           }
         }
-        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG) as StateData;
+        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -1490,10 +1769,11 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe("The name of the firewalls") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["firewall"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params);
+        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, {
           identifier: args.identifier,
@@ -1509,7 +1789,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
@@ -1521,7 +1802,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
           params["firewall"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params) as StateData;
+          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource("state", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
