@@ -295,7 +295,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Apis. Registered at `@swamp/gcp/apigee/apis`. */
 export const model = {
   type: "@swamp/gcp/apigee/apis",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -367,6 +367,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -394,8 +399,10 @@ export const model = {
         }
         if (g["data"] !== undefined) body["data"] = g["data"];
         if (g["extensions"] !== undefined) body["extensions"] = g["extensions"];
-        if (g["action"] !== undefined) body["action"] = g["action"];
-        if (g["validate"] !== undefined) body["validate"] = g["validate"];
+        if (g["action"] !== undefined) params["action"] = String(g["action"]);
+        if (g["validate"] !== undefined) {
+          params["validate"] = String(g["validate"]);
+        }
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
             String(g["parent"]),
@@ -483,10 +490,15 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["name"] = buildResourceName(
-          String(g["parent"] ?? ""),
-          existing["name"]?.toString() ?? g["name"]?.toString() ?? "",
-        );
+        const existingName = existing["name"]?.toString();
+        if (existingName && existingName.includes("/")) {
+          params["name"] = existingName;
+        } else {
+          params["name"] = buildResourceName(
+            String(g["parent"] ?? ""),
+            existingName ?? g["name"]?.toString() ?? "",
+          );
+        }
         const body: Record<string, unknown> = {};
         if (g["apiProxyType"] !== undefined) {
           body["apiProxyType"] = g["apiProxyType"];
@@ -579,12 +591,17 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(
-            String(g["parent"] ?? ""),
-            shortName,
-          );
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              String(g["parent"] ?? ""),
+              shortName,
+            );
+          }
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,

@@ -264,7 +264,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee SecurityProfilesV2. Registered at `@swamp/gcp/apigee/securityprofilesv2`. */
 export const model = {
   type: "@swamp/gcp/apigee/securityprofilesv2",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -336,6 +336,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -369,7 +374,7 @@ export const model = {
           body["riskAssessmentType"] = g["riskAssessmentType"];
         }
         if (g["securityProfileV2Id"] !== undefined) {
-          body["securityProfileV2Id"] = g["securityProfileV2Id"];
+          params["securityProfileV2Id"] = String(g["securityProfileV2Id"]);
         }
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(

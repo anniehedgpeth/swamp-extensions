@@ -299,7 +299,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Blogger Pages. Registered at `@swamp/gcp/blogger/pages`. */
 export const model = {
   type: "@swamp/gcp/blogger/pages",
-  version: "2026.07.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -381,6 +381,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -413,7 +418,9 @@ export const model = {
         if (g["trashed"] !== undefined) body["trashed"] = g["trashed"];
         if (g["updated"] !== undefined) body["updated"] = g["updated"];
         if (g["url"] !== undefined) body["url"] = g["url"];
-        if (g["isDraft"] !== undefined) body["isDraft"] = g["isDraft"];
+        if (g["isDraft"] !== undefined) {
+          params["isDraft"] = String(g["isDraft"]);
+        }
         if (g["name"] !== undefined) params["pageId"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

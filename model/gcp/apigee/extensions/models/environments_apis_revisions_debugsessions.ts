@@ -204,7 +204,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments.Apis.Revisions.Debugsessions. Registered at `@swamp/gcp/apigee/environments-apis-revisions-debugsessions`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments-apis-revisions-debugsessions",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -276,6 +276,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -301,7 +306,9 @@ export const model = {
         if (g["count"] !== undefined) body["count"] = g["count"];
         if (g["filter"] !== undefined) body["filter"] = g["filter"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["timeout"] !== undefined) body["timeout"] = g["timeout"];
+        if (g["timeout"] !== undefined) {
+          params["timeout"] = String(g["timeout"]);
+        }
         if (g["tracesize"] !== undefined) body["tracesize"] = g["tracesize"];
         if (g["validity"] !== undefined) body["validity"] = g["validity"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
@@ -425,12 +432,17 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(
-            String(g["parent"] ?? ""),
-            shortName,
-          );
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              String(g["parent"] ?? ""),
+              shortName,
+            );
+          }
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,

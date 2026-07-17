@@ -747,7 +747,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data LiveBroadcasts. Registered at `@swamp/gcp/youtube/livebroadcasts`. */
 export const model = {
   type: "@swamp/gcp/youtube/livebroadcasts",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -819,6 +819,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -853,11 +858,14 @@ export const model = {
         if (g["statistics"] !== undefined) body["statistics"] = g["statistics"];
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["onBehalfOfContentOwner"] !== undefined) {
-          body["onBehalfOfContentOwner"] = g["onBehalfOfContentOwner"];
+          params["onBehalfOfContentOwner"] = String(
+            g["onBehalfOfContentOwner"],
+          );
         }
         if (g["onBehalfOfContentOwnerChannel"] !== undefined) {
-          body["onBehalfOfContentOwnerChannel"] =
-            g["onBehalfOfContentOwnerChannel"];
+          params["onBehalfOfContentOwnerChannel"] = String(
+            g["onBehalfOfContentOwnerChannel"],
+          );
         }
         const result = await createResource(
           BASE_URL,

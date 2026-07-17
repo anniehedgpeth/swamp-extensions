@@ -1255,7 +1255,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar Events. Registered at `@swamp/gcp/calendar/events`. */
 export const model = {
   type: "@swamp/gcp/calendar/events",
-  version: "2026.07.14.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1339,6 +1339,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.14.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1450,22 +1455,22 @@ export const model = {
           body["workingLocationProperties"] = g["workingLocationProperties"];
         }
         if (g["conferenceDataVersion"] !== undefined) {
-          body["conferenceDataVersion"] = g["conferenceDataVersion"];
+          params["conferenceDataVersion"] = String(g["conferenceDataVersion"]);
         }
         if (g["eventLabelVersion"] !== undefined) {
-          body["eventLabelVersion"] = g["eventLabelVersion"];
+          params["eventLabelVersion"] = String(g["eventLabelVersion"]);
         }
         if (g["maxAttendees"] !== undefined) {
-          body["maxAttendees"] = g["maxAttendees"];
+          params["maxAttendees"] = String(g["maxAttendees"]);
         }
         if (g["sendNotifications"] !== undefined) {
-          body["sendNotifications"] = g["sendNotifications"];
+          params["sendNotifications"] = String(g["sendNotifications"]);
         }
         if (g["sendUpdates"] !== undefined) {
-          body["sendUpdates"] = g["sendUpdates"];
+          params["sendUpdates"] = String(g["sendUpdates"]);
         }
         if (g["supportsAttachments"] !== undefined) {
-          body["supportsAttachments"] = g["supportsAttachments"];
+          params["supportsAttachments"] = String(g["supportsAttachments"]);
         }
         if (g["name"] !== undefined) params["eventId"] = String(g["name"]);
         const result = await createResource(

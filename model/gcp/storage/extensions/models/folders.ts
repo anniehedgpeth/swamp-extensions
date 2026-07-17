@@ -250,7 +250,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON Folders. Registered at `@swamp/gcp/storage/folders`. */
 export const model = {
   type: "@swamp/gcp/storage/folders",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -322,6 +322,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -355,7 +360,9 @@ export const model = {
           body["pendingRenameInfo"] = g["pendingRenameInfo"];
         }
         if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
-        if (g["recursive"] !== undefined) body["recursive"] = g["recursive"];
+        if (g["recursive"] !== undefined) {
+          params["recursive"] = String(g["recursive"]);
+        }
         if (g["name"] !== undefined) params["folder"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

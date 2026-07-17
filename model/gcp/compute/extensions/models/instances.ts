@@ -1939,7 +1939,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at `@swamp/gcp/compute/instances`. */
 export const model = {
   type: "@swamp/gcp/compute/instances",
-  version: "2026.07.04.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -2094,6 +2094,11 @@ export const model = {
       description: "Added: localSsdEncryptionMode",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2196,7 +2201,7 @@ export const model = {
             g["shieldedInstanceIntegrityPolicy"];
         }
         if (g["sourceMachineImage"] !== undefined) {
-          body["sourceMachineImage"] = g["sourceMachineImage"];
+          params["sourceMachineImage"] = String(g["sourceMachineImage"]);
         }
         if (g["sourceMachineImageEncryptionKey"] !== undefined) {
           body["sourceMachineImageEncryptionKey"] =
@@ -2206,9 +2211,13 @@ export const model = {
         if (g["workloadIdentityConfig"] !== undefined) {
           body["workloadIdentityConfig"] = g["workloadIdentityConfig"];
         }
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["sourceInstanceTemplate"] !== undefined) {
-          body["sourceInstanceTemplate"] = g["sourceInstanceTemplate"];
+          params["sourceInstanceTemplate"] = String(
+            g["sourceInstanceTemplate"],
+          );
         }
         if (g["name"] !== undefined) params["instance"] = String(g["name"]);
         const result = await createResource(

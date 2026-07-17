@@ -470,7 +470,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Street View Publish PhotoSequence. Registered at `@swamp/gcp/streetviewpublish/photosequence`. */
 export const model = {
   type: "@swamp/gcp/streetviewpublish/photosequence",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -542,6 +542,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -581,7 +586,9 @@ export const model = {
         if (g["uploadReference"] !== undefined) {
           body["uploadReference"] = g["uploadReference"];
         }
-        if (g["inputType"] !== undefined) body["inputType"] = g["inputType"];
+        if (g["inputType"] !== undefined) {
+          params["inputType"] = String(g["inputType"]);
+        }
         if (g["name"] !== undefined) params["sequenceId"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

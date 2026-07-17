@@ -94,6 +94,8 @@ const GlobalArgsSchema = z.object({
     RoleSearchSubtree: z.boolean().optional(),
   }).optional(),
   StorageType: z.string().optional(),
+  StorageSize: z.number().int().describe("The broker's storage size in GB.")
+    .optional(),
   EncryptionOptions: z.object({
     KmsKeyId: z.string().describe(
       "The customer master key (CMK) to use for the A KMS (KMS). This key is used to encrypt your data at rest. If not provided, Amazon MQ will use a default CMK to encrypt your data. The Key ARN is recommended so that drift can be detected, but a key ID or key alias will also be accepted for API compatibility reasons.",
@@ -163,6 +165,7 @@ const StateSchema = z.object({
     RoleSearchSubtree: z.boolean(),
   }).optional(),
   StorageType: z.string().optional(),
+  StorageSize: z.number().optional(),
   EncryptionOptions: z.object({
     KmsKeyId: z.string(),
     UseAwsOwnedKey: z.boolean(),
@@ -230,6 +233,8 @@ const InputsSchema = z.object({
     RoleSearchSubtree: z.boolean().optional(),
   }).optional(),
   StorageType: z.string().optional(),
+  StorageSize: z.number().int().describe("The broker's storage size in GB.")
+    .optional(),
   EncryptionOptions: z.object({
     KmsKeyId: z.string().describe(
       "The customer master key (CMK) to use for the A KMS (KMS). This key is used to encrypt your data at rest. If not provided, Amazon MQ will use a default CMK to encrypt your data. The Key ARN is recommended so that drift can be detected, but a key ID or key alias will also be accepted for API compatibility reasons.",
@@ -293,7 +298,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for AmazonMQ Broker. Registered at `@swamp/aws/amazonmq/broker`. */
 export const model = {
   type: "@swamp/aws/amazonmq/broker",
-  version: "2026.06.23.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -338,6 +343,11 @@ export const model = {
     {
       toVersion: "2026.06.23.1",
       description: "Added: ResourceShareArns",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
+      description: "Added: StorageSize",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

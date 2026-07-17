@@ -995,7 +995,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Routers. Registered at `@swamp/gcp/compute/routers`. */
 export const model = {
   type: "@swamp/gcp/compute/routers",
-  version: "2026.07.04.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1087,6 +1087,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1128,7 +1133,9 @@ export const model = {
         if (g["nccGateway"] !== undefined) body["nccGateway"] = g["nccGateway"];
         if (g["network"] !== undefined) body["network"] = g["network"];
         if (g["params"] !== undefined) body["params"] = g["params"];
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) params["router"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

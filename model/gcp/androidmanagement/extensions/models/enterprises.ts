@@ -505,7 +505,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises. Registered at `@swamp/gcp/androidmanagement/enterprises`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises",
-  version: "2026.06.16.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -587,6 +587,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -636,11 +641,13 @@ export const model = {
           body["termsAndConditions"] = g["termsAndConditions"];
         }
         if (g["enterpriseToken"] !== undefined) {
-          body["enterpriseToken"] = g["enterpriseToken"];
+          params["enterpriseToken"] = String(g["enterpriseToken"]);
         }
-        if (g["projectId"] !== undefined) body["projectId"] = g["projectId"];
+        if (g["projectId"] !== undefined) {
+          params["projectId"] = String(g["projectId"]);
+        }
         if (g["signupUrlName"] !== undefined) {
-          body["signupUrlName"] = g["signupUrlName"];
+          params["signupUrlName"] = String(g["signupUrlName"]);
         }
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(

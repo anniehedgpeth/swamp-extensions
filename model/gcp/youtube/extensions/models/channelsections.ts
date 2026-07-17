@@ -356,7 +356,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data ChannelSections. Registered at `@swamp/gcp/youtube/channelsections`. */
 export const model = {
   type: "@swamp/gcp/youtube/channelsections",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -428,6 +428,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -457,11 +462,14 @@ export const model = {
         if (g["snippet"] !== undefined) body["snippet"] = g["snippet"];
         if (g["targeting"] !== undefined) body["targeting"] = g["targeting"];
         if (g["onBehalfOfContentOwner"] !== undefined) {
-          body["onBehalfOfContentOwner"] = g["onBehalfOfContentOwner"];
+          params["onBehalfOfContentOwner"] = String(
+            g["onBehalfOfContentOwner"],
+          );
         }
         if (g["onBehalfOfContentOwnerChannel"] !== undefined) {
-          body["onBehalfOfContentOwnerChannel"] =
-            g["onBehalfOfContentOwnerChannel"];
+          params["onBehalfOfContentOwnerChannel"] = String(
+            g["onBehalfOfContentOwnerChannel"],
+          );
         }
         const result = await createResource(
           BASE_URL,

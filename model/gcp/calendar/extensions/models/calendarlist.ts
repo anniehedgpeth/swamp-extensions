@@ -358,7 +358,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar CalendarList. Registered at `@swamp/gcp/calendar/calendarlist`. */
 export const model = {
   type: "@swamp/gcp/calendar/calendarlist",
-  version: "2026.07.14.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -440,6 +440,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -497,7 +502,7 @@ export const model = {
         }
         if (g["timeZone"] !== undefined) body["timeZone"] = g["timeZone"];
         if (g["colorRgbFormat"] !== undefined) {
-          body["colorRgbFormat"] = g["colorRgbFormat"];
+          params["colorRgbFormat"] = String(g["colorRgbFormat"]);
         }
         if (g["name"] !== undefined) params["calendarId"] = String(g["name"]);
         const result = await createResource(

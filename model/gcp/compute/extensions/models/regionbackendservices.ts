@@ -1683,7 +1683,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionBackendServices. Registered at `@swamp/gcp/compute/regionbackendservices`. */
 export const model = {
   type: "@swamp/gcp/compute/regionbackendservices",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1802,6 +1802,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1933,7 +1938,9 @@ export const model = {
         if (g["tlsSettings"] !== undefined) {
           body["tlsSettings"] = g["tlsSettings"];
         }
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) {
           params["backendService"] = String(g["name"]);
         }

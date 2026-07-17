@@ -453,7 +453,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Generators. Registered at `@swamp/gcp/dialogflow/generators`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/generators",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -462,6 +462,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -527,7 +532,7 @@ export const model = {
         }
         if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
         if (g["generatorId"] !== undefined) {
-          body["generatorId"] = g["generatorId"];
+          params["generatorId"] = String(g["generatorId"]);
         }
         const result = await createResource(
           BASE_URL,

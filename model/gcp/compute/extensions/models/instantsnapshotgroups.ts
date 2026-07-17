@@ -264,7 +264,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InstantSnapshotGroups. Registered at `@swamp/gcp/compute/instantsnapshotgroups`. */
 export const model = {
   type: "@swamp/gcp/compute/instantsnapshotgroups",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -273,6 +273,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -311,9 +316,13 @@ export const model = {
           body["resourceStatus"] = g["resourceStatus"];
         }
         if (g["sourceConsistencyGroup"] !== undefined) {
-          body["sourceConsistencyGroup"] = g["sourceConsistencyGroup"];
+          params["sourceConsistencyGroup"] = String(
+            g["sourceConsistencyGroup"],
+          );
         }
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) {
           params["instantSnapshotGroup"] = String(g["name"]);
         }

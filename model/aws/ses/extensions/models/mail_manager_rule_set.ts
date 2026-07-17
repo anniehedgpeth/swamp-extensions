@@ -210,7 +210,7 @@ const SnsActionSchema = z.object({
   ActionFailurePolicy: z.enum(["CONTINUE", "DROP"]).optional(),
   TopicArn: z.string().min(20).max(2048).regex(
     new RegExp(
-      "^arn:(aws|aws-cn|aws-us-gov|aws-eusc):sns:[a-z]{2}-[a-z]+-\\d{1}:\\d{12}:[\\w\\-]{1,256}$",
+      "^arn:(aws|aws-cn|aws-us-gov|aws-eusc):sns:[a-z]{2}-([a-z]+-)+\\d{1}:\\d{12}:[\\w\\-]{1,256}$",
     ),
   ),
   RoleArn: z.string().min(20).max(2048).regex(
@@ -357,7 +357,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for SES MailManagerRuleSet. Registered at `@swamp/aws/ses/mail-manager-rule-set`. */
 export const model = {
   type: "@swamp/aws/ses/mail-manager-rule-set",
-  version: "2026.06.15.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -411,6 +411,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

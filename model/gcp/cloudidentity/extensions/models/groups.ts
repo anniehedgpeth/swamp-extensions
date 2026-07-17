@@ -291,7 +291,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Groups. Registered at `@swamp/gcp/cloudidentity/groups`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/groups",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -368,6 +368,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -403,7 +408,7 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["parent"] !== undefined) body["parent"] = g["parent"];
         if (g["initialGroupConfig"] !== undefined) {
-          body["initialGroupConfig"] = g["initialGroupConfig"];
+          params["initialGroupConfig"] = String(g["initialGroupConfig"]);
         }
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(

@@ -162,7 +162,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bare Metal Solution SshKeys. Registered at `@swamp/gcp/baremetalsolution/sshkeys`. */
 export const model = {
   type: "@swamp/gcp/baremetalsolution/sshkeys",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -239,6 +239,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -265,7 +270,9 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["publicKey"] !== undefined) body["publicKey"] = g["publicKey"];
-        if (g["sshKeyId"] !== undefined) body["sshKeyId"] = g["sshKeyId"];
+        if (g["sshKeyId"] !== undefined) {
+          params["sshKeyId"] = String(g["sshKeyId"]);
+        }
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,

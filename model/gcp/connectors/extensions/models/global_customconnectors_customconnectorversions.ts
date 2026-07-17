@@ -643,6 +643,9 @@ const GlobalArgsSchema = z.object({
   customConnectorVersionId: z.string().describe(
     "Required. Identifier to assign to the CreateCustomConnectorVersion. Must be unique within scope of the parent resource.",
   ).optional(),
+  parent: z.string().describe(
+    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
+  ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -1391,6 +1394,9 @@ const InputsSchema = z.object({
   customConnectorVersionId: z.string().describe(
     "Required. Identifier to assign to the CreateCustomConnectorVersion. Must be unique within scope of the parent resource.",
   ).optional(),
+  parent: z.string().describe(
+    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
+  ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -1411,7 +1417,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Global.CustomConnectors.CustomConnectorVersions. Registered at `@swamp/gcp/connectors/global-customconnectors-customconnectorversions`. */
 export const model = {
   type: "@swamp/gcp/connectors/global-customconnectors-customconnectorversions",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -1421,6 +1427,11 @@ export const model = {
     {
       toVersion: "2026.06.08.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
+      description: "Added: parent",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1448,9 +1459,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["asyncOperationsSupport"] !== undefined) {
           body["asyncOperationsSupport"] = g["asyncOperationsSupport"];
@@ -1486,11 +1495,13 @@ export const model = {
           body["specLocation"] = g["specLocation"];
         }
         if (g["customConnectorVersionId"] !== undefined) {
-          body["customConnectorVersionId"] = g["customConnectorVersionId"];
+          params["customConnectorVersionId"] = String(
+            g["customConnectorVersionId"],
+          );
         }
-        if (g["name"] !== undefined) {
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["parent"]),
             String(g["name"]),
           );
         }
@@ -1510,9 +1521,7 @@ export const model = {
           {
             listConfig: LIST_CONFIG,
             listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
+              "parent": String(body["parent"] ?? g["parent"] ?? ""),
             },
             matchField: "name",
             matchValue: String(g["name"] ?? ""),
@@ -1544,7 +1553,7 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+          String(g["parent"] ?? ""),
           args.identifier,
         );
         const result = await readResource(
@@ -1587,12 +1596,17 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            shortName,
-          );
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              String(g["parent"] ?? ""),
+              shortName,
+            );
+          }
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,
@@ -1630,9 +1644,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

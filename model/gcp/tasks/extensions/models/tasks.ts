@@ -365,7 +365,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Tasks Tasks. Registered at `@swamp/gcp/tasks/tasks`. */
 export const model = {
   type: "@swamp/gcp/tasks/tasks",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -437,6 +437,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -472,7 +477,9 @@ export const model = {
         if (g["notes"] !== undefined) body["notes"] = g["notes"];
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["title"] !== undefined) body["title"] = g["title"];
-        if (g["previous"] !== undefined) body["previous"] = g["previous"];
+        if (g["previous"] !== undefined) {
+          params["previous"] = String(g["previous"]);
+        }
         if (g["name"] !== undefined) params["task"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

@@ -339,7 +339,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data ThirdPartyLinks. Registered at `@swamp/gcp/youtube/thirdpartylinks`. */
 export const model = {
   type: "@swamp/gcp/youtube/thirdpartylinks",
-  version: "2026.06.24.2",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -426,6 +426,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -455,7 +460,7 @@ export const model = {
         if (g["snippet"] !== undefined) body["snippet"] = g["snippet"];
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["externalChannelId"] !== undefined) {
-          body["externalChannelId"] = g["externalChannelId"];
+          params["externalChannelId"] = String(g["externalChannelId"]);
         }
         const result = await createResource(
           BASE_URL,

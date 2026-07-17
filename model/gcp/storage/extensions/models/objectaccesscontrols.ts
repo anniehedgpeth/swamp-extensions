@@ -302,7 +302,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON ObjectAccessControls. Registered at `@swamp/gcp/storage/objectaccesscontrols`. */
 export const model = {
   type: "@swamp/gcp/storage/objectaccesscontrols",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -374,6 +374,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -401,14 +406,16 @@ export const model = {
         if (g["email"] !== undefined) body["email"] = g["email"];
         if (g["entity"] !== undefined) body["entity"] = g["entity"];
         if (g["entityId"] !== undefined) body["entityId"] = g["entityId"];
-        if (g["generation"] !== undefined) body["generation"] = g["generation"];
+        if (g["generation"] !== undefined) {
+          params["generation"] = String(g["generation"]);
+        }
         if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["projectTeam"] !== undefined) {
           body["projectTeam"] = g["projectTeam"];
         }
         if (g["role"] !== undefined) body["role"] = g["role"];
         if (g["userProject"] !== undefined) {
-          body["userProject"] = g["userProject"];
+          params["userProject"] = String(g["userProject"]);
         }
         if (g["name"] !== undefined) params["entity"] = String(g["name"]);
         const result = await createResource(

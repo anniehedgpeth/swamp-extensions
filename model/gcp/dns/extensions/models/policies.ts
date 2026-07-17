@@ -311,7 +311,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud DNS Policies. Registered at `@swamp/gcp/dns/policies`. */
 export const model = {
   type: "@swamp/gcp/dns/policies",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -388,6 +388,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -429,7 +434,7 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["networks"] !== undefined) body["networks"] = g["networks"];
         if (g["clientOperationId"] !== undefined) {
-          body["clientOperationId"] = g["clientOperationId"];
+          params["clientOperationId"] = String(g["clientOperationId"]);
         }
         if (g["name"] !== undefined) params["policy"] = String(g["name"]);
         const result = await createResource(

@@ -926,7 +926,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deployment Manager Deployments. Registered at `@swamp/gcp/deploymentmanager/deployments`. */
 export const model = {
   type: "@swamp/gcp/deploymentmanager/deployments",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1008,6 +1008,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1042,12 +1047,14 @@ export const model = {
         if (g["target"] !== undefined) body["target"] = g["target"];
         if (g["update"] !== undefined) body["update"] = g["update"];
         if (g["createPolicy"] !== undefined) {
-          body["createPolicy"] = g["createPolicy"];
+          params["createPolicy"] = String(g["createPolicy"]);
         }
         if (g["header_bypassBillingFilter"] !== undefined) {
           body["header_bypassBillingFilter"] = g["header_bypassBillingFilter"];
         }
-        if (g["preview"] !== undefined) body["preview"] = g["preview"];
+        if (g["preview"] !== undefined) {
+          params["preview"] = String(g["preview"]);
+        }
         if (g["name"] !== undefined) params["deployment"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

@@ -159,7 +159,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/tagmanager/accounts-containers-workspaces-built-in-variables",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -236,6 +236,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -259,7 +264,7 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["type"] !== undefined) body["type"] = g["type"];
+        if (g["type"] !== undefined) params["type"] = String(g["type"]);
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,

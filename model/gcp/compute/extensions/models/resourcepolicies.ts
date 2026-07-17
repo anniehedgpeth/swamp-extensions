@@ -584,7 +584,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine ResourcePolicies. Registered at `@swamp/gcp/compute/resourcepolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/resourcepolicies",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -661,6 +661,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -707,7 +712,9 @@ export const model = {
         if (g["workloadPolicy"] !== undefined) {
           body["workloadPolicy"] = g["workloadPolicy"];
         }
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) {
           params["resourcePolicy"] = String(g["name"]);
         }

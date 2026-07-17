@@ -329,7 +329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Captions. Registered at `@swamp/gcp/youtube/captions`. */
 export const model = {
   type: "@swamp/gcp/youtube/captions",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -401,6 +401,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -426,11 +431,15 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["snippet"] !== undefined) body["snippet"] = g["snippet"];
-        if (g["onBehalfOf"] !== undefined) body["onBehalfOf"] = g["onBehalfOf"];
-        if (g["onBehalfOfContentOwner"] !== undefined) {
-          body["onBehalfOfContentOwner"] = g["onBehalfOfContentOwner"];
+        if (g["onBehalfOf"] !== undefined) {
+          params["onBehalfOf"] = String(g["onBehalfOf"]);
         }
-        if (g["sync"] !== undefined) body["sync"] = g["sync"];
+        if (g["onBehalfOfContentOwner"] !== undefined) {
+          params["onBehalfOfContentOwner"] = String(
+            g["onBehalfOfContentOwner"],
+          );
+        }
+        if (g["sync"] !== undefined) params["sync"] = String(g["sync"]);
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,

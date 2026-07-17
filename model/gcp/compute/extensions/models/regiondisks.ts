@@ -709,7 +709,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionDisks. Registered at `@swamp/gcp/compute/regiondisks`. */
 export const model = {
   type: "@swamp/gcp/compute/regiondisks",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -846,6 +846,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -927,7 +932,7 @@ export const model = {
         if (g["sizeGb"] !== undefined) body["sizeGb"] = g["sizeGb"];
         if (g["sourceDisk"] !== undefined) body["sourceDisk"] = g["sourceDisk"];
         if (g["sourceImage"] !== undefined) {
-          body["sourceImage"] = g["sourceImage"];
+          params["sourceImage"] = String(g["sourceImage"]);
         }
         if (g["sourceImageEncryptionKey"] !== undefined) {
           body["sourceImageEncryptionKey"] = g["sourceImageEncryptionKey"];
@@ -949,7 +954,9 @@ export const model = {
           body["storagePool"] = g["storagePool"];
         }
         if (g["type"] !== undefined) body["type"] = g["type"];
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) params["disk"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

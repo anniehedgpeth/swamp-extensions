@@ -118,6 +118,11 @@ const GlobalArgsSchema = z.object({
     AutoDisablePolicy: AutoDisablePolicySchema.describe(
       "The auto-disable policy for the image pipeline.",
     ).optional(),
+    Timezone: z.string().min(3).max(100).regex(
+      new RegExp("^[a-zA-Z0-9]{2,}(?:\\/[a-zA-Z0-9\\-_+]+)*$"),
+    ).describe(
+      'The timezone that applies to the scheduling expression, for example "Etc/UTC" or "America/Los_Angeles" in IANA timezone format. If not specified, this defaults to UTC.',
+    ).optional(),
   }).describe("The schedule of the image pipeline.").optional(),
   ImageRecipeArn: z.string().describe(
     "The Amazon Resource Name (ARN) of the image recipe that defines how images are configured, tested, and assessed.",
@@ -178,6 +183,7 @@ const StateSchema = z.object({
     ScheduleExpression: z.string(),
     PipelineExecutionStartCondition: z.string(),
     AutoDisablePolicy: AutoDisablePolicySchema,
+    Timezone: z.string(),
   }).optional(),
   ImageRecipeArn: z.string().optional(),
   ContainerRecipeArn: z.string().optional(),
@@ -234,6 +240,11 @@ const InputsSchema = z.object({
     ).optional(),
     AutoDisablePolicy: AutoDisablePolicySchema.describe(
       "The auto-disable policy for the image pipeline.",
+    ).optional(),
+    Timezone: z.string().min(3).max(100).regex(
+      new RegExp("^[a-zA-Z0-9]{2,}(?:\\/[a-zA-Z0-9\\-_+]+)*$"),
+    ).describe(
+      'The timezone that applies to the scheduling expression, for example "Etc/UTC" or "America/Los_Angeles" in IANA timezone format. If not specified, this defaults to UTC.',
     ).optional(),
   }).describe("The schedule of the image pipeline.").optional(),
   ImageRecipeArn: z.string().describe(
@@ -301,7 +312,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ImageBuilder ImagePipeline. Registered at `@swamp/aws/imagebuilder/image-pipeline`. */
 export const model = {
   type: "@swamp/aws/imagebuilder/image-pipeline",
-  version: "2026.07.03.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -346,6 +357,11 @@ export const model = {
     {
       toVersion: "2026.07.03.1",
       description: "Added: ImageTags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

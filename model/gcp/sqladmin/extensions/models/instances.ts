@@ -2349,7 +2349,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Instances. Registered at `@swamp/gcp/sqladmin/instances`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/instances",
-  version: "2026.07.13.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2498,6 +2498,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -3292,6 +3297,7 @@ export const model = {
         autoIamAuthn: z.any().optional(),
         database: z.any().optional(),
         partialResultMode: z.any().optional(),
+        passwordSecretVersion: z.any().optional(),
         rowLimit: z.any().optional(),
         sqlStatement: z.any().optional(),
         user: z.any().optional(),
@@ -3325,6 +3331,9 @@ export const model = {
         if (args["database"] !== undefined) body["database"] = args["database"];
         if (args["partialResultMode"] !== undefined) {
           body["partialResultMode"] = args["partialResultMode"];
+        }
+        if (args["passwordSecretVersion"] !== undefined) {
+          body["passwordSecretVersion"] = args["passwordSecretVersion"];
         }
         if (args["rowLimit"] !== undefined) body["rowLimit"] = args["rowLimit"];
         if (args["sqlStatement"] !== undefined) {

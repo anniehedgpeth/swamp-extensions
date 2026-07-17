@@ -268,7 +268,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Reseller Customers. Registered at `@swamp/gcp/reseller/customers`. */
 export const model = {
   type: "@swamp/gcp/reseller/customers",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -340,6 +340,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -388,7 +393,7 @@ export const model = {
           body["resourceUiUrl"] = g["resourceUiUrl"];
         }
         if (g["customerAuthToken"] !== undefined) {
-          body["customerAuthToken"] = g["customerAuthToken"];
+          params["customerAuthToken"] = String(g["customerAuthToken"]);
         }
         if (g["name"] !== undefined) params["customerId"] = String(g["name"]);
         const result = await createResource(

@@ -384,7 +384,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 FirstPartyAndPartnerAudiences. Registered at `@swamp/gcp/displayvideo/firstpartyandpartneraudiences`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/firstpartyandpartneraudiences",
-  version: "2026.07.02.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -466,6 +466,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -512,7 +517,7 @@ export const model = {
           body["mobileDeviceIdList"] = g["mobileDeviceIdList"];
         }
         if (g["advertiserId"] !== undefined) {
-          body["advertiserId"] = g["advertiserId"];
+          params["advertiserId"] = String(g["advertiserId"]);
         }
         if (g["name"] !== undefined) {
           params["firstPartyAndPartnerAudienceId"] = String(g["name"]);

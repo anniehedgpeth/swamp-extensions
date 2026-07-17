@@ -301,7 +301,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Resources.Buildings. Registered at `@swamp/gcp/admin/resources-buildings`. */
 export const model = {
   type: "@swamp/gcp/admin/resources-buildings",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -310,6 +310,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -351,7 +356,7 @@ export const model = {
         if (g["etags"] !== undefined) body["etags"] = g["etags"];
         if (g["floorNames"] !== undefined) body["floorNames"] = g["floorNames"];
         if (g["coordinatesSource"] !== undefined) {
-          body["coordinatesSource"] = g["coordinatesSource"];
+          params["coordinatesSource"] = String(g["coordinatesSource"]);
         }
         if (g["name"] !== undefined) params["buildingId"] = String(g["name"]);
         const result = await createResource(

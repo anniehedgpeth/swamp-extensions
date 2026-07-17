@@ -273,7 +273,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON HmacKeys. Registered at `@swamp/gcp/storage/hmackeys`. */
 export const model = {
   type: "@swamp/gcp/storage/hmackeys",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -350,6 +350,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -376,7 +381,7 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["userProject"] !== undefined) {
-          body["userProject"] = g["userProject"];
+          params["userProject"] = String(g["userProject"]);
         }
         if (g["name"] !== undefined) params["accessId"] = String(g["name"]);
         const result = await createResource(

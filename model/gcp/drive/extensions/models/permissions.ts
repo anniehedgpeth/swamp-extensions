@@ -369,7 +369,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Permissions. Registered at `@swamp/gcp/drive/permissions`. */
 export const model = {
   type: "@swamp/gcp/drive/permissions",
-  version: "2026.07.15.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -483,6 +483,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -523,22 +528,22 @@ export const model = {
         if (g["type"] !== undefined) body["type"] = g["type"];
         if (g["view"] !== undefined) body["view"] = g["view"];
         if (g["emailMessage"] !== undefined) {
-          body["emailMessage"] = g["emailMessage"];
+          params["emailMessage"] = String(g["emailMessage"]);
         }
         if (g["moveToNewOwnersRoot"] !== undefined) {
-          body["moveToNewOwnersRoot"] = g["moveToNewOwnersRoot"];
+          params["moveToNewOwnersRoot"] = String(g["moveToNewOwnersRoot"]);
         }
         if (g["sendNotificationEmail"] !== undefined) {
-          body["sendNotificationEmail"] = g["sendNotificationEmail"];
+          params["sendNotificationEmail"] = String(g["sendNotificationEmail"]);
         }
         if (g["supportsAllDrives"] !== undefined) {
-          body["supportsAllDrives"] = g["supportsAllDrives"];
+          params["supportsAllDrives"] = String(g["supportsAllDrives"]);
         }
         if (g["transferOwnership"] !== undefined) {
-          body["transferOwnership"] = g["transferOwnership"];
+          params["transferOwnership"] = String(g["transferOwnership"]);
         }
         if (g["useDomainAdminAccess"] !== undefined) {
-          body["useDomainAdminAccess"] = g["useDomainAdminAccess"];
+          params["useDomainAdminAccess"] = String(g["useDomainAdminAccess"]);
         }
         if (g["name"] !== undefined) params["permissionId"] = String(g["name"]);
         const result = await createResource(

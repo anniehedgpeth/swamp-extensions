@@ -497,7 +497,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud DNS ManagedZones. Registered at `@swamp/gcp/dns/managedzones`. */
 export const model = {
   type: "@swamp/gcp/dns/managedzones",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -574,6 +574,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -628,7 +633,7 @@ export const model = {
         }
         if (g["visibility"] !== undefined) body["visibility"] = g["visibility"];
         if (g["clientOperationId"] !== undefined) {
-          body["clientOperationId"] = g["clientOperationId"];
+          params["clientOperationId"] = String(g["clientOperationId"]);
         }
         if (g["name"] !== undefined) params["managedZone"] = String(g["name"]);
         const result = await createResource(

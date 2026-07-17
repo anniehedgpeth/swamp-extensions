@@ -536,7 +536,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Books Mylibrary.Annotations. Registered at `@swamp/gcp/books/mylibrary-annotations`. */
 export const model = {
   type: "@swamp/gcp/books/mylibrary-annotations",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -613,6 +613,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -664,13 +669,17 @@ export const model = {
         if (g["updated"] !== undefined) body["updated"] = g["updated"];
         if (g["volumeId"] !== undefined) body["volumeId"] = g["volumeId"];
         if (g["annotationId"] !== undefined) {
-          body["annotationId"] = g["annotationId"];
+          params["annotationId"] = String(g["annotationId"]);
         }
-        if (g["country"] !== undefined) body["country"] = g["country"];
+        if (g["country"] !== undefined) {
+          params["country"] = String(g["country"]);
+        }
         if (g["showOnlySummaryInResponse"] !== undefined) {
-          body["showOnlySummaryInResponse"] = g["showOnlySummaryInResponse"];
+          params["showOnlySummaryInResponse"] = String(
+            g["showOnlySummaryInResponse"],
+          );
         }
-        if (g["source"] !== undefined) body["source"] = g["source"];
+        if (g["source"] !== undefined) params["source"] = String(g["source"]);
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,

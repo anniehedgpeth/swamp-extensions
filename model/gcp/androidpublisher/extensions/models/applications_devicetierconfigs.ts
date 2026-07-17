@@ -272,7 +272,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Applications.DeviceTierConfigs. Registered at `@swamp/gcp/androidpublisher/applications-devicetierconfigs`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/applications-devicetierconfigs",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -349,6 +349,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -384,7 +389,7 @@ export const model = {
           body["userCountrySets"] = g["userCountrySets"];
         }
         if (g["allowUnknownDevices"] !== undefined) {
-          body["allowUnknownDevices"] = g["allowUnknownDevices"];
+          params["allowUnknownDevices"] = String(g["allowUnknownDevices"]);
         }
         if (g["name"] !== undefined) {
           params["deviceTierConfigId"] = String(g["name"]);

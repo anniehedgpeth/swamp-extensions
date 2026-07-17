@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/emr/instance-group-config
+// Auto-generated extension model for @swamp/aws/sagemaker/experiment-trial-component
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for EMR InstanceGroupConfig (AWS::EMR::InstanceGroupConfig).
+ * Swamp extension model for SageMaker ExperimentTrialComponent (AWS::SageMaker::ExperimentTrialComponent).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,64 +41,6 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const SimpleScalingPolicyConfigurationSchema = z.object({
-  ScalingAdjustment: z.number().int(),
-  CoolDown: z.number().int().optional(),
-  AdjustmentType: z.string().optional(),
-});
-
-const ScalingActionSchema = z.object({
-  Market: z.string().optional(),
-  SimpleScalingPolicyConfiguration: SimpleScalingPolicyConfigurationSchema,
-});
-
-const MetricDimensionSchema = z.object({
-  Value: z.string(),
-  Key: z.string(),
-});
-
-const CloudWatchAlarmDefinitionSchema = z.object({
-  MetricName: z.string(),
-  ComparisonOperator: z.string(),
-  Statistic: z.string().optional(),
-  Dimensions: z.array(MetricDimensionSchema).optional(),
-  Period: z.number().int(),
-  EvaluationPeriods: z.number().int().optional(),
-  Unit: z.string().optional(),
-  Namespace: z.string().optional(),
-  Threshold: z.number(),
-});
-
-const ScalingTriggerSchema = z.object({
-  CloudWatchAlarmDefinition: CloudWatchAlarmDefinitionSchema,
-});
-
-const ScalingRuleSchema = z.object({
-  Action: ScalingActionSchema,
-  Description: z.string().optional(),
-  Trigger: ScalingTriggerSchema,
-  Name: z.string(),
-});
-
-const ScalingConstraintsSchema = z.object({
-  MinCapacity: z.number().int(),
-  MaxCapacity: z.number().int(),
-});
-
-const VolumeSpecificationSchema = z.object({
-  SizeInGB: z.number().int(),
-  Throughput: z.number().int().optional(),
-  VolumeType: z.string(),
-  Iops: z.number().int().optional(),
-});
-
-const EbsBlockDeviceConfigSchema = z.object({
-  VolumeSpecification: VolumeSpecificationSchema,
-  VolumesPerInstance: z.number().int().describe(
-    "Use of this property can confuse CloudFormation drift detection. The EbsBlockDeviceConfigs read from the system may return a list with one entry per volume, replacing any entry specified in the template with a VolumesPerInstance greater than one by that many entries containing only the VolumeSpecification. Thus to avoid false drift detection, it is recommended to supply repeated entries in EbsBlockDeviceConfigs for any VolumeSpecification which is intended to be repeated and not to use this property.",
-  ).optional(),
-});
-
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -115,44 +57,79 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  JobFlowId: z.string(),
-  AutoScalingPolicy: z.object({
-    Rules: z.array(ScalingRuleSchema),
-    Constraints: ScalingConstraintsSchema,
-  }).optional(),
-  BidPrice: z.string().optional(),
-  InstanceCount: z.number().int(),
-  EbsConfiguration: z.object({
-    EbsBlockDeviceConfigs: z.array(EbsBlockDeviceConfigSchema).optional(),
-    EbsOptimized: z.boolean().optional(),
-  }).optional(),
-  InstanceRole: z.string(),
-  CustomAmiId: z.string().optional(),
-  Configurations: z.array(z.string()).optional(),
-  InstanceType: z.string(),
-  Market: z.string().optional(),
-  Name: z.string().optional(),
+  TrialComponentName: z.string().min(1).max(120).regex(
+    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
+  ).describe(
+    "The name of the trial component. The name must be unique in your AWS account and is not case-sensitive.",
+  ),
+  DisplayName: z.string().min(1).max(120).regex(
+    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
+  ).describe(
+    "The name of the component as displayed. The name doesn't need to be unique. If DisplayName isn't specified, TrialComponentName is displayed.",
+  ).optional(),
+  Status: z.object({
+    PrimaryStatus: z.enum([
+      "InProgress",
+      "Completed",
+      "Failed",
+      "Stopping",
+      "Stopped",
+    ]).describe("The status of the trial component.").optional(),
+    Message: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "If the component failed, a message describing why.",
+    ).optional(),
+  }).describe("The status of the trial component.").optional(),
+  StartTime: z.string().describe("When the component started.").optional(),
+  EndTime: z.string().describe("When the component ended.").optional(),
+  MetadataProperties: z.object({
+    CommitId: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The commit ID.",
+    ).optional(),
+    Repository: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The repository.",
+    ).optional(),
+    GeneratedBy: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The entity this entity was generated by.",
+    ).optional(),
+    ProjectId: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The project ID.",
+    ).optional(),
+  }).describe(
+    "Metadata properties of the tracking entity, trial, or trial component.",
+  ).optional(),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128).regex(
+      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
+    ).describe("The tag key."),
+    Value: z.string().max(256).regex(
+      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
+    ).describe("The tag value."),
+  })).describe("A list of tags to associate with the component.").optional(),
 });
 
 const StateSchema = z.object({
-  JobFlowId: z.string(),
-  AutoScalingPolicy: z.object({
-    Rules: z.array(ScalingRuleSchema),
-    Constraints: ScalingConstraintsSchema,
+  TrialComponentName: z.string().optional(),
+  Arn: z.string(),
+  DisplayName: z.string().optional(),
+  Status: z.object({
+    PrimaryStatus: z.string(),
+    Message: z.string(),
   }).optional(),
-  BidPrice: z.string().optional(),
-  InstanceCount: z.number().optional(),
-  EbsConfiguration: z.object({
-    EbsBlockDeviceConfigs: z.array(EbsBlockDeviceConfigSchema),
-    EbsOptimized: z.boolean(),
+  StartTime: z.string().optional(),
+  EndTime: z.string().optional(),
+  MetadataProperties: z.object({
+    CommitId: z.string(),
+    Repository: z.string(),
+    GeneratedBy: z.string(),
+    ProjectId: z.string(),
   }).optional(),
-  InstanceRole: z.string().optional(),
-  CustomAmiId: z.string().optional(),
-  InstanceGroupId: z.string(),
-  Configurations: z.array(z.string()).optional(),
-  InstanceType: z.string().optional(),
-  Market: z.string().optional(),
-  Name: z.string().optional(),
+  Tags: z.array(z.object({
+    Key: z.string(),
+    Value: z.string(),
+  })).optional(),
+  CreationTime: z.string().optional(),
+  LastModifiedTime: z.string().optional(),
+  LineageGroupArn: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -163,23 +140,54 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  JobFlowId: z.string().optional(),
-  AutoScalingPolicy: z.object({
-    Rules: z.array(ScalingRuleSchema).optional(),
-    Constraints: ScalingConstraintsSchema.optional(),
-  }).optional(),
-  BidPrice: z.string().optional(),
-  InstanceCount: z.number().int().optional(),
-  EbsConfiguration: z.object({
-    EbsBlockDeviceConfigs: z.array(EbsBlockDeviceConfigSchema).optional(),
-    EbsOptimized: z.boolean().optional(),
-  }).optional(),
-  InstanceRole: z.string().optional(),
-  CustomAmiId: z.string().optional(),
-  Configurations: z.array(z.string()).optional(),
-  InstanceType: z.string().optional(),
-  Market: z.string().optional(),
-  Name: z.string().optional(),
+  TrialComponentName: z.string().min(1).max(120).regex(
+    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
+  ).describe(
+    "The name of the trial component. The name must be unique in your AWS account and is not case-sensitive.",
+  ).optional(),
+  DisplayName: z.string().min(1).max(120).regex(
+    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
+  ).describe(
+    "The name of the component as displayed. The name doesn't need to be unique. If DisplayName isn't specified, TrialComponentName is displayed.",
+  ).optional(),
+  Status: z.object({
+    PrimaryStatus: z.enum([
+      "InProgress",
+      "Completed",
+      "Failed",
+      "Stopping",
+      "Stopped",
+    ]).describe("The status of the trial component.").optional(),
+    Message: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "If the component failed, a message describing why.",
+    ).optional(),
+  }).describe("The status of the trial component.").optional(),
+  StartTime: z.string().describe("When the component started.").optional(),
+  EndTime: z.string().describe("When the component ended.").optional(),
+  MetadataProperties: z.object({
+    CommitId: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The commit ID.",
+    ).optional(),
+    Repository: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The repository.",
+    ).optional(),
+    GeneratedBy: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The entity this entity was generated by.",
+    ).optional(),
+    ProjectId: z.string().max(1024).regex(new RegExp(".*")).describe(
+      "The project ID.",
+    ).optional(),
+  }).describe(
+    "Metadata properties of the tracking entity, trial, or trial component.",
+  ).optional(),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128).regex(
+      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
+    ).describe("The tag key.").optional(),
+    Value: z.string().max(256).regex(
+      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
+    ).describe("The tag value.").optional(),
+  })).describe("A list of tags to associate with the component.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -198,15 +206,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for EMR InstanceGroupConfig. Registered at `@swamp/aws/emr/instance-group-config`. */
+/** Swamp extension model for SageMaker ExperimentTrialComponent. Registered at `@swamp/aws/sagemaker/experiment-trial-component`. */
 export const model = {
-  type: "@swamp/aws/emr/instance-group-config",
-  version: "2026.07.16.1",
+  type: "@swamp/aws/sagemaker/experiment-trial-component",
+  version: "2026.07.17.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "EMR InstanceGroupConfig resource state",
+      description: "SageMaker ExperimentTrialComponent resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -214,7 +222,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a EMR InstanceGroupConfig",
+      description: "Create a SageMaker ExperimentTrialComponent",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -226,7 +234,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::EMR::InstanceGroupConfig",
+          "AWS::SageMaker::ExperimentTrialComponent",
           desiredState,
           credentials,
         ) as StateData;
@@ -243,16 +251,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a EMR InstanceGroupConfig",
+      description: "Get a SageMaker ExperimentTrialComponent",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the EMR InstanceGroupConfig",
+          "The primary identifier of the SageMaker ExperimentTrialComponent",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::EMR::InstanceGroupConfig",
+          "AWS::SageMaker::ExperimentTrialComponent",
           args.identifier,
           credentials,
         ) as StateData;
@@ -270,7 +278,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a EMR InstanceGroupConfig",
+      description: "Update a SageMaker ExperimentTrialComponent",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -288,18 +296,12 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const idParts = [
-          existing.InstanceGroupId?.toString(),
-          existing.JobFlowId?.toString(),
-        ];
-        if (idParts.some((p) => !p)) {
-          throw new Error(
-            "Missing primary identifier fields in existing state",
-          );
+        const identifier = existing.Arn?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
         }
-        const identifier = idParts.join("|");
         const currentState = await readResource(
-          "AWS::EMR::InstanceGroupConfig",
+          "AWS::SageMaker::ExperimentTrialComponent",
           identifier,
           credentials,
         ) as StateData;
@@ -310,21 +312,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::EMR::InstanceGroupConfig",
+          "AWS::SageMaker::ExperimentTrialComponent",
           identifier,
           currentState,
           desiredState,
-          [
-            "InstanceRole",
-            "JobFlowId",
-            "Name",
-            "InstanceType",
-            "CustomAmiId",
-            "Configurations",
-            "EbsConfiguration",
-            "Market",
-            "BidPrice",
-          ],
+          ["TrialComponentName", "MetadataProperties"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -336,16 +328,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a EMR InstanceGroupConfig",
+      description: "Delete a SageMaker ExperimentTrialComponent",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the EMR InstanceGroupConfig",
+          "The primary identifier of the SageMaker ExperimentTrialComponent",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::EMR::InstanceGroupConfig",
+          "AWS::SageMaker::ExperimentTrialComponent",
           args.identifier,
           credentials,
         );
@@ -364,7 +356,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync EMR InstanceGroupConfig state from AWS",
+      description: "Sync SageMaker ExperimentTrialComponent state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -382,19 +374,13 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const idParts = [
-          existing.InstanceGroupId?.toString(),
-          existing.JobFlowId?.toString(),
-        ];
-        if (idParts.some((p) => !p)) {
-          throw new Error(
-            "Missing primary identifier fields in existing state",
-          );
+        const identifier = existing.Arn?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
         }
-        const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::EMR::InstanceGroupConfig",
+            "AWS::SageMaker::ExperimentTrialComponent",
             identifier,
             credentials,
           ) as StateData;

@@ -367,7 +367,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Users.Messages. Registered at `@swamp/gcp/gmail/users-messages`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-messages",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -469,6 +469,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -507,9 +512,11 @@ export const model = {
         }
         if (g["snippet"] !== undefined) body["snippet"] = g["snippet"];
         if (g["threadId"] !== undefined) body["threadId"] = g["threadId"];
-        if (g["deleted"] !== undefined) body["deleted"] = g["deleted"];
+        if (g["deleted"] !== undefined) {
+          params["deleted"] = String(g["deleted"]);
+        }
         if (g["internalDateSource"] !== undefined) {
-          body["internalDateSource"] = g["internalDateSource"];
+          params["internalDateSource"] = String(g["internalDateSource"]);
         }
         if (g["id"] !== undefined) params["id"] = String(g["id"]);
         const result = await createResource(

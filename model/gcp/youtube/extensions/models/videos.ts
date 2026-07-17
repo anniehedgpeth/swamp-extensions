@@ -3198,7 +3198,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Videos. Registered at `@swamp/gcp/youtube/videos`. */
 export const model = {
   type: "@swamp/gcp/youtube/videos",
-  version: "2026.07.10.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3290,6 +3290,11 @@ export const model = {
       description: "Added: brandPartner",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3355,18 +3360,25 @@ export const model = {
         if (g["topicDetails"] !== undefined) {
           body["topicDetails"] = g["topicDetails"];
         }
-        if (g["autoLevels"] !== undefined) body["autoLevels"] = g["autoLevels"];
+        if (g["autoLevels"] !== undefined) {
+          params["autoLevels"] = String(g["autoLevels"]);
+        }
         if (g["notifySubscribers"] !== undefined) {
-          body["notifySubscribers"] = g["notifySubscribers"];
+          params["notifySubscribers"] = String(g["notifySubscribers"]);
         }
         if (g["onBehalfOfContentOwner"] !== undefined) {
-          body["onBehalfOfContentOwner"] = g["onBehalfOfContentOwner"];
+          params["onBehalfOfContentOwner"] = String(
+            g["onBehalfOfContentOwner"],
+          );
         }
         if (g["onBehalfOfContentOwnerChannel"] !== undefined) {
-          body["onBehalfOfContentOwnerChannel"] =
-            g["onBehalfOfContentOwnerChannel"];
+          params["onBehalfOfContentOwnerChannel"] = String(
+            g["onBehalfOfContentOwnerChannel"],
+          );
         }
-        if (g["stabilize"] !== undefined) body["stabilize"] = g["stabilize"];
+        if (g["stabilize"] !== undefined) {
+          params["stabilize"] = String(g["stabilize"]);
+        }
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,

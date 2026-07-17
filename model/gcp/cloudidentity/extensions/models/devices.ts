@@ -557,7 +557,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Devices. Registered at `@swamp/gcp/cloudidentity/devices`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/devices",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -634,6 +634,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -675,7 +680,9 @@ export const model = {
         if (g["wifiMacAddresses"] !== undefined) {
           body["wifiMacAddresses"] = g["wifiMacAddresses"];
         }
-        if (g["customer"] !== undefined) body["customer"] = g["customer"];
+        if (g["customer"] !== undefined) {
+          params["customer"] = String(g["customer"]);
+        }
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

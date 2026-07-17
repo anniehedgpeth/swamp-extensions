@@ -1401,7 +1401,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud My Business Business Information Accounts. Registered at `@swamp/gcp/mybusinessbusinessinformation/accounts`. */
 export const model = {
   type: "@swamp/gcp/mybusinessbusinessinformation/accounts",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1503,6 +1503,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1564,7 +1569,9 @@ export const model = {
         }
         if (g["title"] !== undefined) body["title"] = g["title"];
         if (g["websiteUri"] !== undefined) body["websiteUri"] = g["websiteUri"];
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,

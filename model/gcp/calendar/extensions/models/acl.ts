@@ -249,7 +249,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar Acl. Registered at `@swamp/gcp/calendar/acl`. */
 export const model = {
   type: "@swamp/gcp/calendar/acl",
-  version: "2026.07.14.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -326,6 +326,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -354,7 +359,7 @@ export const model = {
         if (g["role"] !== undefined) body["role"] = g["role"];
         if (g["scope"] !== undefined) body["scope"] = g["scope"];
         if (g["sendNotifications"] !== undefined) {
-          body["sendNotifications"] = g["sendNotifications"];
+          params["sendNotifications"] = String(g["sendNotifications"]);
         }
         if (g["name"] !== undefined) params["ruleId"] = String(g["name"]);
         const result = await createResource(

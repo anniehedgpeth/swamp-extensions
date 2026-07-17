@@ -437,7 +437,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Reseller Subscriptions. Registered at `@swamp/gcp/reseller/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/reseller/subscriptions",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -514,6 +514,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -574,12 +579,12 @@ export const model = {
         if (g["trialSettings"] !== undefined) {
           body["trialSettings"] = g["trialSettings"];
         }
-        if (g["action"] !== undefined) body["action"] = g["action"];
+        if (g["action"] !== undefined) params["action"] = String(g["action"]);
         if (g["customerAuthToken"] !== undefined) {
-          body["customerAuthToken"] = g["customerAuthToken"];
+          params["customerAuthToken"] = String(g["customerAuthToken"]);
         }
         if (g["sourceSkuId"] !== undefined) {
-          body["sourceSkuId"] = g["sourceSkuId"];
+          params["sourceSkuId"] = String(g["sourceSkuId"]);
         }
         if (g["name"] !== undefined) {
           params["subscriptionId"] = String(g["name"]);

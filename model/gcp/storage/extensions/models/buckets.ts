@@ -1371,7 +1371,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON Buckets. Registered at `@swamp/gcp/storage/buckets`. */
 export const model = {
   type: "@swamp/gcp/storage/buckets",
-  version: "2026.07.16.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1478,6 +1478,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1569,17 +1574,21 @@ export const model = {
         if (g["versioning"] !== undefined) body["versioning"] = g["versioning"];
         if (g["website"] !== undefined) body["website"] = g["website"];
         if (g["enableObjectRetention"] !== undefined) {
-          body["enableObjectRetention"] = g["enableObjectRetention"];
+          params["enableObjectRetention"] = String(g["enableObjectRetention"]);
         }
         if (g["predefinedAcl"] !== undefined) {
-          body["predefinedAcl"] = g["predefinedAcl"];
+          params["predefinedAcl"] = String(g["predefinedAcl"]);
         }
         if (g["predefinedDefaultObjectAcl"] !== undefined) {
-          body["predefinedDefaultObjectAcl"] = g["predefinedDefaultObjectAcl"];
+          params["predefinedDefaultObjectAcl"] = String(
+            g["predefinedDefaultObjectAcl"],
+          );
         }
-        if (g["projection"] !== undefined) body["projection"] = g["projection"];
+        if (g["projection"] !== undefined) {
+          params["projection"] = String(g["projection"]);
+        }
         if (g["userProject"] !== undefined) {
-          body["userProject"] = g["userProject"];
+          params["userProject"] = String(g["userProject"]);
         }
         if (g["name"] !== undefined) params["bucket"] = String(g["name"]);
         const result = await createResource(

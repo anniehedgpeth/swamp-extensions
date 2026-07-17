@@ -312,7 +312,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine VpnGateways. Registered at `@swamp/gcp/compute/vpngateways`. */
 export const model = {
   type: "@swamp/gcp/compute/vpngateways",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -384,6 +384,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -424,7 +429,9 @@ export const model = {
         if (g["vpnInterfaces"] !== undefined) {
           body["vpnInterfaces"] = g["vpnInterfaces"];
         }
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) params["vpnGateway"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

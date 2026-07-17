@@ -195,6 +195,8 @@ const GlobalArgsSchema = z.object({
       "ARGUMENT_KIND_UNSPECIFIED",
       "FIXED_TYPE",
       "ANY_TYPE",
+      "FIXED_TABLE",
+      "ANY_TABLE",
     ]).describe("Optional. Defaults to FIXED_TYPE.").optional(),
     dataType: z.object({
       arrayElementType: z.record(z.string(), z.unknown()).describe(
@@ -241,6 +243,16 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Optional. The name of this argument. Can be absent for function return argument.",
     ).optional(),
+    tableType: z.object({
+      columns: z.array(z.object({
+        name: z.unknown().describe(
+          "Optional. The name of this field. Can be absent for struct fields.",
+        ).optional(),
+        type: z.unknown().describe(
+          'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+        ).optional(),
+      })).describe("The columns in this table type").optional(),
+    }).describe("A table type").optional(),
   })).describe("Optional.").optional(),
   buildStatus: z.object({
     buildDuration: z.string().describe(
@@ -505,6 +517,12 @@ const StateSchema = z.object({
     isAggregate: z.boolean(),
     mode: z.string(),
     name: z.string(),
+    tableType: z.object({
+      columns: z.array(z.object({
+        name: z.unknown(),
+        type: z.unknown(),
+      })),
+    }),
   })).optional(),
   buildStatus: z.object({
     buildDuration: z.string(),
@@ -603,6 +621,8 @@ const InputsSchema = z.object({
       "ARGUMENT_KIND_UNSPECIFIED",
       "FIXED_TYPE",
       "ANY_TYPE",
+      "FIXED_TABLE",
+      "ANY_TABLE",
     ]).describe("Optional. Defaults to FIXED_TYPE.").optional(),
     dataType: z.object({
       arrayElementType: z.record(z.string(), z.unknown()).describe(
@@ -649,6 +669,16 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Optional. The name of this argument. Can be absent for function return argument.",
     ).optional(),
+    tableType: z.object({
+      columns: z.array(z.object({
+        name: z.unknown().describe(
+          "Optional. The name of this field. Can be absent for struct fields.",
+        ).optional(),
+        type: z.unknown().describe(
+          'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+        ).optional(),
+      })).describe("The columns in this table type").optional(),
+    }).describe("A table type").optional(),
   })).describe("Optional.").optional(),
   buildStatus: z.object({
     buildDuration: z.string().describe(
@@ -915,7 +945,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Routines. Registered at `@swamp/gcp/bigquery/routines`. */
 export const model = {
   type: "@swamp/gcp/bigquery/routines",
-  version: "2026.06.27.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1014,6 +1044,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.27.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

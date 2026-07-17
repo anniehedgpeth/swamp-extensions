@@ -62,18 +62,47 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
+  CidrBlock: z.string().describe(
+    "The IPv4 network range for the VPC, in CIDR notation. For example, 10.0.0.0/16. We modify the specified CIDR block to its canonical form; for example, if you specify 100.68.0.18/18, we modify it to 100.68.0.0/18. You must specify either CidrBlock or Ipv4IpamPoolId.",
+  ).optional(),
   InstanceTenancy: z.string().describe(
     "The allowed tenancy of instances launched into the VPC. default: An instance launched into the VPC runs on shared hardware by default, unless you explicitly specify a different tenancy during instance launch. dedicated: An instance launched into the VPC runs on dedicated hardware by default, unless you explicitly specify a tenancy of host during instance launch. You cannot specify a tenancy of default during instance launch. Updating InstanceTenancy requires no replacement only if you are updating its value from dedicated to default. Updating InstanceTenancy from default to dedicated requires replacement.",
   ).optional(),
   Ipv4NetmaskLength: z.number().int().describe(
     "The netmask length of the IPv4 CIDR you want to allocate to this VPC from an Amazon VPC IP Address Manager (IPAM) pool. For more information about IPAM, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*.",
   ).optional(),
-  CidrBlock: z.string().describe(
-    "The IPv4 network range for the VPC, in CIDR notation. For example, 10.0.0.0/16. We modify the specified CIDR block to its canonical form; for example, if you specify 100.68.0.18/18, we modify it to 100.68.0.0/18. You must specify either CidrBlock or Ipv4IpamPoolId.",
-  ).optional(),
   Ipv4IpamPoolId: z.string().describe(
     "The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR. For more information, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*. You must specify either CidrBlock or Ipv4IpamPoolId.",
   ).optional(),
+  VpcEncryptionControl: z.object({
+    ElasticFileSystemExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Elastic File System.",
+    ).optional(),
+    VirtualPrivateGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Virtual Private Gateways.",
+    ).optional(),
+    Mode: z.enum(["monitor", "enforce"]).describe(
+      "The mode of the VPC encryption control.",
+    ).optional(),
+    VpcLatticeExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for VPC Lattice.",
+    ).optional(),
+    NatGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for NAT Gateways.",
+    ).optional(),
+    EgressOnlyInternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Egress-Only Internet Gateways.",
+    ).optional(),
+    LambdaExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Lambda.",
+    ).optional(),
+    InternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Internet Gateways.",
+    ).optional(),
+    VpcPeeringExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for VPC Peering.",
+    ).optional(),
+  }).optional(),
   EnableDnsSupport: z.boolean().describe(
     'Indicates whether the DNS resolution is supported for the VPC. If enabled, queries to the Amazon provided DNS server at the 169.254.169.253 IP address, or the reserved IP address at the base of the VPC network range "plus two" succeed. If disabled, the Amazon provided DNS service in the VPC that resolves public DNS hostnames to IP addresses is not enabled. Enabled by default. For more information, see [DNS attributes in your VPC](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support).',
   ).optional(),
@@ -84,12 +113,61 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  CidrBlockAssociations: z.array(z.string()).optional(),
+  CidrBlock: z.string().optional(),
   VpcId: z.string(),
   InstanceTenancy: z.string().optional(),
   Ipv4NetmaskLength: z.number().optional(),
-  CidrBlockAssociations: z.array(z.string()).optional(),
-  CidrBlock: z.string().optional(),
   Ipv4IpamPoolId: z.string().optional(),
+  VpcEncryptionControl: z.object({
+    ElasticFileSystemExclusion: z.string(),
+    VirtualPrivateGatewayExclusion: z.string(),
+    Mode: z.string(),
+    VpcEncryptionControlId: z.string(),
+    VpcLatticeExclusion: z.string(),
+    VpcId: z.string(),
+    State: z.string(),
+    NatGatewayExclusion: z.string(),
+    EgressOnlyInternetGatewayExclusion: z.string(),
+    StateMessage: z.string(),
+    LambdaExclusion: z.string(),
+    ResourceExclusions: z.object({
+      ElasticFileSystem: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+      VpcLattice: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+      VpcPeering: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+      InternetGateway: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+      EgressOnlyInternetGateway: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+      VirtualPrivateGateway: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+      NatGateway: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+      Lambda: z.object({
+        State: z.string(),
+        StateMessage: z.string(),
+      }),
+    }),
+    InternetGatewayExclusion: z.string(),
+    VpcPeeringExclusion: z.string(),
+  }).optional(),
   DefaultNetworkAcl: z.string().optional(),
   EnableDnsSupport: z.boolean().optional(),
   Ipv6CidrBlocks: z.array(z.string()).optional(),
@@ -106,18 +184,47 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
+  CidrBlock: z.string().describe(
+    "The IPv4 network range for the VPC, in CIDR notation. For example, 10.0.0.0/16. We modify the specified CIDR block to its canonical form; for example, if you specify 100.68.0.18/18, we modify it to 100.68.0.0/18. You must specify either CidrBlock or Ipv4IpamPoolId.",
+  ).optional(),
   InstanceTenancy: z.string().describe(
     "The allowed tenancy of instances launched into the VPC. default: An instance launched into the VPC runs on shared hardware by default, unless you explicitly specify a different tenancy during instance launch. dedicated: An instance launched into the VPC runs on dedicated hardware by default, unless you explicitly specify a tenancy of host during instance launch. You cannot specify a tenancy of default during instance launch. Updating InstanceTenancy requires no replacement only if you are updating its value from dedicated to default. Updating InstanceTenancy from default to dedicated requires replacement.",
   ).optional(),
   Ipv4NetmaskLength: z.number().int().describe(
     "The netmask length of the IPv4 CIDR you want to allocate to this VPC from an Amazon VPC IP Address Manager (IPAM) pool. For more information about IPAM, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*.",
   ).optional(),
-  CidrBlock: z.string().describe(
-    "The IPv4 network range for the VPC, in CIDR notation. For example, 10.0.0.0/16. We modify the specified CIDR block to its canonical form; for example, if you specify 100.68.0.18/18, we modify it to 100.68.0.0/18. You must specify either CidrBlock or Ipv4IpamPoolId.",
-  ).optional(),
   Ipv4IpamPoolId: z.string().describe(
     "The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR. For more information, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*. You must specify either CidrBlock or Ipv4IpamPoolId.",
   ).optional(),
+  VpcEncryptionControl: z.object({
+    ElasticFileSystemExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Elastic File System.",
+    ).optional(),
+    VirtualPrivateGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Virtual Private Gateways.",
+    ).optional(),
+    Mode: z.enum(["monitor", "enforce"]).describe(
+      "The mode of the VPC encryption control.",
+    ).optional(),
+    VpcLatticeExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for VPC Lattice.",
+    ).optional(),
+    NatGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for NAT Gateways.",
+    ).optional(),
+    EgressOnlyInternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Egress-Only Internet Gateways.",
+    ).optional(),
+    LambdaExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Lambda.",
+    ).optional(),
+    InternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for Internet Gateways.",
+    ).optional(),
+    VpcPeeringExclusion: z.enum(["enable", "disable"]).describe(
+      "The desired exclusion mode for VPC Peering.",
+    ).optional(),
+  }).optional(),
   EnableDnsSupport: z.boolean().describe(
     'Indicates whether the DNS resolution is supported for the VPC. If enabled, queries to the Amazon provided DNS server at the 169.254.169.253 IP address, or the reserved IP address at the base of the VPC network range "plus two" succeed. If disabled, the Amazon provided DNS service in the VPC that resolves public DNS hostnames to IP addresses is not enabled. Enabled by default. For more information, see [DNS attributes in your VPC](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support).',
   ).optional(),
@@ -146,7 +253,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 VPC. Registered at `@swamp/aws/ec2/vpc`. */
 export const model = {
   type: "@swamp/aws/ec2/vpc",
-  version: "2026.06.15.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -186,6 +293,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
+      description: "Added: VpcEncryptionControl",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -295,7 +407,12 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["CidrBlock", "Ipv4IpamPoolId", "Ipv4NetmaskLength"],
+          [
+            "CidrBlock",
+            "Ipv4IpamPoolId",
+            "Ipv4NetmaskLength",
+            "VpcEncryptionControl",
+          ],
           credentials,
         );
         const handle = await context.writeResource(

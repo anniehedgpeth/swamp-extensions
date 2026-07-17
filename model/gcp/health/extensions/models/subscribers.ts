@@ -251,7 +251,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Health Subscribers. Registered at `@swamp/gcp/health/subscribers`. */
 export const model = {
   type: "@swamp/gcp/health/subscribers",
-  version: "2026.07.11.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -265,6 +265,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.11.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -307,7 +312,7 @@ export const model = {
           body["subscriberConfigs"] = g["subscriberConfigs"];
         }
         if (g["subscriberId"] !== undefined) {
-          body["subscriberId"] = g["subscriberId"];
+          params["subscriberId"] = String(g["subscriberId"]);
         }
         const result = await createResource(
           BASE_URL,

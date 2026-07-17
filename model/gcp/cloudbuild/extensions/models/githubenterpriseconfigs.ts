@@ -315,7 +315,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build GithubEnterpriseConfigs. Registered at `@swamp/gcp/cloudbuild/githubenterpriseconfigs`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/githubenterpriseconfigs",
-  version: "2026.07.11.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -329,6 +329,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.11.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -370,7 +375,7 @@ export const model = {
         if (g["sslCa"] !== undefined) body["sslCa"] = g["sslCa"];
         if (g["webhookKey"] !== undefined) body["webhookKey"] = g["webhookKey"];
         if (g["gheConfigId"] !== undefined) {
-          body["gheConfigId"] = g["gheConfigId"];
+          params["gheConfigId"] = String(g["gheConfigId"]);
         }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -463,10 +468,15 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-          existing["name"]?.toString() ?? g["name"]?.toString() ?? "",
-        );
+        const existingName = existing["name"]?.toString();
+        if (existingName && existingName.includes("/")) {
+          params["name"] = existingName;
+        } else {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            existingName ?? g["name"]?.toString() ?? "",
+          );
+        }
         const body: Record<string, unknown> = {};
         if (g["appId"] !== undefined) body["appId"] = g["appId"];
         if (g["displayName"] !== undefined) {
@@ -561,12 +571,17 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            shortName,
-          );
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+              shortName,
+            );
+          }
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,

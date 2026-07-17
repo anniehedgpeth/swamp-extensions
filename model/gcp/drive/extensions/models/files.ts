@@ -1124,7 +1124,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Files. Registered at `@swamp/gcp/drive/files`. */
 export const model = {
   type: "@swamp/gcp/drive/files",
-  version: "2026.07.15.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1262,6 +1262,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1361,25 +1366,31 @@ export const model = {
           body["writersCanShare"] = g["writersCanShare"];
         }
         if (g["ignoreDefaultVisibility"] !== undefined) {
-          body["ignoreDefaultVisibility"] = g["ignoreDefaultVisibility"];
+          params["ignoreDefaultVisibility"] = String(
+            g["ignoreDefaultVisibility"],
+          );
         }
         if (g["includeLabels"] !== undefined) {
-          body["includeLabels"] = g["includeLabels"];
+          params["includeLabels"] = String(g["includeLabels"]);
         }
         if (g["includePermissionsForView"] !== undefined) {
-          body["includePermissionsForView"] = g["includePermissionsForView"];
+          params["includePermissionsForView"] = String(
+            g["includePermissionsForView"],
+          );
         }
         if (g["keepRevisionForever"] !== undefined) {
-          body["keepRevisionForever"] = g["keepRevisionForever"];
+          params["keepRevisionForever"] = String(g["keepRevisionForever"]);
         }
         if (g["ocrLanguage"] !== undefined) {
-          body["ocrLanguage"] = g["ocrLanguage"];
+          params["ocrLanguage"] = String(g["ocrLanguage"]);
         }
         if (g["supportsAllDrives"] !== undefined) {
-          body["supportsAllDrives"] = g["supportsAllDrives"];
+          params["supportsAllDrives"] = String(g["supportsAllDrives"]);
         }
         if (g["useContentAsIndexableText"] !== undefined) {
-          body["useContentAsIndexableText"] = g["useContentAsIndexableText"];
+          params["useContentAsIndexableText"] = String(
+            g["useContentAsIndexableText"],
+          );
         }
         if (g["name"] !== undefined) params["fileId"] = String(g["name"]);
         const result = await createResource(

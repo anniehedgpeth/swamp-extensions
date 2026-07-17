@@ -737,7 +737,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON Objects. Registered at `@swamp/gcp/storage/objects`. */
 export const model = {
   type: "@swamp/gcp/storage/objects",
-  version: "2026.06.30.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -814,6 +814,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -847,7 +852,7 @@ export const model = {
           body["contentDisposition"] = g["contentDisposition"];
         }
         if (g["contentEncoding"] !== undefined) {
-          body["contentEncoding"] = g["contentEncoding"];
+          params["contentEncoding"] = String(g["contentEncoding"]);
         }
         if (g["contentLanguage"] !== undefined) {
           body["contentLanguage"] = g["contentLanguage"];
@@ -869,14 +874,16 @@ export const model = {
           body["hardDeleteTime"] = g["hardDeleteTime"];
         }
         if (g["id"] !== undefined) body["id"] = g["id"];
-        if (g["kmsKeyName"] !== undefined) body["kmsKeyName"] = g["kmsKeyName"];
+        if (g["kmsKeyName"] !== undefined) {
+          params["kmsKeyName"] = String(g["kmsKeyName"]);
+        }
         if (g["md5Hash"] !== undefined) body["md5Hash"] = g["md5Hash"];
         if (g["mediaLink"] !== undefined) body["mediaLink"] = g["mediaLink"];
         if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["metageneration"] !== undefined) {
           body["metageneration"] = g["metageneration"];
         }
-        if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["name"] !== undefined) params["name"] = String(g["name"]);
         if (g["owner"] !== undefined) body["owner"] = g["owner"];
         if (g["restoreToken"] !== undefined) {
           body["restoreToken"] = g["restoreToken"];
@@ -909,23 +916,27 @@ export const model = {
         }
         if (g["updated"] !== undefined) body["updated"] = g["updated"];
         if (g["ifGenerationMatch"] !== undefined) {
-          body["ifGenerationMatch"] = g["ifGenerationMatch"];
+          params["ifGenerationMatch"] = String(g["ifGenerationMatch"]);
         }
         if (g["ifGenerationNotMatch"] !== undefined) {
-          body["ifGenerationNotMatch"] = g["ifGenerationNotMatch"];
+          params["ifGenerationNotMatch"] = String(g["ifGenerationNotMatch"]);
         }
         if (g["ifMetagenerationMatch"] !== undefined) {
-          body["ifMetagenerationMatch"] = g["ifMetagenerationMatch"];
+          params["ifMetagenerationMatch"] = String(g["ifMetagenerationMatch"]);
         }
         if (g["ifMetagenerationNotMatch"] !== undefined) {
-          body["ifMetagenerationNotMatch"] = g["ifMetagenerationNotMatch"];
+          params["ifMetagenerationNotMatch"] = String(
+            g["ifMetagenerationNotMatch"],
+          );
         }
         if (g["predefinedAcl"] !== undefined) {
-          body["predefinedAcl"] = g["predefinedAcl"];
+          params["predefinedAcl"] = String(g["predefinedAcl"]);
         }
-        if (g["projection"] !== undefined) body["projection"] = g["projection"];
+        if (g["projection"] !== undefined) {
+          params["projection"] = String(g["projection"]);
+        }
         if (g["userProject"] !== undefined) {
-          body["userProject"] = g["userProject"];
+          params["userProject"] = String(g["userProject"]);
         }
         if (g["name"] !== undefined) params["object"] = String(g["name"]);
         const result = await createResource(

@@ -461,7 +461,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Users. Registered at `@swamp/gcp/admin/users`. */
 export const model = {
   type: "@swamp/gcp/admin/users",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -470,6 +470,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -566,7 +571,9 @@ export const model = {
         if (g["suspended"] !== undefined) body["suspended"] = g["suspended"];
         if (g["websites"] !== undefined) body["websites"] = g["websites"];
         if (g["resolveConflictAccount"] !== undefined) {
-          body["resolveConflictAccount"] = g["resolveConflictAccount"];
+          params["resolveConflictAccount"] = String(
+            g["resolveConflictAccount"],
+          );
         }
         if (g["name"] !== undefined) params["userKey"] = String(g["name"]);
         const result = await createResource(

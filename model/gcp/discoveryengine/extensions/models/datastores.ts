@@ -1015,7 +1015,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores. Registered at `@swamp/gcp/discoveryengine/datastores`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores",
-  version: "2026.07.02.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1112,6 +1112,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1192,19 +1197,23 @@ export const model = {
           body["workspaceConfig"] = g["workspaceConfig"];
         }
         if (g["cmekConfigName"] !== undefined) {
-          body["cmekConfigName"] = g["cmekConfigName"];
+          params["cmekConfigName"] = String(g["cmekConfigName"]);
         }
         if (g["createAdvancedSiteSearch"] !== undefined) {
-          body["createAdvancedSiteSearch"] = g["createAdvancedSiteSearch"];
+          params["createAdvancedSiteSearch"] = String(
+            g["createAdvancedSiteSearch"],
+          );
         }
         if (g["dataStoreId"] !== undefined) {
-          body["dataStoreId"] = g["dataStoreId"];
+          params["dataStoreId"] = String(g["dataStoreId"]);
         }
         if (g["disableCmek"] !== undefined) {
-          body["disableCmek"] = g["disableCmek"];
+          params["disableCmek"] = String(g["disableCmek"]);
         }
         if (g["skipDefaultSchemaCreation"] !== undefined) {
-          body["skipDefaultSchemaCreation"] = g["skipDefaultSchemaCreation"];
+          params["skipDefaultSchemaCreation"] = String(
+            g["skipDefaultSchemaCreation"],
+          );
         }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -1295,10 +1304,15 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-          existing["name"]?.toString() ?? g["name"]?.toString() ?? "",
-        );
+        const existingName = existing["name"]?.toString();
+        if (existingName && existingName.includes("/")) {
+          params["name"] = existingName;
+        } else {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            existingName ?? g["name"]?.toString() ?? "",
+          );
+        }
         const body: Record<string, unknown> = {};
         if (g["advancedSiteSearchConfig"] !== undefined) {
           body["advancedSiteSearchConfig"] = g["advancedSiteSearchConfig"];
@@ -1423,12 +1437,17 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            shortName,
-          );
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+              shortName,
+            );
+          }
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,

@@ -77,6 +77,15 @@ const GlobalArgsSchema = z.object({
     "Indicates whether an accelerator is enabled. The value is true or false.",
   ).optional(),
   Tags: z.array(TagSchema).optional(),
+  FlowLogsEnabled: z.boolean().describe(
+    "Indicates whether flow logs are enabled for the accelerator.",
+  ).optional(),
+  FlowLogsS3Bucket: z.string().max(255).describe(
+    "The name of the Amazon S3 bucket for the flow logs.",
+  ).optional(),
+  FlowLogsS3Prefix: z.string().max(255).describe(
+    "The prefix for the location in the Amazon S3 bucket for the flow logs.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -90,6 +99,9 @@ const StateSchema = z.object({
   DualStackDnsName: z.string().optional(),
   AcceleratorArn: z.string(),
   Tags: z.array(TagSchema).optional(),
+  FlowLogsEnabled: z.boolean().optional(),
+  FlowLogsS3Bucket: z.string().optional(),
+  FlowLogsS3Prefix: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -111,6 +123,15 @@ const InputsSchema = z.object({
     "Indicates whether an accelerator is enabled. The value is true or false.",
   ).optional(),
   Tags: z.array(TagSchema).optional(),
+  FlowLogsEnabled: z.boolean().describe(
+    "Indicates whether flow logs are enabled for the accelerator.",
+  ).optional(),
+  FlowLogsS3Bucket: z.string().max(255).describe(
+    "The name of the Amazon S3 bucket for the flow logs.",
+  ).optional(),
+  FlowLogsS3Prefix: z.string().max(255).describe(
+    "The prefix for the location in the Amazon S3 bucket for the flow logs.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -132,7 +153,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for GlobalAccelerator Accelerator. Registered at `@swamp/aws/globalaccelerator/accelerator`. */
 export const model = {
   type: "@swamp/aws/globalaccelerator/accelerator",
-  version: "2026.06.15.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -172,6 +193,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
+      description: "Added: FlowLogsEnabled, FlowLogsS3Bucket, FlowLogsS3Prefix",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

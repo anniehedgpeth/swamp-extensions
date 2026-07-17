@@ -194,7 +194,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Drive Labels Labels.Permissions. Registered at `@swamp/gcp/drivelabels/labels-permissions`. */
 export const model = {
   type: "@swamp/gcp/drivelabels/labels-permissions",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -266,6 +266,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -296,7 +301,7 @@ export const model = {
         if (g["person"] !== undefined) body["person"] = g["person"];
         if (g["role"] !== undefined) body["role"] = g["role"];
         if (g["useAdminAccess"] !== undefined) {
-          body["useAdminAccess"] = g["useAdminAccess"];
+          params["useAdminAccess"] = String(g["useAdminAccess"]);
         }
         const result = await createResource(
           BASE_URL,

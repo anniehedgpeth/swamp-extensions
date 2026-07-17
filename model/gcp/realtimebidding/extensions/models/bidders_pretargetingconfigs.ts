@@ -149,15 +149,6 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
-  allowedUserTargetingModes: z.array(
-    z.enum([
-      "USER_TARGETING_MODE_UNSPECIFIED",
-      "REMARKETING_ADS",
-      "INTEREST_BASED_TARGETING",
-    ]),
-  ).describe(
-    "Targeting modes included by this config. A bid request must allow all the specified targeting modes. An unset value allows all bid requests to be sent, regardless of which targeting modes they allow.",
-  ).optional(),
   appTargeting: z.object({
     mobileAppCategoryTargeting: z.object({
       excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -355,15 +346,6 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  allowedUserTargetingModes: z.array(
-    z.enum([
-      "USER_TARGETING_MODE_UNSPECIFIED",
-      "REMARKETING_ADS",
-      "INTEREST_BASED_TARGETING",
-    ]),
-  ).describe(
-    "Targeting modes included by this config. A bid request must allow all the specified targeting modes. An unset value allows all bid requests to be sent, regardless of which targeting modes they allow.",
-  ).optional(),
   appTargeting: z.object({
     mobileAppCategoryTargeting: z.object({
       excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -516,7 +498,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Real-time Bidding Bidders.PretargetingConfigs. Registered at `@swamp/gcp/realtimebidding/bidders-pretargetingconfigs`. */
 export const model = {
   type: "@swamp/gcp/realtimebidding/bidders-pretargetingconfigs",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -588,6 +570,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "Removed: allowedUserTargetingModes",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          allowedUserTargetingModes: _allowedUserTargetingModes,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -615,9 +608,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["allowedUserTargetingModes"] !== undefined) {
-          body["allowedUserTargetingModes"] = g["allowedUserTargetingModes"];
-        }
         if (g["appTargeting"] !== undefined) {
           body["appTargeting"] = g["appTargeting"];
         }
@@ -769,14 +759,16 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["name"] = buildResourceName(
-          String(g["parent"] ?? ""),
-          existing["name"]?.toString() ?? g["name"]?.toString() ?? "",
-        );
-        const body: Record<string, unknown> = {};
-        if (g["allowedUserTargetingModes"] !== undefined) {
-          body["allowedUserTargetingModes"] = g["allowedUserTargetingModes"];
+        const existingName = existing["name"]?.toString();
+        if (existingName && existingName.includes("/")) {
+          params["name"] = existingName;
+        } else {
+          params["name"] = buildResourceName(
+            String(g["parent"] ?? ""),
+            existingName ?? g["name"]?.toString() ?? "",
+          );
         }
+        const body: Record<string, unknown> = {};
         if (g["appTargeting"] !== undefined) {
           body["appTargeting"] = g["appTargeting"];
         }
@@ -916,12 +908,17 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(
-            String(g["parent"] ?? ""),
-            shortName,
-          );
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              String(g["parent"] ?? ""),
+              shortName,
+            );
+          }
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,

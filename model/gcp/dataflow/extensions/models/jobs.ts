@@ -1869,7 +1869,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataflow Jobs. Registered at `@swamp/gcp/dataflow/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataflow/jobs",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1981,6 +1981,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2027,13 +2032,15 @@ export const model = {
           body["jobMetadata"] = g["jobMetadata"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["location"] !== undefined) body["location"] = g["location"];
+        if (g["location"] !== undefined) {
+          params["location"] = String(g["location"]);
+        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["pipelineDescription"] !== undefined) {
           body["pipelineDescription"] = g["pipelineDescription"];
         }
         if (g["replaceJobId"] !== undefined) {
-          body["replaceJobId"] = g["replaceJobId"];
+          params["replaceJobId"] = String(g["replaceJobId"]);
         }
         if (g["replacedByJobId"] !== undefined) {
           body["replacedByJobId"] = g["replacedByJobId"];
@@ -2063,7 +2070,7 @@ export const model = {
           body["transformNameMapping"] = g["transformNameMapping"];
         }
         if (g["type"] !== undefined) body["type"] = g["type"];
-        if (g["view"] !== undefined) body["view"] = g["view"];
+        if (g["view"] !== undefined) params["view"] = String(g["view"]);
         if (g["name"] !== undefined) params["jobId"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

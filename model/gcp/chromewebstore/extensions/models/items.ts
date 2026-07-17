@@ -185,7 +185,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Chrome Web Store Items. Registered at `@swamp/gcp/chromewebstore/items`. */
 export const model = {
   type: "@swamp/gcp/chromewebstore/items",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -194,6 +194,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -219,7 +224,7 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
         if (g["publisherEmail"] !== undefined) {
-          body["publisherEmail"] = g["publisherEmail"];
+          params["publisherEmail"] = String(g["publisherEmail"]);
         }
         if (g["name"] !== undefined) params["itemId"] = String(g["name"]);
         const result = await createResource(

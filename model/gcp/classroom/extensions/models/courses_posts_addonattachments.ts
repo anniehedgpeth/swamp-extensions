@@ -394,7 +394,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.Posts.AddOnAttachments. Registered at `@swamp/gcp/classroom/courses-posts-addonattachments`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-posts-addonattachments",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -466,6 +466,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -494,7 +499,7 @@ export const model = {
         if (g["dueDate"] !== undefined) body["dueDate"] = g["dueDate"];
         if (g["dueTime"] !== undefined) body["dueTime"] = g["dueTime"];
         if (g["id"] !== undefined) body["id"] = g["id"];
-        if (g["itemId"] !== undefined) body["itemId"] = g["itemId"];
+        if (g["itemId"] !== undefined) params["itemId"] = String(g["itemId"]);
         if (g["maxPoints"] !== undefined) body["maxPoints"] = g["maxPoints"];
         if (g["studentViewUri"] !== undefined) {
           body["studentViewUri"] = g["studentViewUri"];
@@ -506,7 +511,9 @@ export const model = {
           body["teacherViewUri"] = g["teacherViewUri"];
         }
         if (g["title"] !== undefined) body["title"] = g["title"];
-        if (g["addOnToken"] !== undefined) body["addOnToken"] = g["addOnToken"];
+        if (g["addOnToken"] !== undefined) {
+          params["addOnToken"] = String(g["addOnToken"]);
+        }
         if (g["name"] !== undefined) params["attachmentId"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

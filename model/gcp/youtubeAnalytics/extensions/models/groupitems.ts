@@ -265,7 +265,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Analytics GroupItems. Registered at `@swamp/gcp/youtubeanalytics/groupitems`. */
 export const model = {
   type: "@swamp/gcp/youtubeanalytics/groupitems",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -347,6 +347,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -373,7 +378,9 @@ export const model = {
         if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["resource"] !== undefined) body["resource"] = g["resource"];
         if (g["onBehalfOfContentOwner"] !== undefined) {
-          body["onBehalfOfContentOwner"] = g["onBehalfOfContentOwner"];
+          params["onBehalfOfContentOwner"] = String(
+            g["onBehalfOfContentOwner"],
+          );
         }
         const result = await createResource(
           BASE_URL,

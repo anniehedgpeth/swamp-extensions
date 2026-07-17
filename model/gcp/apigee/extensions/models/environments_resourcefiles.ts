@@ -236,7 +236,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments.Resourcefiles. Registered at `@swamp/gcp/apigee/environments-resourcefiles`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments-resourcefiles",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -308,6 +308,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -336,8 +341,8 @@ export const model = {
         }
         if (g["data"] !== undefined) body["data"] = g["data"];
         if (g["extensions"] !== undefined) body["extensions"] = g["extensions"];
-        if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["type"] !== undefined) body["type"] = g["type"];
+        if (g["name"] !== undefined) params["name"] = String(g["name"]);
+        if (g["type"] !== undefined) params["type"] = String(g["type"]);
         if (g["type"] !== undefined) params["type"] = String(g["type"]);
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(

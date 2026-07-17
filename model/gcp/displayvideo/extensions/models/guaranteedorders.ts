@@ -479,7 +479,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 GuaranteedOrders. Registered at `@swamp/gcp/displayvideo/guaranteedorders`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/guaranteedorders",
-  version: "2026.06.09.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -561,6 +561,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -607,9 +612,11 @@ export const model = {
         }
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["advertiserId"] !== undefined) {
-          body["advertiserId"] = g["advertiserId"];
+          params["advertiserId"] = String(g["advertiserId"]);
         }
-        if (g["partnerId"] !== undefined) body["partnerId"] = g["partnerId"];
+        if (g["partnerId"] !== undefined) {
+          params["partnerId"] = String(g["partnerId"]);
+        }
         if (g["name"] !== undefined) {
           params["guaranteedOrderId"] = String(g["name"]);
         }

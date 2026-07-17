@@ -964,7 +964,7 @@ const GlobalArgsSchema = z.object({
     }).describe("JobConfigurationQuery configures a BigQuery query job.")
       .optional(),
     reservation: z.string().describe(
-      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`.",
+      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`. Forces the query to use on-demand billing when set to `none`, which requires the project or organization to have `reservation_override_mode` set to `ALLOW_ANY_OVERRIDE`.",
     ).optional(),
   }).optional(),
   jobCreationReason: z.object({
@@ -1003,6 +1003,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       copiedRows: z.string().describe(
         "Output only. Number of rows copied to the destination table.",
+      ).optional(),
+      remoteDestinationRegion: z.string().describe(
+        "Output only. Destination region for a cross-region copy job. Not set for in-region copy jobs.",
       ).optional(),
     }).describe("Statistics for a copy job.").optional(),
     creationTime: z.string().describe(
@@ -1059,6 +1062,9 @@ const GlobalArgsSchema = z.object({
     finalExecutionDurationMs: z.string().describe(
       "Output only. The duration in milliseconds of the execution of the final attempt of this job, as BigQuery may internally re-attempt to execute the job.",
     ).optional(),
+    globalQueryRemoteRegions: z.array(z.string()).describe(
+      "Output only. Regions where the global query accesses data.",
+    ).optional(),
     load: z.object({
       badRecords: z.string().describe(
         "Output only. The number of bad records encountered. Note that if the job has failed because of more bad records encountered than the maximum allowed in the load job configuration, then this number can be less than the total number of bad records present in the input data.",
@@ -1102,6 +1108,19 @@ const GlobalArgsSchema = z.object({
     }).describe("Statistics for a load job.").optional(),
     numChildJobs: z.string().describe(
       "Output only. Number of child jobs executed.",
+    ).optional(),
+    parentGlobalQueryJob: z.object({
+      jobId: z.string().describe(
+        "Required. The ID of the job. The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or dashes (-). The maximum length is 1,024 characters.",
+      ).optional(),
+      location: z.string().describe(
+        "Optional. The geographic location of the job. The default value is US. For more information about BigQuery locations, see: https://cloud.google.com/bigquery/docs/locations",
+      ).optional(),
+      projectId: z.string().describe(
+        "Required. The ID of the project containing this job.",
+      ).optional(),
+    }).describe(
+      "A job reference is a fully qualified identifier for referring to a job.",
     ).optional(),
     parentJobId: z.string().describe(
       "Output only. If this is a child job, specifies the job ID of the parent.",
@@ -1516,6 +1535,23 @@ const GlobalArgsSchema = z.object({
         .optional(),
       numDmlAffectedRows: z.string().describe(
         "Output only. The number of rows affected by a DML statement. Present only for DML statements INSERT, UPDATE or DELETE.",
+      ).optional(),
+      objectStorageStats: z.array(z.object({
+        cacheBytesRead: z.string().describe(
+          "Total bytes read from the GCP Lakehouse-internal cache, avoiding an object storage read.",
+        ).optional(),
+        cloudProvider: z.enum([
+          "CLOUD_PROVIDER_UNSPECIFIED",
+          "GCP",
+          "AWS",
+          "AZURE",
+        ]).describe("The cloud provider for this block of statistics.")
+          .optional(),
+        objectStorageBytesRead: z.string().describe(
+          "Total bytes read directly from the cloud provider's storage.",
+        ).optional(),
+      })).describe(
+        "Output only. Storage and caching statistics per cloud provider for queries over object storage.",
       ).optional(),
       performanceInsights: z.object({
         avgPreviousExecutionMs: z.string().describe(
@@ -2336,6 +2372,7 @@ const StateSchema = z.object({
     copy: z.object({
       copiedLogicalBytes: z.string(),
       copiedRows: z.string(),
+      remoteDestinationRegion: z.string(),
     }),
     creationTime: z.string(),
     dataMaskingStatistics: z.object({
@@ -2357,6 +2394,7 @@ const StateSchema = z.object({
       })),
     }),
     finalExecutionDurationMs: z.string(),
+    globalQueryRemoteRegions: z.array(z.string()),
     load: z.object({
       badRecords: z.string(),
       inputFileBytes: z.string(),
@@ -2374,6 +2412,11 @@ const StateSchema = z.object({
       })),
     }),
     numChildJobs: z.string(),
+    parentGlobalQueryJob: z.object({
+      jobId: z.string(),
+      location: z.string(),
+      projectId: z.string(),
+    }),
     parentJobId: z.string(),
     query: z.object({
       biEngineStatistics: z.object({
@@ -2529,6 +2572,11 @@ const StateSchema = z.object({
       modelTrainingCurrentIteration: z.number(),
       modelTrainingExpectedTotalIteration: z.string(),
       numDmlAffectedRows: z.string(),
+      objectStorageStats: z.array(z.object({
+        cacheBytesRead: z.string(),
+        cloudProvider: z.string(),
+        objectStorageBytesRead: z.string(),
+      })),
       performanceInsights: z.object({
         avgPreviousExecutionMs: z.string(),
         stagePerformanceChangeInsights: z.array(z.object({
@@ -3566,7 +3614,7 @@ const InputsSchema = z.object({
     }).describe("JobConfigurationQuery configures a BigQuery query job.")
       .optional(),
     reservation: z.string().describe(
-      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`.",
+      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`. Forces the query to use on-demand billing when set to `none`, which requires the project or organization to have `reservation_override_mode` set to `ALLOW_ANY_OVERRIDE`.",
     ).optional(),
   }).optional(),
   jobCreationReason: z.object({
@@ -3605,6 +3653,9 @@ const InputsSchema = z.object({
       ).optional(),
       copiedRows: z.string().describe(
         "Output only. Number of rows copied to the destination table.",
+      ).optional(),
+      remoteDestinationRegion: z.string().describe(
+        "Output only. Destination region for a cross-region copy job. Not set for in-region copy jobs.",
       ).optional(),
     }).describe("Statistics for a copy job.").optional(),
     creationTime: z.string().describe(
@@ -3661,6 +3712,9 @@ const InputsSchema = z.object({
     finalExecutionDurationMs: z.string().describe(
       "Output only. The duration in milliseconds of the execution of the final attempt of this job, as BigQuery may internally re-attempt to execute the job.",
     ).optional(),
+    globalQueryRemoteRegions: z.array(z.string()).describe(
+      "Output only. Regions where the global query accesses data.",
+    ).optional(),
     load: z.object({
       badRecords: z.string().describe(
         "Output only. The number of bad records encountered. Note that if the job has failed because of more bad records encountered than the maximum allowed in the load job configuration, then this number can be less than the total number of bad records present in the input data.",
@@ -3704,6 +3758,19 @@ const InputsSchema = z.object({
     }).describe("Statistics for a load job.").optional(),
     numChildJobs: z.string().describe(
       "Output only. Number of child jobs executed.",
+    ).optional(),
+    parentGlobalQueryJob: z.object({
+      jobId: z.string().describe(
+        "Required. The ID of the job. The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or dashes (-). The maximum length is 1,024 characters.",
+      ).optional(),
+      location: z.string().describe(
+        "Optional. The geographic location of the job. The default value is US. For more information about BigQuery locations, see: https://cloud.google.com/bigquery/docs/locations",
+      ).optional(),
+      projectId: z.string().describe(
+        "Required. The ID of the project containing this job.",
+      ).optional(),
+    }).describe(
+      "A job reference is a fully qualified identifier for referring to a job.",
     ).optional(),
     parentJobId: z.string().describe(
       "Output only. If this is a child job, specifies the job ID of the parent.",
@@ -4118,6 +4185,23 @@ const InputsSchema = z.object({
         .optional(),
       numDmlAffectedRows: z.string().describe(
         "Output only. The number of rows affected by a DML statement. Present only for DML statements INSERT, UPDATE or DELETE.",
+      ).optional(),
+      objectStorageStats: z.array(z.object({
+        cacheBytesRead: z.string().describe(
+          "Total bytes read from the GCP Lakehouse-internal cache, avoiding an object storage read.",
+        ).optional(),
+        cloudProvider: z.enum([
+          "CLOUD_PROVIDER_UNSPECIFIED",
+          "GCP",
+          "AWS",
+          "AZURE",
+        ]).describe("The cloud provider for this block of statistics.")
+          .optional(),
+        objectStorageBytesRead: z.string().describe(
+          "Total bytes read directly from the cloud provider's storage.",
+        ).optional(),
+      })).describe(
+        "Output only. Storage and caching statistics per cloud provider for queries over object storage.",
       ).optional(),
       performanceInsights: z.object({
         avgPreviousExecutionMs: z.string().describe(
@@ -4689,7 +4773,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Jobs. Registered at `@swamp/gcp/bigquery/jobs`. */
 export const model = {
   type: "@swamp/gcp/bigquery/jobs",
-  version: "2026.07.02.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4793,6 +4877,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

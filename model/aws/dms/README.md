@@ -14,8 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/dms/data_migration` to see the full
-list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/dms/certificate` to see the full list
+of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -47,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new data_migration model
-swamp model create @swamp/aws/dms/data_migration my-data_migration
+# Create a new certificate model
+swamp model create @swamp/aws/dms/certificate my-certificate
 
 # Edit the model to configure its properties
-swamp model edit my-data_migration
+swamp model edit my-certificate
 
 # Create the resource in AWS
-swamp model method run my-data_migration create
+swamp model method run my-certificate create
 
 # Sync current state from AWS
-swamp model method run my-data_migration sync
+swamp model method run my-certificate sync
 ```
 
 ## License

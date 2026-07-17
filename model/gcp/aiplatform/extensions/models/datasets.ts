@@ -322,7 +322,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Datasets. Registered at `@swamp/gcp/aiplatform/datasets`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/datasets",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -424,6 +424,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -464,7 +469,7 @@ export const model = {
         if (g["savedQueries"] !== undefined) {
           body["savedQueries"] = g["savedQueries"];
         }
-        if (g["parent"] !== undefined) body["parent"] = g["parent"];
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

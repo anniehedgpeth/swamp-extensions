@@ -140,7 +140,7 @@ const SlaTargetFieldValueSchema = z.object({
 });
 
 const AssignSlaActionSchema = z.object({
-  SlaAssignmentType: z.enum(["CASES"]).describe("The type of SLA assignment."),
+  SlaAssignmentType: z.enum(["CASES"]),
   CaseSlaConfiguration: z.object({
     Type: z.enum(["CaseField"]).describe("The type of SLA."),
     Name: z.string().min(1).max(500).describe("The name of the SLA."),
@@ -152,7 +152,7 @@ const AssignSlaActionSchema = z.object({
     TargetSlaMinutes: z.number().min(1).max(1051200).describe(
       "The target SLA time in minutes.",
     ),
-  }).describe("The SLA configuration for cases."),
+  }),
 });
 
 const TagSchema = z.object({
@@ -365,7 +365,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect Rule. Registered at `@swamp/aws/connect/rule`. */
 export const model = {
   type: "@swamp/aws/connect/rule",
-  version: "2026.07.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -419,6 +419,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -332,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Logging Sinks. Registered at `@swamp/gcp/logging/sinks`. */
 export const model = {
   type: "@swamp/gcp/logging/sinks",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -404,6 +404,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -447,10 +452,10 @@ export const model = {
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["customWriterIdentity"] !== undefined) {
-          body["customWriterIdentity"] = g["customWriterIdentity"];
+          params["customWriterIdentity"] = String(g["customWriterIdentity"]);
         }
         if (g["uniqueWriterIdentity"] !== undefined) {
-          body["uniqueWriterIdentity"] = g["uniqueWriterIdentity"];
+          params["uniqueWriterIdentity"] = String(g["uniqueWriterIdentity"]);
         }
         if (g["name"] !== undefined) params["sinkName"] = String(g["name"]);
         const result = await createResource(

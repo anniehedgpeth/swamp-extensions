@@ -200,7 +200,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Partners.Channels.Sites. Registered at `@swamp/gcp/displayvideo/partners-channels-sites`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/partners-channels-sites",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -272,6 +272,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -302,7 +307,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["urlOrAppId"] !== undefined) body["urlOrAppId"] = g["urlOrAppId"];
         if (g["advertiserId"] !== undefined) {
-          body["advertiserId"] = g["advertiserId"];
+          params["advertiserId"] = String(g["advertiserId"]);
         }
         const result = await createResource(
           BASE_URL,

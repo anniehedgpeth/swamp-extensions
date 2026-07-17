@@ -286,7 +286,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionHealthSources. Registered at `@swamp/gcp/compute/regionhealthsources`. */
 export const model = {
   type: "@swamp/gcp/compute/regionhealthsources",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -403,6 +403,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -438,7 +443,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["sourceType"] !== undefined) body["sourceType"] = g["sourceType"];
         if (g["sources"] !== undefined) body["sources"] = g["sources"];
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) params["healthSource"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

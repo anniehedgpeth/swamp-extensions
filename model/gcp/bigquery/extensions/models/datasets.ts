@@ -649,7 +649,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Datasets. Registered at `@swamp/gcp/bigquery/datasets`. */
 export const model = {
   type: "@swamp/gcp/bigquery/datasets",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -723,6 +723,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -805,7 +810,7 @@ export const model = {
           body["storageBillingModel"] = g["storageBillingModel"];
         }
         if (g["accessPolicyVersion"] !== undefined) {
-          body["accessPolicyVersion"] = g["accessPolicyVersion"];
+          params["accessPolicyVersion"] = String(g["accessPolicyVersion"]);
         }
         if (g["name"] !== undefined) params["datasetId"] = String(g["name"]);
         const result = await createResource(

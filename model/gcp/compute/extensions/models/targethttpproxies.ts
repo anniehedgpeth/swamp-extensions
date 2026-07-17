@@ -254,7 +254,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine TargetHttpProxies. Registered at `@swamp/gcp/compute/targethttpproxies`. */
 export const model = {
   type: "@swamp/gcp/compute/targethttpproxies",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -331,6 +331,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -365,7 +370,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["proxyBind"] !== undefined) body["proxyBind"] = g["proxyBind"];
         if (g["urlMap"] !== undefined) body["urlMap"] = g["urlMap"];
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) {
           params["targetHttpProxy"] = String(g["name"]);
         }

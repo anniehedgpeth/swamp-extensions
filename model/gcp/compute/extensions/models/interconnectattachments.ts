@@ -611,7 +611,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InterconnectAttachments. Registered at `@swamp/gcp/compute/interconnectattachments`. */
 export const model = {
   type: "@swamp/gcp/compute/interconnectattachments",
-  version: "2026.06.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -685,6 +685,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -788,7 +793,9 @@ export const model = {
         if (g["vlanTag8021q"] !== undefined) {
           body["vlanTag8021q"] = g["vlanTag8021q"];
         }
-        if (g["requestId"] !== undefined) body["requestId"] = g["requestId"];
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
+        }
         if (g["name"] !== undefined) {
           params["interconnectAttachment"] = String(g["name"]);
         }

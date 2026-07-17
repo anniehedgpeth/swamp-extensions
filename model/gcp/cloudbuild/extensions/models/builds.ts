@@ -2065,7 +2065,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Builds. Registered at `@swamp/gcp/cloudbuild/builds`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/builds",
-  version: "2026.07.08.1",
+  version: "2026.07.17.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -2079,6 +2079,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2135,7 +2140,7 @@ export const model = {
         }
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["timeout"] !== undefined) body["timeout"] = g["timeout"];
-        if (g["parent"] !== undefined) body["parent"] = g["parent"];
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         if (g["id"] !== undefined) params["id"] = String(g["id"]);
         const result = await createResource(
           BASE_URL,
