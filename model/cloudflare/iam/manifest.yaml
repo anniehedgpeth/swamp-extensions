@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/cloudflare/iam"
-version: "2026.06.08.2"
+version: "2026.07.18.2"
 description: "Cloudflare iam infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,9 +9,6 @@ labels:
   - iam
   - cloud
   - infrastructure
-releaseNotes: |
-  - Updated: resource_groups
-  - Updated: user_groups
 models:
   - resource_groups.ts
   - user_groups.ts

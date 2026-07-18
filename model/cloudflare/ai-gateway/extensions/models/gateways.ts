@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Gateways.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -350,7 +357,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Gateways. Registered at `@swamp/cloudflare/ai-gateway/gateways`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/gateways",
-  version: "2026.06.08.2",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -364,6 +371,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -457,6 +469,152 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Gateways by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/ai-gateway/gateways";
+        const filters: [string, string][] = [];
+        if (g.authentication !== undefined) {
+          filters.push(["authentication", String(g.authentication)]);
+        }
+        if (g.cache_invalidate_on_update !== undefined) {
+          filters.push([
+            "cache_invalidate_on_update",
+            String(g.cache_invalidate_on_update),
+          ]);
+        }
+        if (g.cache_ttl !== undefined) {
+          filters.push(["cache_ttl", String(g.cache_ttl)]);
+        }
+        if (g.collect_logs !== undefined) {
+          filters.push(["collect_logs", String(g.collect_logs)]);
+        }
+        if (g.log_management !== undefined) {
+          filters.push(["log_management", String(g.log_management)]);
+        }
+        if (g.log_management_strategy !== undefined) {
+          filters.push([
+            "log_management_strategy",
+            String(g.log_management_strategy),
+          ]);
+        }
+        if (g.logpush !== undefined) {
+          filters.push(["logpush", String(g.logpush)]);
+        }
+        if (g.logpush_public_key !== undefined) {
+          filters.push(["logpush_public_key", String(g.logpush_public_key)]);
+        }
+        if (g.rate_limiting_interval !== undefined) {
+          filters.push([
+            "rate_limiting_interval",
+            String(g.rate_limiting_interval),
+          ]);
+        }
+        if (g.rate_limiting_limit !== undefined) {
+          filters.push(["rate_limiting_limit", String(g.rate_limiting_limit)]);
+        }
+        if (g.rate_limiting_technique !== undefined) {
+          filters.push([
+            "rate_limiting_technique",
+            String(g.rate_limiting_technique),
+          ]);
+        }
+        if (g.retry_backoff !== undefined) {
+          filters.push(["retry_backoff", String(g.retry_backoff)]);
+        }
+        if (g.retry_delay !== undefined) {
+          filters.push(["retry_delay", String(g.retry_delay)]);
+        }
+        if (g.retry_max_attempts !== undefined) {
+          filters.push(["retry_max_attempts", String(g.retry_max_attempts)]);
+        }
+        if (g.store_id !== undefined) {
+          filters.push(["store_id", String(g.store_id)]);
+        }
+        if (g.workers_ai_billing_mode !== undefined) {
+          filters.push([
+            "workers_ai_billing_mode",
+            String(g.workers_ai_billing_mode),
+          ]);
+        }
+        if (g.zdr !== undefined) filters.push(["zdr", String(g.zdr)]);
+        if (g.id !== undefined) filters.push(["id", String(g.id)]);
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(`No gateways found matching filters: ${filterDesc}`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description:
+        "Import an existing Gateways by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Gateways to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/ai-gateway/gateways";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

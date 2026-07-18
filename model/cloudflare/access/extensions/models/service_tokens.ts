@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Service Tokens.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().optional().describe(
@@ -93,7 +100,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Service Tokens. Registered at `@swamp/cloudflare/access/service-tokens`. */
 export const model = {
   type: "@swamp/cloudflare/access/service-tokens",
-  version: "2026.06.08.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -102,6 +109,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -173,6 +185,111 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Service Tokens by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/access/service_tokens";
+        const filters: [string, string][] = [];
+        if (g.client_secret_version !== undefined) {
+          filters.push([
+            "client_secret_version",
+            String(g.client_secret_version),
+          ]);
+        }
+        if (g.duration !== undefined) {
+          filters.push(["duration", String(g.duration)]);
+        }
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.previous_client_secret_expires_at !== undefined) {
+          filters.push([
+            "previous_client_secret_expires_at",
+            String(g.previous_client_secret_expires_at),
+          ]);
+        }
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `No service tokens found matching filters: ${filterDesc}`,
+          );
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description:
+        "Import an existing Service Tokens by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Service Tokens to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/access/service_tokens";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

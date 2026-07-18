@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Apps.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().optional().describe(
@@ -566,7 +573,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Apps. Registered at `@swamp/cloudflare/access/apps`. */
 export const model = {
   type: "@swamp/cloudflare/access/apps",
-  version: "2026.06.24.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -581,6 +588,11 @@ export const model = {
     {
       toVersion: "2026.06.24.1",
       description: "Added: eager_redirect_cookie_setting",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -730,6 +742,209 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Apps by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/access/apps";
+        const filters: [string, string][] = [];
+        if (g.allow_authenticate_via_warp !== undefined) {
+          filters.push([
+            "allow_authenticate_via_warp",
+            String(g.allow_authenticate_via_warp),
+          ]);
+        }
+        if (g.allow_iframe !== undefined) {
+          filters.push(["allow_iframe", String(g.allow_iframe)]);
+        }
+        if (g.app_launcher_visible !== undefined) {
+          filters.push([
+            "app_launcher_visible",
+            String(g.app_launcher_visible),
+          ]);
+        }
+        if (g.auto_redirect_to_identity !== undefined) {
+          filters.push([
+            "auto_redirect_to_identity",
+            String(g.auto_redirect_to_identity),
+          ]);
+        }
+        if (g.custom_deny_message !== undefined) {
+          filters.push(["custom_deny_message", String(g.custom_deny_message)]);
+        }
+        if (g.custom_deny_url !== undefined) {
+          filters.push(["custom_deny_url", String(g.custom_deny_url)]);
+        }
+        if (g.custom_non_identity_deny_url !== undefined) {
+          filters.push([
+            "custom_non_identity_deny_url",
+            String(g.custom_non_identity_deny_url),
+          ]);
+        }
+        if (g.domain !== undefined) filters.push(["domain", String(g.domain)]);
+        if (g.eager_redirect_cookie_setting !== undefined) {
+          filters.push([
+            "eager_redirect_cookie_setting",
+            String(g.eager_redirect_cookie_setting),
+          ]);
+        }
+        if (g.enable_binding_cookie !== undefined) {
+          filters.push([
+            "enable_binding_cookie",
+            String(g.enable_binding_cookie),
+          ]);
+        }
+        if (g.http_only_cookie_attribute !== undefined) {
+          filters.push([
+            "http_only_cookie_attribute",
+            String(g.http_only_cookie_attribute),
+          ]);
+        }
+        if (g.logo_url !== undefined) {
+          filters.push(["logo_url", String(g.logo_url)]);
+        }
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.options_preflight_bypass !== undefined) {
+          filters.push([
+            "options_preflight_bypass",
+            String(g.options_preflight_bypass),
+          ]);
+        }
+        if (g.path_cookie_attribute !== undefined) {
+          filters.push([
+            "path_cookie_attribute",
+            String(g.path_cookie_attribute),
+          ]);
+        }
+        if (g.read_service_tokens_from_header !== undefined) {
+          filters.push([
+            "read_service_tokens_from_header",
+            String(g.read_service_tokens_from_header),
+          ]);
+        }
+        if (g.same_site_cookie_attribute !== undefined) {
+          filters.push([
+            "same_site_cookie_attribute",
+            String(g.same_site_cookie_attribute),
+          ]);
+        }
+        if (g.service_auth_401_redirect !== undefined) {
+          filters.push([
+            "service_auth_401_redirect",
+            String(g.service_auth_401_redirect),
+          ]);
+        }
+        if (g.session_duration !== undefined) {
+          filters.push(["session_duration", String(g.session_duration)]);
+        }
+        if (g.skip_interstitial !== undefined) {
+          filters.push(["skip_interstitial", String(g.skip_interstitial)]);
+        }
+        if (g.type !== undefined) filters.push(["type", String(g.type)]);
+        if (g.use_clientless_isolation_app_launcher_url !== undefined) {
+          filters.push([
+            "use_clientless_isolation_app_launcher_url",
+            String(g.use_clientless_isolation_app_launcher_url),
+          ]);
+        }
+        if (g.app_launcher_logo_url !== undefined) {
+          filters.push([
+            "app_launcher_logo_url",
+            String(g.app_launcher_logo_url),
+          ]);
+        }
+        if (g.bg_color !== undefined) {
+          filters.push(["bg_color", String(g.bg_color)]);
+        }
+        if (g.header_bg_color !== undefined) {
+          filters.push(["header_bg_color", String(g.header_bg_color)]);
+        }
+        if (g.skip_app_launcher_login_page !== undefined) {
+          filters.push([
+            "skip_app_launcher_login_page",
+            String(g.skip_app_launcher_login_page),
+          ]);
+        }
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(`No apps found matching filters: ${filterDesc}`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Apps by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Apps to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/access/apps";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

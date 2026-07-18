@@ -42,10 +42,10 @@ export function generateCloudflareExtensionModel(
   lines.push(` * Swamp extension model for a Cloudflare ${singular}.`);
   lines.push(` *`);
   lines.push(
-    ` * Wraps the Cloudflare API as a swamp model so create, get, update,`,
+    ` * Wraps the Cloudflare API as a swamp model so create, get, lookup,`,
   );
   lines.push(
-    ` * delete, and sync can be driven through \`swamp model\`.`,
+    ` * adopt, update, delete, and sync can be driven through \`swamp model\`.`,
   );
   lines.push(` *`);
   lines.push(` * @module`);
@@ -54,7 +54,7 @@ export function generateCloudflareExtensionModel(
 
   lines.push(`import { z } from "npm:zod@4.3.6";`);
 
-  const helperImports: string[] = ["create", "read", "tryRead"];
+  const helperImports: string[] = ["create", "listAll", "read", "tryRead"];
   if (resource.handlers.delete) helperImports.push("remove");
   if (resource.handlers.update) helperImports.push("update");
   lines.push(
@@ -256,6 +256,117 @@ export function generateCloudflareExtensionModel(
     `        const instanceName = ${
       wrapWithSanitize(
         `g.${namingField}?.toString() ?? args.id`,
+      )
+    };`,
+  );
+  lines.push(
+    `        const handle = await context.writeResource("state", instanceName, result);`,
+  );
+  lines.push(`        return { dataHandles: [handle] };`);
+  lines.push(`      },`);
+  lines.push(`    },`);
+
+  // --- lookup method ---
+  const skipFields = new Set(["account_id", "zone_id"]);
+  if (injectApiToken) skipFields.add("apiToken");
+  if (injectKeyPair) {
+    skipFields.add("apiKey");
+    skipFields.add("email");
+  }
+  if (resource.syntheticName && !allPropNames.has(resource.namingField)) {
+    skipFields.add("name");
+  }
+  const filterFields = collectFilterableFields(resource, skipFields);
+  lines.push(`    lookup: {`);
+  lines.push(
+    `      description: "Look up an existing ${singular} by matching global argument values and import it into state",`,
+  );
+  lines.push(`      arguments: z.object({}),`);
+  lines.push(
+    `      execute: async (_args: Record<string, never>, context: any) => {`,
+  );
+  lines.push(`        const g = context.globalArgs;`);
+  lines.push(...buildEndpointLines(scopeType, relPath));
+  lines.push(
+    `        const filters: [string, string][] = [];`,
+  );
+  for (const name of filterFields) {
+    const access = VALID_JS_IDENT.test(name)
+      ? `.${name}`
+      : `[${JSON.stringify(name)}]`;
+    lines.push(
+      `        if (g${access} !== undefined) filters.push([${
+        JSON.stringify(name)
+      }, String(g${access})]);`,
+    );
+  }
+  lines.push(
+    `        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");`,
+  );
+  lines.push(
+    `        const items = await listAll(endpoint, "${resource.paginationStyle}"${
+      authSuffix ? `, undefined${authSuffix}` : ""
+    });`,
+  );
+  lines.push(`        const matches = items.filter(item => {`);
+  lines.push(`          for (const [key, val] of filters) {`);
+  lines.push(
+    `            if (String((item as Record<string, unknown>)[key]) !== val) return false;`,
+  );
+  lines.push(`          }`);
+  lines.push(`          return true;`);
+  lines.push(`        });`);
+  lines.push(`        if (matches.length === 0) {`);
+  lines.push(
+    `          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");`,
+  );
+  lines.push(
+    `          throw new Error(\`No ${singular.toLowerCase()} found matching filters: \${filterDesc}\`);`,
+  );
+  lines.push(`        }`);
+  lines.push(`        if (matches.length > 1) {`);
+  lines.push(
+    `          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");`,
+  );
+  lines.push(
+    `          throw new Error(\`Expected exactly 1 match, found \${matches.length} for filters: \${filterDesc}\`);`,
+  );
+  lines.push(`        }`);
+  lines.push(`        const result = matches[0] as ResourceData;`);
+  lines.push(
+    `        const instanceName = ${
+      wrapWithSanitize(
+        `g.${namingField}?.toString() ?? result.${resource.identifyingField}?.toString() ?? "current"`,
+      )
+    };`,
+  );
+  lines.push(
+    `        const handle = await context.writeResource("state", instanceName, result);`,
+  );
+  lines.push(`        return { dataHandles: [handle] };`);
+  lines.push(`      },`);
+  lines.push(`    },`);
+
+  // --- adopt method ---
+  lines.push(`    adopt: {`);
+  lines.push(
+    `      description: "Import an existing ${singular} by ID into state for management",`,
+  );
+  lines.push(
+    `      arguments: z.object({ id: z.string().describe("The ID of the ${singular} to import") }),`,
+  );
+  lines.push(
+    `      execute: async (args: { id: string }, context: any) => {`,
+  );
+  lines.push(`        const g = context.globalArgs;`);
+  lines.push(...buildEndpointLines(scopeType, relPath));
+  lines.push(
+    `        const result = await read(endpoint, args.id${authSuffix}) as ResourceData;`,
+  );
+  lines.push(
+    `        const instanceName = ${
+      wrapWithSanitize(
+        `result.${namingField}?.toString() ?? g.${namingField}?.toString() ?? args.id`,
       )
     };`,
   );
@@ -574,4 +685,23 @@ function generateSimplifiedZod(prop: CloudflareProperty): string {
     default:
       return "z.unknown()";
   }
+}
+
+const SCALAR_TYPES = new Set(["string", "number", "integer", "boolean"]);
+
+function collectFilterableFields(
+  resource: CloudflareResource,
+  skipFields: Set<string>,
+): string[] {
+  const allProps: Record<string, CloudflareProperty> = {
+    ...resource.updateProperties,
+    ...resource.createProperties,
+  };
+  const result: string[] = [];
+  for (const [name, prop] of Object.entries(allProps)) {
+    if (skipFields.has(name)) continue;
+    if (!SCALAR_TYPES.has(prop.type)) continue;
+    result.push(name);
+  }
+  return result;
 }

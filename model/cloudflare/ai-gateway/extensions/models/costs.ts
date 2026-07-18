@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Costs.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -121,7 +128,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Costs. Registered at `@swamp/cloudflare/ai-gateway/costs`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/costs",
-  version: "2026.06.08.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -130,6 +137,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -196,6 +208,105 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Costs by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id +
+          "/ai-gateway/custom-providers/costs";
+        const filters: [string, string][] = [];
+        if (g.cost_in !== undefined) {
+          filters.push(["cost_in", String(g.cost_in)]);
+        }
+        if (g.cost_out !== undefined) {
+          filters.push(["cost_out", String(g.cost_out)]);
+        }
+        if (g.cost_type !== undefined) {
+          filters.push(["cost_type", String(g.cost_type)]);
+        }
+        if (g.enable !== undefined) filters.push(["enable", String(g.enable)]);
+        if (g.model !== undefined) filters.push(["model", String(g.model)]);
+        if (g.model_rule !== undefined) {
+          filters.push(["model_rule", String(g.model_rule)]);
+        }
+        if (g.account_provider_id !== undefined) {
+          filters.push(["account_provider_id", String(g.account_provider_id)]);
+        }
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(`No costs found matching filters: ${filterDesc}`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Costs by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Costs to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id +
+          "/ai-gateway/custom-providers/costs";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

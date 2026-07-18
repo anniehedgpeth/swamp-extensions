@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Custom-providers.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -101,7 +108,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Custom-providers. Registered at `@swamp/cloudflare/ai-gateway/custom-providers`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/custom-providers",
-  version: "2026.06.08.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -110,6 +117,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -179,6 +191,115 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Custom-providers by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id +
+          "/ai-gateway/custom-providers";
+        const filters: [string, string][] = [];
+        if (g.base_url !== undefined) {
+          filters.push(["base_url", String(g.base_url)]);
+        }
+        if (g.beta !== undefined) filters.push(["beta", String(g.beta)]);
+        if (g.curl_example !== undefined) {
+          filters.push(["curl_example", String(g.curl_example)]);
+        }
+        if (g.description !== undefined) {
+          filters.push(["description", String(g.description)]);
+        }
+        if (g.enable !== undefined) filters.push(["enable", String(g.enable)]);
+        if (g.headers !== undefined) {
+          filters.push(["headers", String(g.headers)]);
+        }
+        if (g.js_example !== undefined) {
+          filters.push(["js_example", String(g.js_example)]);
+        }
+        if (g.link !== undefined) filters.push(["link", String(g.link)]);
+        if (g.logo !== undefined) filters.push(["logo", String(g.logo)]);
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.position !== undefined) {
+          filters.push(["position", String(g.position)]);
+        }
+        if (g.slug !== undefined) filters.push(["slug", String(g.slug)]);
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `No custom-providers found matching filters: ${filterDesc}`,
+          );
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description:
+        "Import an existing Custom-providers by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Custom-providers to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id +
+          "/ai-gateway/custom-providers";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

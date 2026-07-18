@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Jobs.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().optional().describe(
@@ -260,7 +267,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Jobs. Registered at `@swamp/cloudflare/logpush/jobs`. */
 export const model = {
   type: "@swamp/cloudflare/logpush/jobs",
-  version: "2026.06.24.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -279,6 +286,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -366,6 +378,125 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Jobs by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/logpush/jobs";
+        const filters: [string, string][] = [];
+        if (g.destination_conf !== undefined) {
+          filters.push(["destination_conf", String(g.destination_conf)]);
+        }
+        if (g.enabled !== undefined) {
+          filters.push(["enabled", String(g.enabled)]);
+        }
+        if (g.filter !== undefined) filters.push(["filter", String(g.filter)]);
+        if (g.frequency !== undefined) {
+          filters.push(["frequency", String(g.frequency)]);
+        }
+        if (g.kind !== undefined) filters.push(["kind", String(g.kind)]);
+        if (g.logpull_options !== undefined) {
+          filters.push(["logpull_options", String(g.logpull_options)]);
+        }
+        if (g.max_upload_bytes !== undefined) {
+          filters.push(["max_upload_bytes", String(g.max_upload_bytes)]);
+        }
+        if (g.max_upload_interval_seconds !== undefined) {
+          filters.push([
+            "max_upload_interval_seconds",
+            String(g.max_upload_interval_seconds),
+          ]);
+        }
+        if (g.max_upload_records !== undefined) {
+          filters.push(["max_upload_records", String(g.max_upload_records)]);
+        }
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.ownership_challenge !== undefined) {
+          filters.push(["ownership_challenge", String(g.ownership_challenge)]);
+        }
+        if (g.dataset !== undefined) {
+          filters.push(["dataset", String(g.dataset)]);
+        }
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "none", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(`No jobs found matching filters: ${filterDesc}`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Jobs by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Jobs to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/logpush/jobs";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

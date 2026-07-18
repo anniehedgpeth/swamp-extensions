@@ -789,7 +789,72 @@ the same pattern as Hetzner and DigitalOcean.
 
 ---
 
-## 13. Zod Schema Generation
+## 13. Lookup and Adopt Methods
+
+Every generated model includes `lookup` and `adopt` methods for importing
+existing Cloudflare resources into swamp state. Together they cover the two
+primary discovery paths: by attributes (lookup) and by ID (adopt).
+
+### Lookup — find by field values
+
+Lookup lists all resources via `listAll()` using the resource's detected
+pagination style, then filters client-side by matching set GlobalArgs values
+against each record. It requires exactly one match and writes the result to
+state.
+
+1. Build a filter list from set GlobalArgs fields — **scalar types only**
+   (string, number, integer, boolean). Objects, arrays, scope parameters
+   (`account_id`, `zone_id`), injected auth fields (`apiToken`, `apiKey`,
+   `email`), and synthetic name fields are excluded.
+2. Require at least one filter (error if none set).
+3. Call `listAll(endpoint, paginationStyle, undefined, auth)`.
+4. Filter results: for each item, every filter `[key, value]` must match
+   `String(item[key]) === value`.
+5. Require exactly 1 match — error on 0 or >1, with the applied filters in the
+   error message for debuggability.
+6. Write the matched record to state using the naming field.
+
+Example flow (DNS records):
+
+```bash
+swamp model create @swamp/cloudflare/dns/dns-records my-record
+swamp model edit my-record
+# Set: zone_id, name="www.example.com", type="A"
+swamp model method run my-record lookup
+# → lists all DNS records in the zone, finds the A record for www.example.com
+```
+
+### Adopt — import by ID
+
+Adopt fetches a single resource by its Cloudflare ID and writes it to state. No
+validation against GlobalArgs — it trusts the caller knows which resource they
+want. This is the entry point when the ID is already known (from a dashboard,
+API call, or another workflow).
+
+1. Accept `id` as a method argument.
+2. Call `read(endpoint, id, auth)`.
+3. Write the result to state, deriving the instance name from the result's
+   naming field (not GlobalArgs, since the caller may not have set it).
+
+### Why two methods
+
+- **Lookup** answers "I know what the resource looks like (name, type, etc.) —
+  find it for me."
+- **Adopt** answers "I know which resource I want by ID — import it."
+
+After either method writes to state, `update`, `sync`, and `delete` work
+normally — the state contains the resource's ID.
+
+### Instance naming differences
+
+| Method | Instance name preference                                  |
+| ------ | --------------------------------------------------------- |
+| lookup | `globalArgs.{namingField}` (user set the filters)         |
+| adopt  | `result.{namingField}` (user may not have set globalArgs) |
+
+---
+
+## 14. Zod Schema Generation
 
 Each generated model contains three Zod schemas, following the same pattern as
 Hetzner and DigitalOcean.
@@ -839,7 +904,7 @@ separate per-variant types) is a candidate for future enhancement.
 
 ---
 
-## 14. Versioning and Change Detection
+## 15. Versioning and Change Detection
 
 The Cloudflare pipeline uses the same shared CalVer versioning system as all
 other providers (see `src/pipeline/version.ts`).
@@ -861,7 +926,7 @@ ensures idempotent regeneration.
 
 ---
 
-## 15. Generated Output Structure
+## 16. Generated Output Structure
 
 ```
 outputs/cloudflare/{service}/
@@ -898,6 +963,8 @@ export const model = {
   methods: {
     create: { ... },                          // always present
     get: { ... },                             // always present
+    lookup: { ... },                          // always present — find by field values
+    adopt: { ... },                           // always present — import by ID
     update: { ... },                          // if PATCH/PUT exists
     delete: { ... },                          // if DELETE exists
     sync: { ... },                            // always present
@@ -945,7 +1012,7 @@ models:
 
 ---
 
-## 16. Configuration Tables
+## 17. Configuration Tables
 
 ### SERVICE_MAP
 
@@ -1040,7 +1107,7 @@ Specific resource paths excluded from codegen:
 
 ---
 
-## 17. Differences from Other Providers
+## 18. Differences from Other Providers
 
 | Aspect                  | Cloudflare                              | DigitalOcean                  | Hetzner               | AWS / GCP                      |
 | ----------------------- | --------------------------------------- | ----------------------------- | --------------------- | ------------------------------ |

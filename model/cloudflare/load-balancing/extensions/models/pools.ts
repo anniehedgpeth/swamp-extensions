@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Pools.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -267,7 +274,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Pools. Registered at `@swamp/cloudflare/load-balancing/pools`. */
 export const model = {
   type: "@swamp/cloudflare/load-balancing/pools",
-  version: "2026.06.08.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -276,6 +283,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -351,6 +363,114 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Pools by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/load_balancers/pools";
+        const filters: [string, string][] = [];
+        if (g.description !== undefined) {
+          filters.push(["description", String(g.description)]);
+        }
+        if (g.disabled_at !== undefined) {
+          filters.push(["disabled_at", String(g.disabled_at)]);
+        }
+        if (g.enabled !== undefined) {
+          filters.push(["enabled", String(g.enabled)]);
+        }
+        if (g.latitude !== undefined) {
+          filters.push(["latitude", String(g.latitude)]);
+        }
+        if (g.longitude !== undefined) {
+          filters.push(["longitude", String(g.longitude)]);
+        }
+        if (g.minimum_origins !== undefined) {
+          filters.push(["minimum_origins", String(g.minimum_origins)]);
+        }
+        if (g.monitor !== undefined) {
+          filters.push(["monitor", String(g.monitor)]);
+        }
+        if (g.monitor_group !== undefined) {
+          filters.push(["monitor_group", String(g.monitor_group)]);
+        }
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.notification_email !== undefined) {
+          filters.push(["notification_email", String(g.notification_email)]);
+        }
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "none", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(`No pools found matching filters: ${filterDesc}`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Pools by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Pools to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/load_balancers/pools";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

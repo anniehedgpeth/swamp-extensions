@@ -411,3 +411,192 @@ Deno.test("vault auth - pair-guard suppresses apiKey+email when resource owns 'e
     `await remove(endpoint, args.id, { apiToken: g.apiToken })`,
   );
 });
+
+// ---------------------------------------------------------------------------
+// Lookup and adopt methods
+// ---------------------------------------------------------------------------
+
+Deno.test("lookup - filters by scalar GlobalArgs fields only", () => {
+  const resource = makeResource({
+    resourcePath: "dns_records",
+    service: "dns",
+    modelSlug: "dns-records",
+    fileName: "dns_records.ts",
+    displayName: "DNS Record",
+    scope: "zone",
+    basePath: "/zones/{zone_id}/dns_records",
+    idPath: "/zones/{zone_id}/dns_records/{dns_record_id}",
+    idParam: "dns_record_id",
+    createProperties: {
+      name: { type: "string", description: "Record name" },
+      type: { type: "string", description: "Record type", enum: ["A", "AAAA"] },
+      content: { type: "string", description: "Record content" },
+      proxied: { type: "boolean", description: "Cloudflare proxy" },
+      ttl: { type: "integer", description: "TTL" },
+      data: {
+        type: "object",
+        description: "Record data",
+        properties: { flags: { type: "number" } },
+      },
+      tags: { type: "array", description: "Tags", items: { type: "string" } },
+    },
+    updateProperties: {},
+    resourceProperties: { id: stringProp, name: stringProp },
+    requiredProperties: ["name", "type"],
+    updateMethod: "PATCH",
+  });
+
+  const out = generateCloudflareExtensionModel({
+    resource,
+    extensionName: "@swamp/cloudflare/dns",
+    version: "2026.01.01.1",
+  });
+
+  // Scalar fields included in filter
+  assertStringIncludes(out, `filters.push(["name", String(g.name)])`);
+  assertStringIncludes(out, `filters.push(["type", String(g.type)])`);
+  assertStringIncludes(out, `filters.push(["content", String(g.content)])`);
+  assertStringIncludes(out, `filters.push(["proxied", String(g.proxied)])`);
+  assertStringIncludes(out, `filters.push(["ttl", String(g.ttl)])`);
+
+  // Object and array fields excluded from filter
+  assert(
+    !out.includes(`filters.push(["data"`),
+    "object fields should not be filterable",
+  );
+  assert(
+    !out.includes(`filters.push(["tags"`),
+    "array fields should not be filterable",
+  );
+
+  // Auth fields excluded from filter
+  assert(
+    !out.includes(`filters.push(["apiToken"`),
+    "auth fields should not be filterable",
+  );
+  assert(
+    !out.includes(`filters.push(["apiKey"`),
+    "auth fields should not be filterable",
+  );
+  assert(
+    !out.includes(`filters.push(["email"`),
+    "auth fields should not be filterable",
+  );
+
+  // Uses listAll with pagination style
+  assertStringIncludes(out, `await listAll(endpoint, "page"`);
+
+  // Error messages include filter details
+  assertStringIncludes(out, "No dns record found matching filters:");
+  assertStringIncludes(out, "Expected exactly 1 match, found");
+});
+
+Deno.test("lookup - skips synthetic name field from filters", () => {
+  const resource = makeResource({
+    resourcePath: "addressing/address_maps",
+    service: "addressing",
+    modelSlug: "address-maps",
+    fileName: "address_maps.ts",
+    displayName: "Address Map",
+    scope: "account",
+    createProperties: {
+      enabled: { type: "boolean", description: "Enabled" },
+      description: { type: "string", description: "Description" },
+    },
+    updateProperties: {},
+    resourceProperties: { id: stringProp },
+    requiredProperties: [],
+    namingField: "name",
+    syntheticName: true,
+  });
+
+  const out = generateCloudflareExtensionModel({
+    resource,
+    extensionName: "@swamp/cloudflare/addressing",
+    version: "2026.01.01.1",
+  });
+
+  // Synthetic name excluded from filters
+  assert(
+    !out.includes(`filters.push(["name"`),
+    "synthetic name should not be filterable",
+  );
+  // Real scalar fields included
+  assertStringIncludes(out, `filters.push(["enabled", String(g.enabled)])`);
+  assertStringIncludes(
+    out,
+    `filters.push(["description", String(g.description)])`,
+  );
+});
+
+Deno.test("adopt - imports by ID with no validation", () => {
+  const resource = makeResource({
+    resourcePath: "dns_records",
+    service: "dns",
+    modelSlug: "dns-records",
+    fileName: "dns_records.ts",
+    displayName: "DNS Record",
+    scope: "zone",
+    basePath: "/zones/{zone_id}/dns_records",
+    idPath: "/zones/{zone_id}/dns_records/{dns_record_id}",
+    idParam: "dns_record_id",
+    createProperties: {
+      name: { type: "string", description: "Record name" },
+    },
+    updateProperties: {},
+    resourceProperties: { id: stringProp, name: stringProp },
+    requiredProperties: ["name"],
+    updateMethod: "PATCH",
+  });
+
+  const out = generateCloudflareExtensionModel({
+    resource,
+    extensionName: "@swamp/cloudflare/dns",
+    version: "2026.01.01.1",
+  });
+
+  // Adopt method exists with correct description
+  assertStringIncludes(
+    out,
+    `"Import an existing DNS Record by ID into state for management"`,
+  );
+  // Adopt takes an id argument
+  assertStringIncludes(
+    out,
+    `id: z.string().describe("The ID of the DNS Record to import")`,
+  );
+  // Adopt calls read()
+  assertStringIncludes(out, `await read(endpoint, args.id`);
+  // Adopt prefers result.name for instance naming (not globalArgs)
+  assertStringIncludes(
+    out,
+    `result.name?.toString() ?? g.name?.toString() ?? args.id`,
+  );
+});
+
+Deno.test("adopt - uses cursor pagination style in lookup for cursor-paginated resources", () => {
+  const resource = makeResource({
+    resourcePath: "workers/scripts",
+    service: "workers",
+    modelSlug: "scripts",
+    fileName: "scripts.ts",
+    displayName: "Worker Script",
+    scope: "account",
+    createProperties: {
+      name: { type: "string", description: "Script name" },
+    },
+    updateProperties: {},
+    resourceProperties: { id: stringProp, name: stringProp },
+    requiredProperties: ["name"],
+    paginationStyle: "cursor",
+    handlers: { create: true, read: true, update: false, delete: true },
+  });
+
+  const out = generateCloudflareExtensionModel({
+    resource,
+    extensionName: "@swamp/cloudflare/workers",
+    version: "2026.01.01.1",
+  });
+
+  assertStringIncludes(out, `await listAll(endpoint, "cursor"`);
+});

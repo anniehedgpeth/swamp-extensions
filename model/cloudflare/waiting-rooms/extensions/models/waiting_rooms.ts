@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Waiting Rooms.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   zone_id: z.string().describe("Cloudflare zone ID"),
@@ -286,7 +293,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Waiting Rooms. Registered at `@swamp/cloudflare/waiting-rooms/waiting-rooms`. */
 export const model = {
   type: "@swamp/cloudflare/waiting-rooms/waiting-rooms",
-  version: "2026.06.08.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -295,6 +302,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -400,6 +412,152 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Waiting Rooms by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/zones/" + g.zone_id + "/waiting_rooms";
+        const filters: [string, string][] = [];
+        if (g.cookie_suffix !== undefined) {
+          filters.push(["cookie_suffix", String(g.cookie_suffix)]);
+        }
+        if (g.custom_page_html !== undefined) {
+          filters.push(["custom_page_html", String(g.custom_page_html)]);
+        }
+        if (g.default_template_language !== undefined) {
+          filters.push([
+            "default_template_language",
+            String(g.default_template_language),
+          ]);
+        }
+        if (g.description !== undefined) {
+          filters.push(["description", String(g.description)]);
+        }
+        if (g.disable_session_renewal !== undefined) {
+          filters.push([
+            "disable_session_renewal",
+            String(g.disable_session_renewal),
+          ]);
+        }
+        if (g.host !== undefined) filters.push(["host", String(g.host)]);
+        if (g.json_response_enabled !== undefined) {
+          filters.push([
+            "json_response_enabled",
+            String(g.json_response_enabled),
+          ]);
+        }
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.new_users_per_minute !== undefined) {
+          filters.push([
+            "new_users_per_minute",
+            String(g.new_users_per_minute),
+          ]);
+        }
+        if (g.path !== undefined) filters.push(["path", String(g.path)]);
+        if (g.queue_all !== undefined) {
+          filters.push(["queue_all", String(g.queue_all)]);
+        }
+        if (g.queueing_method !== undefined) {
+          filters.push(["queueing_method", String(g.queueing_method)]);
+        }
+        if (g.queueing_status_code !== undefined) {
+          filters.push([
+            "queueing_status_code",
+            String(g.queueing_status_code),
+          ]);
+        }
+        if (g.session_duration !== undefined) {
+          filters.push(["session_duration", String(g.session_duration)]);
+        }
+        if (g.suspended !== undefined) {
+          filters.push(["suspended", String(g.suspended)]);
+        }
+        if (g.total_active_users !== undefined) {
+          filters.push(["total_active_users", String(g.total_active_users)]);
+        }
+        if (g.turnstile_action !== undefined) {
+          filters.push(["turnstile_action", String(g.turnstile_action)]);
+        }
+        if (g.turnstile_mode !== undefined) {
+          filters.push(["turnstile_mode", String(g.turnstile_mode)]);
+        }
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `No waiting rooms found matching filters: ${filterDesc}`,
+          );
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description:
+        "Import an existing Waiting Rooms by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Waiting Rooms to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/zones/" + g.zone_id + "/waiting_rooms";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

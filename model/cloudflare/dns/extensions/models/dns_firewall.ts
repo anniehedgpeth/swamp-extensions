@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Dns Firewall.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -123,7 +130,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Dns Firewall. Registered at `@swamp/cloudflare/dns/dns-firewall`. */
 export const model = {
   type: "@swamp/cloudflare/dns/dns-firewall",
-  version: "2026.06.08.2",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -137,6 +144,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.08.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -216,6 +228,120 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Dns Firewall by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/dns_firewall";
+        const filters: [string, string][] = [];
+        if (g.deprecate_any_requests !== undefined) {
+          filters.push([
+            "deprecate_any_requests",
+            String(g.deprecate_any_requests),
+          ]);
+        }
+        if (g.ecs_fallback !== undefined) {
+          filters.push(["ecs_fallback", String(g.ecs_fallback)]);
+        }
+        if (g.maximum_cache_ttl !== undefined) {
+          filters.push(["maximum_cache_ttl", String(g.maximum_cache_ttl)]);
+        }
+        if (g.minimum_cache_ttl !== undefined) {
+          filters.push(["minimum_cache_ttl", String(g.minimum_cache_ttl)]);
+        }
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.negative_cache_ttl !== undefined) {
+          filters.push(["negative_cache_ttl", String(g.negative_cache_ttl)]);
+        }
+        if (g.ratelimit !== undefined) {
+          filters.push(["ratelimit", String(g.ratelimit)]);
+        }
+        if (g.retries !== undefined) {
+          filters.push(["retries", String(g.retries)]);
+        }
+        if (g.dns_firewall_ip_count !== undefined) {
+          filters.push([
+            "dns_firewall_ip_count",
+            String(g.dns_firewall_ip_count),
+          ]);
+        }
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `No dns firewall found matching filters: ${filterDesc}`,
+          );
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description:
+        "Import an existing Dns Firewall by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Dns Firewall to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/dns_firewall";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

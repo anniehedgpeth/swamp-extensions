@@ -28,14 +28,14 @@ snapshot[`generateCloudflareExtensionModel - account-scoped, all handlers 1`] = 
 /**
  * Swamp extension model for a Cloudflare Database.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through \`swamp model\`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through \`swamp model\`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, tryRead, remove } from "./_lib/cloudflare.ts";
+import { create, listAll, read, tryRead, remove } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -103,6 +103,49 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id + "/d1/database";
         const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
         const instanceName = (g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description: "Look up an existing Database by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/d1/database";
+        const filters: [string, string][] = [];
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.primary_location_hint !== undefined) filters.push(["primary_location_hint", String(g.primary_location_hint)]);
+        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");
+        const items = await listAll(endpoint, "page", undefined, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email });
+        const matches = items.filter(item => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) return false;
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`No database found matching filters: \${filterDesc}\`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`Expected exactly 1 match, found \${matches.length} for filters: \${filterDesc}\`);
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName = (g.name?.toString() ?? result.id?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Database by ID into state for management",
+      arguments: z.object({ id: z.string().describe("The ID of the Database to import") }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/d1/database";
+        const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
+        const instanceName = (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -183,14 +226,14 @@ snapshot[`generateCloudflareExtensionModel - zone-scoped, PATCH update 1`] = `
 /**
  * Swamp extension model for a Cloudflare DNS Record.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through \`swamp model\`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through \`swamp model\`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, tryRead, remove, update } from "./_lib/cloudflare.ts";
+import { create, listAll, read, tryRead, remove, update } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   zone_id: z.string().describe("Cloudflare zone ID"),
@@ -268,6 +311,52 @@ export const model = {
         const endpoint = "/zones/" + g.zone_id + "/dns_records";
         const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
         const instanceName = (g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description: "Look up an existing DNS Record by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/zones/" + g.zone_id + "/dns_records";
+        const filters: [string, string][] = [];
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.content !== undefined) filters.push(["content", String(g.content)]);
+        if (g.ttl !== undefined) filters.push(["ttl", String(g.ttl)]);
+        if (g.proxied !== undefined) filters.push(["proxied", String(g.proxied)]);
+        if (g.type !== undefined) filters.push(["type", String(g.type)]);
+        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");
+        const items = await listAll(endpoint, "page", undefined, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email });
+        const matches = items.filter(item => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) return false;
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`No dns record found matching filters: \${filterDesc}\`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`Expected exactly 1 match, found \${matches.length} for filters: \${filterDesc}\`);
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName = (g.name?.toString() ?? result.id?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing DNS Record by ID into state for management",
+      arguments: z.object({ id: z.string().describe("The ID of the DNS Record to import") }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/zones/" + g.zone_id + "/dns_records";
+        const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
+        const instanceName = (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -370,14 +459,14 @@ snapshot[`generateCloudflareExtensionModel - dual-scoped resource 1`] = `
 /**
  * Swamp extension model for a Cloudflare Ruleset.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through \`swamp model\`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through \`swamp model\`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, tryRead, remove, update } from "./_lib/cloudflare.ts";
+import { create, listAll, read, tryRead, remove, update } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().optional().describe("Cloudflare account ID (provide account_id or zone_id)"),
@@ -455,6 +544,52 @@ export const model = {
         const endpoint = scopePrefix + "/rulesets";
         const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
         const instanceName = (g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description: "Look up an existing Ruleset by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/rulesets";
+        const filters: [string, string][] = [];
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.kind !== undefined) filters.push(["kind", String(g.kind)]);
+        if (g.phase !== undefined) filters.push(["phase", String(g.phase)]);
+        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");
+        const items = await listAll(endpoint, "page", undefined, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email });
+        const matches = items.filter(item => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) return false;
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`No ruleset found matching filters: \${filterDesc}\`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`Expected exactly 1 match, found \${matches.length} for filters: \${filterDesc}\`);
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName = (g.name?.toString() ?? result.id?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Ruleset by ID into state for management",
+      arguments: z.object({ id: z.string().describe("The ID of the Ruleset to import") }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/rulesets";
+        const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
+        const instanceName = (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -557,14 +692,14 @@ snapshot[`generateCloudflareExtensionModel - synthetic name 1`] = `
 /**
  * Swamp extension model for a Cloudflare Address Map.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through \`swamp model\`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through \`swamp model\`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, tryRead, remove, update } from "./_lib/cloudflare.ts";
+import { create, listAll, read, tryRead, remove, update } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -629,6 +764,48 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id + "/addressing/address_maps";
         const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
         const instanceName = (g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description: "Look up an existing Address Map by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/addressing/address_maps";
+        const filters: [string, string][] = [];
+        if (g.enabled !== undefined) filters.push(["enabled", String(g.enabled)]);
+        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");
+        const items = await listAll(endpoint, "page", undefined, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email });
+        const matches = items.filter(item => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) return false;
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`No address map found matching filters: \${filterDesc}\`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`Expected exactly 1 match, found \${matches.length} for filters: \${filterDesc}\`);
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName = (g.name?.toString() ?? result.id?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Address Map by ID into state for management",
+      arguments: z.object({ id: z.string().describe("The ID of the Address Map to import") }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/addressing/address_maps";
+        const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
+        const instanceName = (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -728,14 +905,14 @@ snapshot[`generateCloudflareExtensionModel - with upgrades block 1`] = `
 /**
  * Swamp extension model for a Cloudflare Worker Script.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through \`swamp model\`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through \`swamp model\`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, tryRead, remove } from "./_lib/cloudflare.ts";
+import { create, listAll, read, tryRead, remove } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -806,6 +983,48 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id + "/workers/scripts";
         const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
         const instanceName = (g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description: "Look up an existing Worker Script by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/workers/scripts";
+        const filters: [string, string][] = [];
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");
+        const items = await listAll(endpoint, "page", undefined, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email });
+        const matches = items.filter(item => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) return false;
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`No worker script found matching filters: \${filterDesc}\`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");
+          throw new Error(\`Expected exactly 1 match, found \${matches.length} for filters: \${filterDesc}\`);
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName = (g.name?.toString() ?? result.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Import an existing Worker Script by ID into state for management",
+      arguments: z.object({ id: z.string().describe("The ID of the Worker Script to import") }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/workers/scripts";
+        const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
+        const instanceName = (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const handle = await context.writeResource("state", instanceName, result);
         return { dataHandles: [handle] };
       },

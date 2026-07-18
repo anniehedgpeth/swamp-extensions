@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Gre Tunnels.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -173,7 +180,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Gre Tunnels. Registered at `@swamp/cloudflare/magic/gre-tunnels`. */
 export const model = {
   type: "@swamp/cloudflare/magic/gre-tunnels",
-  version: "2026.06.24.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -187,6 +194,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -264,6 +276,119 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Gre Tunnels by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/magic/gre_tunnels";
+        const filters: [string, string][] = [];
+        if (g.automatic_return_routing !== undefined) {
+          filters.push([
+            "automatic_return_routing",
+            String(g.automatic_return_routing),
+          ]);
+        }
+        if (g.cloudflare_gre_endpoint !== undefined) {
+          filters.push([
+            "cloudflare_gre_endpoint",
+            String(g.cloudflare_gre_endpoint),
+          ]);
+        }
+        if (g.customer_gre_endpoint !== undefined) {
+          filters.push([
+            "customer_gre_endpoint",
+            String(g.customer_gre_endpoint),
+          ]);
+        }
+        if (g.description !== undefined) {
+          filters.push(["description", String(g.description)]);
+        }
+        if (g.interface_address !== undefined) {
+          filters.push(["interface_address", String(g.interface_address)]);
+        }
+        if (g.interface_address6 !== undefined) {
+          filters.push(["interface_address6", String(g.interface_address6)]);
+        }
+        if (g.mtu !== undefined) filters.push(["mtu", String(g.mtu)]);
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.ttl !== undefined) filters.push(["ttl", String(g.ttl)]);
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "none", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `No gre tunnels found matching filters: ${filterDesc}`,
+          );
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description:
+        "Import an existing Gre Tunnels by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Gre Tunnels to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/magic/gre_tunnels";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

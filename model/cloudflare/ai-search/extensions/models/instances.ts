@@ -25,14 +25,21 @@
 /**
  * Swamp extension model for a Cloudflare Instances.
  *
- * Wraps the Cloudflare API as a swamp model so create, get, update,
- * delete, and sync can be driven through `swamp model`.
+ * Wraps the Cloudflare API as a swamp model so create, get, lookup,
+ * adopt, update, delete, and sync can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, read, remove, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
@@ -575,7 +582,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Instances. Registered at `@swamp/cloudflare/ai-search/instances`. */
 export const model = {
   type: "@swamp/cloudflare/ai-search/instances",
-  version: "2026.07.14.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -599,6 +606,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.14.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -706,6 +718,171 @@ export const model = {
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    lookup: {
+      description:
+        "Look up an existing Instances by matching global argument values and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/ai-search/instances";
+        const filters: [string, string][] = [];
+        if (g.ai_gateway_id !== undefined) {
+          filters.push(["ai_gateway_id", String(g.ai_gateway_id)]);
+        }
+        if (g.ai_search_model !== undefined) {
+          filters.push(["ai_search_model", String(g.ai_search_model)]);
+        }
+        if (g.cache !== undefined) filters.push(["cache", String(g.cache)]);
+        if (g.cache_threshold !== undefined) {
+          filters.push(["cache_threshold", String(g.cache_threshold)]);
+        }
+        if (g.cache_ttl !== undefined) {
+          filters.push(["cache_ttl", String(g.cache_ttl)]);
+        }
+        if (g.chunk !== undefined) filters.push(["chunk", String(g.chunk)]);
+        if (g.chunk_overlap !== undefined) {
+          filters.push(["chunk_overlap", String(g.chunk_overlap)]);
+        }
+        if (g.chunk_size !== undefined) {
+          filters.push(["chunk_size", String(g.chunk_size)]);
+        }
+        if (g.embedding_model !== undefined) {
+          filters.push(["embedding_model", String(g.embedding_model)]);
+        }
+        if (g.fusion_method !== undefined) {
+          filters.push(["fusion_method", String(g.fusion_method)]);
+        }
+        if (g.max_num_results !== undefined) {
+          filters.push(["max_num_results", String(g.max_num_results)]);
+        }
+        if (g.paused !== undefined) filters.push(["paused", String(g.paused)]);
+        if (g.reranking !== undefined) {
+          filters.push(["reranking", String(g.reranking)]);
+        }
+        if (g.reranking_model !== undefined) {
+          filters.push(["reranking_model", String(g.reranking_model)]);
+        }
+        if (g.rewrite_model !== undefined) {
+          filters.push(["rewrite_model", String(g.rewrite_model)]);
+        }
+        if (g.rewrite_query !== undefined) {
+          filters.push(["rewrite_query", String(g.rewrite_query)]);
+        }
+        if (g.score_threshold !== undefined) {
+          filters.push(["score_threshold", String(g.score_threshold)]);
+        }
+        if (g.source !== undefined) filters.push(["source", String(g.source)]);
+        if (g.summarization !== undefined) {
+          filters.push(["summarization", String(g.summarization)]);
+        }
+        if (g.summarization_model !== undefined) {
+          filters.push(["summarization_model", String(g.summarization_model)]);
+        }
+        if (g.sync_interval !== undefined) {
+          filters.push(["sync_interval", String(g.sync_interval)]);
+        }
+        if (g.system_prompt_ai_search !== undefined) {
+          filters.push([
+            "system_prompt_ai_search",
+            String(g.system_prompt_ai_search),
+          ]);
+        }
+        if (g.system_prompt_index_summarization !== undefined) {
+          filters.push([
+            "system_prompt_index_summarization",
+            String(g.system_prompt_index_summarization),
+          ]);
+        }
+        if (g.system_prompt_rewrite_query !== undefined) {
+          filters.push([
+            "system_prompt_rewrite_query",
+            String(g.system_prompt_rewrite_query),
+          ]);
+        }
+        if (g.token_id !== undefined) {
+          filters.push(["token_id", String(g.token_id)]);
+        }
+        if (g.hybrid_search_enabled !== undefined) {
+          filters.push([
+            "hybrid_search_enabled",
+            String(g.hybrid_search_enabled),
+          ]);
+        }
+        if (g.id !== undefined) filters.push(["id", String(g.id)]);
+        if (g.type !== undefined) filters.push(["type", String(g.type)]);
+        if (filters.length === 0) {
+          throw new Error(
+            "At least one global argument must be set to filter by",
+          );
+        }
+        const items = await listAll(endpoint, "page", undefined, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const matches = items.filter((item) => {
+          for (const [key, val] of filters) {
+            if (String((item as Record<string, unknown>)[key]) !== val) {
+              return false;
+            }
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(`No instances found matching filters: ${filterDesc}`);
+        }
+        if (matches.length > 1) {
+          const filterDesc = filters.map(([k, v]) =>
+            `${k}=${JSON.stringify(v)}`
+          ).join(", ");
+          throw new Error(
+            `Expected exactly 1 match, found ${matches.length} for filters: ${filterDesc}`,
+          );
+        }
+        const result = matches[0] as ResourceData;
+        const instanceName =
+          (g.name?.toString() ?? result.id?.toString() ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description:
+        "Import an existing Instances by ID into state for management",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Instances to import"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        const endpoint = "/accounts/" + g.account_id + "/ai-search/instances";
+        const result = await read(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        }) as ResourceData;
+        const instanceName =
+          (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
