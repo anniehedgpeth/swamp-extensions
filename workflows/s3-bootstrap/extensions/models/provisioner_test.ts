@@ -34,12 +34,10 @@ Deno.test("model export has expected shape", () => {
 
 Deno.test("globalArgs accepts valid configs", () => {
   GlobalArgsSchema.parse({
-    name: "my-store",
     bucket_name: "my-swamp-state",
     region: "us-east-1",
   });
   GlobalArgsSchema.parse({
-    name: "my-store",
     bucket_name: "my-swamp-state",
     region: "eu-west-1",
     prefix: "swamp",
@@ -50,41 +48,31 @@ Deno.test("globalArgs accepts valid configs", () => {
 Deno.test("globalArgs rejects invalid bucket names", () => {
   assertThrows(() =>
     GlobalArgsSchema.parse({
-      name: "x",
       bucket_name: "ab",
       region: "us-east-1",
     })
   );
   assertThrows(() =>
     GlobalArgsSchema.parse({
-      name: "x",
       bucket_name: "My-Bucket",
       region: "us-east-1",
     })
   );
   assertThrows(() =>
     GlobalArgsSchema.parse({
-      name: "x",
       bucket_name: "-leading-hyphen",
       region: "us-east-1",
     })
   );
 });
 
-Deno.test("globalArgs requires name, bucket_name, region", () => {
+Deno.test("globalArgs requires bucket_name and region", () => {
   assertThrows(() => GlobalArgsSchema.parse({}));
-  assertThrows(() =>
-    GlobalArgsSchema.parse({ bucket_name: "ok-bucket", region: "us-east-1" })
-  );
-  assertThrows(() =>
-    GlobalArgsSchema.parse({ name: "x", region: "us-east-1" })
-  );
+  assertThrows(() => GlobalArgsSchema.parse({ region: "us-east-1" }));
+  assertThrows(() => GlobalArgsSchema.parse({ bucket_name: "ok-bucket" }));
 });
 
 Deno.test("globalArgs rejects shell/JSON injection in region", () => {
-  // These values flow into a single-quoted JSON blob inside a shell command
-  // in the workflow's run-setup step. A quote or shell metacharacter would
-  // break either the quoting or the surrounding JSON.
   for (
     const bad of [
       "us-east-1'",
@@ -96,7 +84,6 @@ Deno.test("globalArgs rejects shell/JSON injection in region", () => {
   ) {
     assertThrows(() =>
       GlobalArgsSchema.parse({
-        name: "x",
         bucket_name: "ok-bucket",
         region: bad,
       })
@@ -116,7 +103,6 @@ Deno.test("globalArgs rejects shell/JSON injection in prefix", () => {
   ) {
     assertThrows(() =>
       GlobalArgsSchema.parse({
-        name: "x",
         bucket_name: "ok-bucket",
         region: "us-east-1",
         prefix: bad,
@@ -126,11 +112,7 @@ Deno.test("globalArgs rejects shell/JSON injection in prefix", () => {
 });
 
 Deno.test("globalArgs accepts the empty-string default for prefix and policy_name", () => {
-  // The workflow YAML defaults both to "" — the provisioner's resolvePolicyName
-  // treats empty as "use the default", and the empty prefix is safe in both
-  // shell quoting and JSON.
   GlobalArgsSchema.parse({
-    name: "x",
     bucket_name: "ok-bucket",
     region: "us-east-1",
     prefix: "",
@@ -149,7 +131,6 @@ Deno.test("globalArgs rejects shell/JSON injection in policy_name", () => {
   ) {
     assertThrows(() =>
       GlobalArgsSchema.parse({
-        name: "x",
         bucket_name: "ok-bucket",
         region: "us-east-1",
         policy_name: bad,

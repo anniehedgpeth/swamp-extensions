@@ -31,7 +31,7 @@ import {
  */
 export const model = {
   type: "@swamp/s3-datastore-bootstrap/provisioner",
-  version: "2026.07.18.1",
+  version: "2026.07.18.2",
   globalArguments: GlobalArgsSchema,
   upgrades: [
     {
@@ -49,6 +49,13 @@ export const model = {
     {
       toVersion: "2026.07.18.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
+      description: "Remove 'name' from globalArguments schema to fix " +
+        "workflow execution crash (issue #1237). Resource state is now " +
+        "keyed by bucket_name instead of model instance name.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -104,7 +111,11 @@ export const model = {
             policy_arn: policyArn,
             created_at: new Date().toISOString(),
           };
-          const handle = await context.writeResource("state", g.name, state);
+          const handle = await context.writeResource(
+            "state",
+            g.bucket_name,
+            state,
+          );
           return { dataHandles: [handle] };
         } finally {
           // Release HTTP connection pools. Benign for one-shot workflow runs

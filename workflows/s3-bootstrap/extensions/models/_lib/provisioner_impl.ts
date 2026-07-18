@@ -51,9 +51,6 @@ const IAM_POLICY_NAME_RE = /^([\w+=,.@-]{1,128})?$/;
 
 /** Inputs the workflow passes into each provisioner invocation. */
 export const GlobalArgsSchema = z.object({
-  name: z.string().describe(
-    "Instance name for this provisioner (used as the unique identifier).",
-  ),
   bucket_name: z.string().min(3).max(63).regex(
     S3_BUCKET_NAME_RE,
     "Bucket names must be 3-63 chars, lowercase, letters/numbers/hyphens/dots.",
