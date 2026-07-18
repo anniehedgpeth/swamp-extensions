@@ -1,7 +1,7 @@
 export const snapshot = {};
 
 snapshot[`generateGcpExtensionModel - all handlers, natural naming 1`] = `
-'// Swamp, an Automation Framework
+"// Swamp, an Automation Framework
 // Copyright (C) 2026 Elder Swamp Club, Inc.
 //
 // This file is part of Swamp.
@@ -9,7 +9,7 @@ snapshot[`generateGcpExtensionModel - all handlers, natural naming 1`] = `
 // Swamp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License version 3
 // as published by the Free Software Foundation, with the Swamp
-// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// Extension and Definition Exception (found in the \\"COPYING-EXCEPTION\\"
 // file).
 //
 // Swamp is distributed in the hope that it will be useful,
@@ -36,113 +36,114 @@ snapshot[`generateGcpExtensionModel - all handlers, natural naming 1`] = `
  * @module
  */
 
-import { z } from "npm:zod@4.3.6";
-import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
+import { z } from \\"npm:zod@4.3.6\\";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from \\"./_lib/gcp.ts\\";
 
-const BASE_URL = "https://compute.googleapis.com/compute/v1";
+const BASE_URL = \\"https://compute.googleapis.com/compute/v1\\";
 
 const GET_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"GET\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.get"
+  \\"id\\": \\"compute.instances.get\\"
 } as const;
 
 const INSERT_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "project",
-    "zone"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.insert"
+  \\"id\\": \\"compute.instances.insert\\"
 } as const;
 
 const PATCH_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "PATCH",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"PATCH\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.patch"
+  \\"id\\": \\"compute.instances.patch\\"
 } as const;
 
 const DELETE_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "DELETE",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"DELETE\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.delete"
+  \\"id\\": \\"compute.instances.delete\\"
 } as const;
 
 const GlobalArgsSchema = z.object({
-  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
-  name: z.string().describe("Instance name"),
-  zone: z.string().describe("Zone"),
-  machineType: z.string().describe("Machine type"),
+  accessToken: z.string().meta({ sensitive: true }).describe(\\"GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
+  scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  name: z.string().describe(\\"Instance name\\"),
+  zone: z.string().describe(\\"Zone\\"),
+  machineType: z.string().describe(\\"Machine type\\"),
 });
 
 const StateSchema = z.object({
@@ -159,148 +160,150 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  name: z.string().describe("Instance name").optional(),
-  zone: z.string().describe("Zone").optional(),
-  machineType: z.string().describe("Machine type").optional(),
+  scopes: z.string().optional(),
+  name: z.string().describe(\\"Instance name\\").optional(),
+  zone: z.string().describe(\\"Zone\\").optional(),
+  machineType: z.string().describe(\\"Machine type\\").optional(),
 });
 
-const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at \`@swamp/gcp/compute/instances\`. */
 export const model = {
-  type: "@swamp/gcp/compute/instances",
-  version: "2026.01.01.1",
+  type: \\"@swamp/gcp/compute/instances\\",
+  version: \\"2026.01.01.1\\",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A compute engine instance",
+      description: \\"A compute engine instance\\",
       schema: StateSchema,
-      lifetime: "infinite",
+      lifetime: \\"infinite\\",
       garbageCollection: 10,
     },
   },
   methods: {
     create: {
-      description: "Create a instances",
+      description: \\"Create a instances\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         const body: Record<string, unknown> = {};
-        if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["machineType"] !== undefined) body["machineType"] = g["machineType"];
-        if (g["name"] !== undefined) params["instance"] = String(g["name"]);
+        if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
+        if (g[\\"machineType\\"] !== undefined) body[\\"machineType\\"] = g[\\"machineType\\"];
+        if (g[\\"name\\"] !== undefined) params[\\"instance\\"] = String(g[\\"name\\"]);
         const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     get: {
-      description: "Get a instances",
-      arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
+      description: \\"Get a instances\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        params["instance"] = args.identifier;
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        params[\\"instance\\"] = args.identifier;
         const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     update: {
-      description: "Update instances attributes",
+      description: \\"Update instances attributes\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        else if (existing["zone"]) params["zone"] = String(existing["zone"]);
-        params["instance"] = existing["name"]?.toString() ?? "";
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        else if (existing[\\"zone\\"]) params[\\"zone\\"] = String(existing[\\"zone\\"]);
+        params[\\"instance\\"] = existing[\\"name\\"]?.toString() ?? \\"\\";
         const body: Record<string, unknown> = {};
-        if (g["machineType"] !== undefined) body["machineType"] = g["machineType"];
+        if (g[\\"machineType\\"] !== undefined) body[\\"machineType\\"] = g[\\"machineType\\"];
         for (const key of Object.keys(existing)) {
-          if (key === "fingerprint" || key === "labelFingerprint" || key === "etag" || key.endsWith("Fingerprint")) {
+          if (key === \\"fingerprint\\" || key === \\"labelFingerprint\\" || key === \\"etag\\" || key.endsWith(\\"Fingerprint\\")) {
             body[key] = existing[key];
           }
         }
         const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
-        const handle = await context.writeResource("state", instanceName, result);
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     delete: {
-      description: "Delete the instances",
-      arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
+      description: \\"Delete the instances\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        params["instance"] = args.identifier;
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        params[\\"instance\\"] = args.identifier;
         const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
+        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
           existed,
-          status: existed ? "deleted" : "not_found",
+          status: existed ? \\"deleted\\" : \\"not_found\\",
           deletedAt: new Date().toISOString(),
         });
         return { dataHandles: [handle] };
       },
     },
     sync: {
-      description: "Sync instances state from GCP",
+      description: \\"Sync instances state from GCP\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-          else if (existing["zone"]) params["zone"] = String(existing["zone"]);
-          const identifier = existing.name?.toString() ?? g["name"]?.toString();
-          if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
-          params["instance"] = identifier;
+          if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+          else if (existing[\\"zone\\"]) params[\\"zone\\"] = String(existing[\\"zone\\"]);
+          const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
+          if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
+          params[\\"instance\\"] = identifier;
           const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-          const handle = await context.writeResource("state", instanceName, result);
+          const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
           if (isResourceNotFoundError(error)) {
-            const handle = await context.writeResource("state", instanceName, {
-              status: "not_found",
+            const handle = await context.writeResource(\\"state\\", instanceName, {
+              status: \\"not_found\\",
               syncedAt: new Date().toISOString(),
             });
             return { dataHandles: [handle] };
@@ -311,11 +314,11 @@ export const model = {
     },
   },
 };
-'
+"
 `;
 
 snapshot[`generateGcpExtensionModel - readiness polling 1`] = `
-'// Swamp, an Automation Framework
+"// Swamp, an Automation Framework
 // Copyright (C) 2026 Elder Swamp Club, Inc.
 //
 // This file is part of Swamp.
@@ -323,7 +326,7 @@ snapshot[`generateGcpExtensionModel - readiness polling 1`] = `
 // Swamp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License version 3
 // as published by the Free Software Foundation, with the Swamp
-// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// Extension and Definition Exception (found in the \\"COPYING-EXCEPTION\\"
 // file).
 //
 // Swamp is distributed in the hope that it will be useful,
@@ -350,112 +353,113 @@ snapshot[`generateGcpExtensionModel - readiness polling 1`] = `
  * @module
  */
 
-import { z } from "npm:zod@4.3.6";
-import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
+import { z } from \\"npm:zod@4.3.6\\";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from \\"./_lib/gcp.ts\\";
 
-const BASE_URL = "https://compute.googleapis.com/compute/v1";
+const BASE_URL = \\"https://compute.googleapis.com/compute/v1\\";
 
 const GET_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"GET\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.get"
+  \\"id\\": \\"compute.instances.get\\"
 } as const;
 
 const INSERT_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "project",
-    "zone"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.insert"
+  \\"id\\": \\"compute.instances.insert\\"
 } as const;
 
 const PATCH_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "PATCH",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"PATCH\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.patch"
+  \\"id\\": \\"compute.instances.patch\\"
 } as const;
 
 const DELETE_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "DELETE",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"DELETE\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.delete"
+  \\"id\\": \\"compute.instances.delete\\"
 } as const;
 
 const GlobalArgsSchema = z.object({
-  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
-  name: z.string().describe("Instance name"),
-  zone: z.string().describe("Zone"),
+  accessToken: z.string().meta({ sensitive: true }).describe(\\"GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
+  scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  name: z.string().describe(\\"Instance name\\"),
+  zone: z.string().describe(\\"Zone\\"),
 });
 
 const StateSchema = z.object({
@@ -470,146 +474,148 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  name: z.string().describe("Instance name").optional(),
-  zone: z.string().describe("Zone").optional(),
+  scopes: z.string().optional(),
+  name: z.string().describe(\\"Instance name\\").optional(),
+  zone: z.string().describe(\\"Zone\\").optional(),
 });
 
-const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at \`@swamp/gcp/compute/instances\`. */
 export const model = {
-  type: "@swamp/gcp/compute/instances",
-  version: "2026.01.01.1",
+  type: \\"@swamp/gcp/compute/instances\\",
+  version: \\"2026.01.01.1\\",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A compute engine instance",
+      description: \\"A compute engine instance\\",
       schema: StateSchema,
-      lifetime: "infinite",
+      lifetime: \\"infinite\\",
       garbageCollection: 10,
     },
   },
   methods: {
     create: {
-      description: "Create a instances",
-      arguments: z.object({ waitForReady: z.boolean().describe("Wait for the resource to reach a ready state after creation (default: true)").optional() }),
+      description: \\"Create a instances\\",
+      arguments: z.object({ waitForReady: z.boolean().describe(\\"Wait for the resource to reach a ready state after creation (default: true)\\").optional() }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         const body: Record<string, unknown> = {};
-        if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["name"] !== undefined) params["instance"] = String(g["name"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {"statusField":"status","readyValues":["RUNNING"],"failedValues":["TERMINATED","SUSPENDED"]} : undefined, undefined, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
+        if (g[\\"name\\"] !== undefined) params[\\"instance\\"] = String(g[\\"name\\"]);
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {\\"statusField\\":\\"status\\",\\"readyValues\\":[\\"RUNNING\\"],\\"failedValues\\":[\\"TERMINATED\\",\\"SUSPENDED\\"]} : undefined, undefined, credentials) as StateData;
+        const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     get: {
-      description: "Get a instances",
-      arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
+      description: \\"Get a instances\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        params["instance"] = args.identifier;
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        params[\\"instance\\"] = args.identifier;
         const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     update: {
-      description: "Update instances attributes",
-      arguments: z.object({ waitForReady: z.boolean().describe("Wait for the resource to reach a ready state after update (default: true)").optional() }),
+      description: \\"Update instances attributes\\",
+      arguments: z.object({ waitForReady: z.boolean().describe(\\"Wait for the resource to reach a ready state after update (default: true)\\").optional() }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        else if (existing["zone"]) params["zone"] = String(existing["zone"]);
-        params["instance"] = existing["name"]?.toString() ?? "";
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        else if (existing[\\"zone\\"]) params[\\"zone\\"] = String(existing[\\"zone\\"]);
+        params[\\"instance\\"] = existing[\\"name\\"]?.toString() ?? \\"\\";
         const body: Record<string, unknown> = {};
-        if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
         for (const key of Object.keys(existing)) {
-          if (key === "fingerprint" || key === "labelFingerprint" || key === "etag" || key.endsWith("Fingerprint")) {
+          if (key === \\"fingerprint\\" || key === \\"labelFingerprint\\" || key === \\"etag\\" || key.endsWith(\\"Fingerprint\\")) {
             body[key] = existing[key];
           }
         }
-        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {"statusField":"status","readyValues":["RUNNING"],"failedValues":["TERMINATED","SUSPENDED"]} : undefined, credentials) as StateData;
-        const handle = await context.writeResource("state", instanceName, result);
+        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {\\"statusField\\":\\"status\\",\\"readyValues\\":[\\"RUNNING\\"],\\"failedValues\\":[\\"TERMINATED\\",\\"SUSPENDED\\"]} : undefined, credentials) as StateData;
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     delete: {
-      description: "Delete the instances",
-      arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
+      description: \\"Delete the instances\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        params["instance"] = args.identifier;
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        params[\\"instance\\"] = args.identifier;
         const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
+        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
           existed,
-          status: existed ? "deleted" : "not_found",
+          status: existed ? \\"deleted\\" : \\"not_found\\",
           deletedAt: new Date().toISOString(),
         });
         return { dataHandles: [handle] };
       },
     },
     sync: {
-      description: "Sync instances state from GCP",
+      description: \\"Sync instances state from GCP\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-          else if (existing["zone"]) params["zone"] = String(existing["zone"]);
-          const identifier = existing.name?.toString() ?? g["name"]?.toString();
-          if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
-          params["instance"] = identifier;
+          if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+          else if (existing[\\"zone\\"]) params[\\"zone\\"] = String(existing[\\"zone\\"]);
+          const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
+          if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
+          params[\\"instance\\"] = identifier;
           const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-          const handle = await context.writeResource("state", instanceName, result);
+          const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
           if (isResourceNotFoundError(error)) {
-            const handle = await context.writeResource("state", instanceName, {
-              status: "not_found",
+            const handle = await context.writeResource(\\"state\\", instanceName, {
+              status: \\"not_found\\",
               syncedAt: new Date().toISOString(),
             });
             return { dataHandles: [handle] };
@@ -620,11 +626,11 @@ export const model = {
     },
   },
 };
-'
+"
 `;
 
 snapshot[`generateGcpExtensionModel - listOnly resource 1`] = `
-'// Swamp, an Automation Framework
+"// Swamp, an Automation Framework
 // Copyright (C) 2026 Elder Swamp Club, Inc.
 //
 // This file is part of Swamp.
@@ -632,7 +638,7 @@ snapshot[`generateGcpExtensionModel - listOnly resource 1`] = `
 // Swamp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License version 3
 // as published by the Free Software Foundation, with the Swamp
-// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// Extension and Definition Exception (found in the \\"COPYING-EXCEPTION\\"
 // file).
 //
 // Swamp is distributed in the hope that it will be useful,
@@ -659,46 +665,47 @@ snapshot[`generateGcpExtensionModel - listOnly resource 1`] = `
  * @module
  */
 
-import { z } from "npm:zod@4.3.6";
-import { type ExplicitGcpCredentials, createResource, getProjectId, isResourceNotFoundError, readViaList } from "./_lib/gcp.ts";
+import { z } from \\"npm:zod@4.3.6\\";
+import { type ExplicitGcpCredentials, createResource, getProjectId, isResourceNotFoundError, readViaList } from \\"./_lib/gcp.ts\\";
 
-const BASE_URL = "https://compute.googleapis.com/compute/v1";
+const BASE_URL = \\"https://compute.googleapis.com/compute/v1\\";
 
 const LIST_CONFIG = {
-  "path": "projects/{project}/regions",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "project"
+  \\"path\\": \\"projects/{project}/regions\\",
+  \\"httpMethod\\": \\"GET\\",
+  \\"parameterOrder\\": [
+    \\"project\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.regions.list"
+  \\"id\\": \\"compute.regions.list\\"
 } as const;
 
 const INSERT_CONFIG = {
-  "path": "projects/{project}/regions",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "project"
+  \\"path\\": \\"projects/{project}/regions\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"project\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.regions.insert"
+  \\"id\\": \\"compute.regions.insert\\"
 } as const;
 
 const GlobalArgsSchema = z.object({
-  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
-  name: z.string().describe("Region name"),
+  accessToken: z.string().meta({ sensitive: true }).describe(\\"GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
+  scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  name: z.string().describe(\\"Region name\\"),
 });
 
 const StateSchema = z.object({
@@ -713,36 +720,38 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  name: z.string().describe("Region name").optional(),
+  scopes: z.string().optional(),
+  name: z.string().describe(\\"Region name\\").optional(),
 });
 
-const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Compute Engine Regions. Registered at \`@swamp/gcp/compute/regions\`. */
 export const model = {
-  type: "@swamp/gcp/compute/regions",
-  version: "2026.01.01.1",
+  type: \\"@swamp/gcp/compute/regions\\",
+  version: \\"2026.01.01.1\\",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A compute engine region",
+      description: \\"A compute engine region\\",
       schema: StateSchema,
-      lifetime: "infinite",
+      lifetime: \\"infinite\\",
       garbageCollection: 10,
     },
   },
   methods: {
     create: {
-      description: "Create a regions",
+      description: \\"Create a regions\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -750,51 +759,51 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["name"] !== undefined) body["name"] = g["name"];
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, undefined, undefined, { listConfig: LIST_CONFIG, listParams: { "project": projectId }, matchField: "name", matchValue: String(g["name"] ?? "") }, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
+        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, undefined, undefined, { listConfig: LIST_CONFIG, listParams: { \\"project\\": projectId }, matchField: \\"name\\", matchValue: String(g[\\"name\\"] ?? \\"\\") }, credentials) as StateData;
+        const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     get: {
-      description: "Get a regions",
-      arguments: z.object({ identifier: z.string().describe("The name of the regions") }),
+      description: \\"Get a regions\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the regions\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const result = await readViaList(BASE_URL, LIST_CONFIG, params, "name", args.identifier, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const result = await readViaList(BASE_URL, LIST_CONFIG, params, \\"name\\", args.identifier, credentials) as StateData;
+        const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     sync: {
-      description: "Sync regions state from GCP",
+      description: \\"Sync regions state from GCP\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const identifier = existing.name?.toString() ?? g["name"]?.toString();
-          if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
-          const result = await readViaList(BASE_URL, LIST_CONFIG, params, "name", identifier, credentials) as StateData;
-          const handle = await context.writeResource("state", instanceName, result);
+          const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
+          if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
+          const result = await readViaList(BASE_URL, LIST_CONFIG, params, \\"name\\", identifier, credentials) as StateData;
+          const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
           if (isResourceNotFoundError(error)) {
-            const handle = await context.writeResource("state", instanceName, {
-              status: "not_found",
+            const handle = await context.writeResource(\\"state\\", instanceName, {
+              status: \\"not_found\\",
               syncedAt: new Date().toISOString(),
             });
             return { dataHandles: [handle] };
@@ -805,11 +814,11 @@ export const model = {
     },
   },
 };
-'
+"
 `;
 
 snapshot[`generateGcpExtensionModel - full resource name pattern 1`] = `
-'// Swamp, an Automation Framework
+"// Swamp, an Automation Framework
 // Copyright (C) 2026 Elder Swamp Club, Inc.
 //
 // This file is part of Swamp.
@@ -817,7 +826,7 @@ snapshot[`generateGcpExtensionModel - full resource name pattern 1`] = `
 // Swamp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License version 3
 // as published by the Free Software Foundation, with the Swamp
-// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// Extension and Definition Exception (found in the \\"COPYING-EXCEPTION\\"
 // file).
 //
 // Swamp is distributed in the hope that it will be useful,
@@ -844,67 +853,68 @@ snapshot[`generateGcpExtensionModel - full resource name pattern 1`] = `
  * @module
  */
 
-import { z } from "npm:zod@4.3.6";
-import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
+import { z } from \\"npm:zod@4.3.6\\";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from \\"./_lib/gcp.ts\\";
 
 /** Construct the fully-qualified resource name from parent and short name. */
 function buildResourceName(parent: string, shortName: string): string {
   return \`\${parent}/services/\${shortName}\`;
 }
 
-const BASE_URL = "https://serviceusage.googleapis.com/v1";
+const BASE_URL = \\"https://serviceusage.googleapis.com/v1\\";
 
 const GET_CONFIG = {
-  "path": "v1/{+name}",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "name"
+  \\"path\\": \\"v1/{+name}\\",
+  \\"httpMethod\\": \\"GET\\",
+  \\"parameterOrder\\": [
+    \\"name\\"
   ],
-  "parameters": {
-    "name": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"name\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "serviceusage.services.get"
+  \\"id\\": \\"serviceusage.services.get\\"
 } as const;
 
 const INSERT_CONFIG = {
-  "path": "v1/{+name}:enable",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "name"
+  \\"path\\": \\"v1/{+name}:enable\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"name\\"
   ],
-  "parameters": {
-    "name": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"name\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "serviceusage.services.enable"
+  \\"id\\": \\"serviceusage.services.enable\\"
 } as const;
 
 const DELETE_CONFIG = {
-  "path": "v1/{+name}:disable",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "name"
+  \\"path\\": \\"v1/{+name}:disable\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"name\\"
   ],
-  "parameters": {
-    "name": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"name\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "serviceusage.services.disable"
+  \\"id\\": \\"serviceusage.services.disable\\"
 } as const;
 
 const GlobalArgsSchema = z.object({
-  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
-  name: z.string().describe("Service name"),
-  parent: z.string().describe("Parent resource"),
+  accessToken: z.string().meta({ sensitive: true }).describe(\\"GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
+  scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  name: z.string().describe(\\"Service name\\"),
+  parent: z.string().describe(\\"Parent resource\\"),
 });
 
 const StateSchema = z.object({
@@ -918,117 +928,119 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  name: z.string().describe("Service name").optional(),
-  parent: z.string().describe("Parent resource").optional(),
+  scopes: z.string().optional(),
+  name: z.string().describe(\\"Service name\\").optional(),
+  parent: z.string().describe(\\"Parent resource\\").optional(),
 });
 
-const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Service Usage Services. Registered at \`@swamp/gcp/serviceusage/services\`. */
 export const model = {
-  type: "@swamp/gcp/serviceusage/services",
-  version: "2026.01.01.1",
+  type: \\"@swamp/gcp/serviceusage/services\\",
+  version: \\"2026.01.01.1\\",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A managed service",
+      description: \\"A managed service\\",
       schema: StateSchema,
-      lifetime: "infinite",
+      lifetime: \\"infinite\\",
       garbageCollection: 10,
     },
   },
   methods: {
     create: {
-      description: "Create a services",
+      description: \\"Create a services\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) params["name"] = String(g["name"]);
+        if (g[\\"name\\"] !== undefined) params[\\"name\\"] = String(g[\\"name\\"]);
         const body: Record<string, unknown> = {};
-        if (g["parent"] !== undefined) body["parent"] = g["parent"];
+        if (g[\\"parent\\"] !== undefined) body[\\"parent\\"] = g[\\"parent\\"];
         const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     get: {
-      description: "Get a services",
-      arguments: z.object({ identifier: z.string().describe("The name of the services") }),
+      description: \\"Get a services\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the services\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["name"] = buildResourceName(String(g["parent"] ?? ""), args.identifier);
+        params[\\"name\\"] = buildResourceName(String(g[\\"parent\\"] ?? \\"\\"), args.identifier);
         const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     delete: {
-      description: "Delete the services",
-      arguments: z.object({ identifier: z.string().describe("The name of the services") }),
+      description: \\"Delete the services\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the services\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["name"] = buildResourceName(String(g["parent"] ?? ""), args.identifier);
+        params[\\"name\\"] = buildResourceName(String(g[\\"parent\\"] ?? \\"\\"), args.identifier);
         const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
+        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
           existed,
-          status: existed ? "deleted" : "not_found",
+          status: existed ? \\"deleted\\" : \\"not_found\\",
           deletedAt: new Date().toISOString(),
         });
         return { dataHandles: [handle] };
       },
     },
     sync: {
-      description: "Sync services state from GCP",
+      description: \\"Sync services state from GCP\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
           const existingName = existing.name?.toString();
-          if (existingName && existingName.includes("/")) {
-            params["name"] = existingName;
+          if (existingName && existingName.includes(\\"/\\")) {
+            params[\\"name\\"] = existingName;
           } else {
-            const shortName = existingName ?? g["name"]?.toString();
-            if (!shortName) throw new Error("No identifier found");
-            params["name"] = buildResourceName(String(g["parent"] ?? ""), shortName);
+            const shortName = existingName ?? g[\\"name\\"]?.toString();
+            if (!shortName) throw new Error(\\"No identifier found\\");
+            params[\\"name\\"] = buildResourceName(String(g[\\"parent\\"] ?? \\"\\"), shortName);
           }
           const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-          const handle = await context.writeResource("state", instanceName, result);
+          const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
           if (isResourceNotFoundError(error)) {
-            const handle = await context.writeResource("state", instanceName, {
-              status: "not_found",
+            const handle = await context.writeResource(\\"state\\", instanceName, {
+              status: \\"not_found\\",
               syncedAt: new Date().toISOString(),
             });
             return { dataHandles: [handle] };
@@ -1039,11 +1051,11 @@ export const model = {
     },
   },
 };
-'
+"
 `;
 
 snapshot[`generateGcpExtensionModel - action methods 1`] = `
-'// Swamp, an Automation Framework
+"// Swamp, an Automation Framework
 // Copyright (C) 2026 Elder Swamp Club, Inc.
 //
 // This file is part of Swamp.
@@ -1051,7 +1063,7 @@ snapshot[`generateGcpExtensionModel - action methods 1`] = `
 // Swamp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License version 3
 // as published by the Free Software Foundation, with the Swamp
-// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// Extension and Definition Exception (found in the \\"COPYING-EXCEPTION\\"
 // file).
 //
 // Swamp is distributed in the hope that it will be useful,
@@ -1078,87 +1090,88 @@ snapshot[`generateGcpExtensionModel - action methods 1`] = `
  * @module
  */
 
-import { z } from "npm:zod@4.3.6";
-import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
+import { z } from \\"npm:zod@4.3.6\\";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource } from \\"./_lib/gcp.ts\\";
 
-const BASE_URL = "https://compute.googleapis.com/compute/v1";
+const BASE_URL = \\"https://compute.googleapis.com/compute/v1\\";
 
 const GET_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"GET\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.get"
+  \\"id\\": \\"compute.instances.get\\"
 } as const;
 
 const INSERT_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "project",
-    "zone"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.insert"
+  \\"id\\": \\"compute.instances.insert\\"
 } as const;
 
 const DELETE_CONFIG = {
-  "path": "projects/{project}/zones/{zone}/instances/{instance}",
-  "httpMethod": "DELETE",
-  "parameterOrder": [
-    "project",
-    "zone",
-    "instance"
+  \\"path\\": \\"projects/{project}/zones/{zone}/instances/{instance}\\",
+  \\"httpMethod\\": \\"DELETE\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"zone\\",
+    \\"instance\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "zone": {
-      "location": "path",
-      "required": true
+    \\"zone\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "instance": {
-      "location": "path",
-      "required": true
+    \\"instance\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.instances.delete"
+  \\"id\\": \\"compute.instances.delete\\"
 } as const;
 
 const GlobalArgsSchema = z.object({
-  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
-  name: z.string().describe("Instance name"),
-  zone: z.string().describe("Zone"),
+  accessToken: z.string().meta({ sensitive: true }).describe(\\"GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
+  scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  name: z.string().describe(\\"Instance name\\"),
+  zone: z.string().describe(\\"Zone\\"),
 });
 
 const StateSchema = z.object({
@@ -1173,117 +1186,119 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  name: z.string().describe("Instance name").optional(),
-  zone: z.string().describe("Zone").optional(),
+  scopes: z.string().optional(),
+  name: z.string().describe(\\"Instance name\\").optional(),
+  zone: z.string().describe(\\"Zone\\").optional(),
 });
 
-const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at \`@swamp/gcp/compute/instances\`. */
 export const model = {
-  type: "@swamp/gcp/compute/instances",
-  version: "2026.01.01.1",
+  type: \\"@swamp/gcp/compute/instances\\",
+  version: \\"2026.01.01.1\\",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A compute engine instance",
+      description: \\"A compute engine instance\\",
       schema: StateSchema,
-      lifetime: "infinite",
+      lifetime: \\"infinite\\",
       garbageCollection: 10,
     },
   },
   methods: {
     create: {
-      description: "Create a instances",
+      description: \\"Create a instances\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         const body: Record<string, unknown> = {};
-        if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["name"] !== undefined) params["instance"] = String(g["name"]);
+        if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
+        if (g[\\"name\\"] !== undefined) params[\\"instance\\"] = String(g[\\"name\\"]);
         const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     get: {
-      description: "Get a instances",
-      arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
+      description: \\"Get a instances\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        params["instance"] = args.identifier;
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        params[\\"instance\\"] = args.identifier;
         const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     delete: {
-      description: "Delete the instances",
-      arguments: z.object({ identifier: z.string().describe("The name of the instances") }),
+      description: \\"Delete the instances\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-        params["instance"] = args.identifier;
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+        params[\\"instance\\"] = args.identifier;
         const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
+        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
           existed,
-          status: existed ? "deleted" : "not_found",
+          status: existed ? \\"deleted\\" : \\"not_found\\",
           deletedAt: new Date().toISOString(),
         });
         return { dataHandles: [handle] };
       },
     },
     sync: {
-      description: "Sync instances state from GCP",
+      description: \\"Sync instances state from GCP\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
-          else if (existing["zone"]) params["zone"] = String(existing["zone"]);
-          const identifier = existing.name?.toString() ?? g["name"]?.toString();
-          if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
-          params["instance"] = identifier;
+          if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
+          else if (existing[\\"zone\\"]) params[\\"zone\\"] = String(existing[\\"zone\\"]);
+          const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
+          if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
+          params[\\"instance\\"] = identifier;
           const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-          const handle = await context.writeResource("state", instanceName, result);
+          const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
           if (isResourceNotFoundError(error)) {
-            const handle = await context.writeResource("state", instanceName, {
-              status: "not_found",
+            const handle = await context.writeResource(\\"state\\", instanceName, {
+              status: \\"not_found\\",
               syncedAt: new Date().toISOString(),
             });
             return { dataHandles: [handle] };
@@ -1293,50 +1308,50 @@ export const model = {
       },
     },
     start: {
-      description: "start",
+      description: \\"start\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         const content = await context.dataRepository.getContent(
-          context.modelType, context.modelId, (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, ""),
+          context.modelType, context.modelId, (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\"),
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["instance"] = existing["name"]?.toString() ?? g["name"]?.toString() ?? "";
-        const result = await createResource(BASE_URL, {"id":"compute.instances.start","path":"projects/{project}/zones/{zone}/instances/{instance}/start","httpMethod":"POST","parameterOrder":["project","zone","instance"],"parameters":{"project":{"location":"path","required":true},"zone":{"location":"path","required":true},"instance":{"location":"path","required":true}}}, params, {}, undefined, undefined, undefined, credentials);
+        params[\\"instance\\"] = existing[\\"name\\"]?.toString() ?? g[\\"name\\"]?.toString() ?? \\"\\";
+        const result = await createResource(BASE_URL, {\\"id\\":\\"compute.instances.start\\",\\"path\\":\\"projects/{project}/zones/{zone}/instances/{instance}/start\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"project\\",\\"zone\\",\\"instance\\"],\\"parameters\\":{\\"project\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"zone\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"instance\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
     stop: {
-      description: "stop",
+      description: \\"stop\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
+        if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         const content = await context.dataRepository.getContent(
-          context.modelType, context.modelId, (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, ""),
+          context.modelType, context.modelId, (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\"),
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["instance"] = existing["name"]?.toString() ?? g["name"]?.toString() ?? "";
-        const result = await createResource(BASE_URL, {"id":"compute.instances.stop","path":"projects/{project}/zones/{zone}/instances/{instance}/stop","httpMethod":"POST","parameterOrder":["project","zone","instance"],"parameters":{"project":{"location":"path","required":true},"zone":{"location":"path","required":true},"instance":{"location":"path","required":true}}}, params, {}, undefined, undefined, undefined, credentials);
+        params[\\"instance\\"] = existing[\\"name\\"]?.toString() ?? g[\\"name\\"]?.toString() ?? \\"\\";
+        const result = await createResource(BASE_URL, {\\"id\\":\\"compute.instances.stop\\",\\"path\\":\\"projects/{project}/zones/{zone}/instances/{instance}/stop\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"project\\",\\"zone\\",\\"instance\\"],\\"parameters\\":{\\"project\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"zone\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"instance\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
   },
 };
-'
+"
 `;
 
 snapshot[`generateGcpExtensionModel - no update or delete handlers 1`] = `
-'// Swamp, an Automation Framework
+"// Swamp, an Automation Framework
 // Copyright (C) 2026 Elder Swamp Club, Inc.
 //
 // This file is part of Swamp.
@@ -1344,7 +1359,7 @@ snapshot[`generateGcpExtensionModel - no update or delete handlers 1`] = `
 // Swamp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License version 3
 // as published by the Free Software Foundation, with the Swamp
-// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// Extension and Definition Exception (found in the \\"COPYING-EXCEPTION\\"
 // file).
 //
 // Swamp is distributed in the hope that it will be useful,
@@ -1371,52 +1386,53 @@ snapshot[`generateGcpExtensionModel - no update or delete handlers 1`] = `
  * @module
  */
 
-import { z } from "npm:zod@4.3.6";
-import { type ExplicitGcpCredentials, createResource, getProjectId, isResourceNotFoundError, readResource } from "./_lib/gcp.ts";
+import { z } from \\"npm:zod@4.3.6\\";
+import { type ExplicitGcpCredentials, createResource, getProjectId, isResourceNotFoundError, readResource } from \\"./_lib/gcp.ts\\";
 
-const BASE_URL = "https://compute.googleapis.com/compute/v1";
+const BASE_URL = \\"https://compute.googleapis.com/compute/v1\\";
 
 const GET_CONFIG = {
-  "path": "projects/{project}/global/snapshots/{snapshot}",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "project",
-    "snapshot"
+  \\"path\\": \\"projects/{project}/global/snapshots/{snapshot}\\",
+  \\"httpMethod\\": \\"GET\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"snapshot\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "snapshot": {
-      "location": "path",
-      "required": true
+    \\"snapshot\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.snapshots.get"
+  \\"id\\": \\"compute.snapshots.get\\"
 } as const;
 
 const INSERT_CONFIG = {
-  "path": "projects/{project}/global/snapshots",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "project"
+  \\"path\\": \\"projects/{project}/global/snapshots\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"project\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.snapshots.insert"
+  \\"id\\": \\"compute.snapshots.insert\\"
 } as const;
 
 const GlobalArgsSchema = z.object({
-  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
-  name: z.string().describe("Snapshot name"),
-  sourceDisk: z.string().describe("Source disk"),
+  accessToken: z.string().meta({ sensitive: true }).describe(\\"GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
+  scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  name: z.string().describe(\\"Snapshot name\\"),
+  sourceDisk: z.string().describe(\\"Source disk\\"),
 });
 
 const StateSchema = z.object({
@@ -1432,37 +1448,39 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  name: z.string().describe("Snapshot name").optional(),
-  sourceDisk: z.string().describe("Source disk").optional(),
+  scopes: z.string().optional(),
+  name: z.string().describe(\\"Snapshot name\\").optional(),
+  sourceDisk: z.string().describe(\\"Source disk\\").optional(),
 });
 
-const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Compute Engine Snapshots. Registered at \`@swamp/gcp/compute/snapshots\`. */
 export const model = {
-  type: "@swamp/gcp/compute/snapshots",
-  version: "2026.01.01.1",
+  type: \\"@swamp/gcp/compute/snapshots\\",
+  version: \\"2026.01.01.1\\",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A compute engine disk snapshot",
+      description: \\"A compute engine disk snapshot\\",
       schema: StateSchema,
-      lifetime: "infinite",
+      lifetime: \\"infinite\\",
       garbageCollection: 10,
     },
   },
   methods: {
     create: {
-      description: "Create a snapshots",
+      description: \\"Create a snapshots\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -1470,55 +1488,55 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["sourceDisk"] !== undefined) body["sourceDisk"] = g["sourceDisk"];
-        if (g["name"] !== undefined) params["snapshot"] = String(g["name"]);
+        if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
+        if (g[\\"sourceDisk\\"] !== undefined) body[\\"sourceDisk\\"] = g[\\"sourceDisk\\"];
+        if (g[\\"name\\"] !== undefined) params[\\"snapshot\\"] = String(g[\\"name\\"]);
         const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     get: {
-      description: "Get a snapshots",
-      arguments: z.object({ identifier: z.string().describe("The name of the snapshots") }),
+      description: \\"Get a snapshots\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the snapshots\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["snapshot"] = args.identifier;
+        params[\\"snapshot\\"] = args.identifier;
         const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     sync: {
-      description: "Sync snapshots state from GCP",
+      description: \\"Sync snapshots state from GCP\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const identifier = existing.name?.toString() ?? g["name"]?.toString();
-          if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
-          params["snapshot"] = identifier;
+          const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
+          if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
+          params[\\"snapshot\\"] = identifier;
           const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-          const handle = await context.writeResource("state", instanceName, result);
+          const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
           if (isResourceNotFoundError(error)) {
-            const handle = await context.writeResource("state", instanceName, {
-              status: "not_found",
+            const handle = await context.writeResource(\\"state\\", instanceName, {
+              status: \\"not_found\\",
               syncedAt: new Date().toISOString(),
             });
             return { dataHandles: [handle] };
@@ -1529,11 +1547,11 @@ export const model = {
     },
   },
 };
-'
+"
 `;
 
 snapshot[`generateGcpExtensionModel - with upgrades block 1`] = `
-'// Swamp, an Automation Framework
+"// Swamp, an Automation Framework
 // Copyright (C) 2026 Elder Swamp Club, Inc.
 //
 // This file is part of Swamp.
@@ -1541,7 +1559,7 @@ snapshot[`generateGcpExtensionModel - with upgrades block 1`] = `
 // Swamp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License version 3
 // as published by the Free Software Foundation, with the Swamp
-// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// Extension and Definition Exception (found in the \\"COPYING-EXCEPTION\\"
 // file).
 //
 // Swamp is distributed in the hope that it will be useful,
@@ -1568,92 +1586,93 @@ snapshot[`generateGcpExtensionModel - with upgrades block 1`] = `
  * @module
  */
 
-import { z } from "npm:zod@4.3.6";
-import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from "./_lib/gcp.ts";
+import { z } from \\"npm:zod@4.3.6\\";
+import { type ExplicitGcpCredentials, createResource, deleteResource, getProjectId, isResourceNotFoundError, readResource, updateResource } from \\"./_lib/gcp.ts\\";
 
-const BASE_URL = "https://compute.googleapis.com/compute/v1";
+const BASE_URL = \\"https://compute.googleapis.com/compute/v1\\";
 
 const GET_CONFIG = {
-  "path": "projects/{project}/global/firewalls/{firewall}",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "project",
-    "firewall"
+  \\"path\\": \\"projects/{project}/global/firewalls/{firewall}\\",
+  \\"httpMethod\\": \\"GET\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"firewall\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "firewall": {
-      "location": "path",
-      "required": true
+    \\"firewall\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.firewalls.get"
+  \\"id\\": \\"compute.firewalls.get\\"
 } as const;
 
 const INSERT_CONFIG = {
-  "path": "projects/{project}/global/firewalls",
-  "httpMethod": "POST",
-  "parameterOrder": [
-    "project"
+  \\"path\\": \\"projects/{project}/global/firewalls\\",
+  \\"httpMethod\\": \\"POST\\",
+  \\"parameterOrder\\": [
+    \\"project\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.firewalls.insert"
+  \\"id\\": \\"compute.firewalls.insert\\"
 } as const;
 
 const PATCH_CONFIG = {
-  "path": "projects/{project}/global/firewalls/{firewall}",
-  "httpMethod": "PATCH",
-  "parameterOrder": [
-    "project",
-    "firewall"
+  \\"path\\": \\"projects/{project}/global/firewalls/{firewall}\\",
+  \\"httpMethod\\": \\"PATCH\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"firewall\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "firewall": {
-      "location": "path",
-      "required": true
+    \\"firewall\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.firewalls.patch"
+  \\"id\\": \\"compute.firewalls.patch\\"
 } as const;
 
 const DELETE_CONFIG = {
-  "path": "projects/{project}/global/firewalls/{firewall}",
-  "httpMethod": "DELETE",
-  "parameterOrder": [
-    "project",
-    "firewall"
+  \\"path\\": \\"projects/{project}/global/firewalls/{firewall}\\",
+  \\"httpMethod\\": \\"DELETE\\",
+  \\"parameterOrder\\": [
+    \\"project\\",
+    \\"firewall\\"
   ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true
+  \\"parameters\\": {
+    \\"project\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     },
-    "firewall": {
-      "location": "path",
-      "required": true
+    \\"firewall\\": {
+      \\"location\\": \\"path\\",
+      \\"required\\": true
     }
   },
-  "id": "compute.firewalls.delete"
+  \\"id\\": \\"compute.firewalls.delete\\"
 } as const;
 
 const GlobalArgsSchema = z.object({
-  accessToken: z.string().meta({ sensitive: true }).describe("GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  credentialsJson: z.string().meta({ sensitive: true }).describe("GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
-  project: z.string().describe("GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.").optional(),
-  name: z.string().describe("Firewall name"),
-  network: z.string().describe("Network"),
+  accessToken: z.string().meta({ sensitive: true }).describe(\\"GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
+  project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
+  scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  name: z.string().describe(\\"Firewall name\\"),
+  network: z.string().describe(\\"Network\\"),
 });
 
 const StateSchema = z.object({
@@ -1668,28 +1687,30 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
-  name: z.string().describe("Firewall name").optional(),
-  network: z.string().describe("Network").optional(),
+  scopes: z.string().optional(),
+  name: z.string().describe(\\"Firewall name\\").optional(),
+  network: z.string().describe(\\"Network\\").optional(),
 });
 
-const _credentialKeys = new Set(["accessToken","credentialsJson","project"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Compute Engine Firewalls. Registered at \`@swamp/gcp/compute/firewalls\`. */
 export const model = {
-  type: "@swamp/gcp/compute/firewalls",
-  version: "2026.01.02.1",
+  type: \\"@swamp/gcp/compute/firewalls\\",
+  version: \\"2026.01.02.1\\",
   upgrades: [
     {
-      toVersion: "2026.01.02.1",
-      description: "Added: priority",
+      toVersion: \\"2026.01.02.1\\",
+      description: \\"Added: priority\\",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1697,15 +1718,15 @@ export const model = {
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A VPC firewall rule",
+      description: \\"A VPC firewall rule\\",
       schema: StateSchema,
-      lifetime: "infinite",
+      lifetime: \\"infinite\\",
       garbageCollection: 10,
     },
   },
   methods: {
     create: {
-      description: "Create a firewalls",
+      description: \\"Create a firewalls\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -1713,102 +1734,102 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["network"] !== undefined) body["network"] = g["network"];
-        if (g["name"] !== undefined) params["firewall"] = String(g["name"]);
+        if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
+        if (g[\\"network\\"] !== undefined) body[\\"network\\"] = g[\\"network\\"];
+        if (g[\\"name\\"] !== undefined) params[\\"firewall\\"] = String(g[\\"name\\"]);
         const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     get: {
-      description: "Get a firewalls",
-      arguments: z.object({ identifier: z.string().describe("The name of the firewalls") }),
+      description: \\"Get a firewalls\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the firewalls\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["firewall"] = args.identifier;
+        params[\\"firewall\\"] = args.identifier;
         const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-        const instanceName = ((result.name ?? g.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, result);
+        const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     update: {
-      description: "Update firewalls attributes",
+      description: \\"Update firewalls attributes\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["firewall"] = existing["name"]?.toString() ?? "";
+        params[\\"firewall\\"] = existing[\\"name\\"]?.toString() ?? \\"\\";
         const body: Record<string, unknown> = {};
-        if (g["network"] !== undefined) body["network"] = g["network"];
+        if (g[\\"network\\"] !== undefined) body[\\"network\\"] = g[\\"network\\"];
         for (const key of Object.keys(existing)) {
-          if (key === "fingerprint" || key === "labelFingerprint" || key === "etag" || key.endsWith("Fingerprint")) {
+          if (key === \\"fingerprint\\" || key === \\"labelFingerprint\\" || key === \\"etag\\" || key.endsWith(\\"Fingerprint\\")) {
             body[key] = existing[key];
           }
         }
         const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
-        const handle = await context.writeResource("state", instanceName, result);
+        const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
     },
     delete: {
-      description: "Delete the firewalls",
-      arguments: z.object({ identifier: z.string().describe("The name of the firewalls") }),
+      description: \\"Delete the firewalls\\",
+      arguments: z.object({ identifier: z.string().describe(\\"The name of the firewalls\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["firewall"] = args.identifier;
+        params[\\"firewall\\"] = args.identifier;
         const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
+        const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
           existed,
-          status: existed ? "deleted" : "not_found",
+          status: existed ? \\"deleted\\" : \\"not_found\\",
           deletedAt: new Date().toISOString(),
         });
         return { dataHandles: [handle] };
       },
     },
     sync: {
-      description: "Sync firewalls state from GCP",
+      description: \\"Sync firewalls state from GCP\\",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No existing state found - run create or get first");
+        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const identifier = existing.name?.toString() ?? g["name"]?.toString();
-          if (!identifier) throw new Error("No identifier found in existing state or globalArgs");
-          params["firewall"] = identifier;
+          const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
+          if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
+          params[\\"firewall\\"] = identifier;
           const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
-          const handle = await context.writeResource("state", instanceName, result);
+          const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
           if (isResourceNotFoundError(error)) {
-            const handle = await context.writeResource("state", instanceName, {
-              status: "not_found",
+            const handle = await context.writeResource(\\"state\\", instanceName, {
+              status: \\"not_found\\",
               syncedAt: new Date().toISOString(),
             });
             return { dataHandles: [handle] };
@@ -1819,5 +1840,5 @@ export const model = {
     },
   },
 };
-'
+"
 `;

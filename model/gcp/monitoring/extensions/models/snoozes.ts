@@ -133,6 +133,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   criteria: z.object({
     filter: z.string().describe(
       'Optional. When you define a snooze, you can also define a filter for that snooze. The filter is a string containing one or more key-value pairs. The string uses the standard https://google.aip.dev/160 filter syntax. If you define a filter for a snooze, then the snooze can only apply to one alert policy. When the snooze is active, incidents won\'t be created when the incident would have key-value pairs (labels) that match those specified by the filter in the snooze.Snooze filters support resource, metric, and metadata labels. If multiple labels are used, then they must be connected with an AND operator. For example, the following filter applies the snooze to incidents that have a resource label with an instance ID of 1234567890, a metric label with an instance name of test_group, a metadata user label with a key of foo and a value of bar, and a metadata system label with a key of region and a value of us-central1: "filter": "resource.labels.instance_id=\\"1234567890\\" AND metric.labels.instance_name=\\"test_group\\" AND metadata.user_labels.foo=\\"bar\\" AND metadata.system_labels.region=\\"us-central1\\""',
@@ -182,6 +185,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   criteria: z.object({
     filter: z.string().describe(
       'Optional. When you define a snooze, you can also define a filter for that snooze. The filter is a string containing one or more key-value pairs. The string uses the standard https://google.aip.dev/160 filter syntax. If you define a filter for a snooze, then the snooze can only apply to one alert policy. When the snooze is active, incidents won\'t be created when the incident would have key-value pairs (labels) that match those specified by the filter in the snooze.Snooze filters support resource, metric, and metadata labels. If multiple labels are used, then they must be connected with an AND operator. For example, the following filter applies the snooze to incidents that have a resource label with an instance ID of 1234567890, a metric label with an instance name of test_group, a metadata user label with a key of foo and a value of bar, and a metadata system label with a key of region and a value of us-central1: "filter": "resource.labels.instance_id=\\"1234567890\\" AND metric.labels.instance_name=\\"test_group\\" AND metadata.user_labels.foo=\\"bar\\" AND metadata.system_labels.region=\\"us-central1\\""',
@@ -212,7 +216,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -221,13 +230,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Monitoring Snoozes. Registered at `@swamp/gcp/monitoring/snoozes`. */
 export const model = {
   type: "@swamp/gcp/monitoring/snoozes",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -311,6 +323,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -140,6 +140,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   feed: z.object({
     assetNames: z.array(z.string()).describe(
       "A list of the full names of the assets to receive updates. You must specify either or both of asset_names and asset_types. Only asset updates matching specified asset_names or asset_types are exported to the feed. Example: `//compute.googleapis.com/projects/my_project_123/zones/zone1/instances/instance1`. For a list of the full names for supported asset types, see [Resource name format](/asset-inventory/docs/resource-name-format).",
@@ -227,6 +230,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   feed: z.object({
     assetNames: z.array(z.string()).describe(
       "A list of the full names of the assets to receive updates. You must specify either or both of asset_names and asset_types. Only asset updates matching specified asset_names or asset_types are exported to the feed. Example: `//compute.googleapis.com/projects/my_project_123/zones/zone1/instances/instance1`. For a list of the full names for supported asset types, see [Resource name format](/asset-inventory/docs/resource-name-format).",
@@ -288,7 +292,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -297,13 +306,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Asset Feeds. Registered at `@swamp/gcp/cloudasset/feeds`. */
 export const model = {
   type: "@swamp/gcp/cloudasset/feeds",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -387,6 +399,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

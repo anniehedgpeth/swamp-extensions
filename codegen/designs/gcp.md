@@ -477,13 +477,14 @@ Options 3–5 require the `gcloud` CLI to be installed.
 
 ### Vault expression credential fields
 
-Every generated GCP model includes three optional sensitive global arguments:
+Every generated GCP model includes optional global arguments for credentials:
 
 | Field             | Sensitive | Description                                                           |
 | ----------------- | --------- | --------------------------------------------------------------------- |
 | `accessToken`     | yes       | GCP OAuth2 access token; overrides `GCP_ACCESS_TOKEN`                 |
 | `credentialsJson` | yes       | Service account JSON; overrides `GOOGLE_APPLICATION_CREDENTIALS_JSON` |
 | `project`         | no        | GCP project ID; overrides `GCP_PROJECT` / `GOOGLE_CLOUD_PROJECT`      |
+| `scopes`          | no        | Comma-separated OAuth scopes; overrides the API's default scopes      |
 
 These fields use `z.meta({ sensitive: true })` where applicable, so swamp-core
 redacts them from run logs, reports, and data storage.
@@ -497,13 +498,15 @@ globalArguments:
 ```
 
 **Collision guard:** If a GCP resource already has a domain property named
-`accessToken`, `credentialsJson`, or `project`, that credential field is not
-injected as a separate `GlobalArgsSchema` entry for that specific service — it
-already exists in the schema as a domain property. The collision guard mirrors
-the AWS pattern. The colliding field is still forwarded in
+`accessToken`, `credentialsJson`, `project`, or `scopes`, that credential field
+is not injected as a separate `GlobalArgsSchema` entry for that specific service
+— it already exists in the schema as a domain property. The collision guard
+mirrors the AWS pattern. The colliding field is still forwarded in
 `_buildGcpCredentials` so it reaches credential resolution (e.g. `project` as a
 domain property carries the same GCP project ID that the credential chain
-needs).
+needs). When `scopes` collides, the user-overridable global arg is skipped but
+the `_defaultOAuthScopes` constant still applies — the API's default scopes are
+always used.
 
 **Enrichment limitation:** Enrichment methods (e.g., serviceaccounts, storage-
 buckets) call `request()` directly without explicit credentials; HTTP
@@ -513,16 +516,34 @@ to `getProjectId()` so the `project` global arg is honored for project ID
 resolution, but the underlying `request()` calls do not yet forward explicit
 credentials.
 
+### OAuth scopes
+
+Each generated model includes a `_defaultOAuthScopes` constant populated from
+the API's Discovery Document (`doc.auth.oauth2.scopes`). When minting access
+tokens via `gcloud auth print-access-token` or
+`gcloud auth application-default print-access-token`, these scopes are passed
+via `--scopes=<comma-separated>`. This ensures APIs that require specific OAuth
+scopes (e.g., Calendar API needs `https://www.googleapis.com/auth/calendar`
+rather than the generic `cloud-platform` scope) work out of the box with
+service-account and ADC authentication.
+
+Users can override the default scopes via the `scopes` global argument
+(comma-separated string). When no scopes are declared in the Discovery Document,
+`_defaultOAuthScopes` is an empty array and no `--scopes` flag is passed,
+preserving the previous gcloud default behavior.
+
 ### Service account activation
 
 For options 3 and 4, the service account is activated via:
 
 ```sh
 gcloud auth activate-service-account {email} --key-file {tmpfile}
-gcloud auth print-access-token {email}
+gcloud auth print-access-token {email} --scopes={scopes}
 ```
 
-The access token is cached for the duration of the process.
+The `--scopes` flag is included when scopes are available (from
+`_defaultOAuthScopes` or the user-provided `scopes` global arg). The access
+token is cached for the duration of the process.
 
 ### Project ID resolution
 

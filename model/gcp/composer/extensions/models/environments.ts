@@ -146,6 +146,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   config: z.object({
     airflowByoidUri: z.string().describe(
       "Output only. The 'bring your own identity' variant of the URI of the Apache Airflow Web UI hosted within this environment, to be accessed with external identities using workforce identity federation (see [Access environments with workforce identity federation](/composer/docs/composer-2/access-environments-with-workforce-identity-federation)).",
@@ -704,6 +707,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   config: z.object({
     airflowByoidUri: z.string().describe(
       "Output only. The 'bring your own identity' variant of the URI of the Apache Airflow Web UI hosted within this environment, to be accessed with external identities using workforce identity federation (see [Access environments with workforce identity federation](/composer/docs/composer-2/access-environments-with-workforce-identity-federation)).",
@@ -1104,7 +1108,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -1113,13 +1122,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Composer Environments. Registered at `@swamp/gcp/composer/environments`. */
 export const model = {
   type: "@swamp/gcp/composer/environments",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1208,6 +1220,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

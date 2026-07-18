@@ -165,6 +165,9 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(
     "GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   backendType: z.enum([
     "SQL_BACKEND_TYPE_UNSPECIFIED",
     "FIRST_GEN",
@@ -1429,6 +1432,7 @@ type StateData = z.infer<typeof StateSchema>;
 const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  scopes: z.string().optional(),
   backendType: z.enum([
     "SQL_BACKEND_TYPE_UNSPECIFIED",
     "FIRST_GEN",
@@ -2334,7 +2338,7 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson"]);
+const _credentialKeys = new Set(["accessToken", "credentialsJson", "scopes"]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -2343,13 +2347,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud SQL Admin Instances. Registered at `@swamp/gcp/sqladmin/instances`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/instances",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2508,6 +2515,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

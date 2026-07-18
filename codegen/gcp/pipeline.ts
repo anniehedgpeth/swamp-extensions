@@ -219,6 +219,8 @@ export interface GcpParsedResource {
    * response schema has a top-level array property whose items are objects.
    */
   listResponseArrayField?: string;
+  /** OAuth scopes from the Discovery Document's auth.oauth2.scopes */
+  oauthScopes: string[];
 }
 
 /** A non-CRUD action method on a GCP resource (e.g., start, stop, reboot). */
@@ -699,8 +701,12 @@ export async function generateGcpModels(options: {
           resource,
         );
         const domainPropNames = new Set(Object.keys(resource.domainProperties));
-        const credFieldNames = ["accessToken", "credentialsJson", "project"]
-          .filter((f) => !domainPropNames.has(f));
+        const credFieldNames = [
+          "accessToken",
+          "credentialsJson",
+          "project",
+          "scopes",
+        ].filter((f) => !domainPropNames.has(f));
         const newFieldNames = [
           ...(isSyntheticName ? ["name"] : []),
           ...credFieldNames,
@@ -1614,6 +1620,9 @@ function buildGcpParsedResource(
     ...detectFullResourceNamePattern(getMethod, list, insert),
     listQueryParams,
     listResponseArrayField,
+    oauthScopes: doc.auth?.oauth2?.scopes
+      ? Object.keys(doc.auth.oauth2.scopes)
+      : [],
   };
 }
 

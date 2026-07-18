@@ -35,6 +35,7 @@ export interface ExplicitGcpCredentials {
   accessToken?: string;
   credentialsJson?: string;
   project?: string;
+  scopes?: string[];
 }
 
 let cachedCredentials: GcpCredentials | undefined;
@@ -94,7 +95,7 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
     return { projectId, accessToken: explicit.accessToken };
   }
   if (explicit?.credentialsJson) {
-    const creds = await activateServiceAccountFromJson(explicit.credentialsJson);
+    const creds = await activateServiceAccountFromJson(explicit.credentialsJson, explicit.scopes);
     if (explicit.project) {
       return { projectId: explicit.project, accessToken: creds.accessToken };
     }
@@ -123,7 +124,7 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
   // Try inline service account JSON
   const credJson = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
   if (credJson) {
-    cachedCredentials = await activateServiceAccountFromJson(credJson);
+    cachedCredentials = await activateServiceAccountFromJson(credJson, explicit?.scopes);
     cachedAt = Date.now();
     if (explicit?.project) {
       return { projectId: explicit.project, accessToken: cachedCredentials.accessToken };
@@ -142,7 +143,7 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
         \`Cannot read GOOGLE_APPLICATION_CREDENTIALS file at \${credFile}: \${e instanceof Error ? e.message : e}\`,
       );
     }
-    cachedCredentials = await activateServiceAccountFromJson(fileContent);
+    cachedCredentials = await activateServiceAccountFromJson(fileContent, explicit?.scopes);
     cachedAt = Date.now();
     if (explicit?.project) {
       return { projectId: explicit.project, accessToken: cachedCredentials.accessToken };
@@ -151,7 +152,7 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
   }
 
   // Fall back to Application Default Credentials (gcloud auth)
-  cachedCredentials = await getApplicationDefaultCredentials();
+  cachedCredentials = await getApplicationDefaultCredentials(explicit?.scopes);
   cachedAt = Date.now();
   if (explicit?.project) {
     return { projectId: explicit.project, accessToken: cachedCredentials.accessToken };
@@ -164,6 +165,7 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
  */
 async function activateServiceAccountFromJson(
   json: string,
+  scopes?: string[],
 ): Promise<GcpCredentials> {
   let creds: { client_email?: string; project_id?: string; type?: string };
   try {
@@ -206,8 +208,12 @@ async function activateServiceAccountFromJson(
     }
 
     // Get access token
+    const tokenArgs = ["auth", "print-access-token", creds.client_email];
+    if (scopes && scopes.length > 0) {
+      tokenArgs.push(\`--scopes=\${scopes.join(",")}\`);
+    }
     const tokenCmd = new Deno.Command("gcloud", {
-      args: ["auth", "print-access-token", creds.client_email],
+      args: tokenArgs,
       stdout: "piped",
       stderr: "piped",
     });
@@ -235,10 +241,14 @@ async function activateServiceAccountFromJson(
  * Uses whatever account is currently authenticated via gcloud.
  * Works with: gcloud auth application-default login, compute metadata, etc.
  */
-async function getApplicationDefaultCredentials(): Promise<GcpCredentials> {
+async function getApplicationDefaultCredentials(scopes?: string[]): Promise<GcpCredentials> {
   // Get access token from current gcloud auth
+  const adcArgs = ["auth", "application-default", "print-access-token"];
+  if (scopes && scopes.length > 0) {
+    adcArgs.push(\`--scopes=\${scopes.join(",")}\`);
+  }
   const tokenCmd = new Deno.Command("gcloud", {
-    args: ["auth", "application-default", "print-access-token"],
+    args: adcArgs,
     stdout: "piped",
     stderr: "piped",
   });

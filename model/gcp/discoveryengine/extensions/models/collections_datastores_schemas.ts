@@ -153,6 +153,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   jsonSchema: z.string().describe("The JSON representation of the schema.")
     .optional(),
   name: z.string().describe(
@@ -184,6 +187,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   jsonSchema: z.string().describe("The JSON representation of the schema.")
     .optional(),
   name: z.string().describe(
@@ -203,7 +207,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -212,13 +221,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Discovery Engine Collections.DataStores.Schemas. Registered at `@swamp/gcp/discoveryengine/collections-datastores-schemas`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-datastores-schemas",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -302,6 +314,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

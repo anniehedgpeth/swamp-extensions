@@ -245,6 +245,23 @@ export function generateGcpExtensionModel(
     }
   }
 
+  // Default OAuth scopes from the API's Discovery Document.
+  // Only emitted for APIs that need non-cloud-platform scopes (Workspace/consumer
+  // APIs like Calendar, Gmail, Drive). Infrastructure APIs that include
+  // cloud-platform in their scopes use gcloud's default and don't need this.
+  const hasCloudPlatformScope = resource.oauthScopes.some((s) =>
+    s.includes("cloud-platform")
+  );
+  const needsExplicitScopes = resource.oauthScopes.length > 0 &&
+    !hasCloudPlatformScope;
+  if (needsExplicitScopes) {
+    const scopesLiteral = JSON.stringify(resource.oauthScopes);
+    lines.push(
+      `const _defaultOAuthScopes: string[] = ${scopesLiteral};`,
+    );
+    lines.push("");
+  }
+
   // Determine which credential fields collide with domain properties.
   // GCP properties are camelCase so collisions are unlikely, but we guard
   // defensively (mirrors AWS's collision guard).
@@ -267,6 +284,12 @@ export function generateGcpExtensionModel(
       sensitive: false,
       desc:
         "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
+    },
+    {
+      name: "scopes",
+      sensitive: false,
+      desc:
+        "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
     },
   ];
   const injectedCredFields = credentialFields.filter(
@@ -345,9 +368,21 @@ export function generateGcpExtensionModel(
   );
   lines.push(`  return {`);
   for (const f of credentialFields) {
-    // Always forward from g — even when not injected as a separate global arg,
-    // the value exists as a domain property and should reach credential resolution.
-    lines.push(`    ${f.name}: g.${f.name} as string | undefined,`);
+    if (f.name === "scopes") {
+      if (needsExplicitScopes) {
+        lines.push(
+          `    scopes: typeof g.scopes === "string" ? g.scopes.split(",").map((s: string) => s.trim()) : _defaultOAuthScopes,`,
+        );
+      } else {
+        lines.push(
+          `    scopes: typeof g.scopes === "string" ? g.scopes.split(",").map((s: string) => s.trim()) : undefined,`,
+        );
+      }
+    } else {
+      // Always forward from g — even when not injected as a separate global arg,
+      // the value exists as a domain property and should reach credential resolution.
+      lines.push(`    ${f.name}: g.${f.name} as string | undefined,`);
+    }
   }
   lines.push(`  };`);
   lines.push(`}`);

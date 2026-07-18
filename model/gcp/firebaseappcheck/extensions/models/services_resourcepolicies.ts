@@ -152,8 +152,11 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The baseline protection EnforcementMode for this resource. This will override the service-level baseline protection EnforcementMode.",
+    "Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The relative name of the resource policy object, in the format: ` projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `oauth2.googleapis.com` (Google Identity for iOS) `resource_policy_id` is a system-generated UID.",
@@ -183,8 +186,9 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The baseline protection EnforcementMode for this resource. This will override the service-level baseline protection EnforcementMode.",
+    "Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The relative name of the resource policy object, in the format: ` projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `oauth2.googleapis.com` (Google Identity for iOS) `resource_policy_id` is a system-generated UID.",
@@ -200,7 +204,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -209,13 +218,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Firebase App Check Services.ResourcePolicies. Registered at `@swamp/gcp/firebaseappcheck/services-resourcepolicies`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/services-resourcepolicies",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -304,6 +316,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

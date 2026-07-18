@@ -154,6 +154,13 @@ const LIST_CONFIG = {
   },
 } as const;
 
+const _defaultOAuthScopes: string[] = [
+  "https://www.googleapis.com/auth/display-video",
+  "https://www.googleapis.com/auth/display-video-mediaplanning",
+  "https://www.googleapis.com/auth/display-video-user-management",
+  "https://www.googleapis.com/auth/doubleclickbidmanager",
+];
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -166,6 +173,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
+  ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   ageRangeDetails: z.object({
     ageRange: z.enum([
@@ -1852,6 +1862,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   ageRangeDetails: z.object({
     ageRange: z.enum([
       "AGE_RANGE_UNSPECIFIED",
@@ -3227,7 +3238,12 @@ const InputsSchema = z.object({
     .optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -3236,6 +3252,9 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : _defaultOAuthScopes,
   };
 }
 
@@ -3243,7 +3262,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/displayvideo/advertisers-targetingtypes-assignedtargetingoptions",
-  version: "2026.06.09.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3358,6 +3377,11 @@ export const model = {
     {
       toVersion: "2026.06.09.1",
       description: "Added: youtubeChannelPackDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -71,6 +71,18 @@ const LIST_CONFIG = {
   },
 } as const;
 
+const _defaultOAuthScopes: string[] = [
+  "https://www.googleapis.com/auth/cloud_search",
+  "https://www.googleapis.com/auth/cloud_search.debug",
+  "https://www.googleapis.com/auth/cloud_search.indexing",
+  "https://www.googleapis.com/auth/cloud_search.query",
+  "https://www.googleapis.com/auth/cloud_search.settings",
+  "https://www.googleapis.com/auth/cloud_search.settings.indexing",
+  "https://www.googleapis.com/auth/cloud_search.settings.query",
+  "https://www.googleapis.com/auth/cloud_search.stats",
+  "https://www.googleapis.com/auth/cloud_search.stats.indexing",
+];
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -83,6 +95,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
+  ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
 });
 
@@ -116,9 +131,15 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -127,13 +148,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : _defaultOAuthScopes,
   };
 }
 
 /** Swamp extension model for Google Cloud Search Query.Sources. Registered at `@swamp/gcp/cloudsearch/query-sources`. */
 export const model = {
   type: "@swamp/gcp/cloudsearch/query-sources",
-  version: "2026.06.08.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -233,6 +257,11 @@ export const model = {
     {
       toVersion: "2026.06.08.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

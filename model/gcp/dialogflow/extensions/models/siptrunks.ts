@@ -146,6 +146,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   connections: z.array(z.object({
     connectionId: z.string().optional(),
     errorDetails: z.object({
@@ -173,7 +176,45 @@ const GlobalArgsSchema = z.object({
   })).optional(),
   displayName: z.string().optional(),
   expectedHostname: z.array(z.string()).optional(),
+  googleRootCertFile: z.enum(["CERT_FILE_UNSPECIFIED", "EXTERNAL_PRIVATE_CA"])
+    .optional(),
   name: z.string().optional(),
+  peerHostnames: z.array(z.object({
+    connectionState: z.enum([
+      "CONNECTION_STATE_UNSPECIFIED",
+      "CONNECTED",
+      "DISCONNECTED",
+      "AUTHENTICATION_FAILED",
+      "KEEPALIVE",
+    ]).optional(),
+    enabledSipPing: z.boolean().optional(),
+    errorDetails: z.object({
+      certificateState: z.enum([
+        "HOSTNAME_CERTIFICATE_STATE_UNSPECIFIED",
+        "VALID",
+        "INVALID",
+        "EXPIRED",
+        "HOSTNAME_NOT_FOUND",
+        "UNAUTHENTICATED",
+        "TRUST_STORE_NOT_FOUND",
+        "HOSTNAME_INVALID_FORMAT",
+        "QUOTA_EXCEEDED",
+      ]).optional(),
+      errorMessage: z.string().optional(),
+    }).optional(),
+    peerHostname: z.string().optional(),
+    peerSocketAddress: z.string().optional(),
+    pingInterval: z.string().optional(),
+    probeDetails: z.object({
+      initTime: z.string().optional(),
+      optionsLatency: z.string().optional(),
+      probeStatus: z.enum([
+        "PROBE_STATUS_UNSPECIFIED",
+        "PROBE_STATUS_SUCCESS",
+        "PROBE_STATUS_FAILED",
+      ]).optional(),
+    }).optional(),
+  })).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -191,7 +232,24 @@ const StateSchema = z.object({
   })).optional(),
   displayName: z.string().optional(),
   expectedHostname: z.array(z.string()).optional(),
+  googleRootCertFile: z.string().optional(),
   name: z.string(),
+  peerHostnames: z.array(z.object({
+    connectionState: z.string(),
+    enabledSipPing: z.boolean(),
+    errorDetails: z.object({
+      certificateState: z.string(),
+      errorMessage: z.string(),
+    }),
+    peerHostname: z.string(),
+    peerSocketAddress: z.string(),
+    pingInterval: z.string(),
+    probeDetails: z.object({
+      initTime: z.string(),
+      optionsLatency: z.string(),
+      probeStatus: z.string(),
+    }),
+  })).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -200,6 +258,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   connections: z.array(z.object({
     connectionId: z.string().optional(),
     errorDetails: z.object({
@@ -227,13 +286,56 @@ const InputsSchema = z.object({
   })).optional(),
   displayName: z.string().optional(),
   expectedHostname: z.array(z.string()).optional(),
+  googleRootCertFile: z.enum(["CERT_FILE_UNSPECIFIED", "EXTERNAL_PRIVATE_CA"])
+    .optional(),
   name: z.string().optional(),
+  peerHostnames: z.array(z.object({
+    connectionState: z.enum([
+      "CONNECTION_STATE_UNSPECIFIED",
+      "CONNECTED",
+      "DISCONNECTED",
+      "AUTHENTICATION_FAILED",
+      "KEEPALIVE",
+    ]).optional(),
+    enabledSipPing: z.boolean().optional(),
+    errorDetails: z.object({
+      certificateState: z.enum([
+        "HOSTNAME_CERTIFICATE_STATE_UNSPECIFIED",
+        "VALID",
+        "INVALID",
+        "EXPIRED",
+        "HOSTNAME_NOT_FOUND",
+        "UNAUTHENTICATED",
+        "TRUST_STORE_NOT_FOUND",
+        "HOSTNAME_INVALID_FORMAT",
+        "QUOTA_EXCEEDED",
+      ]).optional(),
+      errorMessage: z.string().optional(),
+    }).optional(),
+    peerHostname: z.string().optional(),
+    peerSocketAddress: z.string().optional(),
+    pingInterval: z.string().optional(),
+    probeDetails: z.object({
+      initTime: z.string().optional(),
+      optionsLatency: z.string().optional(),
+      probeStatus: z.enum([
+        "PROBE_STATUS_UNSPECIFIED",
+        "PROBE_STATUS_SUCCESS",
+        "PROBE_STATUS_FAILED",
+      ]).optional(),
+    }).optional(),
+  })).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -242,13 +344,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Dialogflow SipTrunks. Registered at `@swamp/gcp/dialogflow/siptrunks`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/siptrunks",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -267,6 +372,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes, googleRootCertFile, peerHostnames",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -303,7 +418,13 @@ export const model = {
         if (g["expectedHostname"] !== undefined) {
           body["expectedHostname"] = g["expectedHostname"];
         }
+        if (g["googleRootCertFile"] !== undefined) {
+          body["googleRootCertFile"] = g["googleRootCertFile"];
+        }
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["peerHostnames"] !== undefined) {
+          body["peerHostnames"] = g["peerHostnames"];
+        }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
             `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
@@ -411,6 +532,12 @@ export const model = {
         }
         if (g["expectedHostname"] !== undefined) {
           body["expectedHostname"] = g["expectedHostname"];
+        }
+        if (g["googleRootCertFile"] !== undefined) {
+          body["googleRootCertFile"] = g["googleRootCertFile"];
+        }
+        if (g["peerHostnames"] !== undefined) {
+          body["peerHostnames"] = g["peerHostnames"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

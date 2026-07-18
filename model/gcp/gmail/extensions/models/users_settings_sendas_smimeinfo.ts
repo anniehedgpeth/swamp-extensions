@@ -138,6 +138,23 @@ const LIST_CONFIG = {
   },
 } as const;
 
+const _defaultOAuthScopes: string[] = [
+  "https://mail.google.com/",
+  "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+  "https://www.googleapis.com/auth/gmail.addons.current.message.action",
+  "https://www.googleapis.com/auth/gmail.addons.current.message.metadata",
+  "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
+  "https://www.googleapis.com/auth/gmail.compose",
+  "https://www.googleapis.com/auth/gmail.insert",
+  "https://www.googleapis.com/auth/gmail.labels",
+  "https://www.googleapis.com/auth/gmail.metadata",
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.settings.basic",
+  "https://www.googleapis.com/auth/gmail.settings.sharing",
+];
+
 const GlobalArgsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -147,6 +164,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
+  ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   encryptedKeyPassword: z.string().describe(
     "Encrypted key password, when key is encrypted.",
@@ -190,6 +210,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   encryptedKeyPassword: z.string().describe(
     "Encrypted key password, when key is encrypted.",
   ).optional(),
@@ -216,7 +237,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -225,13 +251,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : _defaultOAuthScopes,
   };
 }
 
 /** Swamp extension model for Google Cloud Gmail Users.Settings.SendAs.SmimeInfo. Registered at `@swamp/gcp/gmail/users-settings-sendas-smimeinfo`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-settings-sendas-smimeinfo",
-  version: "2026.07.17.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -311,6 +340,11 @@ export const model = {
     {
       toVersion: "2026.07.17.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

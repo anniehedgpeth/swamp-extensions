@@ -39,6 +39,12 @@ The project ID is read from the service account JSON. Override it with
 `GCP_PROJECT` or `GOOGLE_CLOUD_PROJECT`, or `gcloud config set project`. When
 using `GCP_ACCESS_TOKEN`, the project must be set via one of these env vars.
 
+### OAuth scopes
+
+For authentication options 2–4, access tokens are minted with the OAuth scopes
+declared in this API's Discovery Document. Override with the `scopes` global
+argument (comma-separated) if you need different scopes.
+
 ### Setup examples
 
 ```bash

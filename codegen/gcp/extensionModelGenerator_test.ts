@@ -1,5 +1,5 @@
 import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import {
   detectSegmentIdField,
   type GcpExtensionModelInput,
@@ -38,6 +38,7 @@ function makeResource(
     methodConfigs: {},
     actionMethods: [],
     usesFullResourceName: false,
+    oauthScopes: [],
     ...rest,
   };
 }
@@ -830,4 +831,101 @@ Deno.test("generateGcpExtensionModel - with upgrades block", async (t) => {
   });
 
   await assertSnapshot(t, generateGcpExtensionModel(input));
+});
+
+// ---------------------------------------------------------------------------
+// OAuth scope tests
+// ---------------------------------------------------------------------------
+
+Deno.test("generateGcpExtensionModel - emits _defaultOAuthScopes for non-cloud-platform APIs", () => {
+  const resource = makeResource({
+    resourcePath: ["events"],
+    oauthScopes: [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/calendar.readonly",
+    ],
+    methodConfigs: {
+      get: makeMethodConfig({ id: "calendar.events.get" }),
+    },
+  });
+  const code = generateGcpExtensionModel(makeInput({ resource }));
+  assert(
+    code.includes("const _defaultOAuthScopes: string[]"),
+    "should emit _defaultOAuthScopes for non-cloud-platform API",
+  );
+  assert(
+    code.includes("https://www.googleapis.com/auth/calendar"),
+    "should include the calendar scope",
+  );
+  assert(
+    code.includes(": _defaultOAuthScopes,"),
+    "should fall back to _defaultOAuthScopes in _buildGcpCredentials",
+  );
+});
+
+Deno.test("generateGcpExtensionModel - does NOT emit _defaultOAuthScopes for cloud-platform APIs", () => {
+  const resource = makeResource({
+    resourcePath: ["instances"],
+    oauthScopes: [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/compute",
+    ],
+    methodConfigs: {
+      get: makeMethodConfig({ id: "compute.instances.get" }),
+    },
+  });
+  const code = generateGcpExtensionModel(makeInput({ resource }));
+  assert(
+    !code.includes("const _defaultOAuthScopes"),
+    "should NOT emit _defaultOAuthScopes for cloud-platform API",
+  );
+  assert(
+    code.includes(": undefined,"),
+    "should pass undefined scopes in _buildGcpCredentials",
+  );
+});
+
+Deno.test("generateGcpExtensionModel - does NOT emit _defaultOAuthScopes when oauthScopes is empty", () => {
+  const resource = makeResource({
+    resourcePath: ["items"],
+    oauthScopes: [],
+    methodConfigs: {
+      get: makeMethodConfig({ id: "test.items.get" }),
+    },
+  });
+  const code = generateGcpExtensionModel(makeInput({ resource }));
+  assert(
+    !code.includes("const _defaultOAuthScopes"),
+    "should NOT emit _defaultOAuthScopes when no scopes declared",
+  );
+});
+
+Deno.test("generateGcpExtensionModel - scopes global arg has collision guard", () => {
+  const resource = makeResource({
+    resourcePath: ["accesspolicies"],
+    oauthScopes: [
+      "https://www.googleapis.com/auth/cloud-platform",
+    ],
+    domainProperties: {
+      scopes: {
+        type: "array",
+        description: "Policy scopes",
+        items: { type: "string" },
+      },
+    },
+    methodConfigs: {
+      get: makeMethodConfig({ id: "accesscontextmanager.accessPolicies.get" }),
+    },
+  });
+  const code = generateGcpExtensionModel(makeInput({ resource }));
+  const globalArgsMatch = code.match(
+    /const GlobalArgsSchema = z\.object\(\{([\s\S]*?)\}\);/,
+  );
+  assert(globalArgsMatch, "should have GlobalArgsSchema");
+  assert(
+    !globalArgsMatch![1].includes(
+      '"Comma-separated OAuth scopes',
+    ),
+    "should NOT inject scopes global arg when domain has scopes property",
+  );
 });

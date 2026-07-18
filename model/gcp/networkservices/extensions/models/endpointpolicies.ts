@@ -152,11 +152,11 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   authorizationPolicy: z.string().describe(
     "Optional. This field specifies the URL of AuthorizationPolicy resource that applies authorization policies to the inbound traffic at the matched endpoints. Refer to Authorization. If this field is not specified, authorization is disabled(no authz checks) for this endpoint.",
-  ).optional(),
-  clientTlsPolicy: z.string().describe(
-    "Optional. A URL referring to a ClientTlsPolicy resource. ClientTlsPolicy can be set to specify the authentication for traffic from the proxy to the actual endpoints. More specifically, it is applied to the outgoing traffic from the proxy to the endpoint. This is typically used for sidecar model where the proxy identifies itself as endpoint to the control plane, with the connection between sidecar and endpoint requiring authentication. If this field is not set, authentication is disabled(open). Applicable only when EndpointPolicyType is SIDECAR_PROXY.",
   ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
@@ -245,11 +245,9 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   authorizationPolicy: z.string().describe(
     "Optional. This field specifies the URL of AuthorizationPolicy resource that applies authorization policies to the inbound traffic at the matched endpoints. Refer to Authorization. If this field is not specified, authorization is disabled(no authz checks) for this endpoint.",
-  ).optional(),
-  clientTlsPolicy: z.string().describe(
-    "Optional. A URL referring to a ClientTlsPolicy resource. ClientTlsPolicy can be set to specify the authentication for traffic from the proxy to the actual endpoints. More specifically, it is applied to the outgoing traffic from the proxy to the endpoint. This is typically used for sidecar model where the proxy identifies itself as endpoint to the control plane, with the connection between sidecar and endpoint requiring authentication. If this field is not set, authentication is disabled(open). Applicable only when EndpointPolicyType is SIDECAR_PROXY.",
   ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
@@ -308,7 +306,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -317,13 +320,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Network Services EndpointPolicies. Registered at `@swamp/gcp/networkservices/endpointpolicies`. */
 export const model = {
   type: "@swamp/gcp/networkservices/endpointpolicies",
-  version: "2026.07.17.2",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -410,6 +416,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes. Removed: clientTlsPolicy",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { clientTlsPolicy: _clientTlsPolicy, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -437,9 +456,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["authorizationPolicy"] !== undefined) {
           body["authorizationPolicy"] = g["authorizationPolicy"];
-        }
-        if (g["clientTlsPolicy"] !== undefined) {
-          body["clientTlsPolicy"] = g["clientTlsPolicy"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
@@ -560,9 +576,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["authorizationPolicy"] !== undefined) {
           body["authorizationPolicy"] = g["authorizationPolicy"];
-        }
-        if (g["clientTlsPolicy"] !== undefined) {
-          body["clientTlsPolicy"] = g["clientTlsPolicy"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];

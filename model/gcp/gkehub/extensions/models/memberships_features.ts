@@ -170,6 +170,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Google Cloud labels for this MembershipFeature.",
   ).optional(),
@@ -300,7 +303,7 @@ const GlobalArgsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -953,7 +956,7 @@ const GlobalArgsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -1854,6 +1857,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Google Cloud labels for this MembershipFeature.",
   ).optional(),
@@ -1984,7 +1988,7 @@ const InputsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -2637,7 +2641,7 @@ const InputsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -3121,7 +3125,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -3130,13 +3139,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud GKE Hub Memberships.Features. Registered at `@swamp/gcp/gkehub/memberships-features`. */
 export const model = {
   type: "@swamp/gcp/gkehub/memberships-features",
-  version: "2026.07.18.1",
+  version: "2026.07.18.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3255,6 +3267,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
+      description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

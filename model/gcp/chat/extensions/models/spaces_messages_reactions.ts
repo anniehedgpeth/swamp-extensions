@@ -100,6 +100,45 @@ const LIST_CONFIG = {
   },
 } as const;
 
+const _defaultOAuthScopes: string[] = [
+  "https://www.googleapis.com/auth/chat.admin.delete",
+  "https://www.googleapis.com/auth/chat.admin.memberships",
+  "https://www.googleapis.com/auth/chat.admin.memberships.readonly",
+  "https://www.googleapis.com/auth/chat.admin.spaces",
+  "https://www.googleapis.com/auth/chat.admin.spaces.readonly",
+  "https://www.googleapis.com/auth/chat.app.delete",
+  "https://www.googleapis.com/auth/chat.app.memberships",
+  "https://www.googleapis.com/auth/chat.app.memberships.readonly",
+  "https://www.googleapis.com/auth/chat.app.messages.readonly",
+  "https://www.googleapis.com/auth/chat.app.spaces",
+  "https://www.googleapis.com/auth/chat.app.spaces.create",
+  "https://www.googleapis.com/auth/chat.app.spaces.readonly",
+  "https://www.googleapis.com/auth/chat.bot",
+  "https://www.googleapis.com/auth/chat.customemojis",
+  "https://www.googleapis.com/auth/chat.customemojis.readonly",
+  "https://www.googleapis.com/auth/chat.delete",
+  "https://www.googleapis.com/auth/chat.import",
+  "https://www.googleapis.com/auth/chat.memberships",
+  "https://www.googleapis.com/auth/chat.memberships.app",
+  "https://www.googleapis.com/auth/chat.memberships.readonly",
+  "https://www.googleapis.com/auth/chat.messages",
+  "https://www.googleapis.com/auth/chat.messages.create",
+  "https://www.googleapis.com/auth/chat.messages.reactions",
+  "https://www.googleapis.com/auth/chat.messages.reactions.create",
+  "https://www.googleapis.com/auth/chat.messages.reactions.readonly",
+  "https://www.googleapis.com/auth/chat.messages.readonly",
+  "https://www.googleapis.com/auth/chat.spaces",
+  "https://www.googleapis.com/auth/chat.spaces.create",
+  "https://www.googleapis.com/auth/chat.spaces.readonly",
+  "https://www.googleapis.com/auth/chat.users.availability",
+  "https://www.googleapis.com/auth/chat.users.availability.readonly",
+  "https://www.googleapis.com/auth/chat.users.readstate",
+  "https://www.googleapis.com/auth/chat.users.readstate.readonly",
+  "https://www.googleapis.com/auth/chat.users.sections",
+  "https://www.googleapis.com/auth/chat.users.sections.readonly",
+  "https://www.googleapis.com/auth/chat.users.spacesettings",
+];
+
 const GlobalArgsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -109,6 +148,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
+  ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   emoji: z.object({
     customEmoji: z.object({
@@ -194,6 +236,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  scopes: z.string().optional(),
   emoji: z.object({
     customEmoji: z.object({
       emojiName: z.string().describe(
@@ -248,7 +291,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -257,13 +305,16 @@ function _buildGcpCredentials(
     accessToken: g.accessToken as string | undefined,
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : _defaultOAuthScopes,
   };
 }
 
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages.Reactions. Registered at `@swamp/gcp/chat/spaces-messages-reactions`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages-reactions",
-  version: "2026.07.17.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -338,6 +389,11 @@ export const model = {
     {
       toVersion: "2026.07.17.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "Added: scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
