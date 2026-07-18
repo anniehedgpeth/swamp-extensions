@@ -14,8 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/sagemaker/algorithm` to see the full
-list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/sagemaker/action` to see the full list
+of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -47,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new algorithm model
-swamp model create @swamp/aws/sagemaker/algorithm my-algorithm
+# Create a new action model
+swamp model create @swamp/aws/sagemaker/action my-action
 
 # Edit the model to configure its properties
-swamp model edit my-algorithm
+swamp model edit my-action
 
 # Create the resource in AWS
-swamp model method run my-algorithm create
+swamp model method run my-action create
 
 # Sync current state from AWS
-swamp model method run my-algorithm sync
+swamp model method run my-action sync
 ```
 
 ## License

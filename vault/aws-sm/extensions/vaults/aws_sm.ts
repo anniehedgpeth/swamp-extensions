@@ -39,7 +39,7 @@ import {
   TagResourceCommand,
   UntagResourceCommand,
   UpdateSecretCommand,
-} from "npm:@aws-sdk/client-secrets-manager@3.1053.0";
+} from "npm:@aws-sdk/client-secrets-manager@3.1090.0";
 import { AwsSmOperationError, wrapAwsSmError } from "./aws_sm_errors.ts";
 
 /**

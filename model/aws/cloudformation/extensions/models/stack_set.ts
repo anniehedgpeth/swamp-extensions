@@ -48,7 +48,7 @@ import {
   ListStackInstancesCommand,
   ListStackSetOperationsCommand,
   type StackInstanceFilter,
-} from "npm:@aws-sdk/client-cloudformation@3.1021.0";
+} from "npm:@aws-sdk/client-cloudformation@3.1090.0";
 
 const DeploymentTargetsSchema = z.object({
   Accounts: z.array(z.string().regex(new RegExp("^[0-9]{12}$"))).describe(
@@ -625,7 +625,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFormation StackSet. Registered at `@swamp/aws/cloudformation/stack-set`. */
 export const model = {
   type: "@swamp/aws/cloudformation/stack-set",
-  version: "2026.06.16.5",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -689,6 +689,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.16.5",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -365,7 +365,7 @@ Deno.test("generateAwsExtensionModel - with enrichment", async (t) => {
   const mockEnrichment = {
     source: {
       imports: [
-        'import { DescribeDBClustersCommand, RDSClient } from "npm:@aws-sdk/client-rds@3.1021.0";',
+        'import { DescribeDBClustersCommand, RDSClient } from "npm:@aws-sdk/client-rds@3.1090.0";',
       ],
       body: [
         "const MemberSchema = z.object({",
@@ -424,7 +424,7 @@ Deno.test("generateAwsExtensionModel - with modelMethods", async (t) => {
   const mockModelMethods = {
     source: {
       imports: [
-        'import { CloudFormationClient, ListStackInstancesCommand } from "npm:@aws-sdk/client-cloudformation@3.1021.0";',
+        'import { CloudFormationClient, ListStackInstancesCommand } from "npm:@aws-sdk/client-cloudformation@3.1090.0";',
       ],
       body: [
         "function createCfnClient(credentials: AwsCredentials): CloudFormationClient {",

@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/cognito"
-version: "2026.07.02.1"
+version: "2026.07.18.2"
 description: "AWS COGNITO infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,9 +9,6 @@ labels:
   - cognito
   - cloud
   - infrastructure
-releaseNotes: |
-  - Added: user_pool_regional_configuration_attachment, user_pool_replica
-  - Updated: user_pool, user_pool_user
 models:
   - identity_pool.ts
   - identity_pool_principal_tag.ts

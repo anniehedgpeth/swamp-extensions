@@ -114,7 +114,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for DataExchange EntitledDataSets. Registered at `@swamp/aws/dataexchange/entitled-data-sets`. */
 export const model = {
   type: "@swamp/aws/dataexchange/entitled-data-sets",
-  version: "2026.06.25.1",
+  version: "2026.07.18.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

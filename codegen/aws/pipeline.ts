@@ -474,12 +474,14 @@ export async function generateAwsModels(options: {
       sourceCode: generateAwsDenoConfig(enrichmentImports),
     };
 
-    // Detect README/LICENSE changes
+    // Detect README/LICENSE/deno.json/lib changes
     // Format README with deno fmt before comparing so that the comparison
     // is stable across runs (deno fmt runs on the output directory after
     // writing, so the on-disk README is already formatted).
     let readmeChanged = false;
     let licenseChanged = false;
+    let denoConfigChanged = false;
+    let libChanged = false;
     try {
       const existingReadme = await Deno.readTextFile(
         `${serviceOutputDir}/README.md`,
@@ -496,6 +498,22 @@ export async function generateAwsModels(options: {
       licenseChanged = existingLicense !== licenseFile.sourceCode;
     } catch {
       licenseChanged = true;
+    }
+    try {
+      const existingDenoConfig = await Deno.readTextFile(
+        `${serviceOutputDir}/deno.json`,
+      );
+      denoConfigChanged = existingDenoConfig !== denoConfigFile.sourceCode;
+    } catch {
+      denoConfigChanged = true;
+    }
+    try {
+      const existingLib = await Deno.readTextFile(
+        `${serviceOutputDir}/${libFile.filePath}`,
+      );
+      libChanged = existingLib !== libFile.sourceCode;
+    } catch {
+      libChanged = true;
     }
 
     // Build release notes from model changes
@@ -533,7 +551,8 @@ export async function generateAwsModels(options: {
     const hasChangedModels = modelChanges.some((c) =>
       c.status === "new" || c.status === "changed"
     );
-    const hasChanges = hasChangedModels || readmeChanged || licenseChanged;
+    const hasChanges = hasChangedModels || readmeChanged || licenseChanged ||
+      denoConfigChanged || libChanged;
     const manifestVersion = await computeManifestVersion(
       serviceOutputDir,
       "manifest.yaml",

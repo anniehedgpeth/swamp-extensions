@@ -61,13 +61,12 @@ const GlobalArgsSchema = z.object({
     new RegExp(
       "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
     ),
-  ).optional(),
-  DataTableArn: z.string().min(1).max(2048).optional(),
+  ),
+  DataTableArn: z.string().min(1).max(2048),
   Name: z.string().min(1).max(128).regex(
     new RegExp("^[\\p{L}\\p{Z}\\p{N}\\-_.:=@'|]+$", "u"),
-  ).optional(),
-  ValueType: z.enum(["TEXT", "NUMBER", "BOOLEAN", "TEXT_LIST", "NUMBER_LIST"])
-    .optional(),
+  ),
+  ValueType: z.enum(["TEXT", "NUMBER", "BOOLEAN", "TEXT_LIST", "NUMBER_LIST"]),
   Description: z.string().min(0).max(250).regex(new RegExp("^[\\P{C}\r\n\t]+$"))
     .optional(),
   Primary: z.boolean().optional(),
@@ -185,7 +184,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect DataTableAttribute. Registered at `@swamp/aws/connect/data-table-attribute`. */
 export const model = {
   type: "@swamp/aws/connect/data-table-attribute",
-  version: "2026.06.15.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -224,6 +223,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

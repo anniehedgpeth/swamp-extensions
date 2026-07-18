@@ -341,6 +341,22 @@ async function generateAwsProvider(options: {
       serviceResult.denoConfigFile.sourceCode,
     );
 
+    // Update deno.lock when dependencies changed
+    if (serviceResult.hasChanges) {
+      const installCmd = new Deno.Command("deno", {
+        args: ["install"],
+        cwd: serviceOutputDir,
+      });
+      const installResult = await installCmd.output();
+      if (!installResult.success) {
+        console.warn(
+          `  Warning: deno install failed for ${serviceName}: ${
+            new TextDecoder().decode(installResult.stderr)
+          }`,
+        );
+      }
+    }
+
     // Report changes
     const changedCount = serviceResult.modelChanges.filter(
       (c) => c.status !== "unchanged",

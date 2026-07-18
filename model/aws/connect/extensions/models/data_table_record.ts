@@ -66,12 +66,12 @@ const GlobalArgsSchema = z.object({
     new RegExp(
       "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
     ),
-  ).optional(),
-  DataTableArn: z.string().min(1).max(2048).optional(),
+  ),
+  DataTableArn: z.string().min(1).max(2048),
   DataTableRecord: z.object({
     PrimaryValues: z.array(ValueSchema).optional(),
     Values: z.array(ValueSchema),
-  }).optional(),
+  }),
 });
 
 const StateSchema = z.object({
@@ -123,7 +123,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect DataTableRecord. Registered at `@swamp/aws/connect/data-table-record`. */
 export const model = {
   type: "@swamp/aws/connect/data-table-record",
-  version: "2026.06.15.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -162,6 +162,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

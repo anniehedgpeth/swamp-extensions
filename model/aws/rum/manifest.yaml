@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/rum"
-version: "2026.06.15.1"
+version: "2026.07.18.2"
 description: "AWS RUM infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,8 +9,6 @@ labels:
   - rum
   - cloud
   - infrastructure
-releaseNotes: |
-  - Updated: app_monitor
 models:
   - app_monitor.ts
 additionalFiles:

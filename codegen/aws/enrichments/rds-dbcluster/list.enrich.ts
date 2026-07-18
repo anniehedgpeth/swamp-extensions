@@ -3,7 +3,7 @@
 import {
   DescribeDBClustersCommand,
   RDSClient,
-} from "npm:@aws-sdk/client-rds@3.1021.0";
+} from "npm:@aws-sdk/client-rds@3.1090.0";
 
 export async function listClusters(
   filters?: Array<{ Name: string; Values: string[] }>,

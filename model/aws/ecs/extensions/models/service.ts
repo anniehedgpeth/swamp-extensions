@@ -376,16 +376,24 @@ const DeploymentAlarmsSchema = z.object({
 });
 
 const ThresholdConfigurationSchema = z.object({
-  Type: z.enum(["COUNT", "BOUNDED_PERCENT", "UNBOUNDED_PERCENT"]),
-  Value: z.number().int(),
+  Type: z.enum(["COUNT", "BOUNDED_PERCENT", "UNBOUNDED_PERCENT"]).describe(
+    "Determines how Amazon ECS uses value to calculate the failure threshold. For the percentage types ( BOUNDED_PERCENT and UNBOUNDED_PERCENT), Amazon ECS multiplies value by the latest service desired count. For COUNT, Amazon ECS uses value directly as the threshold. The default is BOUNDED_PERCENT.",
+  ),
+  Value: z.number().int().describe(
+    "Specifies the integer that Amazon ECS uses to calculate the failure threshold. When type is COUNT, this value is the failure threshold itself. When type is a percentage type, Amazon ECS multiplies this value by the latest service desired count to produce the failure threshold. The default is 50.",
+  ),
 });
 
 const DeploymentCircuitBreakerSchema = z.object({
-  ThresholdConfiguration: ThresholdConfigurationSchema.optional(),
+  ThresholdConfiguration: ThresholdConfigurationSchema.describe(
+    "The threshold configuration that controls when the deployment circuit breaker triggers. The type and value together determine how many task failures are tolerated before the circuit breaker activates.",
+  ).optional(),
   Enable: z.boolean().describe(
     "Determines whether to use the deployment circuit breaker logic for the service.",
   ),
-  ResetOnHealthyTask: z.boolean().optional(),
+  ResetOnHealthyTask: z.boolean().describe(
+    "Specifies whether the deployment circuit breaker resets its failure count when a task reaches a healthy state. When set to true, a task that reaches a healthy state resets the failure count to 0. When set to false, Amazon ECS does not reset the failure count. The default is true.",
+  ).optional(),
   Rollback: z.boolean().describe(
     "Determines whether to configure Amazon ECS to roll back the service if a service deployment fails. If rollback is on, when a service deployment fails, the service is rolled back to the last deployment that completed successfully.",
   ),
@@ -791,7 +799,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ECS Service. Registered at `@swamp/aws/ecs/service`. */
 export const model = {
   type: "@swamp/aws/ecs/service",
-  version: "2026.07.02.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -865,6 +873,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

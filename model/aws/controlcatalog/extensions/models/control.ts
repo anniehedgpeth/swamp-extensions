@@ -138,7 +138,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ControlCatalog Control. Registered at `@swamp/aws/controlcatalog/control`. */
 export const model = {
   type: "@swamp/aws/controlcatalog/control",
-  version: "2026.06.25.1",
+  version: "2026.07.18.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

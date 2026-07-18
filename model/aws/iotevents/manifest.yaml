@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/iotevents"
-version: "2026.06.15.1"
+version: "2026.07.18.2"
 description: "AWS IOTEVENTS infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,8 +9,6 @@ labels:
   - iotevents
   - cloud
   - infrastructure
-releaseNotes: |
-  - Updated: alarm_model, detector_model, input
 models:
   - alarm_model.ts
   - detector_model.ts
