@@ -42,8 +42,10 @@ import {
 import type { AwsCredentials } from "./_lib/aws.ts";
 
 const TargetTrackingScalingPolicySchema = z.object({
-  PredefinedMetricType: z.enum(["LambdaCapacityProviderAverageCPUUtilization"])
-    .describe("The predefined metric type to track for scaling decisions."),
+  PredefinedMetricType: z.enum([
+    "LambdaCapacityProviderAverageCPUUtilization",
+    "LambdaCapacityProviderAverageGPUUtilization",
+  ]).describe("The predefined metric type to track for scaling decisions."),
   TargetValue: z.number().min(0).describe(
     "The target value for the metric that the scaling policy attempts to maintain through scaling actions.",
   ),
@@ -290,7 +292,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lambda CapacityProvider. Registered at `@swamp/aws/lambda/capacity-provider`. */
 export const model = {
   type: "@swamp/aws/lambda/capacity-provider",
-  version: "2026.06.30.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -354,6 +356,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.30.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

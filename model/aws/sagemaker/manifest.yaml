@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/sagemaker"
-version: "2026.07.18.2"
+version: "2026.07.18.3"
 description: "AWS SAGEMAKER infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,6 +9,8 @@ labels:
   - sagemaker
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: transform_job
 models:
   - action.ts
   - algorithm.ts
@@ -47,6 +49,7 @@ models:
   - project.ts
   - space.ts
   - studio_lifecycle_config.ts
+  - transform_job.ts
   - trial_component.ts
   - user_profile.ts
 additionalFiles:
