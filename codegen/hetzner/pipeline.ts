@@ -61,6 +61,8 @@ export interface HetznerResource {
   };
   /** Field used to derive instance names (e.g., "name") */
   identifyingField: string;
+  /** Allowlisted action endpoints available on this resource */
+  actions: string[];
 }
 
 export interface HetznerGeneratedFile {
@@ -384,6 +386,13 @@ interface OApiSpec {
   [key: string]: unknown;
 }
 
+const ALLOWED_ACTIONS = new Set([
+  "change_protection",
+  "set_rules",
+  "apply_to_resources",
+  "remove_from_resources",
+]);
+
 /**
  * Parse the Hetzner OpenAPI spec, group endpoints by noun,
  * and extract resource definitions.
@@ -394,6 +403,7 @@ function parseResources(spec: OApiSpec): HetznerResource[] {
 
   // Group paths by noun (second URL segment after base)
   const groups = new Map<string, PathGroup>();
+  const actionsByNoun = new Map<string, Set<string>>();
 
   for (const [path, methods] of Object.entries(paths)) {
     const segments = path.split("/").filter(Boolean);
@@ -408,8 +418,24 @@ function parseResources(spec: OApiSpec): HetznerResource[] {
     }
     if (!noun) continue;
 
-    // Skip action endpoints and deep sub-resources
-    if (path.includes("/actions")) continue;
+    // Skip generic action list endpoints (e.g. /servers/actions/{id})
+    // but capture allowlisted specific actions (e.g. /servers/{id}/actions/change_protection)
+    if (path.includes("/actions")) {
+      const actionMatch = path.match(
+        /\/([^/]+)\/\{[^}]+\}\/actions\/([^/]+)$/,
+      );
+      if (
+        actionMatch && ALLOWED_ACTIONS.has(actionMatch[2]) &&
+        actionMatch[1] !== "actions"
+      ) {
+        const actionNoun = actionMatch[1];
+        if (!actionsByNoun.has(actionNoun)) {
+          actionsByNoun.set(actionNoun, new Set());
+        }
+        actionsByNoun.get(actionNoun)!.add(actionMatch[2]);
+      }
+      continue;
+    }
     const nounIndex = segments.indexOf(noun);
     const afterNoun = segments.slice(nounIndex + 1);
     // Allow /noun and /noun/{id} but skip /noun/{id}/sub_resource
@@ -426,6 +452,7 @@ function parseResources(spec: OApiSpec): HetznerResource[] {
   for (const [_noun, group] of groups) {
     const resource = mergeResourceOperations(group.noun, group.paths, spec);
     if (resource) {
+      resource.actions = [...(actionsByNoun.get(group.noun) ?? [])].sort();
       resources.push(resource);
     }
   }
@@ -534,6 +561,7 @@ function mergeResourceOperations(
       list: hasList,
     },
     identifyingField,
+    actions: [],
   };
 }
 

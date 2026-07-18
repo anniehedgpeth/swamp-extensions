@@ -303,3 +303,26 @@ export async function remove(
     `Hetzner API error: DELETE ${endpoint}/${id} timed out after ${maxAttempts} attempts (422 resource_in_use): ${lastBody}`,
   );
 }
+
+export async function postAction(
+  endpoint: string,
+  id: number | string,
+  action: string,
+  body: Record<string, unknown>,
+  token?: string,
+): Promise<Record<string, unknown>> {
+  const resp = await request(
+    "POST",
+    `${endpoint}/${id}/actions/${action}`,
+    body,
+    { token },
+  );
+  if (resp.status === 404) {
+    const text = await resp.text();
+    throw new Error(
+      `Resource not found: POST ${endpoint}/${id}/actions/${action} returned 404: ${text}`,
+    );
+  }
+  const data = await resp.json();
+  return unwrap(data);
+}

@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for a Hetzner Cloud firewall.
  *
- * Wraps the `/firewalls` API as a swamp model so create, get, update, delete, sync, list
+ * Wraps the `/firewalls` API as a swamp model so create, get, update, delete, sync, list, lookup, adopt, apply_to_resources, remove_from_resources, set_rules
  * can be driven through `swamp model`.
  *
  * @module
@@ -35,6 +35,7 @@ import { z } from "npm:zod@4.3.6";
 import {
   create,
   listAll,
+  postAction,
   read,
   remove,
   tryRead,
@@ -132,7 +133,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Hetzner Cloud firewall. Registered at `@swamp/hetzner-cloud/firewalls`. */
 export const model = {
   type: "@swamp/hetzner-cloud/firewalls",
-  version: "2026.06.25.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.03.1",
@@ -191,6 +192,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -383,6 +389,229 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length } };
+      },
+    },
+    lookup: {
+      description: "Find an existing firewall by name and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const expectedName = g.name;
+        if (!expectedName) {
+          throw new Error("globalArgs.name is required for lookup");
+        }
+        const items = await listAll(
+          "/firewalls",
+          {},
+          g.token,
+        ) as ResourceData[];
+        const matches = items.filter((item) => item.name === expectedName);
+        if (matches.length === 0) {
+          throw new Error(`No firewall found matching name=${expectedName}`);
+        }
+        if (matches.length > 1) {
+          throw new Error(
+            `Multiple firewalls found matching name=${expectedName} (found ${matches.length}). Use adopt with a specific ID instead.`,
+          );
+        }
+        const result = matches[0];
+        const instanceName = (result.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing firewall by ID into managed state",
+      arguments: z.object({
+        id: z.number().int().describe("The ID of the firewall to adopt"),
+        expected_name: z.string().describe(
+          "Expected name for identity validation",
+        ).optional(),
+      }),
+      execute: async (
+        args: { id: number; expected_name?: string },
+        context: any,
+      ) => {
+        const result = await read(
+          "/firewalls",
+          args.id,
+          context.globalArgs.token,
+        ) as ResourceData;
+        if (
+          args.expected_name !== undefined && result.name !== args.expected_name
+        ) {
+          throw new Error(
+            `Identity mismatch: expected name=${args.expected_name} but got ${result.name}`,
+          );
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString())
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    set_rules: {
+      description: "Set firewall rules, replacing all existing rules",
+      arguments: z.object({
+        rules: z.array(z.object({
+          direction: z.enum(["in", "out"]).describe("Traffic direction"),
+          protocol: z.enum(["tcp", "udp", "icmp", "esp", "gre"]).describe(
+            "Protocol",
+          ),
+          port: z.string().describe(
+            'Port or port range (e.g. "443" or "1-65535")',
+          ).optional(),
+          source_ips: z.array(z.string()).describe(
+            "Permitted source IPs in CIDR notation (for direction=in)",
+          ).optional(),
+          destination_ips: z.array(z.string()).describe(
+            "Permitted destination IPs in CIDR notation (for direction=out)",
+          ).optional(),
+          description: z.string().describe("Description of the rule")
+            .optional(),
+        })).describe("Array of firewall rules"),
+      }),
+      execute: async (
+        args: { rules: Record<string, unknown>[] },
+        context: any,
+      ) => {
+        const g = context.globalArgs;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No data found - run create, lookup, or adopt first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        await postAction("/firewalls", existing.id, "set_rules", {
+          rules: args.rules,
+        }, g.token);
+        const result = await read(
+          "/firewalls",
+          existing.id,
+          g.token,
+        ) as ResourceData;
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    apply_to_resources: {
+      description: "Apply the firewall to additional resources",
+      arguments: z.object({
+        apply_to: z.array(z.object({
+          type: z.enum(["server", "label_selector"]).describe(
+            "Type of the resource",
+          ),
+          server: z.object({ id: z.number().int() }).describe(
+            "Server to apply to (for type=server)",
+          ).optional(),
+          label_selector: z.object({ selector: z.string() }).describe(
+            "Label selector to apply to (for type=label_selector)",
+          ).optional(),
+        })).describe("Resources to apply the firewall to"),
+      }),
+      execute: async (
+        args: { apply_to: Record<string, unknown>[] },
+        context: any,
+      ) => {
+        const g = context.globalArgs;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No data found - run create, lookup, or adopt first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        await postAction("/firewalls", existing.id, "apply_to_resources", {
+          apply_to: args.apply_to,
+        }, g.token);
+        const result = await read(
+          "/firewalls",
+          existing.id,
+          g.token,
+        ) as ResourceData;
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    remove_from_resources: {
+      description: "Remove the firewall from resources",
+      arguments: z.object({
+        remove_from: z.array(z.object({
+          type: z.enum(["server", "label_selector"]).describe(
+            "Type of the resource",
+          ),
+          server: z.object({ id: z.number().int() }).describe(
+            "Server to remove from (for type=server)",
+          ).optional(),
+          label_selector: z.object({ selector: z.string() }).describe(
+            "Label selector to remove from (for type=label_selector)",
+          ).optional(),
+        })).describe("Resources to remove the firewall from"),
+      }),
+      execute: async (
+        args: { remove_from: Record<string, unknown>[] },
+        context: any,
+      ) => {
+        const g = context.globalArgs;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No data found - run create, lookup, or adopt first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        await postAction("/firewalls", existing.id, "remove_from_resources", {
+          remove_from: args.remove_from,
+        }, g.token);
+        const result = await read(
+          "/firewalls",
+          existing.id,
+          g.token,
+        ) as ResourceData;
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
       },
     },
   },

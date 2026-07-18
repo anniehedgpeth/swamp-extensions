@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for a Hetzner Cloud server type.
  *
- * Wraps the `/server_types` API as a swamp model so get, list
+ * Wraps the `/server_types` API as a swamp model so get, list, adopt
  * can be driven through `swamp model`.
  *
  * @module
@@ -87,7 +87,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Hetzner Cloud server type. Registered at `@swamp/hetzner-cloud/server-types`. */
 export const model = {
   type: "@swamp/hetzner-cloud/server-types",
-  version: "2026.06.25.1",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.06.10.2",
@@ -96,6 +96,16 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -166,6 +176,40 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length } };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing server type by ID into managed state",
+      arguments: z.object({
+        id: z.number().int().describe("The ID of the server type to adopt"),
+        expected_name: z.string().describe(
+          "Expected name for identity validation",
+        ).optional(),
+      }),
+      execute: async (
+        args: { id: number; expected_name?: string },
+        context: any,
+      ) => {
+        const result = await read(
+          "/server_types",
+          args.id,
+          context.globalArgs.token,
+        ) as ResourceData;
+        if (
+          args.expected_name !== undefined && result.name !== args.expected_name
+        ) {
+          throw new Error(
+            `Identity mismatch: expected name=${args.expected_name} but got ${result.name}`,
+          );
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString())
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
       },
     },
   },

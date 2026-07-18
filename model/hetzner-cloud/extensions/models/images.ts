@@ -25,14 +25,14 @@
 /**
  * Swamp extension model for a Hetzner Cloud image.
  *
- * Wraps the `/images` API as a swamp model so get, update, delete, list
+ * Wraps the `/images` API as a swamp model so get, update, delete, list, adopt, change_protection
  * can be driven through `swamp model`.
  *
  * @module
  */
 
 import { z } from "npm:zod@4.3.6";
-import { listAll, read, remove, update } from "./_lib/hetzner.ts";
+import { listAll, postAction, read, remove, update } from "./_lib/hetzner.ts";
 
 const GlobalArgsSchema = z.object({
   description: z.string().describe("New description of Image.").optional(),
@@ -81,7 +81,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Hetzner Cloud image. Registered at `@swamp/hetzner-cloud/images`. */
 export const model = {
   type: "@swamp/hetzner-cloud/images",
-  version: "2026.06.25.1",
+  version: "2026.07.18.2",
   upgrades: [
     {
       toVersion: "2026.06.10.2",
@@ -90,6 +90,16 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -219,6 +229,82 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length } };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing image by ID into managed state",
+      arguments: z.object({
+        id: z.number().int().describe("The ID of the image to adopt"),
+        expected_name: z.string().describe(
+          "Expected name for identity validation",
+        ).optional(),
+      }),
+      execute: async (
+        args: { id: number; expected_name?: string },
+        context: any,
+      ) => {
+        const result = await read(
+          "/images",
+          args.id,
+          context.globalArgs.token,
+        ) as ResourceData;
+        if (
+          args.expected_name !== undefined && result.name !== args.expected_name
+        ) {
+          throw new Error(
+            `Identity mismatch: expected name=${args.expected_name} but got ${result.name}`,
+          );
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString())
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    change_protection: {
+      description: "Change delete/rebuild protection for the image",
+      arguments: z.object({
+        delete: z.boolean().describe("Prevent the image from being deleted"),
+      }),
+      execute: async (args: { delete: boolean }, context: any) => {
+        const g = context.globalArgs;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No data found - run create, lookup, or adopt first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const body: Record<string, unknown> = {};
+        if (args.delete !== undefined) body.delete = args.delete;
+        await postAction(
+          "/images",
+          existing.id,
+          "change_protection",
+          body,
+          g.token,
+        );
+        const result = await read(
+          "/images",
+          existing.id,
+          g.token,
+        ) as ResourceData;
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
       },
     },
   },

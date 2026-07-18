@@ -23,6 +23,7 @@ function makeResource(
       list: true,
     },
     identifyingField: "id",
+    actions: [],
     ...overrides,
   };
 }
@@ -497,6 +498,10 @@ Deno.test("GET-only resource has no create, update, delete, or sync methods", ()
   assertFalse(out.includes("update: {"), "update method should not be emitted");
   assertFalse(out.includes("delete: {"), "delete method should not be emitted");
   assertFalse(out.includes("sync: {"), "sync method should not be emitted");
+  assertFalse(
+    out.includes("lookup: {"),
+    "lookup should not be emitted for GET-only resources without naming field in globalArgs",
+  );
 });
 
 Deno.test("GET-only resource GlobalArgsSchema has only token", () => {
@@ -564,6 +569,230 @@ Deno.test("list-only resource imports only listAll — no read, tryRead, create"
   assertFalse(
     out.includes("create"),
     "create should not be imported or called",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Snapshot: enum and constraint properties
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Behavior: lookup method
+// ---------------------------------------------------------------------------
+
+Deno.test("emits lookup method for resource with natural name + read + list", () => {
+  const out = generateServers();
+  assertStringIncludes(out, "lookup: {");
+  assertStringIncludes(
+    out,
+    "Find an existing server by name and import it into state",
+  );
+  assertStringIncludes(out, 'listAll("/servers", {}, g.token)');
+  assertStringIncludes(
+    out,
+    "item.name === expectedName",
+  );
+  assertStringIncludes(out, "No server found matching name=");
+  assertStringIncludes(out, "Use adopt with a specific ID instead.");
+});
+
+Deno.test("omits lookup method for resource with synthetic name", () => {
+  const resource = makeResource({
+    noun: "primary_ips",
+    modelSlug: "primary-ips",
+    fileName: "primary_ips.ts",
+    createProperties: {
+      type: { type: "string", enum: ["ipv4", "ipv6"] },
+    },
+    resourceProperties: { id: intProp, ip: stringProp },
+    requiredProperties: ["type"],
+    actions: [],
+  });
+  const out = generateHetznerExtensionModel({
+    resource,
+    extensionName: "@swamp/hetzner-cloud",
+    version: "2026.01.01.1",
+  });
+  assertFalse(
+    out.includes("lookup: {"),
+    "lookup should not be emitted for synthetic name",
+  );
+});
+
+Deno.test("omits lookup method when list handler is false", () => {
+  const out = generateServers({ list: false });
+  assertFalse(out.includes("lookup: {"), "lookup requires list handler");
+});
+
+// ---------------------------------------------------------------------------
+// Behavior: adopt method
+// ---------------------------------------------------------------------------
+
+Deno.test("emits adopt method with expected_name validation for natural name", () => {
+  const out = generateServers();
+  assertStringIncludes(out, "adopt: {");
+  assertStringIncludes(
+    out,
+    "Adopt an existing server by ID into managed state",
+  );
+  assertStringIncludes(out, "expected_name: z.string()");
+  assertStringIncludes(out, "Identity mismatch: expected name=");
+  assertStringIncludes(out, 'read("/servers", args.id,');
+});
+
+Deno.test("emits adopt method without expected_name for synthetic name", () => {
+  const resource = makeResource({
+    noun: "primary_ips",
+    modelSlug: "primary-ips",
+    fileName: "primary_ips.ts",
+    createProperties: {
+      type: { type: "string", enum: ["ipv4", "ipv6"] },
+    },
+    resourceProperties: { id: intProp, ip: stringProp },
+    requiredProperties: ["type"],
+    actions: [],
+  });
+  const out = generateHetznerExtensionModel({
+    resource,
+    extensionName: "@swamp/hetzner-cloud",
+    version: "2026.01.01.1",
+  });
+  assertStringIncludes(out, "adopt: {");
+  assertFalse(
+    out.includes("expected_name"),
+    "synthetic name resource should not have expected_name",
+  );
+  assertFalse(
+    out.includes("Identity mismatch"),
+    "no identity validation for synthetic name",
+  );
+});
+
+Deno.test("omits adopt method when read handler is false", () => {
+  const resource = makeResource({
+    noun: "pricing",
+    modelSlug: "pricing",
+    fileName: "pricing.ts",
+    handlers: {
+      create: false,
+      read: false,
+      update: false,
+      delete: false,
+      list: true,
+    },
+    createProperties: {},
+    resourceProperties: { id: intProp },
+    requiredProperties: [],
+    actions: [],
+  });
+  const out = generateHetznerExtensionModel({
+    resource,
+    extensionName: "@swamp/hetzner-cloud",
+    version: "2026.01.01.1",
+  });
+  assertFalse(out.includes("adopt: {"), "adopt requires read handler");
+});
+
+// ---------------------------------------------------------------------------
+// Behavior: change_protection method
+// ---------------------------------------------------------------------------
+
+Deno.test("emits change_protection with delete+rebuild for servers", () => {
+  const resource = serversResource();
+  resource.actions = ["change_protection"];
+  const out = generateHetznerExtensionModel({
+    resource,
+    extensionName: "@swamp/hetzner-cloud",
+    version: "2026.01.01.1",
+  });
+  assertStringIncludes(out, "change_protection: {");
+  assertStringIncludes(out, "delete: z.boolean()");
+  assertStringIncludes(out, "rebuild: z.boolean()");
+  assertStringIncludes(
+    out,
+    'postAction("/servers", existing.id, "change_protection"',
+  );
+  assertStringIncludes(out, "postAction");
+  assert(
+    out.includes("postAction") && out.includes('from "./_lib/hetzner.ts"'),
+    "postAction should be imported from lib",
+  );
+});
+
+Deno.test("emits change_protection with delete-only for non-servers", () => {
+  const resource = makeResource({
+    noun: "primary_ips",
+    modelSlug: "primary-ips",
+    fileName: "primary_ips.ts",
+    createProperties: { type: { type: "string" } },
+    resourceProperties: { id: intProp },
+    requiredProperties: ["type"],
+    actions: ["change_protection"],
+  });
+  const out = generateHetznerExtensionModel({
+    resource,
+    extensionName: "@swamp/hetzner-cloud",
+    version: "2026.01.01.1",
+  });
+  assertStringIncludes(out, "change_protection: {");
+  assertStringIncludes(out, "delete: z.boolean()");
+  assertFalse(out.includes("rebuild: z.boolean()"), "only servers get rebuild");
+});
+
+// ---------------------------------------------------------------------------
+// Behavior: firewall action methods
+// ---------------------------------------------------------------------------
+
+Deno.test("emits set_rules, apply_to_resources, remove_from_resources for firewalls", () => {
+  const resource = makeResource({
+    noun: "firewalls",
+    modelSlug: "firewalls",
+    fileName: "firewalls.ts",
+    createProperties: { name: { type: "string" } },
+    resourceProperties: { id: intProp, name: stringProp },
+    requiredProperties: ["name"],
+    actions: ["apply_to_resources", "remove_from_resources", "set_rules"],
+  });
+  const out = generateHetznerExtensionModel({
+    resource,
+    extensionName: "@swamp/hetzner-cloud",
+    version: "2026.01.01.1",
+  });
+  assertStringIncludes(out, "set_rules: {");
+  assertStringIncludes(out, 'direction: z.enum(["in", "out"])');
+  assertStringIncludes(
+    out,
+    'protocol: z.enum(["tcp", "udp", "icmp", "esp", "gre"])',
+  );
+  assertStringIncludes(
+    out,
+    'postAction("/firewalls", existing.id, "set_rules"',
+  );
+
+  assertStringIncludes(out, "apply_to_resources: {");
+  assertStringIncludes(out, 'type: z.enum(["server", "label_selector"])');
+  assertStringIncludes(
+    out,
+    'postAction("/firewalls", existing.id, "apply_to_resources"',
+  );
+
+  assertStringIncludes(out, "remove_from_resources: {");
+  assertStringIncludes(
+    out,
+    'postAction("/firewalls", existing.id, "remove_from_resources"',
+  );
+});
+
+Deno.test("does not emit firewall action methods when actions is empty", () => {
+  const out = generateServers();
+  assertFalse(out.includes("set_rules: {"), "no set_rules without action");
+  assertFalse(
+    out.includes("apply_to_resources: {"),
+    "no apply_to without action",
+  );
+  assertFalse(
+    out.includes("remove_from_resources: {"),
+    "no remove_from without action",
   );
 });
 

@@ -28,7 +28,7 @@ snapshot[`generateHetznerExtensionModel - all handlers, natural name 1`] = `
 /**
  * Swamp extension model for a Hetzner Cloud server.
  *
- * Wraps the \`/servers\` API as a swamp model so create, get, update, delete, sync, list
+ * Wraps the \`/servers\` API as a swamp model so create, get, update, delete, sync, list, lookup, adopt
  * can be driven through \`swamp model\`.
  *
  * @module
@@ -182,6 +182,40 @@ export const model = {
         return { dataHandles, result: { count: items.length } };
       },
     },
+    lookup: {
+      description: "Find an existing server by name and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const expectedName = g.name;
+        if (!expectedName) throw new Error("globalArgs.name is required for lookup");
+        const items = await listAll("/servers", {}, g.token) as ResourceData[];
+        const matches = items.filter((item) => item.name === expectedName);
+        if (matches.length === 0) {
+          throw new Error(\`No server found matching name=\${expectedName}\`);
+        }
+        if (matches.length > 1) {
+          throw new Error(\`Multiple servers found matching name=\${expectedName} (found \${matches.length}). Use adopt with a specific ID instead.\`);
+        }
+        const result = matches[0];
+        const instanceName = (result.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing server by ID into managed state",
+      arguments: z.object({ id: z.number().int().describe("The ID of the server to adopt"), expected_name: z.string().describe("Expected name for identity validation").optional() }),
+      execute: async (args: { id: number; expected_name?: string }, context: any) => {
+        const result = await read("/servers", args.id, context.globalArgs.token) as ResourceData;
+        if (args.expected_name !== undefined && result.name !== args.expected_name) {
+          throw new Error(\`Identity mismatch: expected name=\${args.expected_name} but got \${result.name}\`);
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString()).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
   },
 };
 '
@@ -215,7 +249,7 @@ snapshot[`generateHetznerExtensionModel - read-only (no update, no delete) 1`] =
 /**
  * Swamp extension model for a Hetzner Cloud zone.
  *
- * Wraps the \`/zones\` API as a swamp model so create, get, sync, list
+ * Wraps the \`/zones\` API as a swamp model so create, get, sync, list, lookup, adopt
  * can be driven through \`swamp model\`.
  *
  * @module
@@ -325,6 +359,40 @@ export const model = {
         return { dataHandles, result: { count: items.length } };
       },
     },
+    lookup: {
+      description: "Find an existing zone by name and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const expectedName = g.name;
+        if (!expectedName) throw new Error("globalArgs.name is required for lookup");
+        const items = await listAll("/zones", {}, g.token) as ResourceData[];
+        const matches = items.filter((item) => item.name === expectedName);
+        if (matches.length === 0) {
+          throw new Error(\`No zone found matching name=\${expectedName}\`);
+        }
+        if (matches.length > 1) {
+          throw new Error(\`Multiple zones found matching name=\${expectedName} (found \${matches.length}). Use adopt with a specific ID instead.\`);
+        }
+        const result = matches[0];
+        const instanceName = (result.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing zone by ID into managed state",
+      arguments: z.object({ id: z.number().int().describe("The ID of the zone to adopt"), expected_name: z.string().describe("Expected name for identity validation").optional() }),
+      execute: async (args: { id: number; expected_name?: string }, context: any) => {
+        const result = await read("/zones", args.id, context.globalArgs.token) as ResourceData;
+        if (args.expected_name !== undefined && result.name !== args.expected_name) {
+          throw new Error(\`Identity mismatch: expected name=\${args.expected_name} but got \${result.name}\`);
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString()).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
   },
 };
 '
@@ -358,7 +426,7 @@ snapshot[`generateHetznerExtensionModel - synthetic name 1`] = `
 /**
  * Swamp extension model for a Hetzner Cloud primary ip.
  *
- * Wraps the \`/primary_ips\` API as a swamp model so create, get, delete, sync, list
+ * Wraps the \`/primary_ips\` API as a swamp model so create, get, delete, sync, list, adopt
  * can be driven through \`swamp model\`.
  *
  * @module
@@ -491,6 +559,16 @@ export const model = {
         return { dataHandles, result: { count: items.length } };
       },
     },
+    adopt: {
+      description: "Adopt an existing primary ip by ID into managed state",
+      arguments: z.object({ id: z.number().int().describe("The ID of the primary ip to adopt") }),
+      execute: async (args: { id: number }, context: any) => {
+        const result = await read("/primary_ips", args.id, context.globalArgs.token) as ResourceData;
+        const instanceName = (context.globalArgs.name?.toString() ?? args.id.toString()).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
   },
 };
 '
@@ -524,7 +602,7 @@ snapshot[`generateHetznerExtensionModel - label-based naming 1`] = `
 /**
  * Swamp extension model for a Hetzner Cloud placement group.
  *
- * Wraps the \`/placement_groups\` API as a swamp model so create, get, update, delete, sync, list
+ * Wraps the \`/placement_groups\` API as a swamp model so create, get, update, delete, sync, list, lookup, adopt
  * can be driven through \`swamp model\`.
  *
  * @module
@@ -666,6 +744,40 @@ export const model = {
         return { dataHandles, result: { count: items.length } };
       },
     },
+    lookup: {
+      description: "Find an existing placement group by label and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const expectedName = g.label;
+        if (!expectedName) throw new Error("globalArgs.label is required for lookup");
+        const items = await listAll("/placement_groups", {}, g.token) as ResourceData[];
+        const matches = items.filter((item) => item.label === expectedName);
+        if (matches.length === 0) {
+          throw new Error(\`No placement group found matching label=\${expectedName}\`);
+        }
+        if (matches.length > 1) {
+          throw new Error(\`Multiple placement groups found matching label=\${expectedName} (found \${matches.length}). Use adopt with a specific ID instead.\`);
+        }
+        const result = matches[0];
+        const instanceName = (result.label?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing placement group by ID into managed state",
+      arguments: z.object({ id: z.number().int().describe("The ID of the placement group to adopt"), expected_name: z.string().describe("Expected label for identity validation").optional() }),
+      execute: async (args: { id: number; expected_name?: string }, context: any) => {
+        const result = await read("/placement_groups", args.id, context.globalArgs.token) as ResourceData;
+        if (args.expected_name !== undefined && result.label !== args.expected_name) {
+          throw new Error(\`Identity mismatch: expected label=\${args.expected_name} but got \${result.label}\`);
+        }
+        const instanceName = (result.label?.toString() ?? args.id.toString()).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
   },
 };
 '
@@ -699,7 +811,7 @@ snapshot[`generateHetznerExtensionModel - with upgrades block 1`] = `
 /**
  * Swamp extension model for a Hetzner Cloud ssh key.
  *
- * Wraps the \`/ssh_keys\` API as a swamp model so create, get, update, delete, sync, list
+ * Wraps the \`/ssh_keys\` API as a swamp model so create, get, update, delete, sync, list, lookup, adopt
  * can be driven through \`swamp model\`.
  *
  * @module
@@ -852,6 +964,40 @@ export const model = {
         return { dataHandles, result: { count: items.length } };
       },
     },
+    lookup: {
+      description: "Find an existing ssh key by name and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const expectedName = g.name;
+        if (!expectedName) throw new Error("globalArgs.name is required for lookup");
+        const items = await listAll("/ssh_keys", {}, g.token) as ResourceData[];
+        const matches = items.filter((item) => item.name === expectedName);
+        if (matches.length === 0) {
+          throw new Error(\`No ssh key found matching name=\${expectedName}\`);
+        }
+        if (matches.length > 1) {
+          throw new Error(\`Multiple ssh keys found matching name=\${expectedName} (found \${matches.length}). Use adopt with a specific ID instead.\`);
+        }
+        const result = matches[0];
+        const instanceName = (result.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing ssh key by ID into managed state",
+      arguments: z.object({ id: z.number().int().describe("The ID of the ssh key to adopt"), expected_name: z.string().describe("Expected name for identity validation").optional() }),
+      execute: async (args: { id: number; expected_name?: string }, context: any) => {
+        const result = await read("/ssh_keys", args.id, context.globalArgs.token) as ResourceData;
+        if (args.expected_name !== undefined && result.name !== args.expected_name) {
+          throw new Error(\`Identity mismatch: expected name=\${args.expected_name} but got \${result.name}\`);
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString()).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
   },
 };
 '
@@ -885,7 +1031,7 @@ snapshot[`generateHetznerExtensionModel - GET-only resource (list + get) 1`] = `
 /**
  * Swamp extension model for a Hetzner Cloud server type.
  *
- * Wraps the \`/server_types\` API as a swamp model so get, list
+ * Wraps the \`/server_types\` API as a swamp model so get, list, adopt
  * can be driven through \`swamp model\`.
  *
  * @module
@@ -961,6 +1107,19 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length } };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing server type by ID into managed state",
+      arguments: z.object({ id: z.number().int().describe("The ID of the server type to adopt"), expected_name: z.string().describe("Expected name for identity validation").optional() }),
+      execute: async (args: { id: number; expected_name?: string }, context: any) => {
+        const result = await read("/server_types", args.id, context.globalArgs.token) as ResourceData;
+        if (args.expected_name !== undefined && result.name !== args.expected_name) {
+          throw new Error(\`Identity mismatch: expected name=\${args.expected_name} but got \${result.name}\`);
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString()).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
       },
     },
   },
@@ -1086,7 +1245,7 @@ snapshot[`generateHetznerExtensionModel - properties with enums and constraints 
 /**
  * Swamp extension model for a Hetzner Cloud firewall.
  *
- * Wraps the \`/firewalls\` API as a swamp model so create, get, update, delete, sync, list
+ * Wraps the \`/firewalls\` API as a swamp model so create, get, update, delete, sync, list, lookup, adopt
  * can be driven through \`swamp model\`.
  *
  * @module
@@ -1236,6 +1395,40 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length } };
+      },
+    },
+    lookup: {
+      description: "Find an existing firewall by name and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const expectedName = g.name;
+        if (!expectedName) throw new Error("globalArgs.name is required for lookup");
+        const items = await listAll("/firewalls", {}, g.token) as ResourceData[];
+        const matches = items.filter((item) => item.name === expectedName);
+        if (matches.length === 0) {
+          throw new Error(\`No firewall found matching name=\${expectedName}\`);
+        }
+        if (matches.length > 1) {
+          throw new Error(\`Multiple firewalls found matching name=\${expectedName} (found \${matches.length}). Use adopt with a specific ID instead.\`);
+        }
+        const result = matches[0];
+        const instanceName = (result.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing firewall by ID into managed state",
+      arguments: z.object({ id: z.number().int().describe("The ID of the firewall to adopt"), expected_name: z.string().describe("Expected name for identity validation").optional() }),
+      execute: async (args: { id: number; expected_name?: string }, context: any) => {
+        const result = await read("/firewalls", args.id, context.globalArgs.token) as ResourceData;
+        if (args.expected_name !== undefined && result.name !== args.expected_name) {
+          throw new Error(\`Identity mismatch: expected name=\${args.expected_name} but got \${result.name}\`);
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString()).replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const handle = await context.writeResource("state", instanceName, result);
+        return { dataHandles: [handle] };
       },
     },
   },

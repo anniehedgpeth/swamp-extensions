@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for a Hetzner Cloud certificate.
  *
- * Wraps the `/certificates` API as a swamp model so create, get, update, delete, sync, list
+ * Wraps the `/certificates` API as a swamp model so create, get, update, delete, sync, list, lookup, adopt
  * can be driven through `swamp model`.
  *
  * @module
@@ -96,7 +96,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Hetzner Cloud certificate. Registered at `@swamp/hetzner-cloud/certificates`. */
 export const model = {
   type: "@swamp/hetzner-cloud/certificates",
-  version: "2026.06.25.1",
+  version: "2026.07.18.1",
   upgrades: [
     {
       toVersion: "2026.04.03.1",
@@ -150,6 +150,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -344,6 +349,77 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length } };
+      },
+    },
+    lookup: {
+      description:
+        "Find an existing certificate by name and import it into state",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const expectedName = g.name;
+        if (!expectedName) {
+          throw new Error("globalArgs.name is required for lookup");
+        }
+        const items = await listAll(
+          "/certificates",
+          {},
+          g.token,
+        ) as ResourceData[];
+        const matches = items.filter((item) => item.name === expectedName);
+        if (matches.length === 0) {
+          throw new Error(`No certificate found matching name=${expectedName}`);
+        }
+        if (matches.length > 1) {
+          throw new Error(
+            `Multiple certificates found matching name=${expectedName} (found ${matches.length}). Use adopt with a specific ID instead.`,
+          );
+        }
+        const result = matches[0];
+        const instanceName = (result.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    adopt: {
+      description: "Adopt an existing certificate by ID into managed state",
+      arguments: z.object({
+        id: z.number().int().describe("The ID of the certificate to adopt"),
+        expected_name: z.string().describe(
+          "Expected name for identity validation",
+        ).optional(),
+      }),
+      execute: async (
+        args: { id: number; expected_name?: string },
+        context: any,
+      ) => {
+        const result = await read(
+          "/certificates",
+          args.id,
+          context.globalArgs.token,
+        ) as ResourceData;
+        if (
+          args.expected_name !== undefined && result.name !== args.expected_name
+        ) {
+          throw new Error(
+            `Identity mismatch: expected name=${args.expected_name} but got ${result.name}`,
+          );
+        }
+        const instanceName = (result.name?.toString() ?? args.id.toString())
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
       },
     },
   },

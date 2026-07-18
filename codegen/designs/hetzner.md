@@ -107,17 +107,17 @@ operations — a GET-only resource gets `list` and `get` but no `create`,
 
 ### Exclusion rules
 
-| Rule                                      | Rationale                                                                                                                            |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Skip paths containing `/actions`          | Action endpoints (e.g., `/servers/{id}/actions/poweron`) are Hetzner's way of triggering operations; not currently modeled           |
-| Skip paths with >1 segment after the noun | Deep sub-resources (e.g., `/servers/{id}/metrics`) don't fit the flat model pattern; only `/{noun}` and `/{noun}/{id}` are processed |
+| Rule                                      | Rationale                                                                                                                                                                                           |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Selectively parse `/actions` paths        | Allowlisted actions (`change_protection`, `set_rules`, `apply_to_resources`, `remove_from_resources`) are captured per resource; all other action endpoints (e.g., `poweron`, `reboot`) are skipped |
+| Skip paths with >1 segment after the noun | Deep sub-resources (e.g., `/servers/{id}/metrics`) don't fit the flat model pattern; only `/{noun}` and `/{noun}/{id}` are processed                                                                |
 
 ### What Hetzner doesn't need
 
 Unlike the DigitalOcean pipeline, there is no:
 
-- **Multi-pass discovery** — no action endpoints, sub-resource methods, or
-  discovery endpoints to match to parents
+- **Multi-pass discovery** — allowlisted action endpoints are captured in a
+  single pass alongside CRUD endpoints; no sub-resource or discovery matching
 - **Sub-resource detection heuristic** — paths deeper than `/{noun}/{id}` are
   simply skipped
 - **Top-level exclusion list** — all nouns with any GET/POST/PUT/DELETE are
@@ -611,9 +611,52 @@ required `globalArguments` at model-instantiation time (verified against
 "optional-everywhere" schema relaxation is needed, so the CRUD models' required
 markers are preserved unchanged.
 
+### Adoption methods: `lookup` and `adopt`
+
+Two methods support importing existing resources into swamp management:
+
+**`lookup`** — generated for resources with both `read` and `list` handlers AND
+a natural naming field (not synthetic). Takes no arguments; uses `globalArgs` to
+identify the resource. Calls `listAll()`, filters by matching the naming field
+against `globalArgs.name`, and validates exactly one match (throws on zero or
+multiple matches). This is the primary adoption path — users configure identity
+through globalArgs (same fields as `create`), then `lookup` finds the matching
+resource without needing the numeric ID. On multiple matches, the error message
+directs the user to `adopt` with a specific ID.
+
+**`adopt`** — generated for every resource with a `read` handler (17 of 18
+models). Takes an `id` (number) and, for resources with natural naming fields,
+an optional `expected_name` for identity validation. Fetches via `read()`,
+validates the name if provided, and writes state. This is the ID-based adoption
+path for workflows (e.g., `list` → foreach → `adopt`).
+
+This convention aligns with the Cloudflare provider's `lookup` pattern and
+establishes a cross-provider standard.
+
+### Action methods
+
+Selected Hetzner `/actions/` endpoints are exposed as model methods. The
+pipeline uses an allowlist (`ALLOWED_ACTIONS`) to capture only management-
+relevant actions, not operational ones (power_on, reboot, etc.):
+
+- **`change_protection`** — servers (`{delete, rebuild}`) and primary IPs
+  (`{delete}`). Reads existing state for the resource ID, POSTs to the action
+  endpoint via `postAction()`, then re-reads the resource to capture the updated
+  `protection` field in state.
+- **`set_rules`** — firewalls only. Replaces all firewall rules with the
+  provided array. Re-reads state afterward.
+- **`apply_to_resources`** / **`remove_from_resources`** — firewalls only. Adds
+  or removes firewall attachments to servers or label selectors.
+
+The action body schemas are templated per action type (not auto-generated from
+the OpenAPI spec) since there are few action types in the allowlist and their
+schemas are stable. The pipeline only detects which actions each resource
+supports.
+
 ### Shared lib (`_lib/hetzner.ts`)
 
-Exports: `create`, `read`, `tryRead`, `listAll`, `update`, `remove`
+Exports: `create`, `read`, `tryRead`, `listAll`, `update`, `remove`,
+`postAction`
 
 Key behaviors:
 
@@ -637,6 +680,9 @@ Key behaviors:
 - All other non-OK responses throw with method, path, status, and body
 - Response bodies are unwrapped via `unwrap()` (single object) or `unwrapList()`
   (collection arrays) — see Section 7
+- `postAction()` POSTs to `/{endpoint}/{id}/actions/{action}` with a JSON body
+  and returns the unwrapped response; used by `change_protection`, `set_rules`,
+  `apply_to_resources`, and `remove_from_resources` methods
 - No `subResourceUpdate` or `discover` exports (Hetzner doesn't need them)
 
 #### `remove()` retry on `resource_in_use` (swamp-club #41)

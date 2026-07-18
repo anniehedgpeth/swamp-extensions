@@ -41,8 +41,18 @@ export function generateHetznerExtensionModel(
   lines.push(`// deno-lint-ignore-file no-explicit-any`);
   lines.push("");
 
+  // Determine the naming field for factory-pattern instance names
+  const { field: namingField, synthetic: isSyntheticName } = resolveNamingField(
+    resource,
+  );
+
   // Module-level JSDoc
   const singular = singularize(resource.modelSlug).replace(/-/g, " ");
+  const namingFieldInGlobalArgs = namingField in resource.createProperties ||
+    namingField in resource.updateProperties;
+  const hasLookup = resource.handlers.read && resource.handlers.list &&
+    !isSyntheticName && namingFieldInGlobalArgs;
+  const hasAdopt = resource.handlers.read;
   const availableOps = [
     resource.handlers.create ? "create" : "",
     resource.handlers.read ? "get" : "",
@@ -50,6 +60,9 @@ export function generateHetznerExtensionModel(
     resource.handlers.delete ? "delete" : "",
     resource.handlers.create ? "sync" : "",
     resource.handlers.list ? "list" : "",
+    hasLookup ? "lookup" : "",
+    hasAdopt ? "adopt" : "",
+    ...resource.actions,
   ].filter(Boolean);
   lines.push(`/**`);
   lines.push(
@@ -81,18 +94,14 @@ export function generateHetznerExtensionModel(
   }
   if (resource.handlers.delete) helperImports.push("remove");
   if (resource.handlers.update) helperImports.push("update");
-  if (resource.handlers.list) helperImports.push("listAll");
+  if (resource.handlers.list || hasLookup) helperImports.push("listAll");
+  if (resource.actions.length > 0) helperImports.push("postAction");
   if (helperImports.length > 0) {
     lines.push(
       `import { ${helperImports.join(", ")} } from "./_lib/hetzner.ts";`,
     );
   }
   lines.push("");
-
-  // Determine the naming field for factory-pattern instance names
-  const { field: namingField, synthetic: isSyntheticName } = resolveNamingField(
-    resource,
-  );
 
   // GlobalArgsSchema — all create + update properties with full fidelity
   const globalArgsProps = buildGlobalArgsProperties(resource);
@@ -412,6 +421,353 @@ export function generateHetznerExtensionModel(
     lines.push(
       `        return { dataHandles, result: { count: items.length } };`,
     );
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // lookup method — find-by-identity using globalArgs. Only for resources with
+  // a natural naming field (not synthetic) that have both read and list handlers.
+  if (hasLookup) {
+    lines.push(`    lookup: {`);
+    lines.push(
+      `      description: "Find an existing ${singularName} by ${namingField} and import it into state",`,
+    );
+    lines.push(`      arguments: z.object({}),`);
+    lines.push(
+      `      execute: async (_args: Record<string, never>, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const expectedName = g.${namingField};`,
+    );
+    lines.push(
+      `        if (!expectedName) throw new Error("globalArgs.${namingField} is required for lookup");`,
+    );
+    lines.push(
+      `        const items = await listAll("${endpoint}", {}, g.token) as ResourceData[];`,
+    );
+    lines.push(
+      `        const matches = items.filter((item) => item.${namingField} === expectedName);`,
+    );
+    lines.push(`        if (matches.length === 0) {`);
+    lines.push(
+      `          throw new Error(\`No ${singularName} found matching ${namingField}=\${expectedName}\`);`,
+    );
+    lines.push(`        }`);
+    lines.push(`        if (matches.length > 1) {`);
+    lines.push(
+      `          throw new Error(\`Multiple ${singularName}s found matching ${namingField}=\${expectedName} (found \${matches.length}). Use adopt with a specific ID instead.\`);`,
+    );
+    lines.push(`        }`);
+    lines.push(`        const result = matches[0];`);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(
+          `result.${namingField}?.toString() ?? "current"`,
+        )
+      };`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // adopt method — import-by-ID with optional identity validation
+  if (hasAdopt) {
+    const adoptArgs = isSyntheticName
+      ? `{ id: z.number().int().describe("The ID of the ${singularName} to adopt") }`
+      : `{ id: z.number().int().describe("The ID of the ${singularName} to adopt"), expected_name: z.string().describe("Expected ${namingField} for identity validation").optional() }`;
+    lines.push(`    adopt: {`);
+    lines.push(
+      `      description: "Adopt an existing ${singularName} by ID into managed state",`,
+    );
+    lines.push(
+      `      arguments: z.object(${adoptArgs}),`,
+    );
+    if (isSyntheticName) {
+      lines.push(
+        `      execute: async (args: { id: number }, context: any) => {`,
+      );
+    } else {
+      lines.push(
+        `      execute: async (args: { id: number; expected_name?: string }, context: any) => {`,
+      );
+    }
+    lines.push(
+      `        const result = await read("${endpoint}", args.id, context.globalArgs.token) as ResourceData;`,
+    );
+    if (!isSyntheticName) {
+      lines.push(
+        `        if (args.expected_name !== undefined && result.${namingField} !== args.expected_name) {`,
+      );
+      lines.push(
+        `          throw new Error(\`Identity mismatch: expected ${namingField}=\${args.expected_name} but got \${result.${namingField}}\`);`,
+      );
+      lines.push(`        }`);
+    }
+    if (isSyntheticName) {
+      lines.push(
+        `        const instanceName = ${
+          wrapWithSanitize(
+            `context.globalArgs.${namingField}?.toString() ?? args.id.toString()`,
+          )
+        };`,
+      );
+    } else {
+      lines.push(
+        `        const instanceName = ${
+          wrapWithSanitize(
+            `result.${namingField}?.toString() ?? args.id.toString()`,
+          )
+        };`,
+      );
+    }
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // change_protection method — only for resources with that action
+  if (resource.actions.includes("change_protection")) {
+    const isServer = resource.noun === "servers";
+    const cpArgs = isServer
+      ? `{ delete: z.boolean().describe("If true, prevents the ${singularName} from being deleted").optional(), rebuild: z.boolean().describe("If true, prevents the ${singularName} from being rebuilt").optional() }`
+      : `{ delete: z.boolean().describe("Prevent the ${singularName} from being deleted") }`;
+    const cpType = isServer
+      ? "{ delete?: boolean; rebuild?: boolean }"
+      : "{ delete: boolean }";
+    lines.push(`    change_protection: {`);
+    lines.push(
+      `      description: "Change delete/rebuild protection for the ${singularName}",`,
+    );
+    lines.push(
+      `      arguments: z.object(${cpArgs}),`,
+    );
+    lines.push(
+      `      execute: async (args: ${cpType}, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+      };`,
+    );
+    lines.push(
+      `        const content = await context.dataRepository.getContent(`,
+    );
+    lines.push(
+      `          context.modelType, context.modelId, instanceName,`,
+    );
+    lines.push(`        );`);
+    lines.push(
+      `        if (!content) throw new Error("No data found - run create, lookup, or adopt first");`,
+    );
+    lines.push(
+      `        const existing = JSON.parse(new TextDecoder().decode(content));`,
+    );
+    lines.push(`        const body: Record<string, unknown> = {};`);
+    lines.push(
+      `        if (args.delete !== undefined) body.delete = args.delete;`,
+    );
+    if (isServer) {
+      lines.push(
+        `        if (args.rebuild !== undefined) body.rebuild = args.rebuild;`,
+      );
+    }
+    lines.push(
+      `        await postAction("${endpoint}", existing.id, "change_protection", body, g.token);`,
+    );
+    lines.push(
+      `        const result = await read("${endpoint}", existing.id, g.token) as ResourceData;`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // set_rules method — only for firewalls
+  if (resource.actions.includes("set_rules")) {
+    lines.push(`    set_rules: {`);
+    lines.push(
+      `      description: "Set firewall rules, replacing all existing rules",`,
+    );
+    lines.push(`      arguments: z.object({`);
+    lines.push(`        rules: z.array(z.object({`);
+    lines.push(
+      `          direction: z.enum(["in", "out"]).describe("Traffic direction"),`,
+    );
+    lines.push(
+      `          protocol: z.enum(["tcp", "udp", "icmp", "esp", "gre"]).describe("Protocol"),`,
+    );
+    lines.push(
+      `          port: z.string().describe("Port or port range (e.g. \\"443\\" or \\"1-65535\\")").optional(),`,
+    );
+    lines.push(
+      `          source_ips: z.array(z.string()).describe("Permitted source IPs in CIDR notation (for direction=in)").optional(),`,
+    );
+    lines.push(
+      `          destination_ips: z.array(z.string()).describe("Permitted destination IPs in CIDR notation (for direction=out)").optional(),`,
+    );
+    lines.push(
+      `          description: z.string().describe("Description of the rule").optional(),`,
+    );
+    lines.push(`        })).describe("Array of firewall rules"),`);
+    lines.push(`      }),`);
+    lines.push(
+      `      execute: async (args: { rules: Record<string, unknown>[] }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+      };`,
+    );
+    lines.push(
+      `        const content = await context.dataRepository.getContent(`,
+    );
+    lines.push(
+      `          context.modelType, context.modelId, instanceName,`,
+    );
+    lines.push(`        );`);
+    lines.push(
+      `        if (!content) throw new Error("No data found - run create, lookup, or adopt first");`,
+    );
+    lines.push(
+      `        const existing = JSON.parse(new TextDecoder().decode(content));`,
+    );
+    lines.push(
+      `        await postAction("${endpoint}", existing.id, "set_rules", { rules: args.rules }, g.token);`,
+    );
+    lines.push(
+      `        const result = await read("${endpoint}", existing.id, g.token) as ResourceData;`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // apply_to_resources method — only for firewalls
+  if (resource.actions.includes("apply_to_resources")) {
+    lines.push(`    apply_to_resources: {`);
+    lines.push(
+      `      description: "Apply the firewall to additional resources",`,
+    );
+    lines.push(`      arguments: z.object({`);
+    lines.push(`        apply_to: z.array(z.object({`);
+    lines.push(
+      `          type: z.enum(["server", "label_selector"]).describe("Type of the resource"),`,
+    );
+    lines.push(
+      `          server: z.object({ id: z.number().int() }).describe("Server to apply to (for type=server)").optional(),`,
+    );
+    lines.push(
+      `          label_selector: z.object({ selector: z.string() }).describe("Label selector to apply to (for type=label_selector)").optional(),`,
+    );
+    lines.push(
+      `        })).describe("Resources to apply the firewall to"),`,
+    );
+    lines.push(`      }),`);
+    lines.push(
+      `      execute: async (args: { apply_to: Record<string, unknown>[] }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+      };`,
+    );
+    lines.push(
+      `        const content = await context.dataRepository.getContent(`,
+    );
+    lines.push(
+      `          context.modelType, context.modelId, instanceName,`,
+    );
+    lines.push(`        );`);
+    lines.push(
+      `        if (!content) throw new Error("No data found - run create, lookup, or adopt first");`,
+    );
+    lines.push(
+      `        const existing = JSON.parse(new TextDecoder().decode(content));`,
+    );
+    lines.push(
+      `        await postAction("${endpoint}", existing.id, "apply_to_resources", { apply_to: args.apply_to }, g.token);`,
+    );
+    lines.push(
+      `        const result = await read("${endpoint}", existing.id, g.token) as ResourceData;`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // remove_from_resources method — only for firewalls
+  if (resource.actions.includes("remove_from_resources")) {
+    lines.push(`    remove_from_resources: {`);
+    lines.push(
+      `      description: "Remove the firewall from resources",`,
+    );
+    lines.push(`      arguments: z.object({`);
+    lines.push(`        remove_from: z.array(z.object({`);
+    lines.push(
+      `          type: z.enum(["server", "label_selector"]).describe("Type of the resource"),`,
+    );
+    lines.push(
+      `          server: z.object({ id: z.number().int() }).describe("Server to remove from (for type=server)").optional(),`,
+    );
+    lines.push(
+      `          label_selector: z.object({ selector: z.string() }).describe("Label selector to remove from (for type=label_selector)").optional(),`,
+    );
+    lines.push(
+      `        })).describe("Resources to remove the firewall from"),`,
+    );
+    lines.push(`      }),`);
+    lines.push(
+      `      execute: async (args: { remove_from: Record<string, unknown>[] }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+      };`,
+    );
+    lines.push(
+      `        const content = await context.dataRepository.getContent(`,
+    );
+    lines.push(
+      `          context.modelType, context.modelId, instanceName,`,
+    );
+    lines.push(`        );`);
+    lines.push(
+      `        if (!content) throw new Error("No data found - run create, lookup, or adopt first");`,
+    );
+    lines.push(
+      `        const existing = JSON.parse(new TextDecoder().decode(content));`,
+    );
+    lines.push(
+      `        await postAction("${endpoint}", existing.id, "remove_from_resources", { remove_from: args.remove_from }, g.token);`,
+    );
+    lines.push(
+      `        const result = await read("${endpoint}", existing.id, g.token) as ResourceData;`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
     lines.push(`      },`);
     lines.push(`    },`);
   }
