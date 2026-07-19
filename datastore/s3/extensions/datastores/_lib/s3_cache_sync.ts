@@ -501,6 +501,7 @@ interface DatastoreSyncStateV2 {
   dirtyPathsOverflowed?: boolean;
   commitSeq?: number;
   lastCatalogHash?: string;
+  dataKeyMigrated?: boolean;
 }
 
 type DatastoreSyncState = DatastoreSyncStateV1 | DatastoreSyncStateV2;
@@ -591,6 +592,141 @@ export class S3CacheSyncService implements DatastoreSyncService {
     return this.namespace
       ? `${this.namespace}/_index/${partitionKey}.json`
       : `_index/${partitionKey}.json`;
+  }
+
+  private dataKey(rel: string): string {
+    return this.namespace ? `${this.namespace}/${rel}` : rel;
+  }
+
+  /**
+   * Server-side migration: copies objects from root-level keys to
+   * {namespace}/ keys using S3 CopyObject (no download/upload). Lists
+   * all root-level data objects, copies each to the namespaced key,
+   * rebuilds the index, and deletes the originals.
+   */
+  private static readonly DATA_SUBDIRS = new Set([
+    "data",
+    "outputs",
+    "definitions-evaluated",
+    "workflow-runs",
+    "workflows-evaluated",
+    "auto-definitions",
+    "audit",
+    "telemetry",
+    "logs",
+    "files",
+  ]);
+
+  private async migrateRootDataToNamespace(
+    signal?: AbortSignal,
+  ): Promise<{ copied: number; total: number }> {
+    if (!this.namespace) return { copied: 0, total: 0 };
+    // Read the ROOT index (pre-namespace) to know which objects belong
+    // to this repo. Without this, a shared bucket without client-level
+    // prefix would migrate another repo's data.
+    let knownKeys = new Set<string>();
+    try {
+      const { data } = await this.s3.getObject(".datastore-index.json", signal);
+      const rootIndex = JSON.parse(
+        new TextDecoder().decode(data),
+      ) as DatastoreIndex;
+      knownKeys = new Set(Object.keys(rootIndex.entries ?? {}));
+    } catch {
+      // No root index — first-time namespace setup or bucket was always
+      // namespaced. Fall through with empty set (knownKeys.size === 0
+      // skips the filter, allowing all root objects to migrate).
+    }
+    const listing = await this.s3.listAllObjects(undefined, signal);
+    const nsPrefix = `${this.namespace}/`;
+    const toMigrate = listing.filter((entry) => {
+      if (entry.key.startsWith(nsPrefix)) return false;
+      if (isInternalCacheFile(entry.key)) return false;
+      const firstSeg = entry.key.split("/")[0];
+      if (!S3CacheSyncService.DATA_SUBDIRS.has(firstSeg)) return false;
+      if (knownKeys.size > 0 && !knownKeys.has(entry.key)) return false;
+      return true;
+    });
+    if (toMigrate.length === 0) return { copied: 0, total: 0 };
+
+    console.info(
+      `[s3-sync] Migrating ${toMigrate.length} object(s) to namespace "${this.namespace}" (server-side copy, no re-upload)...`,
+    );
+
+    const copiedKeys: Set<string> = new Set();
+    for (let i = 0; i < toMigrate.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = toMigrate.slice(i, i + this.pushConcurrency);
+      const results = await Promise.allSettled(
+        batch.map((entry) =>
+          retryWithBackoff(
+            () =>
+              this.s3.copyObject(entry.key, this.dataKey(entry.key), signal),
+            { signal },
+          ).then(() => entry.key)
+        ),
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled") copiedKeys.add(result.value);
+      }
+      if (toMigrate.length > 50) {
+        console.info(
+          `[s3-sync]   ... ${copiedKeys.size}/${toMigrate.length} copied`,
+        );
+      }
+    }
+
+    if (copiedKeys.size === 0) return { copied: 0, total: toMigrate.length };
+
+    if (copiedKeys.size < toMigrate.length) {
+      console.warn(
+        `[s3-sync] ${
+          toMigrate.length - copiedKeys.size
+        } object(s) failed to copy — originals preserved, will retry next sync`,
+      );
+    }
+
+    if (this.index) {
+      for (const entry of toMigrate) {
+        if (!copiedKeys.has(entry.key)) continue;
+        this.index.entries[entry.key] = {
+          key: entry.key,
+          size: entry.size,
+          lastModified: (entry.lastModified ?? new Date()).toISOString(),
+        };
+      }
+      this.index.lastPulled = new Date().toISOString();
+      const indexData = new TextEncoder().encode(JSON.stringify(this.index));
+      await retryWithBackoff(
+        () => this.s3.putObject(this.indexKey(), indexData, signal),
+        { signal },
+      );
+      await atomicWriteTextFile(
+        this.indexPath,
+        JSON.stringify(this.index, null, 2),
+      );
+      try {
+        await this.s3.deleteObject(this.metaKey(), signal);
+      } catch { /* may not exist */ }
+    }
+
+    const toDeleteBatch = toMigrate.filter((e) => copiedKeys.has(e.key));
+    for (let i = 0; i < toDeleteBatch.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = toDeleteBatch.slice(i, i + this.pushConcurrency);
+      await Promise.allSettled(
+        batch.map((entry) =>
+          retryWithBackoff(
+            () => this.s3.deleteObject(entry.key, signal),
+            { signal },
+          )
+        ),
+      );
+    }
+
+    console.info(
+      `[s3-sync] Migration complete: ${copiedKeys.size}/${toMigrate.length} object(s) moved to "${this.namespace}/"`,
+    );
+    return { copied: copiedKeys.size, total: toMigrate.length };
   }
 
   private async readPartitionMeta(
@@ -825,6 +961,9 @@ export class S3CacheSyncService implements DatastoreSyncService {
     >,
   ): DatastoreSyncStateV2 {
     const current = this.syncState;
+    const v2Current = current?.version === 2
+      ? current as DatastoreSyncStateV2
+      : undefined;
     return {
       version: 2,
       remoteIndexETag: current?.remoteIndexETag ?? "",
@@ -835,6 +974,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       lazyPullActive: overrides?.lazyPullActive ?? this.lazyPullActive,
       dirtyPathsOverflowed: this.dirtyPathsOverflowed,
       lastCatalogHash: this.lastCatalogHash ?? undefined,
+      dataKeyMigrated: v2Current?.dataKeyMigrated,
     };
   }
 
@@ -1229,8 +1369,11 @@ export class S3CacheSyncService implements DatastoreSyncService {
     // pullChanged will reconcile mtimes as it downloads each file.
     const entries: Record<string, IndexEntry> = {};
     for (const entry of filtered) {
-      entries[entry.key] = {
-        key: entry.key,
+      const rel = nsPrefix && entry.key.startsWith(nsPrefix)
+        ? entry.key.slice(nsPrefix.length)
+        : entry.key;
+      entries[rel] = {
+        key: rel,
         size: entry.size,
         lastModified: (entry.lastModified ?? new Date()).toISOString(),
       };
@@ -1270,10 +1413,25 @@ export class S3CacheSyncService implements DatastoreSyncService {
     signal?: AbortSignal,
   ): Promise<void> {
     const localPath = assertSafePath(this.cachePath, relativePath);
-    const { data } = await retryWithBackoff(
-      () => this.s3.getObject(relativePath, signal),
-      { signal },
-    );
+    let data: Uint8Array;
+    try {
+      ({ data } = await retryWithBackoff(
+        () => this.s3.getObject(this.dataKey(relativePath), signal),
+        { signal },
+      ));
+    } catch (err) {
+      if (
+        this.namespace && err instanceof Error &&
+        (err.name === "NotFound" || err.name === "NoSuchKey")
+      ) {
+        ({ data } = await retryWithBackoff(
+          () => this.s3.getObject(relativePath, signal),
+          { signal },
+        ));
+      } else {
+        throw err;
+      }
+    }
     await ensureDir(dirname(localPath));
     await Deno.writeFile(localPath, data);
   }
@@ -1540,7 +1698,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
     await retryWithBackoff(
-      () => this.s3.putObject(relativePath, data, signal),
+      () => this.s3.putObject(this.dataKey(relativePath), data, signal),
       { signal },
     );
 
@@ -1578,12 +1736,22 @@ export class S3CacheSyncService implements DatastoreSyncService {
     throwIfAborted(signal);
     await this.ensurePreflight(signal);
 
+    const needsDataKeyMigration = this.namespace != null &&
+      !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
+        ?.dataKeyMigrated;
+
     const fastStart = Date.now();
-    const fastResult = await this.tryFastPushChanged(signal);
+    const fastResult = needsDataKeyMigration
+      ? null
+      : await this.tryFastPushChanged(signal);
     tracePhase(
       "pushChanged.fastpath",
       fastStart,
-      fastResult === 0 ? "hit" : "miss",
+      needsDataKeyMigration
+        ? "skip(migration)"
+        : fastResult === 0
+        ? "hit"
+        : "miss",
     );
     if (fastResult !== null) return fastResult;
 
@@ -1610,10 +1778,17 @@ export class S3CacheSyncService implements DatastoreSyncService {
       tracePhase("pushChanged.pullIndex", indexStart);
     }
 
-    // Build list of files that need pushing and files that need
-    // deleting (markDirty contract rule #2: absence-on-disk = delete).
-    // When per-path dirty tracking is available and not bulk-invalidated,
-    // walk only the dirty directories instead of the entire cache.
+    if (needsDataKeyMigration) {
+      const { copied, total } = await this.migrateRootDataToNamespace(signal);
+      const allMigrated = total === 0 || copied === total;
+      try {
+        const sidecar = this.buildV2State({ localDirty: false });
+        if (allMigrated) sidecar.dataKeyMigrated = true;
+        await this.writeSyncState(sidecar);
+      } catch { /* non-fatal */ }
+      if (copied > 0) return copied;
+    }
+
     const walkStart = Date.now();
     const toPush: string[] = [];
     const toDelete: string[] = [];
@@ -1943,6 +2118,9 @@ export class S3CacheSyncService implements DatastoreSyncService {
     await this.ensurePreflight(signal);
 
     const prepareStart = Date.now();
+    const needsDataKeyMigration = this.namespace != null &&
+      !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
+        ?.dataKeyMigrated;
 
     const emptyManifest: InternalPushManifest = {
       newEntries: {},
@@ -1953,11 +2131,17 @@ export class S3CacheSyncService implements DatastoreSyncService {
     };
 
     const fastStart = Date.now();
-    const fastResult = await this.tryFastPushChanged(signal);
+    const fastResult = needsDataKeyMigration
+      ? null
+      : await this.tryFastPushChanged(signal);
     tracePhase(
       "preparePush.fastpath",
       fastStart,
-      fastResult !== null ? "hit" : "miss",
+      needsDataKeyMigration
+        ? "skip(migration)"
+        : fastResult !== null
+        ? "hit"
+        : "miss",
     );
     if (fastResult !== null) {
       return emptyManifest as unknown as PushManifest;
@@ -1981,6 +2165,17 @@ export class S3CacheSyncService implements DatastoreSyncService {
     } else {
       await this.pullIndex({ forceRemote: true, signal });
       tracePhase("preparePush.pullIndex", indexStart);
+    }
+
+    if (needsDataKeyMigration) {
+      const { copied, total } = await this.migrateRootDataToNamespace(signal);
+      const allMigrated = total === 0 || copied === total;
+      try {
+        const sidecar = this.buildV2State({ localDirty: false });
+        if (allMigrated) sidecar.dataKeyMigrated = true;
+        await this.writeSyncState(sidecar);
+      } catch { /* non-fatal */ }
+      if (total > 0) return emptyManifest as unknown as PushManifest;
     }
 
     const toPush: string[] = [];
@@ -2092,7 +2287,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("");
           await retryWithBackoff(
-            () => this.s3.putObject(rel, data, signal),
+            () => this.s3.putObject(this.dataKey(rel), data, signal),
             { signal },
           );
           const stat = await Deno.stat(localPath);

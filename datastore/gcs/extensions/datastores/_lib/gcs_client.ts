@@ -1143,6 +1143,30 @@ export class GcsClient {
     }
   }
 
+  /** Copies an object within the same bucket (server-side, no download). */
+  async copyObject(
+    sourceKey: string,
+    destKey: string,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const sourceObject = this.fullKey(sourceKey);
+    const destObject = this.fullKey(destKey);
+    const url = this.storageUrl(
+      `/b/${encodeURIComponent(this.bucket)}/o/${
+        encodeURIComponent(sourceObject)
+      }/rewriteTo/b/${encodeURIComponent(this.bucket)}/o/${
+        encodeURIComponent(destObject)
+      }`,
+    );
+    const resp = await this.send(
+      "copyObject",
+      url,
+      { method: "POST", headers: await this.headers() },
+      signal,
+    );
+    await resp.text();
+  }
+
   /** Lists objects in GCS with the configured prefix. */
   async listObjects(
     subPrefix?: string,

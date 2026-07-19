@@ -27,6 +27,8 @@
 // Keep this pin in sync with the version declared in this extension's
 // deno.json for consistent type-checking during local dev.
 import {
+  CopyObjectCommand,
+  type CopyObjectCommandOutput,
   DeleteObjectCommand,
   type DeleteObjectCommandOutput,
   GetObjectCommand,
@@ -429,6 +431,11 @@ export class S3Client {
   ): Promise<DeleteObjectCommandOutput>;
   private run(
     op: string,
+    cmd: CopyObjectCommand,
+    signal?: AbortSignal,
+  ): Promise<CopyObjectCommandOutput>;
+  private run(
+    op: string,
     cmd: ListObjectsV2Command,
     signal?: AbortSignal,
   ): Promise<ListObjectsV2CommandOutput>;
@@ -439,6 +446,7 @@ export class S3Client {
       | HeadObjectCommand
       | GetObjectCommand
       | PutObjectCommand
+      | CopyObjectCommand
       | DeleteObjectCommand
       | ListObjectsV2Command,
     signal?: AbortSignal,
@@ -447,17 +455,12 @@ export class S3Client {
     | HeadObjectCommandOutput
     | GetObjectCommandOutput
     | PutObjectCommandOutput
+    | CopyObjectCommandOutput
     | DeleteObjectCommandOutput
     | ListObjectsV2CommandOutput
   > {
-    // Primary timeout defense is the NodeHttpHandler's requestTimeout
-    // (set in the constructor). The caller's signal is forwarded as an
-    // extra cancellation escape hatch for when swamp core adopts the
-    // external-signal contract.
     const opts = signal ? { abortSignal: signal } : undefined;
     try {
-      // `send` is overloaded per-command; dispatch by constructor so TS
-      // picks the right overload and we avoid a cast.
       if (cmd instanceof HeadBucketCommand) {
         return await this.client.send(cmd, opts);
       }
@@ -468,6 +471,9 @@ export class S3Client {
         return await this.client.send(cmd, opts);
       }
       if (cmd instanceof PutObjectCommand) {
+        return await this.client.send(cmd, opts);
+      }
+      if (cmd instanceof CopyObjectCommand) {
         return await this.client.send(cmd, opts);
       }
       if (cmd instanceof DeleteObjectCommand) {
@@ -613,6 +619,23 @@ export class S3Client {
       signal,
     );
     return { etag: response.ETag };
+  }
+
+  /** Copies an object within the same bucket (server-side, no download). */
+  async copyObject(
+    sourceKey: string,
+    destKey: string,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    await this.run(
+      "copyObject",
+      new CopyObjectCommand({
+        Bucket: this.bucket,
+        CopySource: `${this.bucket}/${this.fullKey(sourceKey)}`,
+        Key: this.fullKey(destKey),
+      }),
+      signal,
+    );
   }
 
   /**

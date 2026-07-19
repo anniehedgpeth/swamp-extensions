@@ -185,6 +185,23 @@ function createMockGcsClient(): GcsClient & {
       return Promise.resolve(entries);
     },
 
+    copyObject(
+      sourceKey: string,
+      destKey: string,
+      signal?: AbortSignal,
+    ): Promise<void> {
+      throwIfAborted(signal);
+      const data = storage.get(sourceKey);
+      if (!data) {
+        return Promise.reject(
+          new NotFoundError(`Object not found: ${sourceKey}`),
+        );
+      }
+      storage.set(destKey, new Uint8Array(data));
+      nextGen(destKey);
+      return Promise.resolve();
+    },
+
     preflightCredentials(): Promise<void> {
       return Promise.resolve();
     },
@@ -3769,8 +3786,8 @@ Deno.test("pullChanged with namespace fetches per-namespace index", async () => 
   const cachePath = await Deno.makeTempDir();
   try {
     const nsIndex = encodeIndex({
-      "my-ns/data/model/1/raw": {
-        key: "my-ns/data/model/1/raw",
+      "data/model/1/raw": {
+        key: "data/model/1/raw",
         size: 5,
         lastModified: new Date().toISOString(),
       },
@@ -3787,6 +3804,11 @@ Deno.test("pullChanged with namespace fetches per-namespace index", async () => 
 
     const got = gcs.gets.filter((k) => k.includes(".datastore-index.json"));
     assertEquals(got, ["my-ns/.datastore-index.json"]);
+
+    assert(
+      gcs.gets.includes("my-ns/data/model/1/raw"),
+      "data must be fetched from the namespaced key",
+    );
   } finally {
     await Deno.remove(cachePath, { recursive: true });
   }
@@ -5096,14 +5118,17 @@ Deno.test("pushChanged: full walk skips files inside nested namespace directory 
       .map((p) => p.key);
 
     assertEquals(pushed, 2);
-    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
     assert(
-      pushedKeys.includes("outputs/model/1/raw"),
+      pushedKeys.includes("my-ns/data/model/1/raw"),
+      "should push normal data",
+    );
+    assert(
+      pushedKeys.includes("my-ns/outputs/model/1/raw"),
       "should push normal outputs",
     );
     assert(
-      !pushedKeys.includes("my-ns/data/model/1/raw"),
-      "must NOT push nested namespace file",
+      !pushedKeys.some((k) => k === "my-ns/my-ns/data/model/1/raw"),
+      "must NOT push nested namespace file (double-prefixed)",
     );
   } finally {
     await Deno.remove(cachePath, { recursive: true });
@@ -5137,9 +5162,12 @@ Deno.test("pushChanged: full walk skips files inside foreign namespace directory
       .map((p) => p.key);
 
     assertEquals(pushed, 1);
-    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
     assert(
-      !pushedKeys.includes("foreign-ns/data/other/1/raw"),
+      pushedKeys.includes("my-ns/data/model/1/raw"),
+      "should push normal data",
+    );
+    assert(
+      !pushedKeys.includes("my-ns/foreign-ns/data/other/1/raw"),
       "must NOT push foreign namespace file",
     );
   } finally {
@@ -5183,13 +5211,16 @@ Deno.test("preparePush: full walk skips namespace directories (swamp-club#1033)"
       )
       .map((p) => p.key);
 
-    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
     assert(
-      !pushedKeys.includes("my-ns/data/model/1/raw"),
-      "must NOT push nested namespace",
+      pushedKeys.includes("my-ns/data/model/1/raw"),
+      "should push normal data",
     );
     assert(
-      !pushedKeys.includes("foreign-ns/data/other/1/raw"),
+      !pushedKeys.some((k) => k === "my-ns/my-ns/data/model/1/raw"),
+      "must NOT push nested namespace (double-prefixed)",
+    );
+    assert(
+      !pushedKeys.includes("my-ns/foreign-ns/data/other/1/raw"),
       "must NOT push foreign namespace",
     );
 

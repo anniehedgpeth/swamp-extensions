@@ -461,6 +461,7 @@ interface DatastoreSyncStateV2 {
   dirtyPathsOverflowed?: boolean;
   commitSeq?: number;
   lastCatalogHash?: string;
+  dataKeyMigrated?: boolean;
 }
 
 type DatastoreSyncState = DatastoreSyncStateV1 | DatastoreSyncStateV2;
@@ -538,6 +539,145 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     return this.namespace
       ? `${this.namespace}/_index/${partitionKey}.json`
       : `_index/${partitionKey}.json`;
+  }
+
+  private dataKey(rel: string): string {
+    return this.namespace ? `${this.namespace}/${rel}` : rel;
+  }
+
+  /**
+   * Top-level subdirectories that hold user data (as opposed to internal
+   * cache/sync machinery). Used by `migrateRootDataToNamespace` to
+   * identify root-level objects that belong under the namespace prefix.
+   */
+  private static readonly DATA_SUBDIRS = new Set([
+    "data",
+    "outputs",
+    "definitions-evaluated",
+    "workflow-runs",
+    "workflows-evaluated",
+    "auto-definitions",
+    "audit",
+    "telemetry",
+    "logs",
+    "files",
+  ]);
+
+  /**
+   * Server-side copy migration: moves root-level data objects into the
+   * namespace prefix. Lists all objects (no prefix), filters to root-level
+   * data (first segment in DATA_SUBDIRS, not already namespaced, not
+   * internal), copies each to `dataKey(entry.key)`, rebuilds the index,
+   * and deletes the originals.
+   */
+  private async migrateRootDataToNamespace(
+    signal?: AbortSignal,
+  ): Promise<{ copied: number; total: number }> {
+    if (!this.namespace) return { copied: 0, total: 0 };
+    let knownKeys = new Set<string>();
+    try {
+      const { data } = await this.gcs.getObject(
+        ".datastore-index.json",
+        signal,
+      );
+      const rootIndex = JSON.parse(
+        new TextDecoder().decode(data),
+      ) as DatastoreIndex;
+      knownKeys = new Set(Object.keys(rootIndex.entries ?? {}));
+    } catch {
+      // No root index — fall through with empty set.
+    }
+    const listing = await this.gcs.listAllObjects(undefined, signal);
+    const nsPrefix = `${this.namespace}/`;
+    const toMigrate = listing.filter((entry) => {
+      if (entry.key.startsWith(nsPrefix)) return false;
+      if (isInternalCacheFile(entry.key)) return false;
+      const firstSeg = entry.key.split("/")[0];
+      if (!GcsCacheSyncService.DATA_SUBDIRS.has(firstSeg)) return false;
+      if (knownKeys.size > 0 && !knownKeys.has(entry.key)) return false;
+      return true;
+    });
+    if (toMigrate.length === 0) return { copied: 0, total: 0 };
+
+    console.info(
+      `[gcs-sync] Migrating ${toMigrate.length} object(s) to namespace "${this.namespace}" (server-side copy, no re-upload)...`,
+    );
+
+    const copiedKeys: Set<string> = new Set();
+    for (let i = 0; i < toMigrate.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = toMigrate.slice(i, i + this.pushConcurrency);
+      const results = await Promise.allSettled(
+        batch.map((entry) =>
+          retryWithBackoff(
+            () =>
+              this.gcs.copyObject(entry.key, this.dataKey(entry.key), signal),
+            { signal },
+          ).then(() => entry.key)
+        ),
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled") copiedKeys.add(result.value);
+      }
+      if (toMigrate.length > 50) {
+        console.info(
+          `[gcs-sync]   ... ${copiedKeys.size}/${toMigrate.length} copied`,
+        );
+      }
+    }
+
+    if (copiedKeys.size === 0) return { copied: 0, total: toMigrate.length };
+
+    if (copiedKeys.size < toMigrate.length) {
+      console.warn(
+        `[gcs-sync] ${
+          toMigrate.length - copiedKeys.size
+        } object(s) failed to copy — originals preserved, will retry next sync`,
+      );
+    }
+
+    if (this.index) {
+      for (const entry of toMigrate) {
+        if (!copiedKeys.has(entry.key)) continue;
+        this.index.entries[entry.key] = {
+          key: entry.key,
+          size: entry.size,
+          lastModified: (entry.updated ?? new Date()).toISOString(),
+        };
+      }
+      this.index.lastPulled = new Date().toISOString();
+      const indexData = new TextEncoder().encode(JSON.stringify(this.index));
+      await retryWithBackoff(
+        () => this.gcs.putObject(this.indexKey(), indexData, signal),
+        { signal },
+      );
+      await atomicWriteTextFile(
+        this.indexPath,
+        JSON.stringify(this.index, null, 2),
+      );
+      try {
+        await this.gcs.deleteObject(this.metaKey(), undefined, signal);
+      } catch { /* may not exist */ }
+    }
+
+    const toDeleteBatch = toMigrate.filter((e) => copiedKeys.has(e.key));
+    for (let i = 0; i < toDeleteBatch.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = toDeleteBatch.slice(i, i + this.pushConcurrency);
+      await Promise.allSettled(
+        batch.map((entry) =>
+          retryWithBackoff(
+            () => this.gcs.deleteObject(entry.key, undefined, signal),
+            { signal },
+          )
+        ),
+      );
+    }
+
+    console.info(
+      `[gcs-sync] Migration complete: ${copiedKeys.size}/${toMigrate.length} object(s) moved to "${this.namespace}/"`,
+    );
+    return { copied: copiedKeys.size, total: toMigrate.length };
   }
 
   private async readPartitionMeta(
@@ -772,6 +912,9 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     >,
   ): DatastoreSyncStateV2 {
     const current = this.syncState;
+    const v2Current = current?.version === 2
+      ? current as DatastoreSyncStateV2
+      : undefined;
     return {
       version: 2,
       remoteIndexGeneration: current?.remoteIndexGeneration ?? "",
@@ -782,6 +925,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       lazyPullActive: overrides?.lazyPullActive ?? this.lazyPullActive,
       dirtyPathsOverflowed: this.dirtyPathsOverflowed,
       lastCatalogHash: this.lastCatalogHash ?? undefined,
+      dataKeyMigrated: v2Current?.dataKeyMigrated,
     };
   }
 
@@ -1152,8 +1296,11 @@ export class GcsCacheSyncService implements DatastoreSyncService {
 
     const entries: Record<string, IndexEntry> = {};
     for (const entry of filtered) {
-      entries[entry.key] = {
-        key: entry.key,
+      const rel = nsPrefix && entry.key.startsWith(nsPrefix)
+        ? entry.key.slice(nsPrefix.length)
+        : entry.key;
+      entries[rel] = {
+        key: rel,
         size: entry.size,
         lastModified: (entry.updated ?? new Date()).toISOString(),
       };
@@ -1188,10 +1335,22 @@ export class GcsCacheSyncService implements DatastoreSyncService {
   /** Fetches a single file from GCS to the local cache. */
   async pullFile(relativePath: string, signal?: AbortSignal): Promise<void> {
     const localPath = assertSafePath(this.cachePath, relativePath);
-    const { data } = await retryWithBackoff(
-      () => this.gcs.getObject(relativePath, signal),
-      { signal },
-    );
+    let data: Uint8Array;
+    try {
+      ({ data } = await retryWithBackoff(
+        () => this.gcs.getObject(this.dataKey(relativePath), signal),
+        { signal },
+      ));
+    } catch (err) {
+      if (this.namespace && err instanceof NotFoundError) {
+        ({ data } = await retryWithBackoff(
+          () => this.gcs.getObject(relativePath, signal),
+          { signal },
+        ));
+      } else {
+        throw err;
+      }
+    }
     await ensureDir(dirname(localPath));
     await Deno.writeFile(localPath, data);
   }
@@ -1411,7 +1570,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
     await retryWithBackoff(
-      () => this.gcs.putObject(relativePath, data, signal),
+      () => this.gcs.putObject(this.dataKey(relativePath), data, signal),
       { signal },
     );
 
@@ -1453,8 +1612,14 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     throwIfAborted(signal);
     await this.ensurePreflight(signal);
 
+    const needsDataKeyMigration = this.namespace != null &&
+      !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
+        ?.dataKeyMigrated;
+
     const fastStart = Date.now();
-    const fastResult = await this.tryFastPushChanged(signal);
+    const fastResult = needsDataKeyMigration
+      ? null
+      : await this.tryFastPushChanged(signal);
     tracePhase(
       "pushChanged.fastpath",
       fastStart,
@@ -1486,6 +1651,24 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         signal,
       });
       tracePhase("pushChanged.pullIndex", indexStart);
+    }
+
+    if (needsDataKeyMigration) {
+      const { copied, total } = await this.migrateRootDataToNamespace(signal);
+      const allMigrated = total === 0 || copied === total;
+      if (copied > 0) {
+        try {
+          const sidecar = this.buildV2State({ localDirty: false });
+          if (allMigrated) sidecar.dataKeyMigrated = true;
+          await this.writeSyncState(sidecar);
+        } catch { /* non-fatal */ }
+        return copied;
+      }
+      try {
+        const sidecar = this.buildV2State({ localDirty: false });
+        if (allMigrated) sidecar.dataKeyMigrated = true;
+        await this.writeSyncState(sidecar);
+      } catch { /* non-fatal */ }
     }
 
     const walkStart = Date.now();
@@ -1807,6 +1990,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
 
     const prepareStart = Date.now();
 
+    const needsDataKeyMigration = this.namespace != null &&
+      !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
+        ?.dataKeyMigrated;
+
     const emptyManifest: InternalPushManifest = {
       newEntries: {},
       deletedKeys: [],
@@ -1816,7 +2003,9 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     };
 
     const fastStart = Date.now();
-    const fastResult = await this.tryFastPushChanged(signal);
+    const fastResult = needsDataKeyMigration
+      ? null
+      : await this.tryFastPushChanged(signal);
     tracePhase(
       "preparePush.fastpath",
       fastStart,
@@ -1844,6 +2033,17 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     } else {
       await this.pullIndex({ forceRemote: true, signal });
       tracePhase("preparePush.pullIndex", indexStart);
+    }
+
+    if (needsDataKeyMigration) {
+      const { copied, total } = await this.migrateRootDataToNamespace(signal);
+      const allMigrated = total === 0 || copied === total;
+      try {
+        const sidecar = this.buildV2State({ localDirty: false });
+        if (allMigrated) sidecar.dataKeyMigrated = true;
+        await this.writeSyncState(sidecar);
+      } catch { /* non-fatal */ }
+      if (total > 0) return emptyManifest as unknown as PushManifest;
     }
 
     const toPush: string[] = [];
@@ -1952,7 +2152,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("");
           await retryWithBackoff(
-            () => this.gcs.putObject(rel, data, signal),
+            () => this.gcs.putObject(this.dataKey(rel), data, signal),
             { signal },
           );
           const stat = await Deno.stat(localPath);

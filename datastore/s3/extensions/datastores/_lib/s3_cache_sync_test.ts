@@ -110,6 +110,16 @@ function createMockS3Client(): S3Client & {
       return Promise.resolve();
     },
 
+    copyObject(
+      sourceKey: string,
+      destKey: string,
+    ): Promise<void> {
+      const data = storage.get(sourceKey);
+      if (!data) return Promise.reject(makeNoSuchKeyError(sourceKey));
+      storage.set(destKey, data);
+      return Promise.resolve();
+    },
+
     putObject(key: string, body: Uint8Array): Promise<{ etag: string }> {
       storage.set(key, body);
       puts.push({ key, body });
@@ -3965,10 +3975,9 @@ Deno.test("pullChanged with namespace fetches per-namespace index", async () => 
   const s3 = createMockS3Client();
   const cachePath = await Deno.makeTempDir();
   try {
-    // Keys include namespace prefix because local cache layout is namespaced
     const nsIndex = encodeIndex({
-      "my-ns/data/model/1/raw": {
-        key: "my-ns/data/model/1/raw",
+      "data/model/1/raw": {
+        key: "data/model/1/raw",
         size: 5,
         lastModified: new Date().toISOString(),
       },
@@ -3982,6 +3991,9 @@ Deno.test("pullChanged with namespace fetches per-namespace index", async () => 
 
     const got = s3.gets.filter((k) => k.includes(".datastore-index.json"));
     assertEquals(got, ["my-ns/.datastore-index.json"]);
+
+    const dataGets = s3.gets.filter((k) => k.includes("data/model/1/raw"));
+    assertEquals(dataGets, ["my-ns/data/model/1/raw"]);
   } finally {
     await Deno.remove(cachePath, { recursive: true });
   }
@@ -5462,14 +5474,17 @@ Deno.test("pushChanged: full walk skips files inside nested namespace directory 
       .map((p) => p.key);
 
     assertEquals(pushed, 2);
-    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
     assert(
-      pushedKeys.includes("outputs/model/1/raw"),
+      pushedKeys.includes("my-ns/data/model/1/raw"),
+      "should push normal data",
+    );
+    assert(
+      pushedKeys.includes("my-ns/outputs/model/1/raw"),
       "should push normal outputs",
     );
     assert(
-      !pushedKeys.includes("my-ns/data/model/1/raw"),
-      "must NOT push nested namespace file",
+      !pushedKeys.some((k) => k === "my-ns/my-ns/data/model/1/raw"),
+      "must NOT push nested namespace file (would be double-prefixed)",
     );
   } finally {
     await Deno.remove(cachePath, { recursive: true });
@@ -5505,9 +5520,12 @@ Deno.test("pushChanged: full walk skips files inside foreign namespace directory
       .map((p) => p.key);
 
     assertEquals(pushed, 1);
-    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
     assert(
-      !pushedKeys.includes("foreign-ns/data/other/1/raw"),
+      pushedKeys.includes("my-ns/data/model/1/raw"),
+      "should push normal data",
+    );
+    assert(
+      !pushedKeys.includes("my-ns/foreign-ns/data/other/1/raw"),
       "must NOT push foreign namespace file",
     );
   } finally {
@@ -5553,13 +5571,16 @@ Deno.test("preparePush: full walk skips namespace directories (swamp-club#1033)"
       )
       .map((p) => p.key);
 
-    assert(pushedKeys.includes("data/model/1/raw"), "should push normal data");
     assert(
-      !pushedKeys.includes("my-ns/data/model/1/raw"),
-      "must NOT push nested namespace",
+      pushedKeys.includes("my-ns/data/model/1/raw"),
+      "should push normal data",
     );
     assert(
-      !pushedKeys.includes("foreign-ns/data/other/1/raw"),
+      !pushedKeys.some((k) => k === "my-ns/my-ns/data/model/1/raw"),
+      "must NOT push nested namespace (would be double-prefixed)",
+    );
+    assert(
+      !pushedKeys.includes("my-ns/foreign-ns/data/other/1/raw"),
       "must NOT push foreign namespace",
     );
 
@@ -5862,6 +5883,136 @@ Deno.test("#1052: commitPush v2 no-op does NOT mark sidecar clean when cache is 
       sidecarHasCommitSeq,
       false,
       "commitPush no-op must NOT write commitSeq when local cache is incomplete",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+// -- swamp-club#1250: namespaced push must prefix data keys -------
+
+Deno.test("swamp-club#1250: pushChanged with namespace must PUT data to {namespace}/rel keys", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    await seedFile(cachePath, "data/model/1/raw", "hello");
+    await seedFile(cachePath, "data/model/1/metadata.yaml", "meta: true");
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    await svc.pushChanged({ namespace: "my-ns" });
+
+    // Data must be stored under the namespace prefix on the remote
+    const dataPuts = s3.puts.filter((p) =>
+      !p.key.includes(".datastore-index.json") &&
+      !p.key.includes("_index/")
+    );
+    for (const put of dataPuts) {
+      assert(
+        put.key.startsWith("my-ns/"),
+        `Data PUT key "${put.key}" must start with "my-ns/" but doesn't (swamp-club#1250)`,
+      );
+    }
+
+    // Verify data is accessible at the namespaced key
+    assert(
+      s3.storage.has("my-ns/data/model/1/raw"),
+      "data/model/1/raw must be stored at my-ns/data/model/1/raw on remote",
+    );
+    assert(
+      s3.storage.has("my-ns/data/model/1/metadata.yaml"),
+      "data/model/1/metadata.yaml must be stored at my-ns/data/model/1/metadata.yaml on remote",
+    );
+
+    // Data must NOT be at the root (un-namespaced) key
+    assert(
+      !s3.storage.has("data/model/1/raw"),
+      "data must not be stored at root-level key without namespace prefix",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1250: preparePush+commitPush with namespace must PUT data to {namespace}/rel keys", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    await seedFile(cachePath, "data/model/1/raw", "hello");
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const manifest = await svc.preparePush!({ namespace: "my-ns" });
+    await svc.commitPush!(manifest, { namespace: "my-ns" });
+
+    // Data must be under namespace prefix
+    assert(
+      s3.storage.has("my-ns/data/model/1/raw"),
+      "preparePush must store data at my-ns/data/model/1/raw, not data/model/1/raw (swamp-club#1250)",
+    );
+    assert(
+      !s3.storage.has("data/model/1/raw"),
+      "data must not be stored at root-level key without namespace prefix",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1250: round-trip push then pull with namespace produces correct local files", async () => {
+  const s3 = createMockS3Client();
+  const pushCachePath = await Deno.makeTempDir();
+  const pullCachePath = await Deno.makeTempDir();
+  try {
+    // Push from one cache
+    await seedFile(pushCachePath, "data/model/1/raw", "content-A");
+    const pushSvc = new S3CacheSyncService(s3, pushCachePath);
+    await pushSvc.pushChanged({ namespace: "my-ns" });
+
+    // Pull into a fresh cache
+    const pullSvc = new S3CacheSyncService(s3, pullCachePath);
+    const pulled = await pullSvc.pullChanged({ namespace: "my-ns" });
+    assertEquals(pulled, 1, "must pull the 1 file that was pushed");
+
+    // Verify local file exists at the un-namespaced path (local tier is never namespaced)
+    const localContent = await Deno.readTextFile(
+      join(pullCachePath, "data/model/1/raw"),
+    );
+    assertEquals(
+      localContent,
+      "content-A",
+      "pulled content must match pushed content",
+    );
+  } finally {
+    await Deno.remove(pushCachePath, { recursive: true });
+    await Deno.remove(pullCachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1250: pullFile falls back to root key for data pushed by broken extension", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    // Simulate data pushed by the broken extension (at root, not under namespace)
+    s3.storage.set("data/model/1/raw", new TextEncoder().encode("legacy-data"));
+    const nsIndex = encodeIndex({
+      "data/model/1/raw": {
+        key: "data/model/1/raw",
+        size: 11,
+        lastModified: new Date().toISOString(),
+      },
+    });
+    s3.storage.set("my-ns/.datastore-index.json", nsIndex);
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const pulled = await svc.pullChanged({ namespace: "my-ns" });
+    assertEquals(pulled, 1);
+
+    const content = await Deno.readTextFile(
+      join(cachePath, "data/model/1/raw"),
+    );
+    assertEquals(
+      content,
+      "legacy-data",
+      "must fall back to root key for pre-fix data",
     );
   } finally {
     await Deno.remove(cachePath, { recursive: true });
