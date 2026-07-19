@@ -154,6 +154,9 @@ const GlobalArgsSchema = z.object({
   userId: z.string().describe(
     "The unique numerical ID of the client user that has accepted an invitation. The value of this field is ignored in an update operation.",
   ).optional(),
+  accountId: z.string().describe(
+    "Numerical account ID of the client's sponsor buyer. (required)",
+  ),
 });
 
 const StateSchema = z.object({
@@ -182,6 +185,9 @@ const InputsSchema = z.object({
   userId: z.string().describe(
     "The unique numerical ID of the client user that has accepted an invitation. The value of this field is ignored in an update operation.",
   ).optional(),
+  accountId: z.string().describe(
+    "Numerical account ID of the client's sponsor buyer. (required)",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -207,7 +213,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.Clients.Users. Registered at `@swamp/gcp/adexchangebuyer2/accounts-clients-users`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-clients-users",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -287,6 +293,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: accountId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

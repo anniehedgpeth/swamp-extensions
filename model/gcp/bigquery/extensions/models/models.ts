@@ -2212,6 +2212,9 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Output only. This field will be populated if a TRANSFORM clause was used to train a model. TRANSFORM clause (if used) takes feature_columns as input and outputs transform_columns. transform_columns then are used to train the model.",
   ).optional(),
+  datasetId: z.string().describe(
+    "Required. Dataset ID of the requested model.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -4943,6 +4946,8 @@ const InputsSchema = z.object({
   })).describe(
     "Output only. This field will be populated if a TRANSFORM clause was used to train a model. TRANSFORM clause (if used) takes feature_columns as input and outputs transform_columns. transform_columns then are used to train the model.",
   ).optional(),
+  datasetId: z.string().describe("Required. Dataset ID of the requested model.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -4968,7 +4973,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Models. Registered at `@swamp/gcp/bigquery/models`. */
 export const model = {
   type: "@swamp/gcp/bigquery/models",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -5068,6 +5073,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: datasetId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

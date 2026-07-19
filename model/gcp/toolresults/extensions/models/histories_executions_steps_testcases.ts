@@ -133,6 +133,11 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  historyId: z.string().describe("A History id. Required."),
+  executionId: z.string().describe("A Execution id Required."),
+  stepId: z.string().describe(
+    "A Step id. Note: This step must include a TestExecutionStep. Required.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -183,6 +188,11 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  historyId: z.string().describe("A History id. Required.").optional(),
+  executionId: z.string().describe("A Execution id Required.").optional(),
+  stepId: z.string().describe(
+    "A Step id. Note: This step must include a TestExecutionStep. Required.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -208,7 +218,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tool Results Histories.Executions.Steps.TestCases. Registered at `@swamp/gcp/toolresults/histories-executions-steps-testcases`. */
 export const model = {
   type: "@swamp/gcp/toolresults/histories-executions-steps-testcases",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -293,6 +303,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: historyId, executionId, stepId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

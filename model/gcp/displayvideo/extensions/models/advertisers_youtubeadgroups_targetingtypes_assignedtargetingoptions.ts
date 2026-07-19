@@ -138,6 +138,15 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  advertiserId: z.string().describe(
+    "Required. The ID of the advertiser the ad group belongs to.",
+  ),
+  youtubeAdGroupId: z.string().describe(
+    "Required. The ID of the ad group the assigned targeting option belongs to.",
+  ),
+  targetingType: z.string().describe(
+    "Required. Identifies the type of this assigned targeting option. Supported targeting types include: * `TARGETING_TYPE_AGE_RANGE` * `TARGETING_TYPE_APP` * `TARGETING_TYPE_APP_CATEGORY` * `TARGETING_TYPE_AUDIENCE_GROUP` * `TARGETING_TYPE_CATEGORY` * `TARGETING_TYPE_GENDER` * `TARGETING_TYPE_HOUSEHOLD_INCOME` * `TARGETING_TYPE_KEYWORD` * `TARGETING_TYPE_PARENTAL_STATUS` * `TARGETING_TYPE_SESSION_POSITION` * `TARGETING_TYPE_URL` * `TARGETING_TYPE_YOUTUBE_CHANNEL` * `TARGETING_TYPE_YOUTUBE_VIDEO`",
+  ),
 });
 
 const StateSchema = z.object({
@@ -418,6 +427,15 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  advertiserId: z.string().describe(
+    "Required. The ID of the advertiser the ad group belongs to.",
+  ).optional(),
+  youtubeAdGroupId: z.string().describe(
+    "Required. The ID of the ad group the assigned targeting option belongs to.",
+  ).optional(),
+  targetingType: z.string().describe(
+    "Required. Identifies the type of this assigned targeting option. Supported targeting types include: * `TARGETING_TYPE_AGE_RANGE` * `TARGETING_TYPE_APP` * `TARGETING_TYPE_APP_CATEGORY` * `TARGETING_TYPE_AUDIENCE_GROUP` * `TARGETING_TYPE_CATEGORY` * `TARGETING_TYPE_GENDER` * `TARGETING_TYPE_HOUSEHOLD_INCOME` * `TARGETING_TYPE_KEYWORD` * `TARGETING_TYPE_PARENTAL_STATUS` * `TARGETING_TYPE_SESSION_POSITION` * `TARGETING_TYPE_URL` * `TARGETING_TYPE_YOUTUBE_CHANNEL` * `TARGETING_TYPE_YOUTUBE_VIDEO`",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -444,7 +462,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/displayvideo/advertisers-youtubeadgroups-targetingtypes-assignedtargetingoptions",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -469,6 +487,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: advertiserId, youtubeAdGroupId, targetingType",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

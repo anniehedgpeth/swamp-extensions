@@ -128,6 +128,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  pageToken: z.string().describe(
+    "The token for continuing a previous list request on the next page. This should be set to the value of 'nextPageToken' from the previous response or to the response from the getStartPageToken method.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -507,6 +510,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  pageToken: z.string().describe(
+    "The token for continuing a previous list request on the next page. This should be set to the value of 'nextPageToken' from the previous response or to the response from the getStartPageToken method.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -532,7 +538,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Changes. Registered at `@swamp/gcp/drive/changes`. */
 export const model = {
   type: "@swamp/gcp/drive/changes",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -657,6 +663,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: pageToken",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -920,20 +931,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["pageToken"] !== undefined) {
+          params["pageToken"] = String(g["pageToken"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["pageToken"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["address"] !== undefined) body["address"] = args["address"];
         if (args["expiration"] !== undefined) {

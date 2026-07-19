@@ -133,6 +133,11 @@ const GlobalArgsSchema = z.object({
   referencesVersion: z.number().int().describe(
     "If set, this APK's expansion file references another APK's expansion file. The file_size field will not be set.",
   ).optional(),
+  packageName: z.string().describe("Package name of the app."),
+  editId: z.string().describe("Identifier of the edit."),
+  apkVersionCode: z.string().describe(
+    "The version code of the APK whose expansion file configuration is being read or modified.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -153,6 +158,11 @@ const InputsSchema = z.object({
   ).optional(),
   referencesVersion: z.number().int().describe(
     "If set, this APK's expansion file references another APK's expansion file. The file_size field will not be set.",
+  ).optional(),
+  packageName: z.string().describe("Package name of the app.").optional(),
+  editId: z.string().describe("Identifier of the edit.").optional(),
+  apkVersionCode: z.string().describe(
+    "The version code of the APK whose expansion file configuration is being read or modified.",
   ).optional(),
 });
 
@@ -179,7 +189,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Edits.Expansionfiles. Registered at `@swamp/gcp/androidpublisher/edits-expansionfiles`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/edits-expansionfiles",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -259,6 +269,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: packageName, editId, apkVersionCode",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -450,6 +465,13 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["editId"] !== undefined) params["editId"] = String(g["editId"]);
+        if (g["apkVersionCode"] !== undefined) {
+          params["apkVersionCode"] = String(g["apkVersionCode"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -462,12 +484,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["editId"] = existing["editId"]?.toString() ??
-          g["editId"]?.toString() ?? "";
-        params["apkVersionCode"] = existing["apkVersionCode"]?.toString() ??
-          g["apkVersionCode"]?.toString() ?? "";
         params["expansionFileType"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(

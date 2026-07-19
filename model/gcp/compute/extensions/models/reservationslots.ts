@@ -249,6 +249,9 @@ const GlobalArgsSchema = z.object({
   zone: z.string().describe(
     "Output only. [Output Only] The zone in which the reservation slot resides.",
   ).optional(),
+  parentName: z.string().describe(
+    "The name of the parent reservation and parent block, formatted as reservations/{reservation_name}/reservationBlocks/{reservation_block_name}/reservationSubBlocks/{reservation_sub_block_name}",
+  ),
 });
 
 const StateSchema = z.object({
@@ -376,6 +379,9 @@ const InputsSchema = z.object({
   zone: z.string().describe(
     "Output only. [Output Only] The zone in which the reservation slot resides.",
   ).optional(),
+  parentName: z.string().describe(
+    "The name of the parent reservation and parent block, formatted as reservations/{reservation_name}/reservationBlocks/{reservation_block_name}/reservationSubBlocks/{reservation_sub_block_name}",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -401,7 +407,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine ReservationSlots. Registered at `@swamp/gcp/compute/reservationslots`. */
 export const model = {
   type: "@swamp/gcp/compute/reservationslots",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -491,6 +497,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: parentName",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -753,6 +764,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["zone"] !== undefined) params["zone"] = String(g["zone"]);
+        if (g["parentName"] !== undefined) {
+          params["parentName"] = String(g["parentName"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -765,8 +779,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["parentName"] = existing["parentName"]?.toString() ??
-          g["parentName"]?.toString() ?? "";
         params["reservationSlot"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};

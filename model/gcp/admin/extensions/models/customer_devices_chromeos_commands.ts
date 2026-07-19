@@ -85,6 +85,10 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  customerId: z.string().describe(
+    "Immutable. ID of the Google Workspace account.",
+  ),
+  deviceId: z.string().describe("Immutable. ID of Chrome OS Device."),
 });
 
 const StateSchema = z.object({
@@ -110,6 +114,11 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  customerId: z.string().describe(
+    "Immutable. ID of the Google Workspace account.",
+  ).optional(),
+  deviceId: z.string().describe("Immutable. ID of Chrome OS Device.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -135,7 +144,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Customer.Devices.Chromeos.Commands. Registered at `@swamp/gcp/admin/customer-devices-chromeos-commands`. */
 export const model = {
   type: "@swamp/gcp/admin/customer-devices-chromeos-commands",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -160,6 +169,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: customerId, deviceId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

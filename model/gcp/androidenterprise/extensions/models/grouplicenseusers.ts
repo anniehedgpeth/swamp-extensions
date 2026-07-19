@@ -85,6 +85,10 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  enterpriseId: z.string().describe("The ID of the enterprise."),
+  groupLicenseId: z.string().describe(
+    'The ID of the product the group license is for, e.g. "app:com.google.android.gm".',
+  ),
 });
 
 const StateSchema = z.object({
@@ -104,6 +108,10 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  enterpriseId: z.string().describe("The ID of the enterprise.").optional(),
+  groupLicenseId: z.string().describe(
+    'The ID of the product the group license is for, e.g. "app:com.google.android.gm".',
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -129,7 +137,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play EMM Grouplicenseusers. Registered at `@swamp/gcp/androidenterprise/grouplicenseusers`. */
 export const model = {
   type: "@swamp/gcp/androidenterprise/grouplicenseusers",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -214,6 +222,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: enterpriseId, groupLicenseId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

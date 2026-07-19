@@ -97,6 +97,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  projectName: z.string().describe(
+    "Required. The resource name of the Google Cloud Platform project. Written as `projects/{projectID}` or `projects/{projectID}/locations/{location}`, where `{projectID}` is the [Google Cloud Platform project ID](https://support.google.com/cloud/answer/6158840) and `{location}` is a Cloud region. Examples: `projects/my-project-123`, `projects/my-project-123/locations/global`. For a list of supported locations, see [Supported Regions](https://cloud.google.com/logging/docs/region-support). `global` is the default when unspecified.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -137,6 +140,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  projectName: z.string().describe(
+    "Required. The resource name of the Google Cloud Platform project. Written as `projects/{projectID}` or `projects/{projectID}/locations/{location}`, where `{projectID}` is the [Google Cloud Platform project ID](https://support.google.com/cloud/answer/6158840) and `{location}` is a Cloud region. Examples: `projects/my-project-123`, `projects/my-project-123/locations/global`. For a list of supported locations, see [Supported Regions](https://cloud.google.com/logging/docs/region-support). `global` is the default when unspecified.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -162,7 +168,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Error Reporting Events. Registered at `@swamp/gcp/clouderrorreporting/events`. */
 export const model = {
   type: "@swamp/gcp/clouderrorreporting/events",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -247,6 +253,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: projectName",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -449,20 +460,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["projectName"] !== undefined) {
+          params["projectName"] = String(g["projectName"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["projectName"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["context"] !== undefined) body["context"] = args["context"];
         if (args["eventTime"] !== undefined) {

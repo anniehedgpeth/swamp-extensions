@@ -210,6 +210,9 @@ const GlobalArgsSchema = z.object({
   teaserSizeLimit: z.string().describe(
     "File size limit in kilobytes of Rich Media teaser creatives. Acceptable values are 1 to 10240, inclusive.",
   ).optional(),
+  profileId: z.string().describe(
+    "User profile ID associated with this request.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -323,6 +326,9 @@ const InputsSchema = z.object({
   teaserSizeLimit: z.string().describe(
     "File size limit in kilobytes of Rich Media teaser creatives. Acceptable values are 1 to 10240, inclusive.",
   ).optional(),
+  profileId: z.string().describe(
+    "User profile ID associated with this request.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -348,7 +354,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Accounts. Registered at `@swamp/gcp/dfareporting/accounts`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/accounts",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -433,6 +439,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: profileId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

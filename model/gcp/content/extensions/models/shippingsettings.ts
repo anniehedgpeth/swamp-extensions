@@ -400,6 +400,9 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Optional. A list of warehouses which can be referred to in `services`.",
   ).optional(),
+  merchantId: z.string().describe(
+    "The ID of the managing account. If this parameter is not the same as accountId, then this account must be a multi-client account and `accountId` must be the ID of a sub-account of this account.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -809,6 +812,9 @@ const InputsSchema = z.object({
   })).describe(
     "Optional. A list of warehouses which can be referred to in `services`.",
   ).optional(),
+  merchantId: z.string().describe(
+    "The ID of the managing account. If this parameter is not the same as accountId, then this account must be a multi-client account and `accountId` must be the ID of a sub-account of this account.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -834,7 +840,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Shippingsettings. Registered at `@swamp/gcp/content/shippingsettings`. */
 export const model = {
   type: "@swamp/gcp/content/shippingsettings",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -919,6 +925,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: merchantId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1167,20 +1178,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["merchantId"] !== undefined) {
+          params["merchantId"] = String(g["merchantId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["merchantId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {
@@ -1210,20 +1210,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["merchantId"] !== undefined) {
+          params["merchantId"] = String(g["merchantId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["merchantId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {
@@ -1253,20 +1242,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["merchantId"] !== undefined) {
+          params["merchantId"] = String(g["merchantId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["merchantId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {

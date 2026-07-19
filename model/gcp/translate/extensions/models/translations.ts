@@ -93,6 +93,12 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  q: z.string().describe(
+    "The input text to translate. Repeat this parameter to perform translation operations on multiple text inputs.",
+  ),
+  target: z.string().describe(
+    "The language to use for translation of the input text, set to one of the language codes listed in Language Support.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -109,6 +115,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  q: z.string().describe(
+    "The input text to translate. Repeat this parameter to perform translation operations on multiple text inputs.",
+  ).optional(),
+  target: z.string().describe(
+    "The language to use for translation of the input text, set to one of the language codes listed in Language Support.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -134,7 +146,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Translation Translations. Registered at `@swamp/gcp/translate/translations`. */
 export const model = {
   type: "@swamp/gcp/translate/translations",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -159,6 +171,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: q, target",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

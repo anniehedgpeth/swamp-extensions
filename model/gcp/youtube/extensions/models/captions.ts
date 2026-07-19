@@ -224,6 +224,7 @@ const GlobalArgsSchema = z.object({
   part: z.string().describe(
     "The *part* parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
   ),
+  videoId: z.string().describe("Returns the captions for the specified video."),
   onBehalfOf: z.string().describe(
     "ID of the Google+ Page for the channel that the request is be on behalf of",
   ).optional(),
@@ -317,6 +318,8 @@ const InputsSchema = z.object({
   part: z.string().describe(
     "The *part* parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
   ).optional(),
+  videoId: z.string().describe("Returns the captions for the specified video.")
+    .optional(),
   onBehalfOf: z.string().describe(
     "ID of the Google+ Page for the channel that the request is be on behalf of",
   ).optional(),
@@ -351,7 +354,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Captions. Registered at `@swamp/gcp/youtube/captions`. */
 export const model = {
   type: "@swamp/gcp/youtube/captions",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -436,6 +439,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: videoId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -215,6 +215,7 @@ const GlobalArgsSchema = z.object({
   size: z.string().describe(
     "Output only. The size of the revision's content in bytes. This is only applicable to files with binary content in Drive.",
   ).optional(),
+  fileId: z.string().describe("The ID of the file."),
 });
 
 const StateSchema = z.object({
@@ -305,6 +306,7 @@ const InputsSchema = z.object({
   size: z.string().describe(
     "Output only. The size of the revision's content in bytes. This is only applicable to files with binary content in Drive.",
   ).optional(),
+  fileId: z.string().describe("The ID of the file.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -330,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Revisions. Registered at `@swamp/gcp/drive/revisions`. */
 export const model = {
   type: "@swamp/gcp/drive/revisions",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -415,6 +417,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: fileId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

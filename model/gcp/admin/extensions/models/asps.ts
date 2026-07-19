@@ -116,6 +116,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  userKey: z.string().describe(
+    "Identifies the user in the API request. The value can be the user's primary email address, alias email address, or unique user ID.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -136,6 +139,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  userKey: z.string().describe(
+    "Identifies the user in the API request. The value can be the user's primary email address, alias email address, or unique user ID.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -161,7 +167,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Asps. Registered at `@swamp/gcp/admin/asps`. */
 export const model = {
   type: "@swamp/gcp/admin/asps",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -186,6 +192,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: userKey",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

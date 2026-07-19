@@ -1310,6 +1310,10 @@ const GlobalArgsSchema = z.object({
   updateTransferJobFieldMask: z.string().describe(
     "The field mask of the fields in `transferJob` that are to be updated in this request. Fields in `transferJob` that can be updated are: description, transfer_spec, notification_config, logging_config, and status. To update the `transfer_spec` of the job, a complete transfer specification must be provided. An incomplete specification missing any required fields is rejected with the error INVALID_ARGUMENT.",
   ).optional(),
+  jobName: z.string().describe("Required. The job to get."),
+  filter: z.string().describe(
+    'Required. A list of query parameters specified as JSON text in the form of: ` { "projectId":"my_project_id", "jobNames":["jobid1","jobid2",...], "jobStatuses":["status1","status2",...], "dataBackend":"QUERY_REPLICATION_CONFIGS", "sourceBucket":"source-bucket-name", "sinkBucket":"sink-bucket-name", } ` The JSON formatting in the example is for display only; provide the query parameters without spaces or line breaks. * `projectId` is required. * Since `jobNames` and `jobStatuses` support multiple values, their values must be specified with array notation. `jobNames` and `jobStatuses` are optional. Valid values are case-insensitive: * ENABLED * DISABLED * DELETED * Specify `"dataBackend":"QUERY_REPLICATION_CONFIGS"` to return a list of cross-bucket replication jobs. * Limit the results to jobs from a particular bucket with `sourceBucket` and/or to a particular bucket with `sinkBucket`.',
+  ),
 });
 
 const StateSchema = z.object({
@@ -2676,6 +2680,10 @@ const InputsSchema = z.object({
   updateTransferJobFieldMask: z.string().describe(
     "The field mask of the fields in `transferJob` that are to be updated in this request. Fields in `transferJob` that can be updated are: description, transfer_spec, notification_config, logging_config, and status. To update the `transfer_spec` of the job, a complete transfer specification must be provided. An incomplete specification missing any required fields is rejected with the error INVALID_ARGUMENT.",
   ).optional(),
+  jobName: z.string().describe("Required. The job to get.").optional(),
+  filter: z.string().describe(
+    'Required. A list of query parameters specified as JSON text in the form of: ` { "projectId":"my_project_id", "jobNames":["jobid1","jobid2",...], "jobStatuses":["status1","status2",...], "dataBackend":"QUERY_REPLICATION_CONFIGS", "sourceBucket":"source-bucket-name", "sinkBucket":"sink-bucket-name", } ` The JSON formatting in the example is for display only; provide the query parameters without spaces or line breaks. * `projectId` is required. * Since `jobNames` and `jobStatuses` support multiple values, their values must be specified with array notation. `jobNames` and `jobStatuses` are optional. Valid values are case-insensitive: * ENABLED * DISABLED * DELETED * Specify `"dataBackend":"QUERY_REPLICATION_CONFIGS"` to return a list of cross-bucket replication jobs. * Limit the results to jobs from a particular bucket with `sourceBucket` and/or to a particular bucket with `sinkBucket`.',
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -2701,7 +2709,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage Transfer TransferJobs. Registered at `@swamp/gcp/storagetransfer/transferjobs`. */
 export const model = {
   type: "@swamp/gcp/storagetransfer/transferjobs",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2806,6 +2814,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: jobName, filter",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -3136,20 +3149,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["jobName"] !== undefined) {
+          params["jobName"] = String(g["jobName"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["jobName"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["projectId"] !== undefined) {
           body["projectId"] = args["projectId"];

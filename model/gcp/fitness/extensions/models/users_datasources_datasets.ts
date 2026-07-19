@@ -220,6 +220,9 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "A partial list of data points contained in the dataset, ordered by endTimeNanos. This list is considered complete when retrieving a small dataset and partial when patching a dataset or retrieving a dataset that is too large to include in a single response.",
   ).optional(),
+  userId: z.string().describe(
+    "Retrieve a dataset for the person identified. Use me to indicate the authenticated user. Only me is supported at this time.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -305,6 +308,9 @@ const InputsSchema = z.object({
   })).describe(
     "A partial list of data points contained in the dataset, ordered by endTimeNanos. This list is considered complete when retrieving a small dataset and partial when patching a dataset or retrieving a dataset that is too large to include in a single response.",
   ).optional(),
+  userId: z.string().describe(
+    "Retrieve a dataset for the person identified. Use me to indicate the authenticated user. Only me is supported at this time.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -330,7 +336,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Fitness Users.DataSources.Datasets. Registered at `@swamp/gcp/fitness/users-datasources-datasets`. */
 export const model = {
   type: "@swamp/gcp/fitness/users-datasources-datasets",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -415,6 +421,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: userId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

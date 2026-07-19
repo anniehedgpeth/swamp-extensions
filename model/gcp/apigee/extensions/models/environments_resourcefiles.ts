@@ -182,11 +182,11 @@ const GlobalArgsSchema = z.object({
   extensions: z.array(z.record(z.string(), z.string())).describe(
     "Application specific response metadata. Must be set in the first response for streaming APIs.",
   ).optional(),
-  name: z.string().describe(
-    "Required. Name of the resource file. Must match the regular expression: [a-zA-Z0-9:/\\\\!@#$%^&{}\\[\\]()+\\-=,.~'` ]{1,255}",
-  ).optional(),
   type: z.string().describe(
     "Required. Resource file type. {{ resource_file_type }}",
+  ),
+  name: z.string().describe(
+    "Required. Name of the resource file. Must match the regular expression: [a-zA-Z0-9:/\\\\!@#$%^&{}\\[\\]()+\\-=,.~'` ]{1,255}",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -214,11 +214,11 @@ const InputsSchema = z.object({
   extensions: z.array(z.record(z.string(), z.string())).describe(
     "Application specific response metadata. Must be set in the first response for streaming APIs.",
   ).optional(),
-  name: z.string().describe(
-    "Required. Name of the resource file. Must match the regular expression: [a-zA-Z0-9:/\\\\!@#$%^&{}\\[\\]()+\\-=,.~'` ]{1,255}",
-  ).optional(),
   type: z.string().describe(
     "Required. Resource file type. {{ resource_file_type }}",
+  ).optional(),
+  name: z.string().describe(
+    "Required. Name of the resource file. Must match the regular expression: [a-zA-Z0-9:/\\\\!@#$%^&{}\\[\\]()+\\-=,.~'` ]{1,255}",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -248,7 +248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments.Resourcefiles. Registered at `@swamp/gcp/apigee/environments-resourcefiles`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments-resourcefiles",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -345,6 +345,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.19.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -374,7 +379,6 @@ export const model = {
         if (g["data"] !== undefined) body["data"] = g["data"];
         if (g["extensions"] !== undefined) body["extensions"] = g["extensions"];
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
-        if (g["type"] !== undefined) params["type"] = String(g["type"]);
         if (g["type"] !== undefined) params["type"] = String(g["type"]);
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(

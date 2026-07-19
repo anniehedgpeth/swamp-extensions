@@ -104,6 +104,10 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  historyId: z.string().describe("A tool results history ID."),
+  executionId: z.string().describe("A tool results execution ID."),
+  stepId: z.string().describe("A tool results step ID."),
+  sampleSeriesId: z.string().describe("A sample series id"),
 });
 
 const StateSchema = z.object({
@@ -122,6 +126,10 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  historyId: z.string().describe("A tool results history ID.").optional(),
+  executionId: z.string().describe("A tool results execution ID.").optional(),
+  stepId: z.string().describe("A tool results step ID.").optional(),
+  sampleSeriesId: z.string().describe("A sample series id").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -148,7 +156,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/toolresults/histories-executions-steps-perfsampleseries-samples",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -233,6 +241,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: historyId, executionId, stepId, sampleSeriesId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -424,26 +437,16 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["historyId"] !== undefined) {
+          params["historyId"] = String(g["historyId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["historyId"] = existing["historyId"]?.toString() ??
-          g["historyId"]?.toString() ?? "";
-        params["executionId"] = existing["executionId"]?.toString() ??
-          g["executionId"]?.toString() ?? "";
-        params["stepId"] = existing["stepId"]?.toString() ??
-          g["stepId"]?.toString() ?? "";
-        params["sampleSeriesId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["executionId"] !== undefined) {
+          params["executionId"] = String(g["executionId"]);
+        }
+        if (g["stepId"] !== undefined) params["stepId"] = String(g["stepId"]);
+        if (g["sampleSeriesId"] !== undefined) {
+          params["sampleSeriesId"] = String(g["sampleSeriesId"]);
+        }
         const body: Record<string, unknown> = {};
         if (args["perfSamples"] !== undefined) {
           body["perfSamples"] = args["perfSamples"];

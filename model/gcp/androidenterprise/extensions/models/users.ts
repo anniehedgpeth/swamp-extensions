@@ -179,6 +179,9 @@ const GlobalArgsSchema = z.object({
     'The user\'s primary email address, for example, "jsmith@example.com". Will always be set for Google managed users and not set for EMM managed users.',
   ).optional(),
   enterpriseId: z.string().describe("The ID of the enterprise."),
+  email: z.string().describe(
+    "Required. The exact primary email address of the user to look up.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -215,6 +218,9 @@ const InputsSchema = z.object({
     'The user\'s primary email address, for example, "jsmith@example.com". Will always be set for Google managed users and not set for EMM managed users.',
   ).optional(),
   enterpriseId: z.string().describe("The ID of the enterprise.").optional(),
+  email: z.string().describe(
+    "Required. The exact primary email address of the user to look up.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -240,7 +246,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play EMM Users. Registered at `@swamp/gcp/androidenterprise/users`. */
 export const model = {
   type: "@swamp/gcp/androidenterprise/users",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -320,6 +326,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: email",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

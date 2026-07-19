@@ -92,6 +92,7 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  accountId: z.string().describe("Account ID of the buyer."),
 });
 
 const StateSchema = z.object({
@@ -268,6 +269,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  accountId: z.string().describe("Account ID of the buyer.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -293,7 +295,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.FinalizedProposals. Registered at `@swamp/gcp/adexchangebuyer2/accounts-finalizedproposals`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-finalizedproposals",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -378,6 +380,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: accountId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -554,6 +561,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["accountId"] !== undefined) {
+          params["accountId"] = String(g["accountId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -566,8 +576,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["accountId"] = existing["accountId"]?.toString() ??
-          g["accountId"]?.toString() ?? "";
         params["proposalId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
@@ -608,6 +616,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["accountId"] !== undefined) {
+          params["accountId"] = String(g["accountId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -620,8 +631,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["accountId"] = existing["accountId"]?.toString() ??
-          g["accountId"]?.toString() ?? "";
         params["proposalId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};

@@ -265,6 +265,9 @@ const GlobalArgsSchema = z.object({
   updateTime: z.string().describe(
     "Output only. The time at which the document was last changed. This value is initially set to the `create_time` then increases monotonically with each change to the document. It can also be compared to values from other documents and the `read_time` of a query.",
   ).optional(),
+  collectionId: z.string().describe(
+    "Optional. The collection ID, relative to `parent`, to list. For example: `chatrooms` or `messages`. This is optional, and when not provided, Firestore will list documents from all collections under the provided `parent`.",
+  ),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -376,6 +379,9 @@ const InputsSchema = z.object({
   updateTime: z.string().describe(
     "Output only. The time at which the document was last changed. This value is initially set to the `create_time` then increases monotonically with each change to the document. It can also be compared to values from other documents and the `read_time` of a query.",
   ).optional(),
+  collectionId: z.string().describe(
+    "Optional. The collection ID, relative to `parent`, to list. For example: `chatrooms` or `messages`. This is optional, and when not provided, Firestore will list documents from all collections under the provided `parent`.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -407,7 +413,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.Documents. Registered at `@swamp/gcp/firestore/databases-documents`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-documents",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -542,6 +548,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: collectionId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1025,20 +1036,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["collectionId"] !== undefined) {
+          params["collectionId"] = String(g["collectionId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["collectionId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["createTime"] !== undefined) {
           body["createTime"] = args["createTime"];
@@ -1184,20 +1184,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["collectionId"] !== undefined) {
+          params["collectionId"] = String(g["collectionId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["collectionId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {

@@ -120,6 +120,7 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  zone: z.string().describe("The name of the zone for this request."),
 });
 
 const StateSchema = z.object({
@@ -162,6 +163,8 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  zone: z.string().describe("The name of the zone for this request.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -187,7 +190,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine MachineTypes. Registered at `@swamp/gcp/compute/machinetypes`. */
 export const model = {
   type: "@swamp/gcp/compute/machinetypes",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -272,6 +275,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: zone",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

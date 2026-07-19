@@ -178,6 +178,9 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Traffic routing configuration for versions within a single service. Traffic splits define how traffic directed to the service is assigned to versions.",
   ).optional(),
+  appsId: z.string().describe(
+    "Part of `name`. Required. Name of the resource requested. Example: apps/myapp/services/default.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -233,6 +236,9 @@ const InputsSchema = z.object({
   }).describe(
     "Traffic routing configuration for versions within a single service. Traffic splits define how traffic directed to the service is assigned to versions.",
   ).optional(),
+  appsId: z.string().describe(
+    "Part of `name`. Required. Name of the resource requested. Example: apps/myapp/services/default.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -258,7 +264,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps.Services. Registered at `@swamp/gcp/appengine/apps-services`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps-services",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -348,6 +354,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: appsId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

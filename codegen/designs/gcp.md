@@ -204,8 +204,15 @@ its APIs.
 The pipeline builds two property sets from distinct schema sources:
 
 **Domain properties** (writable): Union of properties from insert, update, and
-patch request schemas. Path parameters from `insert.parameterOrder` and required
-query parameters are also added. Read-only, output-only, and deprecated
+patch request schemas. Path parameters from all CRUD methods' `parameterOrder`
+and required query parameters from insert are also added — the pipeline scans
+insert, get, list, update, patch, and delete method configs. For get, update,
+patch, and delete, the last parameter (the resource identifier, resolved from
+`args.identifier` or existing state at runtime) is skipped. For list, all
+parameters are included because the list execute function resolves every
+parameter from `globalArgs`. This ensures subresource models whose parent path
+parameter (e.g., `spreadsheetId`) only appears in non-insert methods still
+declare it in `GlobalArgsSchema`. Read-only, output-only, and deprecated
 properties are removed.
 
 **Resource properties** (all): Properties from the GET response schema (or list

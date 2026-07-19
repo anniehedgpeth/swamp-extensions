@@ -139,6 +139,9 @@ const GlobalArgsSchema = z.object({
   values: z.array(z.array(z.string())).describe(
     "The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell. For output, empty trailing rows and columns will not be included. For input, supported value types are: bool, string, and double. Null values will be skipped. To set a cell to an empty value, set the string value to an empty string.",
   ).optional(),
+  spreadsheetId: z.string().describe(
+    "The ID of the spreadsheet to retrieve data from.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -163,6 +166,9 @@ const InputsSchema = z.object({
   ).optional(),
   values: z.array(z.array(z.string())).describe(
     "The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell. For output, empty trailing rows and columns will not be included. For input, supported value types are: bool, string, and double. Null values will be skipped. To set a cell to an empty value, set the string value to an empty string.",
+  ).optional(),
+  spreadsheetId: z.string().describe(
+    "The ID of the spreadsheet to retrieve data from.",
   ).optional(),
 });
 
@@ -189,7 +195,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Sheets Spreadsheets.Values. Registered at `@swamp/gcp/sheets/spreadsheets-values`. */
 export const model = {
   type: "@swamp/gcp/sheets/spreadsheets-values",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -269,6 +275,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: spreadsheetId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -442,21 +453,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["range"] !== undefined) params["range"] = String(g["range"]);
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["spreadsheetId"]?.toString() ??
-          g["spreadsheetId"]?.toString() ?? "";
+        if (g["range"] !== undefined) params["range"] = String(g["range"]);
         const body: Record<string, unknown> = {};
         if (args["majorDimension"] !== undefined) {
           body["majorDimension"] = args["majorDimension"];
@@ -500,20 +500,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["ranges"] !== undefined) body["ranges"] = args["ranges"];
         const result = await createResource(
@@ -547,20 +536,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["dataFilters"] !== undefined) {
           body["dataFilters"] = args["dataFilters"];
@@ -595,20 +573,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {
@@ -647,20 +614,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["dataFilters"] !== undefined) {
           body["dataFilters"] = args["dataFilters"];
@@ -710,20 +666,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["data"] !== undefined) body["data"] = args["data"];
         if (args["includeValuesInResponse"] !== undefined) {
@@ -774,20 +719,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["data"] !== undefined) body["data"] = args["data"];
         if (args["includeValuesInResponse"] !== undefined) {
@@ -833,21 +767,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["range"] !== undefined) params["range"] = String(g["range"]);
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["spreadsheetId"] !== undefined) {
+          params["spreadsheetId"] = String(g["spreadsheetId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["spreadsheetId"] = existing["spreadsheetId"]?.toString() ??
-          g["spreadsheetId"]?.toString() ?? "";
+        if (g["range"] !== undefined) params["range"] = String(g["range"]);
         const result = await createResource(
           BASE_URL,
           {

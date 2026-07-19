@@ -1378,6 +1378,40 @@ function buildGcpParsedResource(
     insertPropertyNames.add(paramName);
   }
 
+  // Add path/required parameters from non-insert CRUD methods.
+  // Execute function generators read non-identifier params from globalArgs,
+  // so they must appear in GlobalArgsSchema. The identifier (last param) is
+  // skipped for GET/UPDATE/PATCH/DELETE (resolved from args.identifier or
+  // existing state), but kept for LIST (all params come from globalArgs).
+  const nonInsertMethods: Array<
+    { method: GcpMethod | undefined; skipLastParam: boolean }
+  > = [
+    { method: getMethod, skipLastParam: true },
+    { method: update, skipLastParam: true },
+    { method: patch, skipLastParam: true },
+    { method: deleteMethod, skipLastParam: true },
+    { method: list, skipLastParam: false },
+  ];
+
+  for (const { method, skipLastParam } of nonInsertMethods) {
+    if (!method?.parameterOrder) continue;
+    const lastParam = method.parameterOrder[method.parameterOrder.length - 1];
+    for (const paramName of method.parameterOrder) {
+      if (skipPathParams.has(paramName)) continue;
+      if (skipLastParam && paramName === lastParam) continue;
+      if (domainProperties[paramName]) continue;
+      const param = method.parameters?.[paramName];
+      if (param?.deprecated === true) continue;
+
+      domainProperties[paramName] = {
+        type: "string",
+        description: param?.description ||
+          `The ${paramName} for this resource`,
+      };
+      addedPathOnlyParams.push(paramName);
+    }
+  }
+
   // Add required query parameters from insert
   if (insert?.parameters) {
     for (const [paramName, param] of Object.entries(insert.parameters)) {

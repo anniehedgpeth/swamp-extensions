@@ -233,6 +233,18 @@ const GlobalArgsSchema = z.object({
       "The type of the conversion, that is, either `ACTION` or `TRANSACTION`. An `ACTION` conversion is an action by the user that has no monetarily quantifiable value, while a `TRANSACTION` conversion is an action that does have a monetarily quantifiable value. Examples are email list signups (`ACTION`) versus ecommerce purchases (`TRANSACTION`).",
     ).optional(),
   })).describe("The conversions being requested.").optional(),
+  agencyId: z.string().describe("Numeric ID of the agency."),
+  advertiserId: z.string().describe("Numeric ID of the advertiser."),
+  engineAccountId: z.string().describe("Numeric ID of the engine account."),
+  endDate: z.string().describe(
+    "Last date (inclusive) on which to retrieve conversions. Format is yyyymmdd.",
+  ),
+  rowCount: z.string().describe(
+    "The number of conversions to return per call.",
+  ),
+  startDate: z.string().describe(
+    "First date (inclusive) on which to retrieve conversions. Format is yyyymmdd.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -381,6 +393,18 @@ const InputsSchema = z.object({
       "The type of the conversion, that is, either `ACTION` or `TRANSACTION`. An `ACTION` conversion is an action by the user that has no monetarily quantifiable value, while a `TRANSACTION` conversion is an action that does have a monetarily quantifiable value. Examples are email list signups (`ACTION`) versus ecommerce purchases (`TRANSACTION`).",
     ).optional(),
   })).describe("The conversions being requested.").optional(),
+  agencyId: z.string().describe("Numeric ID of the agency.").optional(),
+  advertiserId: z.string().describe("Numeric ID of the advertiser.").optional(),
+  engineAccountId: z.string().describe("Numeric ID of the engine account.")
+    .optional(),
+  endDate: z.string().describe(
+    "Last date (inclusive) on which to retrieve conversions. Format is yyyymmdd.",
+  ).optional(),
+  rowCount: z.string().describe("The number of conversions to return per call.")
+    .optional(),
+  startDate: z.string().describe(
+    "First date (inclusive) on which to retrieve conversions. Format is yyyymmdd.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -406,7 +430,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Search Ads 360 Conversion. Registered at `@swamp/gcp/doubleclicksearch/conversion`. */
 export const model = {
   type: "@swamp/gcp/doubleclicksearch/conversion",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -486,6 +510,12 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description:
+        "Added: agencyId, advertiserId, engineAccountId, endDate, rowCount, startDate",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -720,6 +750,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["endDate"] !== undefined) {
+          params["endDate"] = String(g["endDate"]);
+        }
+        if (g["rowCount"] !== undefined) {
+          params["rowCount"] = String(g["rowCount"]);
+        }
+        if (g["startDate"] !== undefined) {
+          params["startDate"] = String(g["startDate"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -734,12 +773,6 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         params["customerId"] = existing["customerId"]?.toString() ??
           g["customerId"]?.toString() ?? "";
-        params["endDate"] = existing["endDate"]?.toString() ??
-          g["endDate"]?.toString() ?? "";
-        params["rowCount"] = existing["rowCount"]?.toString() ??
-          g["rowCount"]?.toString() ?? "";
-        params["startDate"] = existing["startDate"]?.toString() ??
-          g["startDate"]?.toString() ?? "";
         params["startRow"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(

@@ -161,6 +161,8 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  blogId: z.string().describe("The blogId for this resource"),
+  postId: z.string().describe("The postId for this resource"),
 });
 
 const StateSchema = z.object({
@@ -198,6 +200,8 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  blogId: z.string().describe("The blogId for this resource").optional(),
+  postId: z.string().describe("The postId for this resource").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -223,7 +227,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Blogger Comments. Registered at `@swamp/gcp/blogger/comments`. */
 export const model = {
   type: "@swamp/gcp/blogger/comments",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -313,6 +317,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: blogId, postId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -520,6 +529,8 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["blogId"] !== undefined) params["blogId"] = String(g["blogId"]);
+        if (g["postId"] !== undefined) params["postId"] = String(g["postId"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -532,10 +543,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["blogId"] = existing["blogId"]?.toString() ??
-          g["blogId"]?.toString() ?? "";
-        params["postId"] = existing["postId"]?.toString() ??
-          g["postId"]?.toString() ?? "";
         params["commentId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
@@ -570,20 +577,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["blogId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["blogId"] !== undefined) params["blogId"] = String(g["blogId"]);
         const result = await createResource(
           BASE_URL,
           {
@@ -619,6 +613,8 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["blogId"] !== undefined) params["blogId"] = String(g["blogId"]);
+        if (g["postId"] !== undefined) params["postId"] = String(g["postId"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -631,10 +627,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["blogId"] = existing["blogId"]?.toString() ??
-          g["blogId"]?.toString() ?? "";
-        params["postId"] = existing["postId"]?.toString() ??
-          g["postId"]?.toString() ?? "";
         params["commentId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(

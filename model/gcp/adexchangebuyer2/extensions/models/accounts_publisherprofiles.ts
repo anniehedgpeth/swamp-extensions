@@ -105,6 +105,7 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  accountId: z.string().describe("Account ID of the buyer."),
 });
 
 const StateSchema = z.object({
@@ -142,6 +143,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  accountId: z.string().describe("Account ID of the buyer.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -167,7 +169,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.PublisherProfiles. Registered at `@swamp/gcp/adexchangebuyer2/accounts-publisherprofiles`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-publisherprofiles",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -247,6 +249,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: accountId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

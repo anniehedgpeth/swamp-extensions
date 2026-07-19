@@ -106,6 +106,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  cssGroupId: z.string().describe(
+    "Required. The ID of the managing account. If this parameter is not the same as [cssDomainId](#cssDomainId), then this ID must be a CSS group ID and `cssDomainId` must be the ID of a CSS domain affiliated with this group.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -125,6 +128,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  cssGroupId: z.string().describe(
+    "Required. The ID of the managing account. If this parameter is not the same as [cssDomainId](#cssDomainId), then this ID must be a CSS group ID and `cssDomainId` must be the ID of a CSS domain affiliated with this group.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -150,7 +156,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Csses. Registered at `@swamp/gcp/content/csses`. */
 export const model = {
   type: "@swamp/gcp/content/csses",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -230,6 +236,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: cssGroupId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -390,6 +401,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["cssGroupId"] !== undefined) {
+          params["cssGroupId"] = String(g["cssGroupId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -402,8 +416,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["cssGroupId"] = existing["cssGroupId"]?.toString() ??
-          g["cssGroupId"]?.toString() ?? "";
         params["cssDomainId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};

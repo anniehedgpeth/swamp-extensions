@@ -79,6 +79,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  externalShlId: z.string().describe(
+    "Required. External ID mapping to a ShlSharedLinkCapabilityToken object See https://docs.google.com/document/d/1Pch20pxJHRbsaMxp0EYgs3ZU0Gu7QTUznk8LhvbQvfY/edit?tab=t.0#heading=h.17wg41voij6q",
+  ),
 });
 
 const StateSchema = z.object({
@@ -95,6 +98,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  externalShlId: z.string().describe(
+    "Required. External ID mapping to a ShlSharedLinkCapabilityToken object See https://docs.google.com/document/d/1Pch20pxJHRbsaMxp0EYgs3ZU0Gu7QTUznk8LhvbQvfY/edit?tab=t.0#heading=h.17wg41voij6q",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -120,7 +126,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Health Shl.R. Registered at `@swamp/gcp/health/shl-r`. */
 export const model = {
   type: "@swamp/gcp/health/shl-r",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.07.18.1",
@@ -135,6 +141,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: externalShlId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

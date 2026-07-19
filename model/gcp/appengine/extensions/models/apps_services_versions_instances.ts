@@ -156,6 +156,15 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  appsId: z.string().describe(
+    "Part of `name`. Required. Name of the resource requested. Example: apps/myapp/services/default/versions/v1/instances/instance-1.",
+  ),
+  servicesId: z.string().describe(
+    "Part of `name`. See documentation of `appsId`.",
+  ),
+  versionsId: z.string().describe(
+    "Part of `name`. See documentation of `appsId`.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -186,6 +195,15 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  appsId: z.string().describe(
+    "Part of `name`. Required. Name of the resource requested. Example: apps/myapp/services/default/versions/v1/instances/instance-1.",
+  ).optional(),
+  servicesId: z.string().describe(
+    "Part of `name`. See documentation of `appsId`.",
+  ).optional(),
+  versionsId: z.string().describe(
+    "Part of `name`. See documentation of `appsId`.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -211,7 +229,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps.Services.Versions.Instances. Registered at `@swamp/gcp/appengine/apps-services-versions-instances`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps-services-versions-instances",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -296,6 +314,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: appsId, servicesId, versionsId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -510,6 +533,13 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["appsId"] !== undefined) params["appsId"] = String(g["appsId"]);
+        if (g["servicesId"] !== undefined) {
+          params["servicesId"] = String(g["servicesId"]);
+        }
+        if (g["versionsId"] !== undefined) {
+          params["versionsId"] = String(g["versionsId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -522,12 +552,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["appsId"] = existing["appsId"]?.toString() ??
-          g["appsId"]?.toString() ?? "";
-        params["servicesId"] = existing["servicesId"]?.toString() ??
-          g["servicesId"]?.toString() ?? "";
-        params["versionsId"] = existing["versionsId"]?.toString() ??
-          g["versionsId"]?.toString() ?? "";
         params["instancesId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};

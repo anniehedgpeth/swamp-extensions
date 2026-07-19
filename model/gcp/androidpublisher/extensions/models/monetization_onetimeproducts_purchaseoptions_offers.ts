@@ -98,6 +98,15 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  packageName: z.string().describe(
+    "Required. The parent app (package name) for which the offers should be read.",
+  ),
+  productId: z.string().describe(
+    "Required. The parent one-time product (ID) for which the offers should be read. May be specified as '-' to read all offers under an app.",
+  ),
+  purchaseOptionId: z.string().describe(
+    "Required. The parent purchase option (ID) for which the offers should be read. May be specified as '-' to read all offers under a one-time product or an app. Must be specified as '-' if product_id is specified as '-'.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -144,6 +153,15 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  packageName: z.string().describe(
+    "Required. The parent app (package name) for which the offers should be read.",
+  ).optional(),
+  productId: z.string().describe(
+    "Required. The parent one-time product (ID) for which the offers should be read. May be specified as '-' to read all offers under an app.",
+  ).optional(),
+  purchaseOptionId: z.string().describe(
+    "Required. The parent purchase option (ID) for which the offers should be read. May be specified as '-' to read all offers under a one-time product or an app. Must be specified as '-' if product_id is specified as '-'.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -170,7 +188,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/androidpublisher/monetization-onetimeproducts-purchaseoptions-offers",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -250,6 +268,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: packageName, productId, purchaseOptionId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -438,6 +461,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["productId"] !== undefined) {
+          params["productId"] = String(g["productId"]);
+        }
+        if (g["purchaseOptionId"] !== undefined) {
+          params["purchaseOptionId"] = String(g["purchaseOptionId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -450,12 +482,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["productId"] = existing["productId"]?.toString() ??
-          g["productId"]?.toString() ?? "";
-        params["purchaseOptionId"] = existing["purchaseOptionId"]?.toString() ??
-          g["purchaseOptionId"]?.toString() ?? "";
         params["offerId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
@@ -513,24 +539,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["productId"] = existing["productId"]?.toString() ??
-          g["productId"]?.toString() ?? "";
-        params["purchaseOptionId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["productId"] !== undefined) {
+          params["productId"] = String(g["productId"]);
+        }
+        if (g["purchaseOptionId"] !== undefined) {
+          params["purchaseOptionId"] = String(g["purchaseOptionId"]);
+        }
         const body: Record<string, unknown> = {};
         if (args["requests"] !== undefined) body["requests"] = args["requests"];
         const result = await createResource(
@@ -568,24 +585,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["productId"] = existing["productId"]?.toString() ??
-          g["productId"]?.toString() ?? "";
-        params["purchaseOptionId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["productId"] !== undefined) {
+          params["productId"] = String(g["productId"]);
+        }
+        if (g["purchaseOptionId"] !== undefined) {
+          params["purchaseOptionId"] = String(g["purchaseOptionId"]);
+        }
         const body: Record<string, unknown> = {};
         if (args["requests"] !== undefined) body["requests"] = args["requests"];
         const result = await createResource(
@@ -623,24 +631,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["productId"] = existing["productId"]?.toString() ??
-          g["productId"]?.toString() ?? "";
-        params["purchaseOptionId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["productId"] !== undefined) {
+          params["productId"] = String(g["productId"]);
+        }
+        if (g["purchaseOptionId"] !== undefined) {
+          params["purchaseOptionId"] = String(g["purchaseOptionId"]);
+        }
         const body: Record<string, unknown> = {};
         if (args["requests"] !== undefined) body["requests"] = args["requests"];
         const result = await createResource(
@@ -678,24 +677,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["productId"] = existing["productId"]?.toString() ??
-          g["productId"]?.toString() ?? "";
-        params["purchaseOptionId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["productId"] !== undefined) {
+          params["productId"] = String(g["productId"]);
+        }
+        if (g["purchaseOptionId"] !== undefined) {
+          params["purchaseOptionId"] = String(g["purchaseOptionId"]);
+        }
         const body: Record<string, unknown> = {};
         if (args["requests"] !== undefined) body["requests"] = args["requests"];
         const result = await createResource(
@@ -737,6 +727,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["productId"] !== undefined) {
+          params["productId"] = String(g["productId"]);
+        }
+        if (g["purchaseOptionId"] !== undefined) {
+          params["purchaseOptionId"] = String(g["purchaseOptionId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -749,12 +748,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["productId"] = existing["productId"]?.toString() ??
-          g["productId"]?.toString() ?? "";
-        params["purchaseOptionId"] = existing["purchaseOptionId"]?.toString() ??
-          g["purchaseOptionId"]?.toString() ?? "";
         params["offerId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
@@ -816,6 +809,15 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["productId"] !== undefined) {
+          params["productId"] = String(g["productId"]);
+        }
+        if (g["purchaseOptionId"] !== undefined) {
+          params["purchaseOptionId"] = String(g["purchaseOptionId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -828,12 +830,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["packageName"] = existing["packageName"]?.toString() ??
-          g["packageName"]?.toString() ?? "";
-        params["productId"] = existing["productId"]?.toString() ??
-          g["productId"]?.toString() ?? "";
-        params["purchaseOptionId"] = existing["purchaseOptionId"]?.toString() ??
-          g["purchaseOptionId"]?.toString() ?? "";
         params["offerId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};

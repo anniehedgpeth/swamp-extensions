@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/cloudbilling"
-version: "2026.07.19.1"
+version: "2026.07.19.2"
 description: "Google Cloud cloudbilling infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: billingaccounts, projects, subaccounts, services, services_skus
+  - Updated: projects
 models:
   - billingaccounts.ts
   - projects.ts

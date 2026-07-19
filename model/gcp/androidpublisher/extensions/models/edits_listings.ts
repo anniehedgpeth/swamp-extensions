@@ -175,6 +175,8 @@ const GlobalArgsSchema = z.object({
   title: z.string().describe("Localized title of the app.").optional(),
   video: z.string().describe("URL of a promotional YouTube video for the app.")
     .optional(),
+  packageName: z.string().describe("Package name of the app."),
+  editId: z.string().describe("Identifier of the edit."),
 });
 
 const StateSchema = z.object({
@@ -203,6 +205,8 @@ const InputsSchema = z.object({
   title: z.string().describe("Localized title of the app.").optional(),
   video: z.string().describe("URL of a promotional YouTube video for the app.")
     .optional(),
+  packageName: z.string().describe("Package name of the app.").optional(),
+  editId: z.string().describe("Identifier of the edit.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -228,7 +232,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Edits.Listings. Registered at `@swamp/gcp/androidpublisher/edits-listings`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/edits-listings",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -313,6 +317,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: packageName, editId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

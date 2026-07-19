@@ -489,6 +489,9 @@ const GlobalArgsSchema = z.object({
       "A list of Freebase topic IDs associated with the channel. You can retrieve information about each topic using the Freebase Topic API.",
     ).optional(),
   }).describe("Freebase topic information related to the channel.").optional(),
+  part: z.string().describe(
+    "The *part* parameter specifies a comma-separated list of one or more channel resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set *part=contentDetails*, the API response will also contain all of those nested properties.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -1036,6 +1039,9 @@ const InputsSchema = z.object({
       "A list of Freebase topic IDs associated with the channel. You can retrieve information about each topic using the Freebase Topic API.",
     ).optional(),
   }).describe("Freebase topic information related to the channel.").optional(),
+  part: z.string().describe(
+    "The *part* parameter specifies a comma-separated list of one or more channel resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set *part=contentDetails*, the API response will also contain all of those nested properties.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -1061,7 +1067,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Channels. Registered at `@swamp/gcp/youtube/channels`. */
 export const model = {
   type: "@swamp/gcp/youtube/channels",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1146,6 +1152,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: part",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

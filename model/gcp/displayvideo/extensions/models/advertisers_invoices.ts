@@ -95,6 +95,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  advertiserId: z.string().describe(
+    "Required. The ID of the advertiser to list invoices for.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -157,6 +160,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  advertiserId: z.string().describe(
+    "Required. The ID of the advertiser to list invoices for.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -182,7 +188,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Invoices. Registered at `@swamp/gcp/displayvideo/advertisers-invoices`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-invoices",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -262,6 +268,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: advertiserId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -434,20 +445,9 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["advertiserId"] !== undefined) {
+          params["advertiserId"] = String(g["advertiserId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["advertiserId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {

@@ -132,6 +132,12 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  userKey: z.string().describe(
+    "Represents the profile ID or the user email for which the data should be filtered. Can be `all` for all information, or `userKey` for a user's unique Google Workspace profile ID or their primary email address. Must not be a deleted user. For a deleted user, call `users.list` in Directory API with `showDeleted=true`, then use the returned `ID` as the `userKey`.",
+  ),
+  applicationName: z.string().describe(
+    "Application name for which the events are to be retrieved.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -228,6 +234,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  userKey: z.string().describe(
+    "Represents the profile ID or the user email for which the data should be filtered. Can be `all` for all information, or `userKey` for a user's unique Google Workspace profile ID or their primary email address. Must not be a deleted user. For a deleted user, call `users.list` in Directory API with `showDeleted=true`, then use the returned `ID` as the `userKey`.",
+  ).optional(),
+  applicationName: z.string().describe(
+    "Application name for which the events are to be retrieved.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -253,7 +265,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Activities. Registered at `@swamp/gcp/admin/activities`. */
 export const model = {
   type: "@swamp/gcp/admin/activities",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -338,6 +350,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: userKey, applicationName",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -602,22 +619,12 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["userKey"] !== undefined) {
+          params["userKey"] = String(g["userKey"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["userKey"] = existing["userKey"]?.toString() ??
-          g["userKey"]?.toString() ?? "";
-        params["applicationName"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["applicationName"] !== undefined) {
+          params["applicationName"] = String(g["applicationName"]);
+        }
         const body: Record<string, unknown> = {};
         if (args["address"] !== undefined) body["address"] = args["address"];
         if (args["expiration"] !== undefined) {

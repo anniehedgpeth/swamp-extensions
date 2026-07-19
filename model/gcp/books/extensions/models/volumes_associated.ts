@@ -89,6 +89,7 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  volumeId: z.string().describe("ID of the source volume."),
 });
 
 const StateSchema = z.object({
@@ -308,6 +309,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  volumeId: z.string().describe("ID of the source volume.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -333,7 +335,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Books Volumes.Associated. Registered at `@swamp/gcp/books/volumes-associated`. */
 export const model = {
   type: "@swamp/gcp/books/volumes-associated",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -418,6 +420,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: volumeId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

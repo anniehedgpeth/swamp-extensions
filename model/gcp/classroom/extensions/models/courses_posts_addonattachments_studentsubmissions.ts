@@ -180,6 +180,9 @@ const GlobalArgsSchema = z.object({
   userId: z.string().describe(
     "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. See [`courseWork.studentSubmissions.get`](/workspace/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/get#authorization-scopes) for the list of acceptable OAuth scopes for this field. Read-only.",
   ).optional(),
+  courseId: z.string().describe("Required. Identifier of the course."),
+  postId: z.string().describe("Optional. Deprecated, use `item_id` instead."),
+  attachmentId: z.string().describe("Required. Identifier of the attachment."),
 });
 
 const StateSchema = z.object({
@@ -220,6 +223,12 @@ const InputsSchema = z.object({
   userId: z.string().describe(
     "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. See [`courseWork.studentSubmissions.get`](/workspace/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/get#authorization-scopes) for the list of acceptable OAuth scopes for this field. Read-only.",
   ).optional(),
+  courseId: z.string().describe("Required. Identifier of the course.")
+    .optional(),
+  postId: z.string().describe("Optional. Deprecated, use `item_id` instead.")
+    .optional(),
+  attachmentId: z.string().describe("Required. Identifier of the attachment.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -246,7 +255,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/classroom/courses-posts-addonattachments-studentsubmissions",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -382,6 +391,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: courseId, postId, attachmentId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

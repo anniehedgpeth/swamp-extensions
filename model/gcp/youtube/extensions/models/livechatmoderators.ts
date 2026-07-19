@@ -147,6 +147,9 @@ const GlobalArgsSchema = z.object({
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response returns. Set the parameter value to snippet.",
   ),
+  liveChatId: z.string().describe(
+    "The id of the live chat for which moderators should be returned.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -191,6 +194,9 @@ const InputsSchema = z.object({
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response returns. Set the parameter value to snippet.",
   ).optional(),
+  liveChatId: z.string().describe(
+    "The id of the live chat for which moderators should be returned.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -216,7 +222,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data LiveChatModerators. Registered at `@swamp/gcp/youtube/livechatmoderators`. */
 export const model = {
   type: "@swamp/gcp/youtube/livechatmoderators",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -296,6 +302,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: liveChatId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

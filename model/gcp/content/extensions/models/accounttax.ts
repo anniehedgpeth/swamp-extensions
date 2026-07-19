@@ -151,6 +151,9 @@ const GlobalArgsSchema = z.object({
   })).describe(
     'Tax rules. Updating the tax rules will enable "US" taxes (not reversible). Defining no rules is equivalent to not charging tax at all.',
   ).optional(),
+  merchantId: z.string().describe(
+    "The ID of the managing account. If this parameter is not the same as accountId, then this account must be a multi-client account and `accountId` must be the ID of a sub-account of this account.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -197,6 +200,9 @@ const InputsSchema = z.object({
   })).describe(
     'Tax rules. Updating the tax rules will enable "US" taxes (not reversible). Defining no rules is equivalent to not charging tax at all.',
   ).optional(),
+  merchantId: z.string().describe(
+    "The ID of the managing account. If this parameter is not the same as accountId, then this account must be a multi-client account and `accountId` must be the ID of a sub-account of this account.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -222,7 +228,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Accounttax. Registered at `@swamp/gcp/content/accounttax`. */
 export const model = {
   type: "@swamp/gcp/content/accounttax",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -302,6 +308,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: merchantId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

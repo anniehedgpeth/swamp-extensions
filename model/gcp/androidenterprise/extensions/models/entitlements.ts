@@ -174,6 +174,8 @@ const GlobalArgsSchema = z.object({
   reason: z.enum(["free", "groupLicense", "userPurchase"]).describe(
     'The reason for the entitlement. For example, "free" for free apps. This property is temporary: it will be replaced by the acquisition kind field of group licenses.',
   ).optional(),
+  enterpriseId: z.string().describe("The ID of the enterprise."),
+  userId: z.string().describe("The ID of the user."),
 });
 
 const StateSchema = z.object({
@@ -195,6 +197,8 @@ const InputsSchema = z.object({
   reason: z.enum(["free", "groupLicense", "userPurchase"]).describe(
     'The reason for the entitlement. For example, "free" for free apps. This property is temporary: it will be replaced by the acquisition kind field of group licenses.',
   ).optional(),
+  enterpriseId: z.string().describe("The ID of the enterprise.").optional(),
+  userId: z.string().describe("The ID of the user.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -220,7 +224,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play EMM Entitlements. Registered at `@swamp/gcp/androidenterprise/entitlements`. */
 export const model = {
   type: "@swamp/gcp/androidenterprise/entitlements",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -305,6 +309,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: enterpriseId, userId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

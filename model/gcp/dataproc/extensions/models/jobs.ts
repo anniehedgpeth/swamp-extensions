@@ -701,6 +701,9 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Output only. The collection of YARN applications spun up by this job.Beta Feature: This report is available for testing purposes only. It might be changed before final release.",
   ).optional(),
+  region: z.string().describe(
+    "Required. The Dataproc region in which to handle the request.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -1399,6 +1402,9 @@ const InputsSchema = z.object({
   })).describe(
     "Output only. The collection of YARN applications spun up by this job.Beta Feature: This report is available for testing purposes only. It might be changed before final release.",
   ).optional(),
+  region: z.string().describe(
+    "Required. The Dataproc region in which to handle the request.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -1424,7 +1430,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Jobs. Registered at `@swamp/gcp/dataproc/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataproc/jobs",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1514,6 +1520,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: region",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1806,6 +1817,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -1818,8 +1830,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["region"] = existing["region"]?.toString() ??
-          g["region"]?.toString() ?? "";
         params["jobId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
@@ -1951,20 +1961,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["region"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const body: Record<string, unknown> = {};
         if (args["job"] !== undefined) body["job"] = args["job"];
         if (args["requestId"] !== undefined) {
@@ -2003,20 +2000,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["region"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const body: Record<string, unknown> = {};
         if (args["job"] !== undefined) body["job"] = args["job"];
         if (args["requestId"] !== undefined) {

@@ -94,6 +94,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  playerId: z.string().describe(
+    "A player ID. A value of `me` may be used in place of the authenticated player's ID.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -114,6 +117,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  playerId: z.string().describe(
+    "A player ID. A value of `me` may be used in place of the authenticated player's ID.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -139,7 +145,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Games Services Achievements. Registered at `@swamp/gcp/games/achievements`. */
 export const model = {
   type: "@swamp/gcp/games/achievements",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -219,6 +225,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: playerId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

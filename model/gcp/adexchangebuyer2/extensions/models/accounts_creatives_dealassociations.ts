@@ -117,6 +117,10 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  accountId: z.string().describe("The account the creative belongs to."),
+  creativeId: z.string().describe(
+    'The creative ID to list the associations from. Specify "-" to list all creatives under the above account.',
+  ),
 });
 
 const StateSchema = z.object({
@@ -133,6 +137,11 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  accountId: z.string().describe("The account the creative belongs to.")
+    .optional(),
+  creativeId: z.string().describe(
+    'The creative ID to list the associations from. Specify "-" to list all creatives under the above account.',
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -158,7 +167,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.Creatives.DealAssociations. Registered at `@swamp/gcp/adexchangebuyer2/accounts-creatives-dealassociations`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-creatives-dealassociations",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -238,6 +247,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: accountId, creativeId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -450,22 +464,12 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
+        if (g["accountId"] !== undefined) {
+          params["accountId"] = String(g["accountId"]);
         }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["accountId"] = existing["accountId"]?.toString() ??
-          g["accountId"]?.toString() ?? "";
-        params["creativeId"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
+        if (g["creativeId"] !== undefined) {
+          params["creativeId"] = String(g["creativeId"]);
+        }
         const body: Record<string, unknown> = {};
         if (args["association"] !== undefined) {
           body["association"] = args["association"];

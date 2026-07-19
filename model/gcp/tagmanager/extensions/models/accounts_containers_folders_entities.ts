@@ -96,6 +96,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  accountId: z.string().describe("The GTM Account ID."),
+  containerId: z.string().describe("The GTM Container ID."),
+  folderId: z.string().describe("The GTM Folder ID."),
 });
 
 const StateSchema = z.object({
@@ -146,6 +149,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  accountId: z.string().describe("The GTM Account ID.").optional(),
+  containerId: z.string().describe("The GTM Container ID.").optional(),
+  folderId: z.string().describe("The GTM Folder ID.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -171,7 +177,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Folders.Entities. Registered at `@swamp/gcp/tagmanager/accounts-containers-folders-entities`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-folders-entities",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -191,6 +197,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: accountId, containerId, folderId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

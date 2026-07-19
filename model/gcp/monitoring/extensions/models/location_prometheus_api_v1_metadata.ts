@@ -71,9 +71,6 @@ const LIST_CONFIG = {
 } as const;
 
 const GlobalArgsSchema = z.object({
-  name: z.string().describe(
-    "Instance name for this resource (used as the unique identifier in the factory pattern)",
-  ),
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -86,6 +83,12 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  name: z.string().describe(
+    "Required. The workspace on which to execute the request. It is not part of the open source API but used as a request path prefix to distinguish different virtual Prometheus instances of Google Prometheus Engine. The format is: projects/PROJECT_ID_OR_NUMBER.",
+  ),
+  location: z.string().describe(
+    'Location of the resource information. Has to be "global" for now.',
+  ),
 });
 
 const StateSchema = z.object({}).passthrough();
@@ -93,11 +96,16 @@ const StateSchema = z.object({}).passthrough();
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
-  name: z.string().optional(),
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  name: z.string().describe(
+    "Required. The workspace on which to execute the request. It is not part of the open source API but used as a request path prefix to distinguish different virtual Prometheus instances of Google Prometheus Engine. The format is: projects/PROJECT_ID_OR_NUMBER.",
+  ).optional(),
+  location: z.string().describe(
+    'Location of the resource information. Has to be "global" for now.',
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -123,7 +131,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring Location.Prometheus.Api.V1.Metadata. Registered at `@swamp/gcp/monitoring/location-prometheus-api-v1-metadata`. */
 export const model = {
   type: "@swamp/gcp/monitoring/location-prometheus-api-v1-metadata",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -148,6 +156,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: location",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -184,10 +197,11 @@ export const model = {
           args.identifier,
           credentials,
         ) as StateData;
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,

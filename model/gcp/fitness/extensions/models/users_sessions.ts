@@ -189,6 +189,9 @@ const GlobalArgsSchema = z.object({
   startTimeMillis: z.string().describe(
     "A start time, in milliseconds since epoch, inclusive.",
   ).optional(),
+  userId: z.string().describe(
+    "Create sessions for the person identified. Use me to indicate the authenticated user. Only me is supported at this time.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -250,6 +253,9 @@ const InputsSchema = z.object({
   startTimeMillis: z.string().describe(
     "A start time, in milliseconds since epoch, inclusive.",
   ).optional(),
+  userId: z.string().describe(
+    "Create sessions for the person identified. Use me to indicate the authenticated user. Only me is supported at this time.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -275,7 +281,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Fitness Users.Sessions. Registered at `@swamp/gcp/fitness/users-sessions`. */
 export const model = {
   type: "@swamp/gcp/fitness/users-sessions",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -360,6 +366,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: userId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

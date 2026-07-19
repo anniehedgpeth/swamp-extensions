@@ -105,6 +105,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  merchantId: z.string().describe(
+    "Required. The ID of the account that contains the collection. This account cannot be a multi-client account.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -139,6 +142,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  merchantId: z.string().describe(
+    "Required. The ID of the account that contains the collection. This account cannot be a multi-client account.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -164,7 +170,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Collectionstatuses. Registered at `@swamp/gcp/content/collectionstatuses`. */
 export const model = {
   type: "@swamp/gcp/content/collectionstatuses",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -244,6 +250,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: merchantId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -104,6 +104,12 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  entityType: z.string().describe(
+    "Represents the type of entity for the report.",
+  ),
+  entityKey: z.string().describe(
+    "Represents the key of the object to filter the data with. It is a string which can take the value `all` to get activity events for all users, or any other value for an app-specific entity. For details on how to obtain the `entityKey` for a particular `entityType`, see the Entities Usage parameters reference guides.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -148,6 +154,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  entityType: z.string().describe(
+    "Represents the type of entity for the report.",
+  ).optional(),
+  entityKey: z.string().describe(
+    "Represents the key of the object to filter the data with. It is a string which can take the value `all` to get activity events for all users, or any other value for an app-specific entity. For details on how to obtain the `entityKey` for a particular `entityType`, see the Entities Usage parameters reference guides.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -173,7 +185,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK EntityUsageReports. Registered at `@swamp/gcp/admin/entityusagereports`. */
 export const model = {
   type: "@swamp/gcp/admin/entityusagereports",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -258,6 +270,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: entityType, entityKey",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

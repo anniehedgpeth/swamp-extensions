@@ -123,6 +123,8 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  profileId: z.string().describe("The Campaign Manager 360 user profile ID."),
+  reportId: z.string().describe("The ID of the report."),
 });
 
 const StateSchema = z.object({
@@ -154,6 +156,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  profileId: z.string().describe("The Campaign Manager 360 user profile ID.")
+    .optional(),
+  reportId: z.string().describe("The ID of the report.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -179,7 +184,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Reports.Files. Registered at `@swamp/gcp/dfareporting/reports-files`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/reports-files",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -259,6 +264,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: profileId, reportId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

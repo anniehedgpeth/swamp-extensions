@@ -136,6 +136,7 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "A reseller, vendor, or customer in the zero-touch reseller and customer APIs.",
   ).optional(),
+  partnerId: z.string().describe("Required. The ID of the reseller partner."),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -203,6 +204,8 @@ const InputsSchema = z.object({
   }).describe(
     "A reseller, vendor, or customer in the zero-touch reseller and customer APIs.",
   ).optional(),
+  partnerId: z.string().describe("Required. The ID of the reseller partner.")
+    .optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -231,7 +234,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Device Provisioning Partner Partners.Customers. Registered at `@swamp/gcp/androiddeviceprovisioning/partners-customers`. */
 export const model = {
   type: "@swamp/gcp/androiddeviceprovisioning/partners-customers",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -316,6 +319,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: partnerId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

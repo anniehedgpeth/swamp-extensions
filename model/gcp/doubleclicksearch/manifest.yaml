@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/doubleclicksearch"
-version: "2026.07.19.1"
+version: "2026.07.19.2"
 description: "Google Cloud doubleclicksearch infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: conversion, reports, savedcolumns
+  - Updated: conversion, savedcolumns
 models:
   - conversion.ts
   - reports.ts

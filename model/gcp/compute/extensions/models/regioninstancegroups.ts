@@ -121,6 +121,7 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  region: z.string().describe("Name of the region scoping this request."),
 });
 
 const StateSchema = z.object({
@@ -150,6 +151,8 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  region: z.string().describe("Name of the region scoping this request.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -175,7 +178,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionInstanceGroups. Registered at `@swamp/gcp/compute/regioninstancegroups`. */
 export const model = {
   type: "@swamp/gcp/compute/regioninstancegroups",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -260,6 +263,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: region",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -435,6 +443,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -447,8 +456,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["region"] = existing["region"]?.toString() ??
-          g["region"]?.toString() ?? "";
         params["instanceGroup"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
@@ -496,6 +503,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -508,8 +516,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["region"] = existing["region"]?.toString() ??
-          g["region"]?.toString() ?? "";
         params["instanceGroup"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
@@ -554,6 +560,7 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -566,8 +573,6 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["region"] = existing["region"]?.toString() ??
-          g["region"]?.toString() ?? "";
         params["resource"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};

@@ -80,6 +80,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  topic: z.string().describe(
+    "Required. The name of the topic that snapshots are attached to. Format is `projects/{project}/topics/{topic}`.",
+  ),
 });
 
 const StateSchema = z.object({}).passthrough();
@@ -92,6 +95,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  topic: z.string().describe(
+    "Required. The name of the topic that snapshots are attached to. Format is `projects/{project}/topics/{topic}`.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -117,7 +123,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Topics.Snapshots. Registered at `@swamp/gcp/pubsub/topics-snapshots`. */
 export const model = {
   type: "@swamp/gcp/pubsub/topics-snapshots",
-  version: "2026.07.19.1",
+  version: "2026.07.19.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -202,6 +208,11 @@ export const model = {
     {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.2",
+      description: "Added: topic",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
