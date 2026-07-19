@@ -143,7 +143,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workload Manager Evaluations.Executions.ScannedResources. Registered at `@swamp/gcp/workloadmanager/evaluations-executions-scannedresources`. */
 export const model = {
   type: "@swamp/gcp/workloadmanager/evaluations-executions-scannedresources",
-  version: "2026.07.18.2",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -227,6 +227,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

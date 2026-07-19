@@ -124,7 +124,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Managed Service for Apache Kafka SchemaRegistries.Schemas.Types. Registered at `@swamp/gcp/managedkafka/schemaregistries-schemas-types`. */
 export const model = {
   type: "@swamp/gcp/managedkafka/schemaregistries-schemas-types",
-  version: "2026.07.18.2",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -213,6 +213,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

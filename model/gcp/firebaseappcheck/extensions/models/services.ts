@@ -119,16 +119,16 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The App Check enforcement mode for this service.",
+    "Required. The baseline protection EnforcementMode for this service.",
   ).optional(),
   etag: z.string().describe(
     "Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. This etag is strongly validated as defined by RFC 7232.",
   ).optional(),
   name: z.string().describe(
-    "Required. The relative resource name of the service configuration object, in the format: ` projects/{project_number}/services/{service_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `firebasestorage.googleapis.com` (Cloud Storage for Firebase) * `firebasedatabase.googleapis.com` (Firebase Realtime Database) * `firestore.googleapis.com` (Cloud Firestore) * `oauth2.googleapis.com` (Google Identity for iOS)",
+    "Required. The relative resource name of the service configuration object, in the format: ` projects/{project_number}/services/{service_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported. Firebase and Google Cloud services: * `identitytoolkit.googleapis.com` (Firebase Authentication) * `firebasedataconnect.googleapis.com` (Firebase SQL Connect) * `firestore.googleapis.com` (Cloud Firestore) * `firebasedatabase.googleapis.com` (Firebase Realtime Database) * `firebasestorage.googleapis.com` (Cloud Storage for Firebase) * `firebaseml.googleapis.com` (Firebase AI Logic) Google Maps Platform services: * `maps-backend.googleapis.com` (Maps JavaScript API) * `places.googleapis.com` (Places API (New)) Other supported Google services: * `oauth2.googleapis.com` (Google Identity for iOS)",
   ).optional(),
   replayProtection: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Optional. The replay protection enforcement mode for this service. Note that this field cannot be set to a level higher than the overall App Check enforcement mode. For example, if the overall App Check enforcement mode is set to `UNENFORCED`, this field cannot be set to `ENFORCED`. In order to enforce replay protection, you must first enforce App Check. An HTTP 400 error will be returned in this case. By default, this field is set to `OFF`. Setting this field to `UNENFORCED` or `ENFORCED` is considered opting into replay protection. Once opted in, requests to your protected services may experience higher latency. To opt out of replay protection after opting in, set this field to `OFF`.",
+    "Optional. The replay protection EnforcementMode for this service. Note that this field cannot be set to a level higher than that of baseline protection. For example, if the enforcement mode for baseline protection is set to `UNENFORCED`, this field cannot be set to `ENFORCED`. In order to enforce replay protection, you must first enforce App Check's baseline protection. An HTTP 400 error will be returned in this case. By default, this field is set to `OFF`. Setting this field to `UNENFORCED` or `ENFORCED` is considered opting into replay protection. Opting in can impact your requests by adding some latency and sometimes cost (depending on your attestation provider). To opt out of replay protection after opting in, set this field to `OFF`.",
   ).optional(),
   updateTime: z.string().describe(
     "Output only. Timestamp when this service configuration object was most recently updated.",
@@ -154,16 +154,16 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The App Check enforcement mode for this service.",
+    "Required. The baseline protection EnforcementMode for this service.",
   ).optional(),
   etag: z.string().describe(
     "Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. This etag is strongly validated as defined by RFC 7232.",
   ).optional(),
   name: z.string().describe(
-    "Required. The relative resource name of the service configuration object, in the format: ` projects/{project_number}/services/{service_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `firebasestorage.googleapis.com` (Cloud Storage for Firebase) * `firebasedatabase.googleapis.com` (Firebase Realtime Database) * `firestore.googleapis.com` (Cloud Firestore) * `oauth2.googleapis.com` (Google Identity for iOS)",
+    "Required. The relative resource name of the service configuration object, in the format: ` projects/{project_number}/services/{service_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported. Firebase and Google Cloud services: * `identitytoolkit.googleapis.com` (Firebase Authentication) * `firebasedataconnect.googleapis.com` (Firebase SQL Connect) * `firestore.googleapis.com` (Cloud Firestore) * `firebasedatabase.googleapis.com` (Firebase Realtime Database) * `firebasestorage.googleapis.com` (Cloud Storage for Firebase) * `firebaseml.googleapis.com` (Firebase AI Logic) Google Maps Platform services: * `maps-backend.googleapis.com` (Maps JavaScript API) * `places.googleapis.com` (Places API (New)) Other supported Google services: * `oauth2.googleapis.com` (Google Identity for iOS)",
   ).optional(),
   replayProtection: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Optional. The replay protection enforcement mode for this service. Note that this field cannot be set to a level higher than the overall App Check enforcement mode. For example, if the overall App Check enforcement mode is set to `UNENFORCED`, this field cannot be set to `ENFORCED`. In order to enforce replay protection, you must first enforce App Check. An HTTP 400 error will be returned in this case. By default, this field is set to `OFF`. Setting this field to `UNENFORCED` or `ENFORCED` is considered opting into replay protection. Once opted in, requests to your protected services may experience higher latency. To opt out of replay protection after opting in, set this field to `OFF`.",
+    "Optional. The replay protection EnforcementMode for this service. Note that this field cannot be set to a level higher than that of baseline protection. For example, if the enforcement mode for baseline protection is set to `UNENFORCED`, this field cannot be set to `ENFORCED`. In order to enforce replay protection, you must first enforce App Check's baseline protection. An HTTP 400 error will be returned in this case. By default, this field is set to `OFF`. Setting this field to `UNENFORCED` or `ENFORCED` is considered opting into replay protection. Opting in can impact your requests by adding some latency and sometimes cost (depending on your attestation provider). To opt out of replay protection after opting in, set this field to `OFF`.",
   ).optional(),
   updateTime: z.string().describe(
     "Output only. Timestamp when this service configuration object was most recently updated.",
@@ -196,7 +196,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Check Services. Registered at `@swamp/gcp/firebaseappcheck/services`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/services",
-  version: "2026.07.18.2",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -339,6 +339,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -555,12 +555,22 @@ provided via `GCP_PROJECT` or `GOOGLE_CLOUD_PROJECT`.
 
 ### Quota project header
 
-Every HTTP request includes the `x-goog-user-project` header when a project ID
-is available. Some GCP APIs (e.g., Cloud Identity) require this header to
-identify a billing/quota project when authenticating via Application Default
-Credentials. The header value comes from the resolved `projectId` in the
-credential chain. When no project ID is configured (org-scoped resources that
-don't need one), the header is omitted.
+The `x-goog-user-project` header is only sent when a quota project is explicitly
+configured — it is never derived from the resource project ID. This matches
+gcloud CLI semantics, where the quota project is an opt-in override separate
+from the project that owns the resources being accessed.
+
+The quota project is resolved from two sources, in order:
+
+1. Explicit `quotaProject` on `ExplicitGcpCredentials` (for per-service use via
+   enrichments)
+2. `GOOGLE_CLOUD_QUOTA_PROJECT` environment variable (the standard Google
+   mechanism)
+
+When neither source provides a value, the header is omitted entirely. For
+service account credentials, the SA's own project is used automatically by the
+GCP API gateway as the default quota project — the header is unnecessary and
+would require the `serviceUsageConsumer` role without adding function.
 
 ### gcloud CLI check
 

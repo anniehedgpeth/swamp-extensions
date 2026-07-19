@@ -29,12 +29,14 @@ interface GcpMethodConfig {
 interface GcpCredentials {
   projectId: string;
   accessToken: string;
+  quotaProjectId?: string;
 }
 
 export interface ExplicitGcpCredentials {
   accessToken?: string;
   credentialsJson?: string;
   project?: string;
+  quotaProject?: string;
   scopes?: string[];
 }
 
@@ -89,17 +91,19 @@ async function ensureGcloudInstalled(): Promise<void> {
  * credentials when set.
  */
 async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCredentials> {
+  const quotaProjectId = explicit?.quotaProject || Deno.env.get("GOOGLE_CLOUD_QUOTA_PROJECT")?.trim() || undefined;
+
   // Explicit credentials from global args take highest precedence (vault expressions).
   if (explicit?.accessToken) {
     const projectId = explicit.project ?? Deno.env.get("GCP_PROJECT")?.trim() ?? Deno.env.get("GOOGLE_CLOUD_PROJECT")?.trim() ?? "";
-    return { projectId, accessToken: explicit.accessToken };
+    return { projectId, accessToken: explicit.accessToken, quotaProjectId };
   }
   if (explicit?.credentialsJson) {
     const creds = await activateServiceAccountFromJson(explicit.credentialsJson, explicit.scopes);
     if (explicit.project) {
-      return { projectId: explicit.project, accessToken: creds.accessToken };
+      return { projectId: explicit.project, accessToken: creds.accessToken, quotaProjectId };
     }
-    return creds;
+    return { ...creds, quotaProjectId };
   }
 
   // Direct access token is always read fresh from the env (no caching).
@@ -108,14 +112,14 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
   const directToken = Deno.env.get("GCP_ACCESS_TOKEN")?.trim();
   if (directToken) {
     const projectId = explicit?.project ?? Deno.env.get("GCP_PROJECT")?.trim() ?? Deno.env.get("GOOGLE_CLOUD_PROJECT")?.trim();
-    return { projectId: projectId ?? "", accessToken: directToken };
+    return { projectId: projectId ?? "", accessToken: directToken, quotaProjectId };
   }
 
   if (cachedCredentials && (Date.now() - cachedAt) < TOKEN_TTL_MS) {
     if (explicit?.project) {
-      return { projectId: explicit.project, accessToken: cachedCredentials.accessToken };
+      return { projectId: explicit.project, accessToken: cachedCredentials.accessToken, quotaProjectId };
     }
-    return cachedCredentials;
+    return { ...cachedCredentials, quotaProjectId };
   }
   cachedCredentials = undefined;
 
@@ -127,9 +131,9 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
     cachedCredentials = await activateServiceAccountFromJson(credJson, explicit?.scopes);
     cachedAt = Date.now();
     if (explicit?.project) {
-      return { projectId: explicit.project, accessToken: cachedCredentials.accessToken };
+      return { projectId: explicit.project, accessToken: cachedCredentials.accessToken, quotaProjectId };
     }
-    return cachedCredentials;
+    return { ...cachedCredentials, quotaProjectId };
   }
 
   // Try file path to service account JSON
@@ -146,18 +150,18 @@ async function getCredentials(explicit?: ExplicitGcpCredentials): Promise<GcpCre
     cachedCredentials = await activateServiceAccountFromJson(fileContent, explicit?.scopes);
     cachedAt = Date.now();
     if (explicit?.project) {
-      return { projectId: explicit.project, accessToken: cachedCredentials.accessToken };
+      return { projectId: explicit.project, accessToken: cachedCredentials.accessToken, quotaProjectId };
     }
-    return cachedCredentials;
+    return { ...cachedCredentials, quotaProjectId };
   }
 
   // Fall back to Application Default Credentials (gcloud auth)
   cachedCredentials = await getApplicationDefaultCredentials(explicit?.scopes);
   cachedAt = Date.now();
   if (explicit?.project) {
-    return { projectId: explicit.project, accessToken: cachedCredentials.accessToken };
+    return { projectId: explicit.project, accessToken: cachedCredentials.accessToken, quotaProjectId };
   }
-  return cachedCredentials;
+  return { ...cachedCredentials, quotaProjectId };
 }
 
 /**
@@ -371,8 +375,8 @@ export async function request(
     "Authorization": \`Bearer \${creds.accessToken}\`,
     "Content-Type": "application/json",
   };
-  if (creds.projectId) {
-    headers["x-goog-user-project"] = creds.projectId;
+  if (creds.quotaProjectId) {
+    headers["x-goog-user-project"] = creds.quotaProjectId;
   }
 
   const resp = await fetch(url, {
@@ -390,8 +394,8 @@ export async function request(
       "Authorization": \`Bearer \${freshCreds.accessToken}\`,
       "Content-Type": "application/json",
     };
-    if (freshCreds.projectId) {
-      retryHeaders["x-goog-user-project"] = freshCreds.projectId;
+    if (freshCreds.quotaProjectId) {
+      retryHeaders["x-goog-user-project"] = freshCreds.quotaProjectId;
     }
     return await fetch(url, {
       method,

@@ -754,7 +754,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage Batch Operations Jobs. Registered at `@swamp/gcp/storagebatchoperations/jobs`. */
 export const model = {
   type: "@swamp/gcp/storagebatchoperations/jobs",
-  version: "2026.07.18.2",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -888,6 +888,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -174,7 +174,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK UserUsageReport. Registered at `@swamp/gcp/admin/userusagereport`. */
 export const model = {
   type: "@swamp/gcp/admin/userusagereport",
-  version: "2026.07.18.1",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -254,6 +254,11 @@ export const model = {
     {
       toVersion: "2026.07.18.1",
       description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

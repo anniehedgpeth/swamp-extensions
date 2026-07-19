@@ -21,6 +21,7 @@ interface GcpAuthLib {
       accessToken?: string;
       credentialsJson?: string;
       project?: string;
+      quotaProject?: string;
       scopes?: string[];
     },
   ) => Promise<Response>;
@@ -374,6 +375,177 @@ Deno.test({
         await server.shutdown();
       }
     } finally {
+      await libCleanup();
+      await mock.cleanup();
+    }
+  },
+  sanitizeResources: false,
+});
+
+// ---------------------------------------------------------------------------
+// x-goog-user-project quota header
+// ---------------------------------------------------------------------------
+
+Deno.test({
+  name: "request() does NOT send x-goog-user-project for plain SA credentials",
+  async fn() {
+    const mock = await setupMockGcloud();
+    const { mod, cleanup: libCleanup } = await importAuthFunctions(mock.dir);
+    const origQuotaEnv = Deno.env.get("GOOGLE_CLOUD_QUOTA_PROJECT");
+    try {
+      Deno.env.delete("GOOGLE_CLOUD_QUOTA_PROJECT");
+      const saJson = JSON.stringify({
+        client_email: "test@project.iam.gserviceaccount.com",
+        project_id: "test-project",
+        type: "service_account",
+      });
+
+      const capturedHeaders: Record<string, string> = {};
+      const server = Deno.serve({ port: 0, onListen() {} }, (req) => {
+        for (const [k, v] of req.headers.entries()) {
+          capturedHeaders[k] = v;
+        }
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      });
+      const port = server.addr.port;
+
+      try {
+        await mod.request(
+          "GET",
+          `http://localhost:${port}/test`,
+          undefined,
+          { credentialsJson: saJson },
+        );
+        assert(
+          !("x-goog-user-project" in capturedHeaders),
+          `should NOT send x-goog-user-project for plain SA creds, got headers: ${
+            JSON.stringify(capturedHeaders)
+          }`,
+        );
+      } finally {
+        await server.shutdown();
+      }
+    } finally {
+      if (origQuotaEnv !== undefined) {
+        Deno.env.set("GOOGLE_CLOUD_QUOTA_PROJECT", origQuotaEnv);
+      } else {
+        Deno.env.delete("GOOGLE_CLOUD_QUOTA_PROJECT");
+      }
+      await libCleanup();
+      await mock.cleanup();
+    }
+  },
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name:
+    "request() sends x-goog-user-project when GOOGLE_CLOUD_QUOTA_PROJECT is set",
+  async fn() {
+    const mock = await setupMockGcloud();
+    const { mod, cleanup: libCleanup } = await importAuthFunctions(mock.dir);
+    const origQuotaEnv = Deno.env.get("GOOGLE_CLOUD_QUOTA_PROJECT");
+    try {
+      Deno.env.set("GOOGLE_CLOUD_QUOTA_PROJECT", "my-quota-project");
+      const saJson = JSON.stringify({
+        client_email: "test@project.iam.gserviceaccount.com",
+        project_id: "test-project",
+        type: "service_account",
+      });
+
+      let capturedHeaders: Record<string, string> = {};
+      const server = Deno.serve({ port: 0, onListen() {} }, (req) => {
+        capturedHeaders = {};
+        for (const [k, v] of req.headers.entries()) {
+          capturedHeaders[k] = v;
+        }
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      });
+      const port = server.addr.port;
+
+      try {
+        await mod.request(
+          "GET",
+          `http://localhost:${port}/test`,
+          undefined,
+          { credentialsJson: saJson },
+        );
+        assertEquals(
+          capturedHeaders["x-goog-user-project"],
+          "my-quota-project",
+          "should send x-goog-user-project from GOOGLE_CLOUD_QUOTA_PROJECT env var",
+        );
+      } finally {
+        await server.shutdown();
+      }
+    } finally {
+      if (origQuotaEnv !== undefined) {
+        Deno.env.set("GOOGLE_CLOUD_QUOTA_PROJECT", origQuotaEnv);
+      } else {
+        Deno.env.delete("GOOGLE_CLOUD_QUOTA_PROJECT");
+      }
+      await libCleanup();
+      await mock.cleanup();
+    }
+  },
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name:
+    "request() sends x-goog-user-project when explicit quotaProject is provided",
+  async fn() {
+    const mock = await setupMockGcloud();
+    const { mod, cleanup: libCleanup } = await importAuthFunctions(mock.dir);
+    const origQuotaEnv = Deno.env.get("GOOGLE_CLOUD_QUOTA_PROJECT");
+    try {
+      Deno.env.delete("GOOGLE_CLOUD_QUOTA_PROJECT");
+      const saJson = JSON.stringify({
+        client_email: "test@project.iam.gserviceaccount.com",
+        project_id: "test-project",
+        type: "service_account",
+      });
+
+      let capturedHeaders: Record<string, string> = {};
+      const server = Deno.serve({ port: 0, onListen() {} }, (req) => {
+        capturedHeaders = {};
+        for (const [k, v] of req.headers.entries()) {
+          capturedHeaders[k] = v;
+        }
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      });
+      const port = server.addr.port;
+
+      try {
+        await mod.request(
+          "GET",
+          `http://localhost:${port}/test`,
+          undefined,
+          { credentialsJson: saJson, quotaProject: "explicit-quota-project" },
+        );
+        assertEquals(
+          capturedHeaders["x-goog-user-project"],
+          "explicit-quota-project",
+          "should send x-goog-user-project from explicit quotaProject option",
+        );
+      } finally {
+        await server.shutdown();
+      }
+    } finally {
+      if (origQuotaEnv !== undefined) {
+        Deno.env.set("GOOGLE_CLOUD_QUOTA_PROJECT", origQuotaEnv);
+      } else {
+        Deno.env.delete("GOOGLE_CLOUD_QUOTA_PROJECT");
+      }
       await libCleanup();
       await mock.cleanup();
     }

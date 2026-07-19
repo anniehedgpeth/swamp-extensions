@@ -845,7 +845,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Vault Matters.Exports. Registered at `@swamp/gcp/vault/matters-exports`. */
 export const model = {
   type: "@swamp/gcp/vault/matters-exports",
-  version: "2026.07.18.1",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -930,6 +930,11 @@ export const model = {
     {
       toVersion: "2026.07.18.1",
       description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -259,7 +259,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Toolkit Tenants.DefaultSupportedIdpConfigs. Registered at `@swamp/gcp/identitytoolkit/tenants-defaultsupportedidpconfigs`. */
 export const model = {
   type: "@swamp/gcp/identitytoolkit/tenants-defaultsupportedidpconfigs",
-  version: "2026.07.18.2",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -288,6 +288,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

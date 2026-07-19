@@ -172,7 +172,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/datamanager/accounttypes-accounts-userlistgloballicenses-userlistgloballicensecustomerinfos",
-  version: "2026.07.18.1",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -252,6 +252,11 @@ export const model = {
     {
       toVersion: "2026.07.18.1",
       description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

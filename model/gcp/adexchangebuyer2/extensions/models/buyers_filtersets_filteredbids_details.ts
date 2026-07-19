@@ -141,7 +141,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Buyers.FilterSets.FilteredBids.Details. Registered at `@swamp/gcp/adexchangebuyer2/buyers-filtersets-filteredbids-details`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/buyers-filtersets-filteredbids-details",
-  version: "2026.07.18.1",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -216,6 +216,11 @@ export const model = {
     {
       toVersion: "2026.07.18.1",
       description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -247,7 +247,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Parameter Manager Templates. Registered at `@swamp/gcp/parametermanager/templates`. */
 export const model = {
   type: "@swamp/gcp/parametermanager/templates",
-  version: "2026.07.18.2",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -266,6 +266,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

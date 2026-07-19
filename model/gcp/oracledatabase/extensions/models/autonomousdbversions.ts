@@ -129,7 +129,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud AutonomousDbVersions. Registered at `@swamp/gcp/oracledatabase/autonomousdbversions`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/autonomousdbversions",
-  version: "2026.07.18.2",
+  version: "2026.07.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -208,6 +208,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
