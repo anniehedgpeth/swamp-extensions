@@ -1541,6 +1541,11 @@ function buildGcpParsedResource(
     | undefined;
 
   if (list?.response?.properties) {
+    const resourceName = resourcePath[resourcePath.length - 1];
+    let firstCandidate: string | undefined;
+    let itemsCandidate: string | undefined;
+    let resourceNameCandidate: string | undefined;
+
     for (
       const [propName, propDef] of Object.entries(list.response.properties)
     ) {
@@ -1548,10 +1553,16 @@ function buildGcpParsedResource(
         propDef.type === "array" && propDef.items &&
         (propDef.items.type === "object" || propDef.items.properties)
       ) {
-        listResponseArrayField = propName;
-        break;
+        if (!firstCandidate) firstCandidate = propName;
+        if (propName === "items") itemsCandidate = propName;
+        if (propName.toLowerCase() === resourceName.toLowerCase()) {
+          resourceNameCandidate = propName;
+        }
       }
     }
+
+    listResponseArrayField = resourceNameCandidate ?? itemsCandidate ??
+      firstCandidate;
   }
 
   if (listResponseArrayField && list?.parameters) {

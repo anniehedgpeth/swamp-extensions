@@ -855,7 +855,11 @@ During `buildGcpParsedResource()`, two additional fields are populated:
 - **`listResponseArrayField`** — the property name in the list response that
   contains the resource array (e.g., `"files"` for Drive, `"items"` for
   Compute). Only arrays whose items have `type: "object"` or `properties` are
-  considered — this filters out primitive arrays like `unreachables`.
+  considered — this filters out primitive arrays like `unreachables`. When
+  multiple candidate arrays exist, a priority-based heuristic selects the field:
+  (1) the property whose name matches the resource path's last segment
+  (case-insensitive), (2) `"items"` as a common convention, (3) the first
+  candidate encountered.
 
 ### Generated method shape
 
