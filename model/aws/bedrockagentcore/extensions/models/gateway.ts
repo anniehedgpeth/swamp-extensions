@@ -69,6 +69,20 @@ const CustomClaimValidationTypeSchema = z.object({
   ),
 });
 
+const ManagedVpcResourceSchema = z.object({
+  VpcIdentifier: z.string().regex(
+    new RegExp("^vpc-(([0-9a-z]{8})|([0-9a-z]{17}))$"),
+  ),
+  SubnetIds: z.array(
+    z.string().regex(new RegExp("^subnet-(([0-9a-z]{8})|([0-9a-z]{17}))$")),
+  ),
+  EndpointIpAddressType: z.enum(["IPV4", "IPV6"]),
+  SecurityGroupIds: z.array(
+    z.string().regex(new RegExp("^sg-(([0-9a-z]{8})|([0-9a-z]{17}))$")),
+  ).optional(),
+  RoutingDomain: z.string().min(3).max(255).optional(),
+});
+
 const CustomJWTAuthorizerConfigurationSchema = z.object({
   DiscoveryUrl: z.string().regex(
     new RegExp("^.+/\\.well-known/openid-configuration$"),
@@ -79,6 +93,16 @@ const CustomJWTAuthorizerConfigurationSchema = z.object({
     z.string().regex(new RegExp("[\\x21\\x23-\\x5B\\x5D-\\x7E]+")),
   ).optional(),
   CustomClaims: z.array(CustomClaimValidationTypeSchema).optional(),
+  PrivateEndpoint: z.object({
+    SelfManagedLatticeResource: z.object({
+      ResourceConfigurationIdentifier: z.string().min(20).max(2048).regex(
+        new RegExp(
+          "^((rcfg-[0-9a-z]{17})|(arn:[a-z0-9\\-]+:vpc-lattice:[a-zA-Z0-9\\-]+:\\d{12}:resourceconfiguration/rcfg-[0-9a-z]{17}))$",
+        ),
+      ).optional(),
+    }).optional(),
+    ManagedVpcResource: ManagedVpcResourceSchema.optional(),
+  }).optional(),
 });
 
 const LambdaInterceptorConfigurationSchema = z.object({
@@ -284,7 +308,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore Gateway. Registered at `@swamp/aws/bedrockagentcore/gateway`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/gateway",
-  version: "2026.06.15.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -346,6 +370,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
