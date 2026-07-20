@@ -35,6 +35,12 @@ end-to-end with a single `swamp workflow run`.
 | [`@swamp/cve/dirtyfrag`](cve/dirtyfrag/) | Detects and mitigates the Dirty Frag Linux privilege escalation (CVE-2026-43284 + CVE-2026-43500) | None (POSIX utilities + procfs/sysfs) |
 | [`@swamp/cve/mini-shai-hulud`](cve/mini-shai-hulud/) | Scans deno.lock and package-lock.json for npm packages compromised in the May 2026 "Mini Shai-Hulud" supply chain attack (317 packages) | None |
 
+## Container Image Extension
+
+| Extension                                              | Description                                                                                                                                                                | Dependencies |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| [`@swamp/container-image`](container-image/) | Build, run, and push container images via Docker, Podman, or Apple Containers. Supports OCI output format and multi-platform builds with digest capture. | None (shells out to `docker`/`podman`/`container`) |
+
 ## SSH Extension
 
 | Extension                    | Description                                                                                                                                                          | Dependencies |

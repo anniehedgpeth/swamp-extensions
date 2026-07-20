@@ -1,0 +1,61 @@
+manifestVersion: 1
+name: "@swamp/container-image"
+version: "2026.07.20.1"
+description: |
+  Build, run, and push container images via Docker, Podman, or Apple
+  Containers. Select your runtime once via `globalArguments.binary` and
+  every method invokes the right CLI transparently. Each method writes a
+  typed resource so workflows can chain them via CEL.
+
+  ## Runtime Support Matrix
+
+  | Method                 | Docker             | Podman                          | Apple Containers                  |
+  | ---------------------- | ------------------ | ------------------------------- | --------------------------------- |
+  | `build`                | `docker build`     | `podman build`                  | `container build`                 |
+  | `run`                  | `docker run --rm`  | `podman run --rm`               | `container run --rm`              |
+  | `login`                | `docker login`     | `podman login`                  | `container registry login`        |
+  | `push`                 | `docker push`      | `podman push`                   | `container image push`            |
+  | `multi-platform-build` | `docker buildx build` | `podman build --platform` + push | Not supported (host arch only) |
+
+  ## Methods
+
+  | Method                 | What it does |
+  | ---------------------- | ------------ |
+  | `validate`             | Check runtime, daemon, and multi-platform support. Fail fast on missing deps. |
+  | `build`                | Build a container image from a Dockerfile. Optional OCI/Docker archive export. |
+  | `run`                  | Run a container with `--rm`. Captures stdout and stderr. |
+  | `login`                | Log into a registry. Password piped via `--password-stdin`, never in argv. |
+  | `push`                 | Push a container image to a registry. Captures the pushed digest. |
+  | `multi-platform-build` | Multi-platform build and optional push. Captures the pushed digest. |
+
+  ## Security
+
+  - `login` password is annotated with `sensitive: true` and piped via
+    `--password-stdin`. It never appears in argv, resources, or logs.
+  - User-controlled strings are guarded against newline and NUL injection.
+
+  ## Usage
+
+  ```bash
+  swamp extension pull @swamp/container-image
+  swamp model create @swamp/container-image myapp
+  swamp model edit myapp   # set binary: podman if needed
+
+  swamp model method run myapp build --input tag=myapp:latest --json
+  swamp model method run myapp run --input image=myapp:latest --json
+  ```
+repository: "https://github.com/swamp-club/swamp-extensions"
+models:
+  - container_image.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []
+labels:
+  - docker
+  - podman
+  - container
+  - apple-containers
+  - buildx
+  - image
+  - oci
