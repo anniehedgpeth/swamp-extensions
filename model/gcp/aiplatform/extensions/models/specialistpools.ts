@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Agent Platform SpecialistPools.
+ * Swamp extension model for Google Cloud Vertex AI SpecialistPools.
  *
  * SpecialistPool represents customers' own workforce to work on their data labeling jobs. It includes a group of specialist managers and workers. Managers are responsible for managing the workers in this pool as well as customers' data labeling jobs associated with this pool. Customers create specialist pool as well as start data labeling jobs on Cloud, managers and workers handle the jobs using CrowdCompute console.
  *
@@ -225,10 +225,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Agent Platform SpecialistPools. Registered at `@swamp/gcp/aiplatform/specialistpools`. */
+/** Swamp extension model for Google Cloud Vertex AI SpecialistPools. Registered at `@swamp/gcp/aiplatform/specialistpools`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/specialistpools",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -350,6 +350,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -455,22 +460,29 @@ export const model = {
     },
     update: {
       description: "Update specialistPools attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific specialistPools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -557,22 +569,29 @@ export const model = {
     },
     sync: {
       description: "Sync specialistPools state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific specialistPools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

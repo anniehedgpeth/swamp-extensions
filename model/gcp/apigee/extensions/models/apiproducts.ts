@@ -355,42 +355,6 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "List of operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.",
   ).optional(),
-  payloadOperationGroup: z.object({
-    operationConfigs: z.array(z.object({
-      apiSource: z.string().describe(
-        "Required. Name of the API proxy with which the payload operations and quota are associated.",
-      ).optional(),
-      attributes: z.array(z.object({
-        name: z.unknown().describe("API key of the attribute.").optional(),
-        value: z.unknown().describe("Value of the attribute.").optional(),
-      })).describe("Optional. Custom attributes associated with the operation.")
-        .optional(),
-      operations: z.array(z.object({
-        operation: z.unknown().describe(
-          'Required. The operation name extracted from the request payload at runtime by the ParsePayload policy. For example, for MCP protocol requests, this could be `"tools/list"` or `"tools/call/get_weather"`. Wildcards are not supported.',
-        ).optional(),
-      })).describe(
-        "Required. List of payload operations for the API proxy to which quota will be applied.",
-      ).optional(),
-      quota: z.object({
-        interval: z.string().describe(
-          "Required. Time interval over which the number of request messages is calculated.",
-        ).optional(),
-        limit: z.string().describe(
-          "Required. Upper limit allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.",
-        ).optional(),
-        timeUnit: z.string().describe(
-          "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
-        ).optional(),
-      }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
-      ).optional(),
-    })).describe(
-      "Required. List of payload operation configurations for Apigee API proxies that are associated with this API product.",
-    ).optional(),
-  }).describe(
-    "List of payload operation configuration details associated with Apigee API proxies. Payload operations enable governance of protocols where operations are embedded in the request body (such as JSON-RPC) rather than defined by the URL path.",
-  ).optional(),
   proxies: z.array(z.string()).describe(
     "Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.",
   ).optional(),
@@ -503,23 +467,6 @@ const StateSchema = z.object({
       operations: z.array(z.object({
         methods: z.unknown(),
         resource: z.unknown(),
-      })),
-      quota: z.object({
-        interval: z.string(),
-        limit: z.string(),
-        timeUnit: z.string(),
-      }),
-    })),
-  }).optional(),
-  payloadOperationGroup: z.object({
-    operationConfigs: z.array(z.object({
-      apiSource: z.string(),
-      attributes: z.array(z.object({
-        name: z.unknown(),
-        value: z.unknown(),
-      })),
-      operations: z.array(z.object({
-        operation: z.unknown(),
       })),
       quota: z.object({
         interval: z.string(),
@@ -743,42 +690,6 @@ const InputsSchema = z.object({
   }).describe(
     "List of operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.",
   ).optional(),
-  payloadOperationGroup: z.object({
-    operationConfigs: z.array(z.object({
-      apiSource: z.string().describe(
-        "Required. Name of the API proxy with which the payload operations and quota are associated.",
-      ).optional(),
-      attributes: z.array(z.object({
-        name: z.unknown().describe("API key of the attribute.").optional(),
-        value: z.unknown().describe("Value of the attribute.").optional(),
-      })).describe("Optional. Custom attributes associated with the operation.")
-        .optional(),
-      operations: z.array(z.object({
-        operation: z.unknown().describe(
-          'Required. The operation name extracted from the request payload at runtime by the ParsePayload policy. For example, for MCP protocol requests, this could be `"tools/list"` or `"tools/call/get_weather"`. Wildcards are not supported.',
-        ).optional(),
-      })).describe(
-        "Required. List of payload operations for the API proxy to which quota will be applied.",
-      ).optional(),
-      quota: z.object({
-        interval: z.string().describe(
-          "Required. Time interval over which the number of request messages is calculated.",
-        ).optional(),
-        limit: z.string().describe(
-          "Required. Upper limit allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.",
-        ).optional(),
-        timeUnit: z.string().describe(
-          "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
-        ).optional(),
-      }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
-      ).optional(),
-    })).describe(
-      "Required. List of payload operation configurations for Apigee API proxies that are associated with this API product.",
-    ).optional(),
-  }).describe(
-    "List of payload operation configuration details associated with Apigee API proxies. Payload operations enable governance of protocols where operations are embedded in the request body (such as JSON-RPC) rather than defined by the URL path.",
-  ).optional(),
   proxies: z.array(z.string()).describe(
     "Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.",
   ).optional(),
@@ -828,7 +739,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Apiproducts. Registered at `@swamp/gcp/apigee/apiproducts`. */
 export const model = {
   type: "@swamp/gcp/apigee/apiproducts",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -935,6 +846,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: payloadOperationGroup",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { payloadOperationGroup: _payloadOperationGroup, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -997,9 +916,6 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["operationGroup"] !== undefined) {
           body["operationGroup"] = g["operationGroup"];
-        }
-        if (g["payloadOperationGroup"] !== undefined) {
-          body["payloadOperationGroup"] = g["payloadOperationGroup"];
         }
         if (g["proxies"] !== undefined) body["proxies"] = g["proxies"];
         if (g["quota"] !== undefined) body["quota"] = g["quota"];
@@ -1082,22 +998,29 @@ export const model = {
     },
     update: {
       description: "Update apiproducts attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific apiproducts by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1149,9 +1072,6 @@ export const model = {
         }
         if (g["operationGroup"] !== undefined) {
           body["operationGroup"] = g["operationGroup"];
-        }
-        if (g["payloadOperationGroup"] !== undefined) {
-          body["payloadOperationGroup"] = g["payloadOperationGroup"];
         }
         if (g["proxies"] !== undefined) body["proxies"] = g["proxies"];
         if (g["quota"] !== undefined) body["quota"] = g["quota"];
@@ -1226,22 +1146,29 @@ export const model = {
     },
     sync: {
       description: "Sync apiproducts state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific apiproducts by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

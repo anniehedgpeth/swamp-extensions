@@ -13,8 +13,9 @@ the live state in GCP. Available methods:
 - **delete** — remove the resource from GCP
 - **sync** — refresh all resource properties from the API
 
-Use `swamp model type describe @swamp/gcp/networkservices/agentgateways` to see
-the full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/gcp/networkservices/authzextensions` to
+see the full list of configurable properties and available methods for this
+model.
 
 ## Authentication
 
@@ -65,17 +66,17 @@ gcloud config set project my-project
 ## Usage
 
 ```bash
-# Create a new agentgateways model
-swamp model create @swamp/gcp/networkservices/agentgateways my-agentgateways
+# Create a new authzextensions model
+swamp model create @swamp/gcp/networkservices/authzextensions my-authzextensions
 
 # Edit the model to configure its properties
-swamp model edit my-agentgateways
+swamp model edit my-authzextensions
 
 # Create the resource in GCP
-swamp model method run my-agentgateways create
+swamp model method run my-authzextensions create
 
 # Sync current state from GCP
-swamp model method run my-agentgateways sync
+swamp model method run my-authzextensions sync
 ```
 
 ## License

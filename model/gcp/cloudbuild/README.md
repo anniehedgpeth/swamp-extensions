@@ -13,8 +13,7 @@ the live state in GCP. Available methods:
 - **delete** — remove the resource from GCP
 - **sync** — refresh all resource properties from the API
 
-Use
-`swamp model type describe @swamp/gcp/cloudbuild/bitbucketserverconfigs_repos`
+Use `swamp model type describe @swamp/gcp/cloudbuild/connections_repositories`
 to see the full list of configurable properties and available methods for this
 model.
 
@@ -67,17 +66,17 @@ gcloud config set project my-project
 ## Usage
 
 ```bash
-# Create a new bitbucketserverconfigs_repos model
-swamp model create @swamp/gcp/cloudbuild/bitbucketserverconfigs_repos my-bitbucketserverconfigs_repos
+# Create a new connections_repositories model
+swamp model create @swamp/gcp/cloudbuild/connections_repositories my-connections_repositories
 
 # Edit the model to configure its properties
-swamp model edit my-bitbucketserverconfigs_repos
+swamp model edit my-connections_repositories
 
 # Create the resource in GCP
-swamp model method run my-bitbucketserverconfigs_repos create
+swamp model method run my-connections_repositories create
 
 # Sync current state from GCP
-swamp model method run my-bitbucketserverconfigs_repos sync
+swamp model method run my-connections_repositories sync
 ```
 
 ## License

@@ -292,9 +292,7 @@ const GlobalArgsSchema = z.object({
         "PATH_TRANSLATION_UNSPECIFIED",
         "CONSTANT_ADDRESS",
         "APPEND_PATH_TO_ADDRESS",
-      ]).describe(
-        "Path translation specifies how to combine the backend address with the request path in order to produce the appropriate forwarding URL for the request. See PathTranslation for more details.",
-      ).optional(),
+      ]).describe("no-lint").optional(),
       protocol: z.string().describe(
         'The protocol used for sending a request to the backend. The supported values are "http/1.1" and "h2". The default value is inferred from the scheme in the address field: SCHEME PROTOCOL http:// http/1.1 https:// http/1.1 grpc:// h2 grpcs:// h2 For secure HTTP backends (https://) that support HTTP/2, set this field to "h2" for improved performance. Configuring this field to non-default values is only supported for secure HTTP backends. This field will be ignored for all other backends. See https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids for more details on the supported values.',
       ).optional(),
@@ -460,7 +458,7 @@ const GlobalArgsSchema = z.object({
       'The specification of an Internet routable address of API frontend that will handle requests to this [API Endpoint](https://cloud.google.com/apis/design/glossary). It should be either a valid IPv4 address or a fully-qualified domain name. For example, "8.8.8.8" or "myservice.appspot.com".',
     ).optional(),
   })).describe(
-    "Configuration for network endpoints. If this is empty, then an endpoint with the same name as the service is automatically generated to service all defined APIs.",
+    "Configuration for network endpoints. If this is empty, then an endpoint with the same name as the service is automatically generated to service all defined APIs. WARNING: Defining any entries in the `endpoints` list disables the automatic generation of default endpoint variations (e.g., `{service}.clients6.google.com`, `content-{service}.googleapis.com`, and mTLS variants like `{service}.mtls.googleapis.com`). To retain these default variations, you are required to explicitly include your main service endpoint (e.g., `myservice.googleapis.com`) in this list alongside any other custom endpoints (like REP, GFE, etc.).",
   ).optional(),
   enums: z.array(z.object({
     edition: z.string().describe(
@@ -772,7 +770,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
       }).describe("Settings for C++ client libraries.").optional(),
@@ -785,7 +783,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         forcedNamespaceAliases: z.array(z.unknown()).describe(
@@ -813,7 +811,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         renamedServices: z.record(z.string(), z.unknown()).describe(
@@ -829,7 +827,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         libraryPackage: z.string().describe(
@@ -858,7 +856,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
       }).describe("Settings for Node client libraries.").optional(),
@@ -871,7 +869,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         libraryPackage: z.string().describe(
@@ -887,7 +885,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         experimentalFeatures: z.object({
@@ -916,7 +914,7 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
       }).describe("Settings for Ruby client libraries.").optional(),
@@ -1009,7 +1007,6 @@ const GlobalArgsSchema = z.object({
       "SHOPPING",
       "GEO",
       "GENERATIVE_AI",
-      "HEALTH",
     ]).describe("For whom the client library is being published.").optional(),
     protoReferenceDocumentationUri: z.string().describe(
       "Optional link to proto reference documentation. Example: https://cloud.google.com/pubsub/lite/docs/reference/rpc",
@@ -1902,9 +1899,7 @@ const InputsSchema = z.object({
         "PATH_TRANSLATION_UNSPECIFIED",
         "CONSTANT_ADDRESS",
         "APPEND_PATH_TO_ADDRESS",
-      ]).describe(
-        "Path translation specifies how to combine the backend address with the request path in order to produce the appropriate forwarding URL for the request. See PathTranslation for more details.",
-      ).optional(),
+      ]).describe("no-lint").optional(),
       protocol: z.string().describe(
         'The protocol used for sending a request to the backend. The supported values are "http/1.1" and "h2". The default value is inferred from the scheme in the address field: SCHEME PROTOCOL http:// http/1.1 https:// http/1.1 grpc:// h2 grpcs:// h2 For secure HTTP backends (https://) that support HTTP/2, set this field to "h2" for improved performance. Configuring this field to non-default values is only supported for secure HTTP backends. This field will be ignored for all other backends. See https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids for more details on the supported values.',
       ).optional(),
@@ -2070,7 +2065,7 @@ const InputsSchema = z.object({
       'The specification of an Internet routable address of API frontend that will handle requests to this [API Endpoint](https://cloud.google.com/apis/design/glossary). It should be either a valid IPv4 address or a fully-qualified domain name. For example, "8.8.8.8" or "myservice.appspot.com".',
     ).optional(),
   })).describe(
-    "Configuration for network endpoints. If this is empty, then an endpoint with the same name as the service is automatically generated to service all defined APIs.",
+    "Configuration for network endpoints. If this is empty, then an endpoint with the same name as the service is automatically generated to service all defined APIs. WARNING: Defining any entries in the `endpoints` list disables the automatic generation of default endpoint variations (e.g., `{service}.clients6.google.com`, `content-{service}.googleapis.com`, and mTLS variants like `{service}.mtls.googleapis.com`). To retain these default variations, you are required to explicitly include your main service endpoint (e.g., `myservice.googleapis.com`) in this list alongside any other custom endpoints (like REP, GFE, etc.).",
   ).optional(),
   enums: z.array(z.object({
     edition: z.string().describe(
@@ -2382,7 +2377,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
       }).describe("Settings for C++ client libraries.").optional(),
@@ -2395,7 +2390,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         forcedNamespaceAliases: z.array(z.unknown()).describe(
@@ -2423,7 +2418,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         renamedServices: z.record(z.string(), z.unknown()).describe(
@@ -2439,7 +2434,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         libraryPackage: z.string().describe(
@@ -2468,7 +2463,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
       }).describe("Settings for Node client libraries.").optional(),
@@ -2481,7 +2476,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         libraryPackage: z.string().describe(
@@ -2497,7 +2492,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
         experimentalFeatures: z.object({
@@ -2526,7 +2521,7 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries.",
           ).optional(),
         }).describe("Required information for every language.").optional(),
       }).describe("Settings for Ruby client libraries.").optional(),
@@ -2619,7 +2614,6 @@ const InputsSchema = z.object({
       "SHOPPING",
       "GEO",
       "GENERATIVE_AI",
-      "HEALTH",
     ]).describe("For whom the client library is being published.").optional(),
     protoReferenceDocumentationUri: z.string().describe(
       "Optional link to proto reference documentation. Example: https://cloud.google.com/pubsub/lite/docs/reference/rpc",
@@ -2905,7 +2899,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Management Services.Configs. Registered at `@swamp/gcp/servicemanagement/services-configs`. */
 export const model = {
   type: "@swamp/gcp/servicemanagement/services-configs",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3034,6 +3028,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -3168,22 +3167,29 @@ export const model = {
     },
     sync: {
       description: "Sync configs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific configs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

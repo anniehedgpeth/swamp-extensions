@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud App Lifecycle Manager Rollouts.
+ * Swamp extension model for Google Cloud SaaS Runtime Rollouts.
  *
  * Represents a single rollout execution and its results
  *
@@ -201,9 +201,6 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "RolloutControl provides a way to request a change to the execution of a Rollout by pausing or canceling it.",
   ).optional(),
-  flagRelease: z.string().describe(
-    'Optional. Immutable. Name of the FlagRelease to be rolled out to the target Units. Release and FlagRelease are mutually exclusive. Note: `release` comment needs to be adjusted to mention that "Release and FlagRelease are mutually exclusive" when visibility restriction will be lifted.',
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels on the resource, which can be used for categorization. similar to Kubernetes resource labels.",
   ).optional(),
@@ -214,7 +211,7 @@ const GlobalArgsSchema = z.object({
     "Optional. Immutable. Name of the Release that gets rolled out to target Units. Required if no other type of release is specified.",
   ).optional(),
   rolloutKind: z.string().describe(
-    "Required. Immutable. Name of the RolloutKind this rollout is stemming from and adhering to.",
+    "Optional. Immutable. Name of the RolloutKind this rollout is stemming from and adhering to.",
   ).optional(),
   rolloutOrchestrationStrategy: z.string().describe(
     'Optional. The strategy used for executing this Rollout. This strategy will override whatever strategy is specified in the RolloutKind. If not specified on creation, the strategy from RolloutKind will be used. There are two supported values strategies which are used to control - "Google.Cloud.Simple.AllAtOnce" - "Google.Cloud.Simple.OneLocationAtATime" A rollout with one of these simple strategies will rollout across all locations defined in the targeted UnitKind\'s Saas Locations.',
@@ -261,7 +258,6 @@ const StateSchema = z.object({
   effectiveUnitFilter: z.string().optional(),
   endTime: z.string().optional(),
   etag: z.string().optional(),
-  flagRelease: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
   parentRollout: z.string().optional(),
@@ -314,9 +310,6 @@ const InputsSchema = z.object({
   }).describe(
     "RolloutControl provides a way to request a change to the execution of a Rollout by pausing or canceling it.",
   ).optional(),
-  flagRelease: z.string().describe(
-    'Optional. Immutable. Name of the FlagRelease to be rolled out to the target Units. Release and FlagRelease are mutually exclusive. Note: `release` comment needs to be adjusted to mention that "Release and FlagRelease are mutually exclusive" when visibility restriction will be lifted.',
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels on the resource, which can be used for categorization. similar to Kubernetes resource labels.",
   ).optional(),
@@ -327,7 +320,7 @@ const InputsSchema = z.object({
     "Optional. Immutable. Name of the Release that gets rolled out to target Units. Required if no other type of release is specified.",
   ).optional(),
   rolloutKind: z.string().describe(
-    "Required. Immutable. Name of the RolloutKind this rollout is stemming from and adhering to.",
+    "Optional. Immutable. Name of the RolloutKind this rollout is stemming from and adhering to.",
   ).optional(),
   rolloutOrchestrationStrategy: z.string().describe(
     'Optional. The strategy used for executing this Rollout. This strategy will override whatever strategy is specified in the RolloutKind. If not specified on creation, the strategy from RolloutKind will be used. There are two supported values strategies which are used to control - "Google.Cloud.Simple.AllAtOnce" - "Google.Cloud.Simple.OneLocationAtATime" A rollout with one of these simple strategies will rollout across all locations defined in the targeted UnitKind\'s Saas Locations.',
@@ -381,10 +374,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud App Lifecycle Manager Rollouts. Registered at `@swamp/gcp/saasservicemgmt/rollouts`. */
+/** Swamp extension model for Google Cloud SaaS Runtime Rollouts. Registered at `@swamp/gcp/saasservicemgmt/rollouts`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/rollouts",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -515,6 +508,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: flagRelease",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { flagRelease: _flagRelease, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -543,9 +544,6 @@ export const model = {
           body["annotations"] = g["annotations"];
         }
         if (g["control"] !== undefined) body["control"] = g["control"];
-        if (g["flagRelease"] !== undefined) {
-          body["flagRelease"] = g["flagRelease"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["release"] !== undefined) body["release"] = g["release"];
@@ -634,22 +632,29 @@ export const model = {
     },
     update: {
       description: "Update rollouts attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific rollouts by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -734,22 +739,29 @@ export const model = {
     },
     sync: {
       description: "Sync rollouts state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific rollouts by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -630,9 +630,6 @@ const GlobalArgsSchema = z.object({
   pemCsr: z.string().describe(
     "Immutable. A pem-encoded X.509 certificate signing request (CSR).",
   ).optional(),
-  requestedNotBeforeTime: z.string().describe(
-    "Optional. The requested not_before_time of this Certificate. This field may only be set if the CaPool.IssuancePolicy.allow_requester_specified_not_before_time field is set to true for the issuing CaPool. If this field is specified, the certificate will be issued with this 'not_before_time'. If this is not specified, the 'not_before_time' will be set to the issuance time or issuance time minus backdate_duration depending on the CaPool configuration.",
-  ).optional(),
   revocationDetails: z.object({
     revocationState: z.enum([
       "REVOCATION_REASON_UNSPECIFIED",
@@ -873,7 +870,6 @@ const StateSchema = z.object({
   pemCertificate: z.string().optional(),
   pemCertificateChain: z.array(z.string()).optional(),
   pemCsr: z.string().optional(),
-  requestedNotBeforeTime: z.string().optional(),
   revocationDetails: z.object({
     revocationState: z.string(),
     revocationTime: z.string(),
@@ -1365,9 +1361,6 @@ const InputsSchema = z.object({
   pemCsr: z.string().describe(
     "Immutable. A pem-encoded X.509 certificate signing request (CSR).",
   ).optional(),
-  requestedNotBeforeTime: z.string().describe(
-    "Optional. The requested not_before_time of this Certificate. This field may only be set if the CaPool.IssuancePolicy.allow_requester_specified_not_before_time field is set to true for the issuing CaPool. If this field is specified, the certificate will be issued with this 'not_before_time'. If this is not specified, the 'not_before_time' will be set to the issuance time or issuance time minus backdate_duration depending on the CaPool configuration.",
-  ).optional(),
   revocationDetails: z.object({
     revocationState: z.enum([
       "REVOCATION_REASON_UNSPECIFIED",
@@ -1434,7 +1427,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Authority CaPools.Certificates. Registered at `@swamp/gcp/privateca/capools-certificates`. */
 export const model = {
   type: "@swamp/gcp/privateca/capools-certificates",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1573,6 +1566,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: requestedNotBeforeTime",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { requestedNotBeforeTime: _requestedNotBeforeTime, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1607,9 +1609,6 @@ export const model = {
         if (g["lifetime"] !== undefined) body["lifetime"] = g["lifetime"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["pemCsr"] !== undefined) body["pemCsr"] = g["pemCsr"];
-        if (g["requestedNotBeforeTime"] !== undefined) {
-          body["requestedNotBeforeTime"] = g["requestedNotBeforeTime"];
-        }
         if (g["revocationDetails"] !== undefined) {
           body["revocationDetails"] = g["revocationDetails"];
         }
@@ -1695,22 +1694,29 @@ export const model = {
     },
     update: {
       description: "Update certificates attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific certificates by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1729,9 +1735,6 @@ export const model = {
         }
         if (g["config"] !== undefined) body["config"] = g["config"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["requestedNotBeforeTime"] !== undefined) {
-          body["requestedNotBeforeTime"] = g["requestedNotBeforeTime"];
-        }
         if (g["revocationDetails"] !== undefined) {
           body["revocationDetails"] = g["revocationDetails"];
         }
@@ -1766,22 +1769,29 @@ export const model = {
     },
     sync: {
       description: "Sync certificates state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific certificates by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

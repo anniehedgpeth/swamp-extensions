@@ -132,55 +132,26 @@ const StateSchema = z.object({
     defaultValue: z.string(),
     description: z.string(),
     jsonSchema: z.object({
-      $comment: z.string(),
-      $defs: z.record(z.string(), z.unknown()),
-      $id: z.string(),
-      $ref: z.string(),
-      $schema: z.string(),
       additionalDetails: z.record(z.string(), z.unknown()),
-      additionalItems: z.record(z.string(), z.unknown()),
-      additionalProperties: z.record(z.string(), z.unknown()),
-      allOf: z.array(z.record(z.string(), z.unknown())),
-      anyOf: z.array(z.record(z.string(), z.unknown())),
-      const: z.string(),
-      contains: z.record(z.string(), z.unknown()),
-      contentEncoding: z.string(),
-      contentMediaType: z.string(),
       default: z.string(),
-      definitions: z.record(z.string(), z.unknown()),
-      dependencies: z.record(z.string(), z.unknown()),
       description: z.string(),
-      else: z.record(z.string(), z.unknown()),
       enum: z.array(z.string()),
-      examples: z.array(z.string()),
-      exclusiveMaximum: z.string(),
-      exclusiveMinimum: z.string(),
+      exclusiveMaximum: z.boolean(),
+      exclusiveMinimum: z.boolean(),
       format: z.string(),
-      if: z.record(z.string(), z.unknown()),
       items: z.record(z.string(), z.unknown()),
       jdbcType: z.string(),
       maxItems: z.number(),
       maxLength: z.number(),
-      maxProperties: z.number(),
       maximum: z.string(),
       minItems: z.number(),
       minLength: z.number(),
-      minProperties: z.number(),
       minimum: z.string(),
-      multipleOf: z.number(),
-      not: z.record(z.string(), z.unknown()),
-      oneOf: z.array(z.record(z.string(), z.unknown())),
       pattern: z.string(),
-      patternProperties: z.record(z.string(), z.unknown()),
       properties: z.record(z.string(), z.unknown()),
-      propertyNames: z.record(z.string(), z.unknown()),
-      readOnly: z.boolean(),
       required: z.array(z.string()),
-      then: z.record(z.string(), z.unknown()),
-      title: z.string(),
       type: z.array(z.string()),
       uniqueItems: z.boolean(),
-      writeOnly: z.boolean(),
     }),
     key: z.boolean(),
     name: z.string(),
@@ -191,55 +162,26 @@ const StateSchema = z.object({
     }),
   })).optional(),
   jsonSchema: z.object({
-    $comment: z.string(),
-    $defs: z.record(z.string(), z.unknown()),
-    $id: z.string(),
-    $ref: z.string(),
-    $schema: z.string(),
     additionalDetails: z.record(z.string(), z.unknown()),
-    additionalItems: z.record(z.string(), z.unknown()),
-    additionalProperties: z.record(z.string(), z.unknown()),
-    allOf: z.array(z.record(z.string(), z.unknown())),
-    anyOf: z.array(z.record(z.string(), z.unknown())),
-    const: z.string(),
-    contains: z.record(z.string(), z.unknown()),
-    contentEncoding: z.string(),
-    contentMediaType: z.string(),
     default: z.string(),
-    definitions: z.record(z.string(), z.unknown()),
-    dependencies: z.record(z.string(), z.unknown()),
     description: z.string(),
-    else: z.record(z.string(), z.unknown()),
     enum: z.array(z.string()),
-    examples: z.array(z.string()),
-    exclusiveMaximum: z.string(),
-    exclusiveMinimum: z.string(),
+    exclusiveMaximum: z.boolean(),
+    exclusiveMinimum: z.boolean(),
     format: z.string(),
-    if: z.record(z.string(), z.unknown()),
     items: z.record(z.string(), z.unknown()),
     jdbcType: z.string(),
     maxItems: z.number(),
     maxLength: z.number(),
-    maxProperties: z.number(),
     maximum: z.string(),
     minItems: z.number(),
     minLength: z.number(),
-    minProperties: z.number(),
     minimum: z.string(),
-    multipleOf: z.number(),
-    not: z.record(z.string(), z.unknown()),
-    oneOf: z.array(z.record(z.string(), z.unknown())),
     pattern: z.string(),
-    patternProperties: z.record(z.string(), z.unknown()),
     properties: z.record(z.string(), z.unknown()),
-    propertyNames: z.record(z.string(), z.unknown()),
-    readOnly: z.boolean(),
     required: z.array(z.string()),
-    then: z.record(z.string(), z.unknown()),
-    title: z.string(),
     type: z.array(z.string()),
     uniqueItems: z.boolean(),
-    writeOnly: z.boolean(),
   }).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
@@ -285,7 +227,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Connections.EntityTypes. Registered at `@swamp/gcp/connectors/connections-entitytypes`. */
 export const model = {
   type: "@swamp/gcp/connectors/connections-entitytypes",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -407,6 +349,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -454,22 +401,29 @@ export const model = {
     },
     sync: {
       description: "Sync entityTypes state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific entityTypes by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

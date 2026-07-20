@@ -141,7 +141,7 @@ const GlobalArgsSchema = z.object({
           "All the operations being applied for this constraint.",
         ).optional(),
         name: z.string().describe(
-          "Immutable. Name of the constraint. This is unique within the organization. The name must be of the form: * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
+          "Immutable. Name of the constraint. This is unique within the organization. Format of the name should be * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
         ).optional(),
         resourceTypes: z.array(z.unknown()).describe(
           "Immutable. The resource instance type on which this policy applies. Format will be of the form: `/` Example: * `compute.googleapis.com/Instance`.",
@@ -162,7 +162,7 @@ const GlobalArgsSchema = z.object({
       policy: z.object({
         alternate: z.object({
           launch: z.unknown().describe(
-            "Reference to the launch that will be used while audit logging and to control the launch. Set only in the alternate policy.",
+            "Reference to the launch that will be used while audit logging and to control the launch. Should be set only in the alternate policy.",
           ).optional(),
           spec: z.unknown().describe(
             "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
@@ -332,7 +332,7 @@ const InputsSchema = z.object({
           "All the operations being applied for this constraint.",
         ).optional(),
         name: z.string().describe(
-          "Immutable. Name of the constraint. This is unique within the organization. The name must be of the form: * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
+          "Immutable. Name of the constraint. This is unique within the organization. Format of the name should be * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
         ).optional(),
         resourceTypes: z.array(z.unknown()).describe(
           "Immutable. The resource instance type on which this policy applies. Format will be of the form: `/` Example: * `compute.googleapis.com/Instance`.",
@@ -353,7 +353,7 @@ const InputsSchema = z.object({
       policy: z.object({
         alternate: z.object({
           launch: z.unknown().describe(
-            "Reference to the launch that will be used while audit logging and to control the launch. Set only in the alternate policy.",
+            "Reference to the launch that will be used while audit logging and to control the launch. Should be set only in the alternate policy.",
           ).optional(),
           spec: z.unknown().describe(
             "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
@@ -465,7 +465,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Policy Simulator OrgPolicyViolationsPreviews. Registered at `@swamp/gcp/policysimulator/orgpolicyviolationspreviews`. */
 export const model = {
   type: "@swamp/gcp/policysimulator/orgpolicyviolationspreviews",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -587,6 +587,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -690,22 +695,29 @@ export const model = {
     },
     sync: {
       description: "Sync orgPolicyViolationsPreviews state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific orgPolicyViolationsPreviews by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

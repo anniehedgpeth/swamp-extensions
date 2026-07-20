@@ -200,16 +200,6 @@ const GlobalArgsSchema = z.object({
     videoGameRating: z.enum(["anyone", "m15Plus", "m16Plus", "m17Plus"])
       .describe("Video game rating, if any.").optional(),
   }).optional(),
-  brandPartner: z.object({
-    channelHandle: z.string().describe(
-      'Required. Channel handle, must begin with "@"',
-    ).optional(),
-    channelId: z.string().describe(
-      'Required. External Channel ID, must begin with "UC"',
-    ).optional(),
-  }).describe(
-    "Details about the brand partner linked to the video for Creator Initiated Linking (CIL). Next ID: 6",
-  ).optional(),
   contentDetails: z.object({
     caption: z.enum(["true", "false"]).describe(
       "The value of captions indicates whether the video has captions or not.",
@@ -1568,10 +1558,6 @@ const StateSchema = z.object({
     restricted: z.boolean(),
     videoGameRating: z.string(),
   }).optional(),
-  brandPartner: z.object({
-    channelHandle: z.string(),
-    channelId: z.string(),
-  }).optional(),
   contentDetails: z.object({
     caption: z.string(),
     contentRating: z.object({
@@ -1835,16 +1821,6 @@ const InputsSchema = z.object({
     videoGameRating: z.enum(["anyone", "m15Plus", "m16Plus", "m17Plus"])
       .describe("Video game rating, if any.").optional(),
   }).optional(),
-  brandPartner: z.object({
-    channelHandle: z.string().describe(
-      'Required. Channel handle, must begin with "@"',
-    ).optional(),
-    channelId: z.string().describe(
-      'Required. External Channel ID, must begin with "UC"',
-    ).optional(),
-  }).describe(
-    "Details about the brand partner linked to the video for Creator Initiated Linking (CIL). Next ID: 6",
-  ).optional(),
   contentDetails: z.object({
     caption: z.enum(["true", "false"]).describe(
       "The value of captions indicates whether the video has captions or not.",
@@ -3220,7 +3196,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Videos. Registered at `@swamp/gcp/youtube/videos`. */
 export const model = {
   type: "@swamp/gcp/youtube/videos",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3327,6 +3303,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: brandPartner",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { brandPartner: _brandPartner, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3350,9 +3334,6 @@ export const model = {
         if (g["part"] !== undefined) params["part"] = String(g["part"]);
         const body: Record<string, unknown> = {};
         if (g["ageGating"] !== undefined) body["ageGating"] = g["ageGating"];
-        if (g["brandPartner"] !== undefined) {
-          body["brandPartner"] = g["brandPartner"];
-        }
         if (g["contentDetails"] !== undefined) {
           body["contentDetails"] = g["contentDetails"];
         }
@@ -3471,31 +3452,35 @@ export const model = {
     },
     update: {
       description: "Update videos attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific videos by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
         params["part"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["ageGating"] !== undefined) body["ageGating"] = g["ageGating"];
-        if (g["brandPartner"] !== undefined) {
-          body["brandPartner"] = g["brandPartner"];
-        }
         if (g["contentDetails"] !== undefined) {
           body["contentDetails"] = g["contentDetails"];
         }
@@ -3592,22 +3577,29 @@ export const model = {
     },
     sync: {
       description: "Sync videos state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific videos by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -3740,37 +3732,6 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
-      },
-    },
-    batch_get_stats: {
-      description: "batch get stats",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "youtube.videos.batchGetStats",
-            "path": "youtube/v3/videos:batchGetStats",
-            "httpMethod": "GET",
-            "parameterOrder": [],
-            "parameters": {
-              "id": { "location": "query" },
-              "onBehalfOfContentOwner": { "location": "query" },
-              "part": { "location": "query" },
-            },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
       },
     },
     get_rating: {

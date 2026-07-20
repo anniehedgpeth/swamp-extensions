@@ -522,6 +522,9 @@ const GlobalArgsSchema = z.object({
       "The contents of a VAST document for a native video ad.",
     ).optional(),
   }).describe("Native content for a creative.").optional(),
+  renderUrl: z.string().describe(
+    'Experimental field that can be used during the [FLEDGE Origin Trial](/authorized-buyers/rtb/fledge-origin-trial). The URL to fetch an interest group ad used in [TURTLEDOVE on-device auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#1-browsers-record-interest-groups"). This should be unique among all creatives for a given `accountId`. This URL should be the same as the URL returned by [generateBid()](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#32-on-device-bidding).',
+  ).optional(),
   video: z.object({
     videoMetadata: z.object({
       duration: z.string().describe(
@@ -1103,6 +1106,9 @@ const InputsSchema = z.object({
       "The contents of a VAST document for a native video ad.",
     ).optional(),
   }).describe("Native content for a creative.").optional(),
+  renderUrl: z.string().describe(
+    'Experimental field that can be used during the [FLEDGE Origin Trial](/authorized-buyers/rtb/fledge-origin-trial). The URL to fetch an interest group ad used in [TURTLEDOVE on-device auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#1-browsers-record-interest-groups"). This should be unique among all creatives for a given `accountId`. This URL should be the same as the URL returned by [generateBid()](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#32-on-device-bidding).',
+  ).optional(),
   video: z.object({
     videoMetadata: z.object({
       duration: z.string().describe(
@@ -1191,7 +1197,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Real-time Bidding Buyers.Creatives. Registered at `@swamp/gcp/realtimebidding/buyers-creatives`. */
 export const model = {
   type: "@swamp/gcp/realtimebidding/buyers-creatives",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1325,6 +1331,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Added: renderUrl",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1372,6 +1383,7 @@ export const model = {
           body["impressionTrackingUrls"] = g["impressionTrackingUrls"];
         }
         if (g["native"] !== undefined) body["native"] = g["native"];
+        if (g["renderUrl"] !== undefined) body["renderUrl"] = g["renderUrl"];
         if (g["video"] !== undefined) body["video"] = g["video"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -1442,22 +1454,29 @@ export const model = {
     },
     update: {
       description: "Update creatives attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific creatives by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1496,6 +1515,7 @@ export const model = {
           body["impressionTrackingUrls"] = g["impressionTrackingUrls"];
         }
         if (g["native"] !== undefined) body["native"] = g["native"];
+        if (g["renderUrl"] !== undefined) body["renderUrl"] = g["renderUrl"];
         if (g["video"] !== undefined) body["video"] = g["video"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
@@ -1528,22 +1548,29 @@ export const model = {
     },
     sync: {
       description: "Sync creatives state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific creatives by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -91,20 +91,6 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   advisoryPublishTime: z.string().optional(),
-  aiSkillAnalysis: z.object({
-    findings: z.array(z.object({
-      category: z.string(),
-      details: z.string(),
-      location: z.object({
-        filePath: z.string(),
-        lineNumber: z.string(),
-      }),
-      scanner: z.string(),
-      severity: z.string(),
-    })),
-    maxSeverity: z.string(),
-    skillName: z.string(),
-  }).optional(),
   attestation: z.object({
     jwts: z.array(z.object({
       compactJwt: z.string(),
@@ -601,70 +587,32 @@ const StateSchema = z.object({
     cvssScore: z.number(),
     cvssV2: z.object({
       attackComplexity: z.string(),
-      attackRequirements: z.string(),
       attackVector: z.string(),
       authentication: z.string(),
       availabilityImpact: z.string(),
       baseScore: z.number(),
       confidentialityImpact: z.string(),
-      exploitMaturity: z.string(),
       exploitabilityScore: z.number(),
       impactScore: z.number(),
       integrityImpact: z.string(),
       privilegesRequired: z.string(),
       scope: z.string(),
-      subsequentSystemAvailabilityImpact: z.string(),
-      subsequentSystemConfidentialityImpact: z.string(),
-      subsequentSystemIntegrityImpact: z.string(),
       userInteraction: z.string(),
-      vulnerableSystemAvailabilityImpact: z.string(),
-      vulnerableSystemConfidentialityImpact: z.string(),
-      vulnerableSystemIntegrityImpact: z.string(),
-    }),
-    cvssV4: z.object({
-      attackComplexity: z.string(),
-      attackRequirements: z.string(),
-      attackVector: z.string(),
-      authentication: z.string(),
-      availabilityImpact: z.string(),
-      baseScore: z.number(),
-      confidentialityImpact: z.string(),
-      exploitMaturity: z.string(),
-      exploitabilityScore: z.number(),
-      impactScore: z.number(),
-      integrityImpact: z.string(),
-      privilegesRequired: z.string(),
-      scope: z.string(),
-      subsequentSystemAvailabilityImpact: z.string(),
-      subsequentSystemConfidentialityImpact: z.string(),
-      subsequentSystemIntegrityImpact: z.string(),
-      userInteraction: z.string(),
-      vulnerableSystemAvailabilityImpact: z.string(),
-      vulnerableSystemConfidentialityImpact: z.string(),
-      vulnerableSystemIntegrityImpact: z.string(),
     }),
     cvssVersion: z.string(),
     cvssv3: z.object({
       attackComplexity: z.string(),
-      attackRequirements: z.string(),
       attackVector: z.string(),
       authentication: z.string(),
       availabilityImpact: z.string(),
       baseScore: z.number(),
       confidentialityImpact: z.string(),
-      exploitMaturity: z.string(),
       exploitabilityScore: z.number(),
       impactScore: z.number(),
       integrityImpact: z.string(),
       privilegesRequired: z.string(),
       scope: z.string(),
-      subsequentSystemAvailabilityImpact: z.string(),
-      subsequentSystemConfidentialityImpact: z.string(),
-      subsequentSystemIntegrityImpact: z.string(),
       userInteraction: z.string(),
-      vulnerableSystemAvailabilityImpact: z.string(),
-      vulnerableSystemConfidentialityImpact: z.string(),
-      vulnerableSystemIntegrityImpact: z.string(),
     }),
     effectiveSeverity: z.string(),
     extraDetails: z.string(),
@@ -781,7 +729,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud On-Demand Scanning Scans.Vulnerabilities. Registered at `@swamp/gcp/ondemandscanning/scans-vulnerabilities`. */
 export const model = {
   type: "@swamp/gcp/ondemandscanning/scans-vulnerabilities",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -953,6 +901,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -999,22 +952,29 @@ export const model = {
     },
     sync: {
       description: "Sync vulnerabilities state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific vulnerabilities by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

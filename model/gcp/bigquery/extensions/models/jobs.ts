@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud BigQuery Jobs.
  *
- * Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role. # IAM Permissions Requires the `bigquery.jobs.get` permission on the job resource. If the user matches the creator of the job, the `bigquery.jobs.create` permission on the project is required instead.
+ * Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -463,14 +463,8 @@ const GlobalArgsSchema = z.object({
           collation: z.unknown().describe(
             "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
           ).optional(),
-          dataGovernanceTagsInfo: z.unknown().describe(
-            "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-          ).optional(),
           dataPolicies: z.unknown().describe(
             "Optional. Data policies attached to this field, used for field-level access control.",
-          ).optional(),
-          dataPolicyList: z.unknown().describe(
-            "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
           ).optional(),
           defaultValueExpression: z.unknown().describe(
             "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -575,7 +569,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Date format used for parsing TIMESTAMP values.",
       ).optional(),
       timestampTargetPrecision: z.array(z.number().int()).describe(
-        "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
+        "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, and AVRO. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
       ).optional(),
       useAvroLogicalTypes: z.boolean().describe(
         'Optional. If sourceFormat is set to "AVRO", indicates whether to interpret logical types as the corresponding BigQuery data type (for example, TIMESTAMP), instead of using the raw type (for example, INTEGER).',
@@ -922,7 +916,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Format used to parse TIMESTAMP values. Supports C-style and SQL-style values.",
           ).optional(),
           timestampTargetPrecision: z.array(z.unknown()).describe(
-            "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
+            "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, and AVRO. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
           ).optional(),
         }),
       ).describe(
@@ -967,7 +961,7 @@ const GlobalArgsSchema = z.object({
     }).describe("JobConfigurationQuery configures a BigQuery query job.")
       .optional(),
     reservation: z.string().describe(
-      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`. Forces the query to use on-demand billing when set to `none`, which requires the project or organization to have `reservation_override_mode` set to `ALLOW_ANY_OVERRIDE`.",
+      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`.",
     ).optional(),
   }).optional(),
   jobCreationReason: z.object({
@@ -1006,9 +1000,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       copiedRows: z.string().describe(
         "Output only. Number of rows copied to the destination table.",
-      ).optional(),
-      remoteDestinationRegion: z.string().describe(
-        "Output only. Destination region for a cross-region copy job. Not set for in-region copy jobs.",
       ).optional(),
     }).describe("Statistics for a copy job.").optional(),
     creationTime: z.string().describe(
@@ -1065,9 +1056,6 @@ const GlobalArgsSchema = z.object({
     finalExecutionDurationMs: z.string().describe(
       "Output only. The duration in milliseconds of the execution of the final attempt of this job, as BigQuery may internally re-attempt to execute the job.",
     ).optional(),
-    globalQueryRemoteRegions: z.array(z.string()).describe(
-      "Output only. Regions where the global query accesses data.",
-    ).optional(),
     load: z.object({
       badRecords: z.string().describe(
         "Output only. The number of bad records encountered. Note that if the job has failed because of more bad records encountered than the maximum allowed in the load job configuration, then this number can be less than the total number of bad records present in the input data.",
@@ -1111,19 +1099,6 @@ const GlobalArgsSchema = z.object({
     }).describe("Statistics for a load job.").optional(),
     numChildJobs: z.string().describe(
       "Output only. Number of child jobs executed.",
-    ).optional(),
-    parentGlobalQueryJob: z.object({
-      jobId: z.string().describe(
-        "Required. The ID of the job. The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or dashes (-). The maximum length is 1,024 characters.",
-      ).optional(),
-      location: z.string().describe(
-        "Optional. The geographic location of the job. The default value is US. For more information about BigQuery locations, see: https://cloud.google.com/bigquery/docs/locations",
-      ).optional(),
-      projectId: z.string().describe(
-        "Required. The ID of the project containing this job.",
-      ).optional(),
-    }).describe(
-      "A job reference is a fully qualified identifier for referring to a job.",
     ).optional(),
     parentJobId: z.string().describe(
       "Output only. If this is a child job, specifies the job ID of the parent.",
@@ -1324,9 +1299,6 @@ const GlobalArgsSchema = z.object({
           "Provides error statistics for the query job across all AI function calls.",
         ).optional(),
         functionStats: z.array(z.object({
-          cacheStats: z.unknown().describe(
-            "Provides cache statistics for a GenAi function call.",
-          ).optional(),
           costOptimizationStats: z.unknown().describe(
             "Provides cost optimization statistics for a GenAi function call.",
           ).optional(),
@@ -1539,23 +1511,6 @@ const GlobalArgsSchema = z.object({
       numDmlAffectedRows: z.string().describe(
         "Output only. The number of rows affected by a DML statement. Present only for DML statements INSERT, UPDATE or DELETE.",
       ).optional(),
-      objectStorageStats: z.array(z.object({
-        cacheBytesRead: z.string().describe(
-          "Total bytes read from the GCP Lakehouse-internal cache, avoiding an object storage read.",
-        ).optional(),
-        cloudProvider: z.enum([
-          "CLOUD_PROVIDER_UNSPECIFIED",
-          "GCP",
-          "AWS",
-          "AZURE",
-        ]).describe("The cloud provider for this block of statistics.")
-          .optional(),
-        objectStorageBytesRead: z.string().describe(
-          "Total bytes read directly from the cloud provider's storage.",
-        ).optional(),
-      })).describe(
-        "Output only. Storage and caching statistics per cloud provider for queries over object storage.",
-      ).optional(),
       performanceInsights: z.object({
         avgPreviousExecutionMs: z.string().describe(
           "Output only. Average execution ms of previous runs. Indicates the job ran slow compared to previous executions. To find previous executions, use INFORMATION_SCHEMA tables and filter jobs with same query hash.",
@@ -1591,17 +1546,6 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         })).describe(
           "Output only. Standalone query stage performance insights, for exploring potential improvements.",
-        ).optional(),
-        tableChangeInsights: z.array(z.object({
-          metadataCacheNotUsedButUsedPreviously: z.unknown().describe(
-            "Output only. True if the table's column metadata index was not used in the current job, but was used in a previous job with the same query hash.",
-          ).optional(),
-          metadataCacheStalenessInsight: z.unknown().describe(
-            "Column Metadata Index staleness detailed infnormation.",
-          ).optional(),
-          tableReference: z.unknown().optional(),
-        })).describe(
-          "Output only. Performance insights for table-level attributes that changed compared to previous runs.",
         ).optional(),
       }).describe("Performance insights for the job.").optional(),
       queryInfo: z.object({
@@ -1754,14 +1698,8 @@ const GlobalArgsSchema = z.object({
           collation: z.unknown().describe(
             "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
           ).optional(),
-          dataGovernanceTagsInfo: z.unknown().describe(
-            "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-          ).optional(),
           dataPolicies: z.unknown().describe(
             "Optional. Data policies attached to this field, used for field-level access control.",
-          ).optional(),
-          dataPolicyList: z.unknown().describe(
-            "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
           ).optional(),
           defaultValueExpression: z.unknown().describe(
             "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -1928,7 +1866,7 @@ const GlobalArgsSchema = z.object({
         "Output only. Slot-milliseconds for the job.",
       ).optional(),
       transferredBytes: z.string().describe(
-        "Output only. Total bytes transferred for BigQuery Omni queries from the remote cloud back to Google Cloud. This tracks data movement over Google-managed connections (like query results). It doesn't include input data read from the external data lake (for example, S3) because that data stays within the remote cloud.",
+        "Output only. Total bytes transferred for cross-cloud queries such as Cross Cloud Transfer and CREATE TABLE AS SELECT (CTAS).",
       ).optional(),
       undeclaredQueryParameters: z.array(z.object({
         name: z.string().describe(
@@ -2230,9 +2168,7 @@ const StateSchema = z.object({
         fields: z.array(z.object({
           categories: z.unknown(),
           collation: z.unknown(),
-          dataGovernanceTagsInfo: z.unknown(),
           dataPolicies: z.unknown(),
-          dataPolicyList: z.unknown(),
           defaultValueExpression: z.unknown(),
           description: z.unknown(),
           fields: z.unknown(),
@@ -2375,7 +2311,6 @@ const StateSchema = z.object({
     copy: z.object({
       copiedLogicalBytes: z.string(),
       copiedRows: z.string(),
-      remoteDestinationRegion: z.string(),
     }),
     creationTime: z.string(),
     dataMaskingStatistics: z.object({
@@ -2397,7 +2332,6 @@ const StateSchema = z.object({
       })),
     }),
     finalExecutionDurationMs: z.string(),
-    globalQueryRemoteRegions: z.array(z.string()),
     load: z.object({
       badRecords: z.string(),
       inputFileBytes: z.string(),
@@ -2415,11 +2349,6 @@ const StateSchema = z.object({
       })),
     }),
     numChildJobs: z.string(),
-    parentGlobalQueryJob: z.object({
-      jobId: z.string(),
-      location: z.string(),
-      projectId: z.string(),
-    }),
     parentJobId: z.string(),
     query: z.object({
       biEngineStatistics: z.object({
@@ -2498,7 +2427,6 @@ const StateSchema = z.object({
           errors: z.array(z.unknown()),
         }),
         functionStats: z.array(z.object({
-          cacheStats: z.unknown(),
           costOptimizationStats: z.unknown(),
           errorStats: z.unknown(),
           functionName: z.unknown(),
@@ -2575,11 +2503,6 @@ const StateSchema = z.object({
       modelTrainingCurrentIteration: z.number(),
       modelTrainingExpectedTotalIteration: z.string(),
       numDmlAffectedRows: z.string(),
-      objectStorageStats: z.array(z.object({
-        cacheBytesRead: z.string(),
-        cloudProvider: z.string(),
-        objectStorageBytesRead: z.string(),
-      })),
       performanceInsights: z.object({
         avgPreviousExecutionMs: z.string(),
         stagePerformanceChangeInsights: z.array(z.object({
@@ -2593,11 +2516,6 @@ const StateSchema = z.object({
           partitionSkew: z.unknown(),
           slotContention: z.unknown(),
           stageId: z.unknown(),
-        })),
-        tableChangeInsights: z.array(z.object({
-          metadataCacheNotUsedButUsedPreviously: z.unknown(),
-          metadataCacheStalenessInsight: z.unknown(),
-          tableReference: z.unknown(),
         })),
       }),
       queryInfo: z.object({
@@ -2659,9 +2577,7 @@ const StateSchema = z.object({
         fields: z.array(z.object({
           categories: z.unknown(),
           collation: z.unknown(),
-          dataGovernanceTagsInfo: z.unknown(),
           dataPolicies: z.unknown(),
-          dataPolicyList: z.unknown(),
           defaultValueExpression: z.unknown(),
           description: z.unknown(),
           fields: z.unknown(),
@@ -3114,14 +3030,8 @@ const InputsSchema = z.object({
           collation: z.unknown().describe(
             "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
           ).optional(),
-          dataGovernanceTagsInfo: z.unknown().describe(
-            "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-          ).optional(),
           dataPolicies: z.unknown().describe(
             "Optional. Data policies attached to this field, used for field-level access control.",
-          ).optional(),
-          dataPolicyList: z.unknown().describe(
-            "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
           ).optional(),
           defaultValueExpression: z.unknown().describe(
             "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -3226,7 +3136,7 @@ const InputsSchema = z.object({
         "Optional. Date format used for parsing TIMESTAMP values.",
       ).optional(),
       timestampTargetPrecision: z.array(z.number().int()).describe(
-        "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
+        "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, and AVRO. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
       ).optional(),
       useAvroLogicalTypes: z.boolean().describe(
         'Optional. If sourceFormat is set to "AVRO", indicates whether to interpret logical types as the corresponding BigQuery data type (for example, TIMESTAMP), instead of using the raw type (for example, INTEGER).',
@@ -3573,7 +3483,7 @@ const InputsSchema = z.object({
             "Optional. Format used to parse TIMESTAMP values. Supports C-style and SQL-style values.",
           ).optional(),
           timestampTargetPrecision: z.array(z.unknown()).describe(
-            "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
+            "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, and AVRO. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
           ).optional(),
         }),
       ).describe(
@@ -3618,7 +3528,7 @@ const InputsSchema = z.object({
     }).describe("JobConfigurationQuery configures a BigQuery query job.")
       .optional(),
     reservation: z.string().describe(
-      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`. Forces the query to use on-demand billing when set to `none`, which requires the project or organization to have `reservation_override_mode` set to `ALLOW_ANY_OVERRIDE`.",
+      "Optional. The reservation that job would use. User can specify a reservation to execute the job. If reservation is not set, reservation is determined based on the rules defined by the reservation assignments. The expected format is `projects/{project}/locations/{location}/reservations/{reservation}`.",
     ).optional(),
   }).optional(),
   jobCreationReason: z.object({
@@ -3657,9 +3567,6 @@ const InputsSchema = z.object({
       ).optional(),
       copiedRows: z.string().describe(
         "Output only. Number of rows copied to the destination table.",
-      ).optional(),
-      remoteDestinationRegion: z.string().describe(
-        "Output only. Destination region for a cross-region copy job. Not set for in-region copy jobs.",
       ).optional(),
     }).describe("Statistics for a copy job.").optional(),
     creationTime: z.string().describe(
@@ -3716,9 +3623,6 @@ const InputsSchema = z.object({
     finalExecutionDurationMs: z.string().describe(
       "Output only. The duration in milliseconds of the execution of the final attempt of this job, as BigQuery may internally re-attempt to execute the job.",
     ).optional(),
-    globalQueryRemoteRegions: z.array(z.string()).describe(
-      "Output only. Regions where the global query accesses data.",
-    ).optional(),
     load: z.object({
       badRecords: z.string().describe(
         "Output only. The number of bad records encountered. Note that if the job has failed because of more bad records encountered than the maximum allowed in the load job configuration, then this number can be less than the total number of bad records present in the input data.",
@@ -3762,19 +3666,6 @@ const InputsSchema = z.object({
     }).describe("Statistics for a load job.").optional(),
     numChildJobs: z.string().describe(
       "Output only. Number of child jobs executed.",
-    ).optional(),
-    parentGlobalQueryJob: z.object({
-      jobId: z.string().describe(
-        "Required. The ID of the job. The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or dashes (-). The maximum length is 1,024 characters.",
-      ).optional(),
-      location: z.string().describe(
-        "Optional. The geographic location of the job. The default value is US. For more information about BigQuery locations, see: https://cloud.google.com/bigquery/docs/locations",
-      ).optional(),
-      projectId: z.string().describe(
-        "Required. The ID of the project containing this job.",
-      ).optional(),
-    }).describe(
-      "A job reference is a fully qualified identifier for referring to a job.",
     ).optional(),
     parentJobId: z.string().describe(
       "Output only. If this is a child job, specifies the job ID of the parent.",
@@ -3975,9 +3866,6 @@ const InputsSchema = z.object({
           "Provides error statistics for the query job across all AI function calls.",
         ).optional(),
         functionStats: z.array(z.object({
-          cacheStats: z.unknown().describe(
-            "Provides cache statistics for a GenAi function call.",
-          ).optional(),
           costOptimizationStats: z.unknown().describe(
             "Provides cost optimization statistics for a GenAi function call.",
           ).optional(),
@@ -4190,23 +4078,6 @@ const InputsSchema = z.object({
       numDmlAffectedRows: z.string().describe(
         "Output only. The number of rows affected by a DML statement. Present only for DML statements INSERT, UPDATE or DELETE.",
       ).optional(),
-      objectStorageStats: z.array(z.object({
-        cacheBytesRead: z.string().describe(
-          "Total bytes read from the GCP Lakehouse-internal cache, avoiding an object storage read.",
-        ).optional(),
-        cloudProvider: z.enum([
-          "CLOUD_PROVIDER_UNSPECIFIED",
-          "GCP",
-          "AWS",
-          "AZURE",
-        ]).describe("The cloud provider for this block of statistics.")
-          .optional(),
-        objectStorageBytesRead: z.string().describe(
-          "Total bytes read directly from the cloud provider's storage.",
-        ).optional(),
-      })).describe(
-        "Output only. Storage and caching statistics per cloud provider for queries over object storage.",
-      ).optional(),
       performanceInsights: z.object({
         avgPreviousExecutionMs: z.string().describe(
           "Output only. Average execution ms of previous runs. Indicates the job ran slow compared to previous executions. To find previous executions, use INFORMATION_SCHEMA tables and filter jobs with same query hash.",
@@ -4242,17 +4113,6 @@ const InputsSchema = z.object({
           ).optional(),
         })).describe(
           "Output only. Standalone query stage performance insights, for exploring potential improvements.",
-        ).optional(),
-        tableChangeInsights: z.array(z.object({
-          metadataCacheNotUsedButUsedPreviously: z.unknown().describe(
-            "Output only. True if the table's column metadata index was not used in the current job, but was used in a previous job with the same query hash.",
-          ).optional(),
-          metadataCacheStalenessInsight: z.unknown().describe(
-            "Column Metadata Index staleness detailed infnormation.",
-          ).optional(),
-          tableReference: z.unknown().optional(),
-        })).describe(
-          "Output only. Performance insights for table-level attributes that changed compared to previous runs.",
         ).optional(),
       }).describe("Performance insights for the job.").optional(),
       queryInfo: z.object({
@@ -4405,14 +4265,8 @@ const InputsSchema = z.object({
           collation: z.unknown().describe(
             "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
           ).optional(),
-          dataGovernanceTagsInfo: z.unknown().describe(
-            "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-          ).optional(),
           dataPolicies: z.unknown().describe(
             "Optional. Data policies attached to this field, used for field-level access control.",
-          ).optional(),
-          dataPolicyList: z.unknown().describe(
-            "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
           ).optional(),
           defaultValueExpression: z.unknown().describe(
             "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -4579,7 +4433,7 @@ const InputsSchema = z.object({
         "Output only. Slot-milliseconds for the job.",
       ).optional(),
       transferredBytes: z.string().describe(
-        "Output only. Total bytes transferred for BigQuery Omni queries from the remote cloud back to Google Cloud. This tracks data movement over Google-managed connections (like query results). It doesn't include input data read from the external data lake (for example, S3) because that data stays within the remote cloud.",
+        "Output only. Total bytes transferred for cross-cloud queries such as Cross Cloud Transfer and CREATE TABLE AS SELECT (CTAS).",
       ).optional(),
       undeclaredQueryParameters: z.array(z.object({
         name: z.string().describe(
@@ -4785,7 +4639,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Jobs. Registered at `@swamp/gcp/bigquery/jobs`. */
 export const model = {
   type: "@swamp/gcp/bigquery/jobs",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4912,6 +4766,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -5034,22 +4893,29 @@ export const model = {
     },
     sync: {
       description: "Sync jobs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific jobs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -5261,7 +5127,6 @@ export const model = {
     query: {
       description: "query",
       arguments: z.object({
-        arrowSerializationOptions: z.any().optional(),
         connectionProperties: z.any().optional(),
         continuous: z.any().optional(),
         createSession: z.any().optional(),
@@ -5281,7 +5146,6 @@ export const model = {
         preserveNulls: z.any().optional(),
         query: z.any().optional(),
         queryParameters: z.any().optional(),
-        queryResultsFormat: z.any().optional(),
         requestId: z.any().optional(),
         reservation: z.any().optional(),
         timeoutMs: z.any().optional(),
@@ -5295,9 +5159,6 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (args["arrowSerializationOptions"] !== undefined) {
-          body["arrowSerializationOptions"] = args["arrowSerializationOptions"];
-        }
         if (args["connectionProperties"] !== undefined) {
           body["connectionProperties"] = args["connectionProperties"];
         }
@@ -5343,9 +5204,6 @@ export const model = {
         if (args["query"] !== undefined) body["query"] = args["query"];
         if (args["queryParameters"] !== undefined) {
           body["queryParameters"] = args["queryParameters"];
-        }
-        if (args["queryResultsFormat"] !== undefined) {
-          body["queryResultsFormat"] = args["queryResultsFormat"];
         }
         if (args["requestId"] !== undefined) {
           body["requestId"] = args["requestId"];

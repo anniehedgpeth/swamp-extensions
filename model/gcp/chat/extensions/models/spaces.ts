@@ -164,8 +164,6 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/chat.spaces",
   "https://www.googleapis.com/auth/chat.spaces.create",
   "https://www.googleapis.com/auth/chat.spaces.readonly",
-  "https://www.googleapis.com/auth/chat.users.availability",
-  "https://www.googleapis.com/auth/chat.users.availability.readonly",
   "https://www.googleapis.com/auth/chat.users.readstate",
   "https://www.googleapis.com/auth/chat.users.readstate.readonly",
   "https://www.googleapis.com/auth/chat.users.sections",
@@ -187,26 +185,6 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   accessSettings: z.object({
-    accessPermissionSettings: z.object({
-      discoverSpaceSetting: z.object({
-        principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
-        })).describe(
-          "Optional. Unordered list. Allowed principals for this permission.",
-        ).optional(),
-      }).describe("An access permission setting.").optional(),
-      joinSpaceSetting: z.object({
-        principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
-        })).describe(
-          "Optional. Unordered list. Allowed principals for this permission.",
-        ).optional(),
-      }).describe("An access permission setting.").optional(),
-    }).describe("Access permission settings for a space.").optional(),
     accessState: z.enum(["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"])
       .describe("Output only. Indicates the access state of the space.")
       .optional(),
@@ -363,18 +341,6 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   accessSettings: z.object({
-    accessPermissionSettings: z.object({
-      discoverSpaceSetting: z.object({
-        principals: z.array(z.object({
-          audience: z.unknown(),
-        })),
-      }),
-      joinSpaceSetting: z.object({
-        principals: z.array(z.object({
-          audience: z.unknown(),
-        })),
-      }),
-    }),
     accessState: z.string(),
     audience: z.string(),
   }).optional(),
@@ -455,26 +421,6 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   accessSettings: z.object({
-    accessPermissionSettings: z.object({
-      discoverSpaceSetting: z.object({
-        principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
-        })).describe(
-          "Optional. Unordered list. Allowed principals for this permission.",
-        ).optional(),
-      }).describe("An access permission setting.").optional(),
-      joinSpaceSetting: z.object({
-        principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
-        })).describe(
-          "Optional. Unordered list. Allowed principals for this permission.",
-        ).optional(),
-      }).describe("An access permission setting.").optional(),
-    }).describe("Access permission settings for a space.").optional(),
     accessState: z.enum(["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"])
       .describe("Output only. Indicates the access state of the space.")
       .optional(),
@@ -652,7 +598,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces. Registered at `@swamp/gcp/chat/spaces`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -779,6 +725,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -890,22 +841,29 @@ export const model = {
     },
     update: {
       description: "Update spaces attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific spaces by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -998,22 +956,29 @@ export const model = {
     },
     sync: {
       description: "Sync spaces state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific spaces by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1142,38 +1107,6 @@ export const model = {
             "httpMethod": "GET",
             "parameterOrder": [],
             "parameters": { "name": { "location": "query" } },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    find_group_chats: {
-      description: "find group chats",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "chat.spaces.findGroupChats",
-            "path": "v1/spaces:findGroupChats",
-            "httpMethod": "GET",
-            "parameterOrder": [],
-            "parameters": {
-              "pageSize": { "location": "query" },
-              "pageToken": { "location": "query" },
-              "spaceView": { "location": "query" },
-              "users": { "location": "query" },
-            },
           },
           params,
           {},

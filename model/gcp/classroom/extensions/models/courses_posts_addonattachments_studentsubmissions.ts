@@ -158,12 +158,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  courseWorkSubmissionId: z.string().describe(
-    "Output only. Identifier of the course work submission under which this attachment submission was made.",
-  ).optional(),
-  id: z.string().describe(
-    "Output only. Classroom-assigned identifier for this student submission. This is unique among submissions for the relevant course work and add-on attachment combination.",
-  ).optional(),
   pointsEarned: z.number().describe(
     "Student grade on this attachment. If unset, no grade was set.",
   ).optional(),
@@ -178,7 +172,7 @@ const GlobalArgsSchema = z.object({
     "Submission state of add-on attachment's parent post (i.e. assignment).",
   ).optional(),
   userId: z.string().describe(
-    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. See [`courseWork.studentSubmissions.get`](/workspace/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/get#authorization-scopes) for the list of acceptable OAuth scopes for this field. Read-only.",
+    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. Read-only.",
   ).optional(),
   courseId: z.string().describe("Required. Identifier of the course."),
   postId: z.string().describe("Optional. Deprecated, use `item_id` instead."),
@@ -186,8 +180,6 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
-  courseWorkSubmissionId: z.string().optional(),
-  id: z.string().optional(),
   pointsEarned: z.number().optional(),
   postSubmissionState: z.string().optional(),
   userId: z.string().optional(),
@@ -201,12 +193,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  courseWorkSubmissionId: z.string().describe(
-    "Output only. Identifier of the course work submission under which this attachment submission was made.",
-  ).optional(),
-  id: z.string().describe(
-    "Output only. Classroom-assigned identifier for this student submission. This is unique among submissions for the relevant course work and add-on attachment combination.",
-  ).optional(),
   pointsEarned: z.number().describe(
     "Student grade on this attachment. If unset, no grade was set.",
   ).optional(),
@@ -221,7 +207,7 @@ const InputsSchema = z.object({
     "Submission state of add-on attachment's parent post (i.e. assignment).",
   ).optional(),
   userId: z.string().describe(
-    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. See [`courseWork.studentSubmissions.get`](/workspace/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/get#authorization-scopes) for the list of acceptable OAuth scopes for this field. Read-only.",
+    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. Read-only.",
   ).optional(),
   courseId: z.string().describe("Required. Identifier of the course.")
     .optional(),
@@ -255,7 +241,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/classroom/courses-posts-addonattachments-studentsubmissions",
-  version: "2026.07.19.2",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -398,6 +384,18 @@ export const model = {
       description: "Added: courseId, postId, attachmentId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: courseWorkSubmissionId, id",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          courseWorkSubmissionId: _courseWorkSubmissionId,
+          id: _id,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -448,22 +446,29 @@ export const model = {
     },
     update: {
       description: "Update studentSubmissions attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific studentSubmissions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -483,10 +488,6 @@ export const model = {
         }
         params["submissionId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (g["courseWorkSubmissionId"] !== undefined) {
-          body["courseWorkSubmissionId"] = g["courseWorkSubmissionId"];
-        }
-        if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["pointsEarned"] !== undefined) {
           body["pointsEarned"] = g["pointsEarned"];
         }
@@ -525,22 +526,29 @@ export const model = {
     },
     sync: {
       description: "Sync studentSubmissions state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific studentSubmissions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

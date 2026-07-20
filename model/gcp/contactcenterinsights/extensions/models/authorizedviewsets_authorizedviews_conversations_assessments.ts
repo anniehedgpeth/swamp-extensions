@@ -161,10 +161,6 @@ const GlobalArgsSchema = z.object({
     dispositionCode: z.string().describe(
       "A user-provided string indicating the outcome of the agent's segment of the call.",
     ).optional(),
-    entrySubagentDisplayName: z.string().describe(
-      "The entry subagent's display name.",
-    ).optional(),
-    entrySubagentId: z.string().describe("The entry subagent's ID.").optional(),
     location: z.string().describe("The agent's location.").optional(),
     team: z.string().describe(
       "A user-specified string representing the agent's team. Deprecated in favor of the `teams` field.",
@@ -199,8 +195,6 @@ const StateSchema = z.object({
     deploymentId: z.string(),
     displayName: z.string(),
     dispositionCode: z.string(),
-    entrySubagentDisplayName: z.string(),
-    entrySubagentId: z.string(),
     location: z.string(),
     team: z.string(),
     teams: z.array(z.string()),
@@ -241,10 +235,6 @@ const InputsSchema = z.object({
     dispositionCode: z.string().describe(
       "A user-provided string indicating the outcome of the agent's segment of the call.",
     ).optional(),
-    entrySubagentDisplayName: z.string().describe(
-      "The entry subagent's display name.",
-    ).optional(),
-    entrySubagentId: z.string().describe("The entry subagent's ID.").optional(),
     location: z.string().describe("The agent's location.").optional(),
     team: z.string().describe(
       "A user-specified string representing the agent's team. Deprecated in favor of the `teams` field.",
@@ -295,7 +285,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/contactcenterinsights/authorizedviewsets-authorizedviews-conversations-assessments",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -414,6 +404,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -542,22 +537,29 @@ export const model = {
     },
     sync: {
       description: "Sync assessments state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific assessments by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

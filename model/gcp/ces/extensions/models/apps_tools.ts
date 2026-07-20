@@ -165,14 +165,14 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   agentTool: z.object({
-    agent: z.string().describe(
-      "Optional. The resource name of the agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
-    ).optional(),
     description: z.string().describe(
       "Optional. Description of the tool's purpose.",
     ).optional(),
     name: z.string().describe("Required. The name of the agent tool.")
       .optional(),
+    rootAgent: z.string().describe(
+      "Optional. The resource name of the root agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
+    ).optional(),
   }).describe("Represents a tool that allows the agent to call another agent.")
     .optional(),
   clientFunction: z.object({
@@ -691,9 +691,6 @@ const GlobalArgsSchema = z.object({
     }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
       .optional(),
     name: z.string().describe("Required. The name of the MCP tool.").optional(),
-    nameOverride: z.string().describe(
-      "Optional. The name override of the MCP tool. This is populated if the name was overridden by a Toolset override.",
-    ).optional(),
     outputSchema: z.object({
       additionalProperties: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Schema",
@@ -764,10 +761,6 @@ const GlobalArgsSchema = z.object({
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
     }).describe("Configuration for tools using Service Directory.").optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "STALE"])
-      .describe(
-        "Output only. The dynamic availability state of the tool on the external server.",
-      ).optional(),
     tlsConfig: z.object({
       caCerts: z.array(z.object({
         cert: z.string().describe(
@@ -883,72 +876,7 @@ const GlobalArgsSchema = z.object({
     pythonCode: z.string().describe(
       "Optional. The Python code to execute for the tool.",
     ).optional(),
-    serviceDirectoryConfig: z.object({
-      service: z.string().describe(
-        "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
-      ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
   }).describe("A Python function tool.").optional(),
-  remoteAgentTool: z.object({
-    agentCard: z.object({
-      description: z.string().describe(
-        "Required. A description of the agent's domain of action/solution space.",
-      ).optional(),
-      name: z.string().describe(
-        "Required. A human-readable name for the agent.",
-      ).optional(),
-      skills: z.array(z.object({
-        description: z.string().describe(
-          "Required. A detailed description of the skill.",
-        ).optional(),
-        examples: z.array(z.unknown()).describe(
-          "Example prompts or scenarios that this skill can handle.",
-        ).optional(),
-        id: z.string().describe(
-          "Required. A unique identifier for the agent's skill.",
-        ).optional(),
-        inputModes: z.array(z.unknown()).describe(
-          "The set of supported input media types for this skill, overriding the agent's defaults.",
-        ).optional(),
-        name: z.string().describe(
-          "Required. A human-readable name for the skill.",
-        ).optional(),
-        outputModes: z.array(z.unknown()).describe(
-          "The set of supported output media types for this skill, overriding the agent's defaults.",
-        ).optional(),
-        tags: z.array(z.unknown()).describe(
-          "Required. A set of keywords describing the skill's capabilities.",
-        ).optional(),
-      })).describe(
-        "Required. Skills represent a unit of ability an agent can perform. This may somewhat abstract but represents a more focused set of actions that the agent is highly likely to succeed at.",
-      ).optional(),
-      supportedInterfaces: z.array(z.object({
-        protocolBinding: z.string().describe(
-          "Required. The protocol binding supported at this URL. This is an open form string, to be easily extended for other protocol bindings. The core ones officially supported are `JSONRPC`, `GRPC` and `HTTP+JSON`.",
-        ).optional(),
-        protocolVersion: z.string().describe(
-          'Required. The version of the A2A protocol this interface exposes. Use the latest supported minor version per major version. Examples: "0.3", "1.0"',
-        ).optional(),
-        tenant: z.string().describe(
-          "Tenant ID to be used in the request when calling the agent.",
-        ).optional(),
-        url: z.string().describe(
-          'Required. The URL where this interface is available. Must be a valid absolute HTTPS URL in production. Example: "https://api.example.com/a2a/v1", "https://grpc.example.com/a2a"',
-        ).optional(),
-      })).describe(
-        "Required. Ordered list of supported interfaces. The first entry is preferred.",
-      ).optional(),
-      version: z.string().describe("Required. The version of the agent.")
-        .optional(),
-    }).describe(
-      "AgentCard conveys key information about a remote agent. It is a trimmed version of the AgentCard defined in the A2A protocol https://a2a-protocol.org/dev/specification/#441-agentcard",
-    ).optional(),
-    description: z.string().describe("Required. The description of the tool.")
-      .optional(),
-    name: z.string().describe("Required. The name of the tool.").optional(),
-  }).describe(
-    "Represents a tool that allows the agent to call another remote agent.",
-  ).optional(),
   systemTool: z.object({
     description: z.string().describe(
       "Output only. The description of the system tool.",
@@ -956,9 +884,6 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe("Required. The name of the system tool.")
       .optional(),
   }).describe("Pre-defined system tool.").optional(),
-  timeout: z.string().describe(
-    "Optional. The timeout for the tool execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` tools and 60 seconds for `ASYNCHRONOUS` tools.",
-  ).optional(),
   toolFakeConfig: z.object({
     codeBlock: z.object({
       pythonCode: z.string().describe(
@@ -987,12 +912,6 @@ const GlobalArgsSchema = z.object({
         pythonCode: z.string().describe(
           "Optional. The Python code to execute for the tool.",
         ).optional(),
-        serviceDirectoryConfig: z.object({
-          service: z.string().describe(
-            "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
-          ).optional(),
-        }).describe("Configuration for tools using Service Directory.")
-          .optional(),
       }).describe("A Python function tool.").optional(),
       pythonScript: z.string().describe(
         "Deprecated: Use `python_function` instead.",
@@ -1070,18 +989,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
       .optional(),
-    textResponseConfig: z.object({
-      staticText: z.string().describe(
-        "Optional. The static text response to return when type is STATIC.",
-      ).optional(),
-      textResponseInstruction: z.string().describe(
-        "Optional. Instruction for the LLM on how to generate the text response. Used as the description for the text response parameter if type is LLM_GENERATED.",
-      ).optional(),
-      type: z.enum(["TYPE_UNSPECIFIED", "NONE", "LLM_GENERATED", "STATIC"])
-        .describe("Optional. The strategy for providing the text response.")
-        .optional(),
-    }).describe("Configuration for the text response returned with the widget.")
-      .optional(),
     uiConfig: z.record(z.string(), z.string()).describe(
       "Optional. Configuration for rendering the widget.",
     ).optional(),
@@ -1118,9 +1025,9 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   agentTool: z.object({
-    agent: z.string(),
     description: z.string(),
     name: z.string(),
+    rootAgent: z.string(),
   }).optional(),
   clientFunction: z.object({
     description: z.string(),
@@ -1325,7 +1232,6 @@ const StateSchema = z.object({
       uniqueItems: z.boolean(),
     }),
     name: z.string(),
-    nameOverride: z.string(),
     outputSchema: z.object({
       additionalProperties: z.record(z.string(), z.unknown()),
       anyOf: z.array(z.record(z.string(), z.unknown())),
@@ -1351,7 +1257,6 @@ const StateSchema = z.object({
     serviceDirectoryConfig: z.object({
       service: z.string(),
     }),
-    state: z.string(),
     tlsConfig: z.object({
       caCerts: z.array(z.object({
         cert: z.string(),
@@ -1402,39 +1307,11 @@ const StateSchema = z.object({
     description: z.string(),
     name: z.string(),
     pythonCode: z.string(),
-    serviceDirectoryConfig: z.object({
-      service: z.string(),
-    }),
-  }).optional(),
-  remoteAgentTool: z.object({
-    agentCard: z.object({
-      description: z.string(),
-      name: z.string(),
-      skills: z.array(z.object({
-        description: z.string(),
-        examples: z.array(z.unknown()),
-        id: z.string(),
-        inputModes: z.array(z.unknown()),
-        name: z.string(),
-        outputModes: z.array(z.unknown()),
-        tags: z.array(z.unknown()),
-      })),
-      supportedInterfaces: z.array(z.object({
-        protocolBinding: z.string(),
-        protocolVersion: z.string(),
-        tenant: z.string(),
-        url: z.string(),
-      })),
-      version: z.string(),
-    }),
-    description: z.string(),
-    name: z.string(),
   }).optional(),
   systemTool: z.object({
     description: z.string(),
     name: z.string(),
   }).optional(),
-  timeout: z.string().optional(),
   toolFakeConfig: z.object({
     codeBlock: z.object({
       pythonCode: z.string(),
@@ -1450,9 +1327,6 @@ const StateSchema = z.object({
         description: z.string(),
         name: z.string(),
         pythonCode: z.string(),
-        serviceDirectoryConfig: z.object({
-          service: z.string(),
-        }),
       }),
       pythonScript: z.string(),
       sourceToolName: z.string(),
@@ -1480,11 +1354,6 @@ const StateSchema = z.object({
       type: z.string(),
       uniqueItems: z.boolean(),
     }),
-    textResponseConfig: z.object({
-      staticText: z.string(),
-      textResponseInstruction: z.string(),
-      type: z.string(),
-    }),
     uiConfig: z.record(z.string(), z.unknown()),
     widgetType: z.string(),
   }).optional(),
@@ -1498,14 +1367,14 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   agentTool: z.object({
-    agent: z.string().describe(
-      "Optional. The resource name of the agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
-    ).optional(),
     description: z.string().describe(
       "Optional. Description of the tool's purpose.",
     ).optional(),
     name: z.string().describe("Required. The name of the agent tool.")
       .optional(),
+    rootAgent: z.string().describe(
+      "Optional. The resource name of the root agent that is the entry point of the tool. Format: `projects/{project}/locations/{location}/agents/{agent}`",
+    ).optional(),
   }).describe("Represents a tool that allows the agent to call another agent.")
     .optional(),
   clientFunction: z.object({
@@ -2024,9 +1893,6 @@ const InputsSchema = z.object({
     }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
       .optional(),
     name: z.string().describe("Required. The name of the MCP tool.").optional(),
-    nameOverride: z.string().describe(
-      "Optional. The name override of the MCP tool. This is populated if the name was overridden by a Toolset override.",
-    ).optional(),
     outputSchema: z.object({
       additionalProperties: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Schema",
@@ -2097,10 +1963,6 @@ const InputsSchema = z.object({
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
     }).describe("Configuration for tools using Service Directory.").optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "STALE"])
-      .describe(
-        "Output only. The dynamic availability state of the tool on the external server.",
-      ).optional(),
     tlsConfig: z.object({
       caCerts: z.array(z.object({
         cert: z.string().describe(
@@ -2216,72 +2078,7 @@ const InputsSchema = z.object({
     pythonCode: z.string().describe(
       "Optional. The Python code to execute for the tool.",
     ).optional(),
-    serviceDirectoryConfig: z.object({
-      service: z.string().describe(
-        "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
-      ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
   }).describe("A Python function tool.").optional(),
-  remoteAgentTool: z.object({
-    agentCard: z.object({
-      description: z.string().describe(
-        "Required. A description of the agent's domain of action/solution space.",
-      ).optional(),
-      name: z.string().describe(
-        "Required. A human-readable name for the agent.",
-      ).optional(),
-      skills: z.array(z.object({
-        description: z.string().describe(
-          "Required. A detailed description of the skill.",
-        ).optional(),
-        examples: z.array(z.unknown()).describe(
-          "Example prompts or scenarios that this skill can handle.",
-        ).optional(),
-        id: z.string().describe(
-          "Required. A unique identifier for the agent's skill.",
-        ).optional(),
-        inputModes: z.array(z.unknown()).describe(
-          "The set of supported input media types for this skill, overriding the agent's defaults.",
-        ).optional(),
-        name: z.string().describe(
-          "Required. A human-readable name for the skill.",
-        ).optional(),
-        outputModes: z.array(z.unknown()).describe(
-          "The set of supported output media types for this skill, overriding the agent's defaults.",
-        ).optional(),
-        tags: z.array(z.unknown()).describe(
-          "Required. A set of keywords describing the skill's capabilities.",
-        ).optional(),
-      })).describe(
-        "Required. Skills represent a unit of ability an agent can perform. This may somewhat abstract but represents a more focused set of actions that the agent is highly likely to succeed at.",
-      ).optional(),
-      supportedInterfaces: z.array(z.object({
-        protocolBinding: z.string().describe(
-          "Required. The protocol binding supported at this URL. This is an open form string, to be easily extended for other protocol bindings. The core ones officially supported are `JSONRPC`, `GRPC` and `HTTP+JSON`.",
-        ).optional(),
-        protocolVersion: z.string().describe(
-          'Required. The version of the A2A protocol this interface exposes. Use the latest supported minor version per major version. Examples: "0.3", "1.0"',
-        ).optional(),
-        tenant: z.string().describe(
-          "Tenant ID to be used in the request when calling the agent.",
-        ).optional(),
-        url: z.string().describe(
-          'Required. The URL where this interface is available. Must be a valid absolute HTTPS URL in production. Example: "https://api.example.com/a2a/v1", "https://grpc.example.com/a2a"',
-        ).optional(),
-      })).describe(
-        "Required. Ordered list of supported interfaces. The first entry is preferred.",
-      ).optional(),
-      version: z.string().describe("Required. The version of the agent.")
-        .optional(),
-    }).describe(
-      "AgentCard conveys key information about a remote agent. It is a trimmed version of the AgentCard defined in the A2A protocol https://a2a-protocol.org/dev/specification/#441-agentcard",
-    ).optional(),
-    description: z.string().describe("Required. The description of the tool.")
-      .optional(),
-    name: z.string().describe("Required. The name of the tool.").optional(),
-  }).describe(
-    "Represents a tool that allows the agent to call another remote agent.",
-  ).optional(),
   systemTool: z.object({
     description: z.string().describe(
       "Output only. The description of the system tool.",
@@ -2289,9 +2086,6 @@ const InputsSchema = z.object({
     name: z.string().describe("Required. The name of the system tool.")
       .optional(),
   }).describe("Pre-defined system tool.").optional(),
-  timeout: z.string().describe(
-    "Optional. The timeout for the tool execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` tools and 60 seconds for `ASYNCHRONOUS` tools.",
-  ).optional(),
   toolFakeConfig: z.object({
     codeBlock: z.object({
       pythonCode: z.string().describe(
@@ -2320,12 +2114,6 @@ const InputsSchema = z.object({
         pythonCode: z.string().describe(
           "Optional. The Python code to execute for the tool.",
         ).optional(),
-        serviceDirectoryConfig: z.object({
-          service: z.string().describe(
-            "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
-          ).optional(),
-        }).describe("Configuration for tools using Service Directory.")
-          .optional(),
       }).describe("A Python function tool.").optional(),
       pythonScript: z.string().describe(
         "Deprecated: Use `python_function` instead.",
@@ -2403,18 +2191,6 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
       .optional(),
-    textResponseConfig: z.object({
-      staticText: z.string().describe(
-        "Optional. The static text response to return when type is STATIC.",
-      ).optional(),
-      textResponseInstruction: z.string().describe(
-        "Optional. Instruction for the LLM on how to generate the text response. Used as the description for the text response parameter if type is LLM_GENERATED.",
-      ).optional(),
-      type: z.enum(["TYPE_UNSPECIFIED", "NONE", "LLM_GENERATED", "STATIC"])
-        .describe("Optional. The strategy for providing the text response.")
-        .optional(),
-    }).describe("Configuration for the text response returned with the widget.")
-      .optional(),
     uiConfig: z.record(z.string(), z.string()).describe(
       "Optional. Configuration for rendering the widget.",
     ).optional(),
@@ -2472,7 +2248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Tools. Registered at `@swamp/gcp/ces/apps-tools`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-tools",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -2670,6 +2446,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: remoteAgentTool, timeout",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          remoteAgentTool: _remoteAgentTool,
+          timeout: _timeout,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2720,11 +2508,7 @@ export const model = {
         if (g["pythonFunction"] !== undefined) {
           body["pythonFunction"] = g["pythonFunction"];
         }
-        if (g["remoteAgentTool"] !== undefined) {
-          body["remoteAgentTool"] = g["remoteAgentTool"];
-        }
         if (g["systemTool"] !== undefined) body["systemTool"] = g["systemTool"];
-        if (g["timeout"] !== undefined) body["timeout"] = g["timeout"];
         if (g["toolFakeConfig"] !== undefined) {
           body["toolFakeConfig"] = g["toolFakeConfig"];
         }
@@ -2798,22 +2582,29 @@ export const model = {
     },
     update: {
       description: "Update tools attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific tools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -2853,11 +2644,7 @@ export const model = {
         if (g["pythonFunction"] !== undefined) {
           body["pythonFunction"] = g["pythonFunction"];
         }
-        if (g["remoteAgentTool"] !== undefined) {
-          body["remoteAgentTool"] = g["remoteAgentTool"];
-        }
         if (g["systemTool"] !== undefined) body["systemTool"] = g["systemTool"];
-        if (g["timeout"] !== undefined) body["timeout"] = g["timeout"];
         if (g["toolFakeConfig"] !== undefined) {
           body["toolFakeConfig"] = g["toolFakeConfig"];
         }
@@ -2926,22 +2713,29 @@ export const model = {
     },
     sync: {
       description: "Sync tools state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific tools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

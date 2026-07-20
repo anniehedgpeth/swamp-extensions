@@ -156,9 +156,6 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   inspectTemplate: z.object({
-    allowLimitedAvailabilityInfoTypes: z.boolean().describe(
-      "Optional. Enables the use of [limited-availability built-in infoTypes](https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference#limited-availability-infotypes) in inspect_config. These infoTypes are supported only in specific regions and can cause scanning errors if used elsewhere.",
-    ).optional(),
     createTime: z.string().describe(
       "Output only. The creation timestamp of an inspectTemplate.",
     ).optional(),
@@ -189,16 +186,6 @@ const GlobalArgsSchema = z.object({
           "EXCLUSION_TYPE_EXCLUDE",
         ]).describe(
           "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
-        ).optional(),
-        fileLabelInfoType: z.object({
-          googleDriveLabel: z.unknown().describe(
-            "Google Drive labels published by Google.",
-          ).optional(),
-          sensitivityLabel: z.unknown().describe(
-            "Sensitivity labels published by Microsoft.",
-          ).optional(),
-        }).describe(
-          "Configuration for a custom infoType that detects file labels.",
         ).optional(),
         infoType: z.object({
           name: z.unknown().describe(
@@ -373,7 +360,6 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
-  allowLimitedAvailabilityInfoTypes: z.boolean().optional(),
   createTime: z.string().optional(),
   description: z.string().optional(),
   displayName: z.string().optional(),
@@ -392,15 +378,6 @@ const StateSchema = z.object({
         }),
       }),
       exclusionType: z.string(),
-      fileLabelInfoType: z.object({
-        googleDriveLabel: z.object({
-          labelFieldsToMatch: z.unknown(),
-          labelId: z.unknown(),
-        }),
-        sensitivityLabel: z.object({
-          guid: z.unknown(),
-        }),
-      }),
       infoType: z.object({
         name: z.string(),
         sensitivityScore: z.object({
@@ -484,9 +461,6 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   inspectTemplate: z.object({
-    allowLimitedAvailabilityInfoTypes: z.boolean().describe(
-      "Optional. Enables the use of [limited-availability built-in infoTypes](https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference#limited-availability-infotypes) in inspect_config. These infoTypes are supported only in specific regions and can cause scanning errors if used elsewhere.",
-    ).optional(),
     createTime: z.string().describe(
       "Output only. The creation timestamp of an inspectTemplate.",
     ).optional(),
@@ -517,16 +491,6 @@ const InputsSchema = z.object({
           "EXCLUSION_TYPE_EXCLUDE",
         ]).describe(
           "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
-        ).optional(),
-        fileLabelInfoType: z.object({
-          googleDriveLabel: z.unknown().describe(
-            "Google Drive labels published by Google.",
-          ).optional(),
-          sensitivityLabel: z.unknown().describe(
-            "Sensitivity labels published by Microsoft.",
-          ).optional(),
-        }).describe(
-          "Configuration for a custom infoType that detects file labels.",
         ).optional(),
         infoType: z.object({
           name: z.unknown().describe(
@@ -723,7 +687,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) InspectTemplates. Registered at `@swamp/gcp/dlp/inspecttemplates`. */
 export const model = {
   type: "@swamp/gcp/dlp/inspecttemplates",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -850,6 +814,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -947,22 +916,29 @@ export const model = {
     },
     update: {
       description: "Update inspectTemplates attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific inspectTemplates by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1040,22 +1016,29 @@ export const model = {
     },
     sync: {
       description: "Sync inspectTemplates state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific inspectTemplates by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

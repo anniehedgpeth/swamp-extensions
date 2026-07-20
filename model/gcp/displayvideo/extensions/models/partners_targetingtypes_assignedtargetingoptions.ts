@@ -359,10 +359,6 @@ const GlobalArgsSchema = z.object({
       "AUDIO_CONTENT_TYPE_MUSIC",
       "AUDIO_CONTENT_TYPE_BROADCAST",
       "AUDIO_CONTENT_TYPE_PODCAST",
-      "AUDIO_CONTENT_TYPE_CATCH_UP_RADIO",
-      "AUDIO_CONTENT_TYPE_WEB_RADIO",
-      "AUDIO_CONTENT_TYPE_VIDEO_GAME",
-      "AUDIO_CONTENT_TYPE_TEXT_TO_SPEECH",
     ]).describe("Required. The audio content type.").optional(),
   }).describe(
     "Details for audio content type assigned targeting option. This will be populated in the audio_content_type_details field when targeting_type is `TARGETING_TYPE_AUDIO_CONTENT_TYPE`. Explicitly targeting all options is not supported. Remove all audio content type targeting options to achieve this effect.",
@@ -590,7 +586,7 @@ const GlobalArgsSchema = z.object({
       "TIME_ZONE_RESOLUTION_END_USER",
       "TIME_ZONE_RESOLUTION_ADVERTISER",
     ]).describe(
-      "Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For Demand Gen line items, this field is always `TIME_ZONE_RESOLUTION_ADVERTISER`.",
+      "Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For demand gen line items, this field is always TIME_ZONE_RESOLUTION_ADVERTISER.",
     ).optional(),
   }).describe(
     "Representation of a segment of time defined on a specific day of the week and with a start and end time. The time represented by `start_hour` must be before the time represented by `end_hour`.",
@@ -739,7 +735,6 @@ const GlobalArgsSchema = z.object({
       "EXCHANGE_TUBI",
       "EXCHANGE_SNAP",
       "EXCHANGE_CADENT",
-      "EXCHANGE_EXTE",
     ]).describe("Required. The enum value for the exchange.").optional(),
   }).describe(
     "Details for assigned exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_EXCHANGE`.",
@@ -798,7 +793,6 @@ const GlobalArgsSchema = z.object({
       "GEO_REGION_TYPE_COMMUNE",
       "GEO_REGION_TYPE_COLLOQUIAL_AREA",
       "GEO_REGION_TYPE_POST_TOWN",
-      "GEO_REGION_TYPE_WARD",
     ]).describe("Output only. The type of geographic region targeting.")
       .optional(),
     negative: z.boolean().describe(
@@ -840,7 +834,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   keywordDetails: z.object({
     exemptedPolicyNames: z.array(z.string()).describe(
-      "Optional. The policy names to exempt the keyword from. When attempting to target a keyword that violates a policy, the error returned will include the name of the relevant policy. Use that name in this field to exempt the targeted keyword from the policy. This field is only applicable for positively-targeted keywords assigned to Demand Gen resources. Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.",
+      "Optional. The policy names to exempt the keyword from. This field is only applicable for Demand Gen keywords, which are positively targeted.",
     ).optional(),
     keyword: z.string().describe(
       "Required. The keyword, for example `car insurance`. Positive keyword cannot be offensive word. Must be UTF-8 encoded with a maximum size of 255 bytes. Maximum number of characters is 80. Maximum number of words is 10.",
@@ -1079,7 +1073,6 @@ const GlobalArgsSchema = z.object({
     "TARGETING_TYPE_YOUTUBE_CHANNEL",
     "TARGETING_TYPE_SESSION_POSITION",
     "TARGETING_TYPE_CONTENT_THEME_EXCLUSION",
-    "TARGETING_TYPE_YOUTUBE_CHANNEL_PACK",
   ]).describe(
     "Output only. Identifies the type of this assigned targeting option.",
   ).optional(),
@@ -1525,16 +1518,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe(
     "Details for YouTube channel assigned targeting option. This will be populated in the youtube_channel_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL`.",
-  ).optional(),
-  youtubeChannelPackDetails: z.object({
-    channelPackId: z.string().describe(
-      "Required. The ID of the YouTube channel pack.",
-    ).optional(),
-    negative: z.boolean().describe(
-      "Optional. Indicates if this option is being negatively targeted.",
-    ).optional(),
-  }).describe(
-    "Details for YouTube channel pack assigned targeting option. This will be populated in the youtube_channel_pack_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL_PACK`.",
   ).optional(),
   youtubeVideoDetails: z.object({
     negative: z.boolean().describe(
@@ -1843,10 +1826,6 @@ const StateSchema = z.object({
     channelId: z.string(),
     negative: z.boolean(),
   }).optional(),
-  youtubeChannelPackDetails: z.object({
-    channelPackId: z.string(),
-    negative: z.boolean(),
-  }).optional(),
   youtubeVideoDetails: z.object({
     negative: z.boolean(),
     videoId: z.string(),
@@ -2045,10 +2024,6 @@ const InputsSchema = z.object({
       "AUDIO_CONTENT_TYPE_MUSIC",
       "AUDIO_CONTENT_TYPE_BROADCAST",
       "AUDIO_CONTENT_TYPE_PODCAST",
-      "AUDIO_CONTENT_TYPE_CATCH_UP_RADIO",
-      "AUDIO_CONTENT_TYPE_WEB_RADIO",
-      "AUDIO_CONTENT_TYPE_VIDEO_GAME",
-      "AUDIO_CONTENT_TYPE_TEXT_TO_SPEECH",
     ]).describe("Required. The audio content type.").optional(),
   }).describe(
     "Details for audio content type assigned targeting option. This will be populated in the audio_content_type_details field when targeting_type is `TARGETING_TYPE_AUDIO_CONTENT_TYPE`. Explicitly targeting all options is not supported. Remove all audio content type targeting options to achieve this effect.",
@@ -2276,7 +2251,7 @@ const InputsSchema = z.object({
       "TIME_ZONE_RESOLUTION_END_USER",
       "TIME_ZONE_RESOLUTION_ADVERTISER",
     ]).describe(
-      "Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For Demand Gen line items, this field is always `TIME_ZONE_RESOLUTION_ADVERTISER`.",
+      "Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For demand gen line items, this field is always TIME_ZONE_RESOLUTION_ADVERTISER.",
     ).optional(),
   }).describe(
     "Representation of a segment of time defined on a specific day of the week and with a start and end time. The time represented by `start_hour` must be before the time represented by `end_hour`.",
@@ -2425,7 +2400,6 @@ const InputsSchema = z.object({
       "EXCHANGE_TUBI",
       "EXCHANGE_SNAP",
       "EXCHANGE_CADENT",
-      "EXCHANGE_EXTE",
     ]).describe("Required. The enum value for the exchange.").optional(),
   }).describe(
     "Details for assigned exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_EXCHANGE`.",
@@ -2484,7 +2458,6 @@ const InputsSchema = z.object({
       "GEO_REGION_TYPE_COMMUNE",
       "GEO_REGION_TYPE_COLLOQUIAL_AREA",
       "GEO_REGION_TYPE_POST_TOWN",
-      "GEO_REGION_TYPE_WARD",
     ]).describe("Output only. The type of geographic region targeting.")
       .optional(),
     negative: z.boolean().describe(
@@ -2526,7 +2499,7 @@ const InputsSchema = z.object({
   ).optional(),
   keywordDetails: z.object({
     exemptedPolicyNames: z.array(z.string()).describe(
-      "Optional. The policy names to exempt the keyword from. When attempting to target a keyword that violates a policy, the error returned will include the name of the relevant policy. Use that name in this field to exempt the targeted keyword from the policy. This field is only applicable for positively-targeted keywords assigned to Demand Gen resources. Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.",
+      "Optional. The policy names to exempt the keyword from. This field is only applicable for Demand Gen keywords, which are positively targeted.",
     ).optional(),
     keyword: z.string().describe(
       "Required. The keyword, for example `car insurance`. Positive keyword cannot be offensive word. Must be UTF-8 encoded with a maximum size of 255 bytes. Maximum number of characters is 80. Maximum number of words is 10.",
@@ -2765,7 +2738,6 @@ const InputsSchema = z.object({
     "TARGETING_TYPE_YOUTUBE_CHANNEL",
     "TARGETING_TYPE_SESSION_POSITION",
     "TARGETING_TYPE_CONTENT_THEME_EXCLUSION",
-    "TARGETING_TYPE_YOUTUBE_CHANNEL_PACK",
   ]).describe(
     "Output only. Identifies the type of this assigned targeting option.",
   ).optional(),
@@ -3212,16 +3184,6 @@ const InputsSchema = z.object({
   }).describe(
     "Details for YouTube channel assigned targeting option. This will be populated in the youtube_channel_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL`.",
   ).optional(),
-  youtubeChannelPackDetails: z.object({
-    channelPackId: z.string().describe(
-      "Required. The ID of the YouTube channel pack.",
-    ).optional(),
-    negative: z.boolean().describe(
-      "Optional. Indicates if this option is being negatively targeted.",
-    ).optional(),
-  }).describe(
-    "Details for YouTube channel pack assigned targeting option. This will be populated in the youtube_channel_pack_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL_PACK`.",
-  ).optional(),
   youtubeVideoDetails: z.object({
     negative: z.boolean().describe(
       "Indicates if this option is being negatively targeted.",
@@ -3259,7 +3221,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/displayvideo/partners-targetingtypes-assignedtargetingoptions",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3385,6 +3347,17 @@ export const model = {
       toVersion: "2026.07.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: youtubeChannelPackDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          youtubeChannelPackDetails: _youtubeChannelPackDetails,
+          ...rest
+        } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -3562,9 +3535,6 @@ export const model = {
         if (g["youtubeChannelDetails"] !== undefined) {
           body["youtubeChannelDetails"] = g["youtubeChannelDetails"];
         }
-        if (g["youtubeChannelPackDetails"] !== undefined) {
-          body["youtubeChannelPackDetails"] = g["youtubeChannelPackDetails"];
-        }
         if (g["youtubeVideoDetails"] !== undefined) {
           body["youtubeVideoDetails"] = g["youtubeVideoDetails"];
         }
@@ -3678,22 +3648,29 @@ export const model = {
     },
     sync: {
       description: "Sync assignedTargetingOptions state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific assignedTargetingOptions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

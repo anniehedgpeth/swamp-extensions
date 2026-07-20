@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud BigQuery Tables.
  *
- * Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table. # IAM Permissions Requires the `bigquery.tables.get` permission on the table.
+ * Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -468,22 +468,8 @@ const GlobalArgsSchema = z.object({
         collation: z.string().describe(
           "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
         ).optional(),
-        dataGovernanceTagsInfo: z.object({
-          dataGovernanceTags: z.unknown().describe(
-            'Optional. The data governance tags added to this field are used for field-level access control. Only one data governance tag is currently supported on a field. Tag keys are globally unique. Tag key is expected to be in the namespaced format, for example "123456789012/pii" where 123456789012 is the ID of the parent organization or project resource for this tag key. Tag value is expected to be the short name, for example "sensitive". See [Tag definitions](https://cloud.google.com/iam/docs/tags-access-control#definitions) for more details. For example: "123456789012/pii": "sensitive", "myProject/cost_center": "sales"',
-          ).optional(),
-        }).describe(
-          "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-        ).optional(),
         dataPolicies: z.array(z.unknown()).describe(
           "Optional. Data policies attached to this field, used for field-level access control.",
-        ).optional(),
-        dataPolicyList: z.object({
-          dataPolicies: z.unknown().describe(
-            "Contains a list of data policy options. At most 9 data policies are allowed per field.",
-          ).optional(),
-        }).describe(
-          "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
         ).optional(),
         defaultValueExpression: z.string().describe(
           "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -571,7 +557,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Format used to parse TIMESTAMP values. Supports C-style and SQL-style values.",
     ).optional(),
     timestampTargetPrecision: z.array(z.number().int()).describe(
-      "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
+      "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, and AVRO. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
     ).optional(),
   }).optional(),
   friendlyName: z.string().describe(
@@ -705,26 +691,12 @@ const GlobalArgsSchema = z.object({
       collation: z.string().describe(
         "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
       ).optional(),
-      dataGovernanceTagsInfo: z.object({
-        dataGovernanceTags: z.record(z.string(), z.unknown()).describe(
-          'Optional. The data governance tags added to this field are used for field-level access control. Only one data governance tag is currently supported on a field. Tag keys are globally unique. Tag key is expected to be in the namespaced format, for example "123456789012/pii" where 123456789012 is the ID of the parent organization or project resource for this tag key. Tag value is expected to be the short name, for example "sensitive". See [Tag definitions](https://cloud.google.com/iam/docs/tags-access-control#definitions) for more details. For example: "123456789012/pii": "sensitive", "myProject/cost_center": "sales"',
-        ).optional(),
-      }).describe(
-        "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-      ).optional(),
       dataPolicies: z.array(z.object({
         name: z.unknown().describe(
           "Data policy resource name in the form of projects/project_id/locations/location_id/dataPolicies/data_policy_id.",
         ).optional(),
       })).describe(
         "Optional. Data policies attached to this field, used for field-level access control.",
-      ).optional(),
-      dataPolicyList: z.object({
-        dataPolicies: z.array(z.unknown()).describe(
-          "Contains a list of data policy options. At most 9 data policies are allowed per field.",
-        ).optional(),
-      }).describe(
-        "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
       ).optional(),
       defaultValueExpression: z.string().describe(
         "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -744,7 +716,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Whether the column generation is done asynchronously.",
           ).optional(),
           generationExpression: z.unknown().describe(
-            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generate the field.",
+            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generated the field.",
           ).optional(),
           stored: z.unknown().describe(
             "Optional. Whether the generated column is stored in the table.",
@@ -1133,13 +1105,7 @@ const StateSchema = z.object({
           names: z.unknown(),
         }),
         collation: z.string(),
-        dataGovernanceTagsInfo: z.object({
-          dataGovernanceTags: z.unknown(),
-        }),
         dataPolicies: z.array(z.unknown()),
-        dataPolicyList: z.object({
-          dataPolicies: z.unknown(),
-        }),
         defaultValueExpression: z.string(),
         description: z.string(),
         fields: z.array(z.unknown()),
@@ -1270,15 +1236,9 @@ const StateSchema = z.object({
         names: z.array(z.unknown()),
       }),
       collation: z.string(),
-      dataGovernanceTagsInfo: z.object({
-        dataGovernanceTags: z.record(z.string(), z.unknown()),
-      }),
       dataPolicies: z.array(z.object({
         name: z.unknown(),
       })),
-      dataPolicyList: z.object({
-        dataPolicies: z.array(z.unknown()),
-      }),
       defaultValueExpression: z.string(),
       description: z.string(),
       fields: z.array(z.record(z.string(), z.unknown())),
@@ -1687,22 +1647,8 @@ const InputsSchema = z.object({
         collation: z.string().describe(
           "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
         ).optional(),
-        dataGovernanceTagsInfo: z.object({
-          dataGovernanceTags: z.unknown().describe(
-            'Optional. The data governance tags added to this field are used for field-level access control. Only one data governance tag is currently supported on a field. Tag keys are globally unique. Tag key is expected to be in the namespaced format, for example "123456789012/pii" where 123456789012 is the ID of the parent organization or project resource for this tag key. Tag value is expected to be the short name, for example "sensitive". See [Tag definitions](https://cloud.google.com/iam/docs/tags-access-control#definitions) for more details. For example: "123456789012/pii": "sensitive", "myProject/cost_center": "sales"',
-          ).optional(),
-        }).describe(
-          "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-        ).optional(),
         dataPolicies: z.array(z.unknown()).describe(
           "Optional. Data policies attached to this field, used for field-level access control.",
-        ).optional(),
-        dataPolicyList: z.object({
-          dataPolicies: z.unknown().describe(
-            "Contains a list of data policy options. At most 9 data policies are allowed per field.",
-          ).optional(),
-        }).describe(
-          "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
         ).optional(),
         defaultValueExpression: z.string().describe(
           "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -1790,7 +1736,7 @@ const InputsSchema = z.object({
       "Optional. Format used to parse TIMESTAMP values. Supports C-style and SQL-style values.",
     ).optional(),
     timestampTargetPrecision: z.array(z.number().int()).describe(
-      "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
+      "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, and AVRO. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
     ).optional(),
   }).optional(),
   friendlyName: z.string().describe(
@@ -1924,26 +1870,12 @@ const InputsSchema = z.object({
       collation: z.string().describe(
         "Optional. Field collation can be set only when the type of field is STRING. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
       ).optional(),
-      dataGovernanceTagsInfo: z.object({
-        dataGovernanceTags: z.record(z.string(), z.unknown()).describe(
-          'Optional. The data governance tags added to this field are used for field-level access control. Only one data governance tag is currently supported on a field. Tag keys are globally unique. Tag key is expected to be in the namespaced format, for example "123456789012/pii" where 123456789012 is the ID of the parent organization or project resource for this tag key. Tag value is expected to be the short name, for example "sensitive". See [Tag definitions](https://cloud.google.com/iam/docs/tags-access-control#definitions) for more details. For example: "123456789012/pii": "sensitive", "myProject/cost_center": "sales"',
-        ).optional(),
-      }).describe(
-        "Optional. Specifies the data governance tags on this field. This field works with other column-level security fields as follows: - Precedence: If a data governance tag is attached to a column, it takes precedence over the policy tag attached to the column. However, if a data policy is attached to a column, it takes precedence over the data governance tag. - Patching behavior (how this field behaves during a `Table.patch` schema update): - Unset: If the `data_governance_tags_info` field is omitted from the update request, the existing tags on the column are preserved. - Empty Field: To clear data governance tags from a column, send the `data_governance_tags_info` field as an empty object. This will remove all tags from the column. - Updating tags: To replace existing tag, send the field with the new tag.",
-      ).optional(),
       dataPolicies: z.array(z.object({
         name: z.unknown().describe(
           "Data policy resource name in the form of projects/project_id/locations/location_id/dataPolicies/data_policy_id.",
         ).optional(),
       })).describe(
         "Optional. Data policies attached to this field, used for field-level access control.",
-      ).optional(),
-      dataPolicyList: z.object({
-        dataPolicies: z.array(z.unknown()).describe(
-          "Contains a list of data policy options. At most 9 data policies are allowed per field.",
-        ).optional(),
-      }).describe(
-        "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
       ).optional(),
       defaultValueExpression: z.string().describe(
         "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -1963,7 +1895,7 @@ const InputsSchema = z.object({
             "Optional. Whether the column generation is done asynchronously.",
           ).optional(),
           generationExpression: z.unknown().describe(
-            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generate the field.",
+            "Optional. The generation expression (e.g. AI.EMBED(...)) used to generated the field.",
           ).optional(),
           stored: z.unknown().describe(
             "Optional. Whether the generated column is stored in the table.",
@@ -2266,7 +2198,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Tables. Registered at `@swamp/gcp/bigquery/tables`. */
 export const model = {
   type: "@swamp/gcp/bigquery/tables",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2380,6 +2312,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2554,22 +2491,29 @@ export const model = {
     },
     update: {
       description: "Update tables attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific tables by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -2721,22 +2665,29 @@ export const model = {
     },
     sync: {
       description: "Sync tables state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific tables by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

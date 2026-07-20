@@ -340,22 +340,6 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Configuration for making inference requests against Vertex AI models.",
     ).optional(),
-    compression: z.object({
-      compressionAlgorithm: z.enum([
-        "COMPRESSION_ALGORITHM_UNSPECIFIED",
-        "ZLIB",
-      ]).describe("Required. Specifies the compression algorithm to use.")
-        .optional(),
-      compressionMode: z.enum([
-        "COMPRESSION_MODE_UNSPECIFIED",
-        "COMPRESS",
-        "DECOMPRESS",
-      ]).describe(
-        "Required. Specifies whether to compress or decompress the message.",
-      ).optional(),
-    }).describe(
-      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-    ).optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -397,7 +381,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Settings for validating messages published against a schema.")
     .optional(),
   tags: z.record(z.string(), z.string()).describe(
-    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
   topic: z.object({
     ingestionDataSourceSettings: z.object({
@@ -599,22 +583,6 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "Configuration for making inference requests against Vertex AI models.",
       ).optional(),
-      compression: z.object({
-        compressionAlgorithm: z.enum([
-          "COMPRESSION_ALGORITHM_UNSPECIFIED",
-          "ZLIB",
-        ]).describe("Required. Specifies the compression algorithm to use.")
-          .optional(),
-        compressionMode: z.enum([
-          "COMPRESSION_MODE_UNSPECIFIED",
-          "COMPRESS",
-          "DECOMPRESS",
-        ]).describe(
-          "Required. Specifies whether to compress or decompress the message.",
-        ).optional(),
-      }).describe(
-        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-      ).optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -660,7 +628,7 @@ const GlobalArgsSchema = z.object({
         "Output only. An output-only field indicating the state of the topic.",
       ).optional(),
     tags: z.record(z.string(), z.string()).describe(
-      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
+      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
     ).optional(),
   }).describe("A topic resource.").optional(),
   updateMask: z.string().describe(
@@ -731,10 +699,6 @@ const StateSchema = z.object({
       unstructuredInference: z.object({
         parameters: z.record(z.string(), z.unknown()),
       }),
-    }),
-    compression: z.object({
-      compressionAlgorithm: z.string(),
-      compressionMode: z.string(),
     }),
     disabled: z.boolean(),
     enabled: z.boolean(),
@@ -961,22 +925,6 @@ const InputsSchema = z.object({
     }).describe(
       "Configuration for making inference requests against Vertex AI models.",
     ).optional(),
-    compression: z.object({
-      compressionAlgorithm: z.enum([
-        "COMPRESSION_ALGORITHM_UNSPECIFIED",
-        "ZLIB",
-      ]).describe("Required. Specifies the compression algorithm to use.")
-        .optional(),
-      compressionMode: z.enum([
-        "COMPRESSION_MODE_UNSPECIFIED",
-        "COMPRESS",
-        "DECOMPRESS",
-      ]).describe(
-        "Required. Specifies whether to compress or decompress the message.",
-      ).optional(),
-    }).describe(
-      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-    ).optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -1018,7 +966,7 @@ const InputsSchema = z.object({
   }).describe("Settings for validating messages published against a schema.")
     .optional(),
   tags: z.record(z.string(), z.string()).describe(
-    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
   topic: z.object({
     ingestionDataSourceSettings: z.object({
@@ -1220,22 +1168,6 @@ const InputsSchema = z.object({
       }).describe(
         "Configuration for making inference requests against Vertex AI models.",
       ).optional(),
-      compression: z.object({
-        compressionAlgorithm: z.enum([
-          "COMPRESSION_ALGORITHM_UNSPECIFIED",
-          "ZLIB",
-        ]).describe("Required. Specifies the compression algorithm to use.")
-          .optional(),
-        compressionMode: z.enum([
-          "COMPRESSION_MODE_UNSPECIFIED",
-          "COMPRESS",
-          "DECOMPRESS",
-        ]).describe(
-          "Required. Specifies whether to compress or decompress the message.",
-        ).optional(),
-      }).describe(
-        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-      ).optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -1281,7 +1213,7 @@ const InputsSchema = z.object({
         "Output only. An output-only field indicating the state of the topic.",
       ).optional(),
     tags: z.record(z.string(), z.string()).describe(
-      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
+      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
     ).optional(),
   }).describe("A topic resource.").optional(),
   updateMask: z.string().describe(
@@ -1312,7 +1244,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Topics. Registered at `@swamp/gcp/pubsub/topics`. */
 export const model = {
   type: "@swamp/gcp/pubsub/topics",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1454,6 +1386,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1567,25 +1504,34 @@ export const model = {
     update: {
       description: "Update topics attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific topics by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1656,22 +1602,29 @@ export const model = {
     },
     sync: {
       description: "Sync topics state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific topics by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

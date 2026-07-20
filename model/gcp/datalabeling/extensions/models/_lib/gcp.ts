@@ -33,12 +33,15 @@ interface GcpMethodConfig {
 interface GcpCredentials {
   projectId: string;
   accessToken: string;
+  quotaProjectId?: string;
 }
 
 export interface ExplicitGcpCredentials {
   accessToken?: string;
   credentialsJson?: string;
   project?: string;
+  quotaProject?: string;
+  scopes?: string[];
 }
 
 let cachedCredentials: GcpCredentials | undefined;
@@ -94,20 +97,28 @@ async function ensureGcloudInstalled(): Promise<void> {
 async function getCredentials(
   explicit?: ExplicitGcpCredentials,
 ): Promise<GcpCredentials> {
+  const quotaProjectId = explicit?.quotaProject ||
+    Deno.env.get("GOOGLE_CLOUD_QUOTA_PROJECT")?.trim() || undefined;
+
   // Explicit credentials from global args take highest precedence (vault expressions).
   if (explicit?.accessToken) {
     const projectId = explicit.project ?? Deno.env.get("GCP_PROJECT")?.trim() ??
       Deno.env.get("GOOGLE_CLOUD_PROJECT")?.trim() ?? "";
-    return { projectId, accessToken: explicit.accessToken };
+    return { projectId, accessToken: explicit.accessToken, quotaProjectId };
   }
   if (explicit?.credentialsJson) {
     const creds = await activateServiceAccountFromJson(
       explicit.credentialsJson,
+      explicit.scopes,
     );
     if (explicit.project) {
-      return { projectId: explicit.project, accessToken: creds.accessToken };
+      return {
+        projectId: explicit.project,
+        accessToken: creds.accessToken,
+        quotaProjectId,
+      };
     }
-    return creds;
+    return { ...creds, quotaProjectId };
   }
 
   // Direct access token is always read fresh from the env (no caching).
@@ -118,7 +129,11 @@ async function getCredentials(
     const projectId = explicit?.project ??
       Deno.env.get("GCP_PROJECT")?.trim() ??
       Deno.env.get("GOOGLE_CLOUD_PROJECT")?.trim();
-    return { projectId: projectId ?? "", accessToken: directToken };
+    return {
+      projectId: projectId ?? "",
+      accessToken: directToken,
+      quotaProjectId,
+    };
   }
 
   if (cachedCredentials && (Date.now() - cachedAt) < TOKEN_TTL_MS) {
@@ -126,9 +141,10 @@ async function getCredentials(
       return {
         projectId: explicit.project,
         accessToken: cachedCredentials.accessToken,
+        quotaProjectId,
       };
     }
-    return cachedCredentials;
+    return { ...cachedCredentials, quotaProjectId };
   }
   cachedCredentials = undefined;
 
@@ -137,15 +153,19 @@ async function getCredentials(
   // Try inline service account JSON
   const credJson = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
   if (credJson) {
-    cachedCredentials = await activateServiceAccountFromJson(credJson);
+    cachedCredentials = await activateServiceAccountFromJson(
+      credJson,
+      explicit?.scopes,
+    );
     cachedAt = Date.now();
     if (explicit?.project) {
       return {
         projectId: explicit.project,
         accessToken: cachedCredentials.accessToken,
+        quotaProjectId,
       };
     }
-    return cachedCredentials;
+    return { ...cachedCredentials, quotaProjectId };
   }
 
   // Try file path to service account JSON
@@ -161,27 +181,32 @@ async function getCredentials(
         }`,
       );
     }
-    cachedCredentials = await activateServiceAccountFromJson(fileContent);
+    cachedCredentials = await activateServiceAccountFromJson(
+      fileContent,
+      explicit?.scopes,
+    );
     cachedAt = Date.now();
     if (explicit?.project) {
       return {
         projectId: explicit.project,
         accessToken: cachedCredentials.accessToken,
+        quotaProjectId,
       };
     }
-    return cachedCredentials;
+    return { ...cachedCredentials, quotaProjectId };
   }
 
   // Fall back to Application Default Credentials (gcloud auth)
-  cachedCredentials = await getApplicationDefaultCredentials();
+  cachedCredentials = await getApplicationDefaultCredentials(explicit?.scopes);
   cachedAt = Date.now();
   if (explicit?.project) {
     return {
       projectId: explicit.project,
       accessToken: cachedCredentials.accessToken,
+      quotaProjectId,
     };
   }
-  return cachedCredentials;
+  return { ...cachedCredentials, quotaProjectId };
 }
 
 /**
@@ -189,6 +214,7 @@ async function getCredentials(
  */
 async function activateServiceAccountFromJson(
   json: string,
+  scopes?: string[],
 ): Promise<GcpCredentials> {
   let creds: { client_email?: string; project_id?: string; type?: string };
   try {
@@ -232,8 +258,12 @@ async function activateServiceAccountFromJson(
     }
 
     // Get access token
+    const tokenArgs = ["auth", "print-access-token", creds.client_email];
+    if (scopes && scopes.length > 0) {
+      tokenArgs.push(`--scopes=${scopes.join(",")}`);
+    }
     const tokenCmd = new Deno.Command("gcloud", {
-      args: ["auth", "print-access-token", creds.client_email],
+      args: tokenArgs,
       stdout: "piped",
       stderr: "piped",
     });
@@ -261,10 +291,16 @@ async function activateServiceAccountFromJson(
  * Uses whatever account is currently authenticated via gcloud.
  * Works with: gcloud auth application-default login, compute metadata, etc.
  */
-async function getApplicationDefaultCredentials(): Promise<GcpCredentials> {
+async function getApplicationDefaultCredentials(
+  scopes?: string[],
+): Promise<GcpCredentials> {
   // Get access token from current gcloud auth
+  const adcArgs = ["auth", "application-default", "print-access-token"];
+  if (scopes && scopes.length > 0) {
+    adcArgs.push(`--scopes=${scopes.join(",")}`);
+  }
   const tokenCmd = new Deno.Command("gcloud", {
-    args: ["auth", "application-default", "print-access-token"],
+    args: adcArgs,
     stdout: "piped",
     stderr: "piped",
   });
@@ -390,8 +426,8 @@ export async function request(
     "Authorization": `Bearer ${creds.accessToken}`,
     "Content-Type": "application/json",
   };
-  if (creds.projectId) {
-    headers["x-goog-user-project"] = creds.projectId;
+  if (creds.quotaProjectId) {
+    headers["x-goog-user-project"] = creds.quotaProjectId;
   }
 
   const resp = await fetch(url, {
@@ -409,8 +445,8 @@ export async function request(
       "Authorization": `Bearer ${freshCreds.accessToken}`,
       "Content-Type": "application/json",
     };
-    if (freshCreds.projectId) {
-      retryHeaders["x-goog-user-project"] = freshCreds.projectId;
+    if (freshCreds.quotaProjectId) {
+      retryHeaders["x-goog-user-project"] = freshCreds.quotaProjectId;
     }
     return await fetch(url, {
       method,

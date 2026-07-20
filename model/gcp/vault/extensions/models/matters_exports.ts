@@ -161,7 +161,6 @@ const GlobalArgsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported text messages.").optional(),
     }).describe("The options for Calendar exports.").optional(),
     driveOptions: z.object({
@@ -176,7 +175,6 @@ const GlobalArgsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
     }).describe("The options for Gemini exports.").optional(),
     groupsOptions: z.object({
@@ -186,7 +184,6 @@ const GlobalArgsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
     }).describe("Options for Groups exports.").optional(),
     hangoutsChatOptions: z.object({
@@ -196,7 +193,6 @@ const GlobalArgsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
     }).describe("Options for Chat exports.").optional(),
     mailOptions: z.object({
@@ -206,7 +202,6 @@ const GlobalArgsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
       exportLinkedDriveFiles: z.boolean().describe(
         "Optional. To enable exporting linked Drive files, set to **true**.",
@@ -227,7 +222,6 @@ const GlobalArgsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported text messages.").optional(),
     }).describe("The options for Voice exports.").optional(),
   }).describe("Additional options for exports").optional(),
@@ -561,7 +555,6 @@ const InputsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported text messages.").optional(),
     }).describe("The options for Calendar exports.").optional(),
     driveOptions: z.object({
@@ -576,7 +569,6 @@ const InputsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
     }).describe("The options for Gemini exports.").optional(),
     groupsOptions: z.object({
@@ -586,7 +578,6 @@ const InputsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
     }).describe("Options for Groups exports.").optional(),
     hangoutsChatOptions: z.object({
@@ -596,7 +587,6 @@ const InputsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
     }).describe("Options for Chat exports.").optional(),
     mailOptions: z.object({
@@ -606,7 +596,6 @@ const InputsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported messages.").optional(),
       exportLinkedDriveFiles: z.boolean().describe(
         "Optional. To enable exporting linked Drive files, set to **true**.",
@@ -627,7 +616,6 @@ const InputsSchema = z.object({
         "PST",
         "ICS",
         "XML",
-        "JSON",
       ]).describe("The file format for exported text messages.").optional(),
     }).describe("The options for Voice exports.").optional(),
   }).describe("Additional options for exports").optional(),
@@ -845,7 +833,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Vault Matters.Exports. Registered at `@swamp/gcp/vault/matters-exports`. */
 export const model = {
   type: "@swamp/gcp/vault/matters-exports",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -934,6 +922,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1076,22 +1069,29 @@ export const model = {
     },
     sync: {
       description: "Sync exports state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific exports by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

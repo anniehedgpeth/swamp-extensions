@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud BigQuery Tabledata.
  *
- * List the content of a table in rows. # IAM Permissions Requires the `bigquery.tables.getData` permission on the table.
+ * List the content of a table in rows.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -151,7 +151,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Tabledata. Registered at `@swamp/gcp/bigquery/tabledata`. */
 export const model = {
   type: "@swamp/gcp/bigquery/tabledata",
-  version: "2026.07.19.2",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -248,13 +248,17 @@ export const model = {
       description: "Added: datasetId, tableId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description:
-        "List the content of a table in rows. # IAM Permissions Requires the `bigquery...",
+      description: "List the content of a table in rows.",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -299,22 +303,29 @@ export const model = {
     },
     sync: {
       description: "Sync tabledata state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific tabledata by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -176,9 +176,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe("The configuration used for encrypting data at rest.").optional(),
   issuancePolicy: z.object({
-    allowRequesterSpecifiedNotBeforeTime: z.boolean().describe(
-      "Optional. If set to true, allows requesters to specify the requested_not_before_time field when creating a Certificate. Certificates requested with this option enabled will have a 'not_before_time' equal to the value specified in the request. The 'not_after_time' will be adjusted to preserve the requested lifetime. The maximum time that a certificate can be backdated with these options is 48 hours in the past. This option cannot be set if backdate_duration is set.",
-    ).optional(),
     allowedIssuanceModes: z.object({
       allowConfigBasedIssuance: z.boolean().describe(
         "Optional. When true, allows callers to create Certificates by specifying a CertificateConfig.",
@@ -446,7 +443,6 @@ const StateSchema = z.object({
     cloudKmsKey: z.string(),
   }).optional(),
   issuancePolicy: z.object({
-    allowRequesterSpecifiedNotBeforeTime: z.boolean(),
     allowedIssuanceModes: z.object({
       allowConfigBasedIssuance: z.boolean(),
       allowCsrBasedIssuance: z.boolean(),
@@ -554,9 +550,6 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe("The configuration used for encrypting data at rest.").optional(),
   issuancePolicy: z.object({
-    allowRequesterSpecifiedNotBeforeTime: z.boolean().describe(
-      "Optional. If set to true, allows requesters to specify the requested_not_before_time field when creating a Certificate. Certificates requested with this option enabled will have a 'not_before_time' equal to the value specified in the request. The 'not_after_time' will be adjusted to preserve the requested lifetime. The maximum time that a certificate can be backdated with these options is 48 hours in the past. This option cannot be set if backdate_duration is set.",
-    ).optional(),
     allowedIssuanceModes: z.object({
       allowConfigBasedIssuance: z.boolean().describe(
         "Optional. When true, allows callers to create Certificates by specifying a CertificateConfig.",
@@ -842,7 +835,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Authority CaPools. Registered at `@swamp/gcp/privateca/capools`. */
 export const model = {
   type: "@swamp/gcp/privateca/capools",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -969,6 +962,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1082,22 +1080,29 @@ export const model = {
     },
     update: {
       description: "Update caPools attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific caPools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1185,22 +1190,29 @@ export const model = {
     },
     sync: {
       description: "Sync caPools state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific caPools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

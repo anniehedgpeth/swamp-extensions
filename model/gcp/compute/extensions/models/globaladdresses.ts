@@ -160,7 +160,7 @@ const GlobalArgsSchema = z.object({
     "An optional description of this resource. Provide this field when you create the resource.",
   ).optional(),
   ipCollection: z.string().describe(
-    "Reference to the source of IP addresses. It supports the following cases: - Case 1: PublicDelegatedPrefix (PDP) for BYOIP external IPv4 addresses. The PDP must support enhanced IPv4 allocations. - Case 2: Internal Range for global internal addresses. Use one of the following formats to specify the resource: For a Public Delegated Prefix: - Full resource URL:https://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp - Partial URL: - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name For an Internal Range: - Full URL:https://networkconnectivity.googleapis.com/v1/projects/project/locations/global/internalRanges/internal-range - Partial URL:projects/project/locations/global/internalRanges/internal-range",
+    "Reference to the source of external IPv4 addresses, like a PublicDelegatedPrefix (PDP) for BYOIP. The PDP must support enhanced IPv4 allocations. Use one of the following formats to specify a PDP when reserving an external IPv4 address using BYOIP. - Full resource URL, as inhttps://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - Partial URL, as in - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name",
   ).optional(),
   ipVersion: z.enum(["IPV4", "IPV6", "UNSPECIFIED_VERSION"]).describe(
     "The IP version that will be used by this address. Valid options areIPV4 or IPV6.",
@@ -253,7 +253,7 @@ const InputsSchema = z.object({
     "An optional description of this resource. Provide this field when you create the resource.",
   ).optional(),
   ipCollection: z.string().describe(
-    "Reference to the source of IP addresses. It supports the following cases: - Case 1: PublicDelegatedPrefix (PDP) for BYOIP external IPv4 addresses. The PDP must support enhanced IPv4 allocations. - Case 2: Internal Range for global internal addresses. Use one of the following formats to specify the resource: For a Public Delegated Prefix: - Full resource URL:https://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp - Partial URL: - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name For an Internal Range: - Full URL:https://networkconnectivity.googleapis.com/v1/projects/project/locations/global/internalRanges/internal-range - Partial URL:projects/project/locations/global/internalRanges/internal-range",
+    "Reference to the source of external IPv4 addresses, like a PublicDelegatedPrefix (PDP) for BYOIP. The PDP must support enhanced IPv4 allocations. Use one of the following formats to specify a PDP when reserving an external IPv4 address using BYOIP. - Full resource URL, as inhttps://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - Partial URL, as in - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name",
   ).optional(),
   ipVersion: z.enum(["IPV4", "IPV6", "UNSPECIFIED_VERSION"]).describe(
     "The IP version that will be used by this address. Valid options areIPV4 or IPV6.",
@@ -328,7 +328,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine GlobalAddresses. Registered at `@swamp/gcp/compute/globaladdresses`. */
 export const model = {
   type: "@swamp/gcp/compute/globaladdresses",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -432,6 +432,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -576,22 +581,29 @@ export const model = {
     },
     sync: {
       description: "Sync globalAddresses state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific globalAddresses by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

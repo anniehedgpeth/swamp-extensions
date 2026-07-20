@@ -23,9 +23,9 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud App Lifecycle Manager RolloutKinds.
+ * Swamp extension model for Google Cloud SaaS Runtime RolloutKinds.
  *
- * An object that describes various settings of Rollout execution. Includes built-in and customizable policies.
+ * An object that describes various settings of Rollout execution. Includes built-in policies across GCP and GDC, and customizable policies.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -207,20 +207,6 @@ const GlobalArgsSchema = z.object({
   unitKind: z.string().describe(
     "Required. Immutable. UnitKind that this rollout kind corresponds to. Rollouts stemming from this rollout kind will target the units of this unit kind. In other words, this defines the population of target units to be upgraded by rollouts.",
   ).optional(),
-  unitUpdatePacing: z.object({
-    maxConcurrentOperationsCount: z.number().int().describe(
-      "Optional. An absolute cap on concurrent units operations. If both percent and count are provided, the system uses the MINIMUM (most restrictive).",
-    ).optional(),
-    maxConcurrentOperationsPercent: z.object({
-      value: z.string().describe(
-        "The decimal value, as a string. The string representation consists of an optional sign, `+` (`U+002B`) or `-` (`U+002D`), followed by a sequence of zero or more decimal digits (\"the integer\"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as `0`. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character `e` (`U+0065`) or `E` (`U+0045`) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided `+` sign (`+2.5` -> `2.5`). - Replacing a zero-length integer value with `0` (`.5` -> `0.5`). - Coercing the exponent character to upper-case, with explicit sign (`2.5e8` -> `2.5E+8`). - Removing an explicitly-provided zero exponent (`2.5E0` -> `2.5`). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: `2.5E-1`  `0.25`). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the `.` character is supported to divide the integer and the fraction; `,` **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '' | [Sign] Significand [Exponent]; Sign = '+' | '-'; Significand = Digits '.' | [Digits] '.' Digits; Exponent = ('e' | 'E') [Sign] Digits; Digits = { '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if precision would be lost. Services **should** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if the service receives a value outside of the supported range.",
-      ).optional(),
-    }).describe(
-      "A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java's [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python's [decimal.Decimal](https://docs.python.org/3/library/decimal.html).",
-    ).optional(),
-  }).describe(
-    "UnitUpdatePacing defines the policy for the maximum number of unit operations that can run for a rollout in parallel in a single region.",
-  ).optional(),
   updateUnitKindStrategy: z.enum([
     "UPDATE_UNIT_KIND_STRATEGY_UNSPECIFIED",
     "UPDATE_UNIT_KIND_STRATEGY_ON_START",
@@ -253,12 +239,6 @@ const StateSchema = z.object({
   uid: z.string().optional(),
   unitFilter: z.string().optional(),
   unitKind: z.string().optional(),
-  unitUpdatePacing: z.object({
-    maxConcurrentOperationsCount: z.number(),
-    maxConcurrentOperationsPercent: z.object({
-      value: z.string(),
-    }),
-  }).optional(),
   updateTime: z.string().optional(),
   updateUnitKindStrategy: z.string().optional(),
 }).passthrough();
@@ -298,20 +278,6 @@ const InputsSchema = z.object({
   unitKind: z.string().describe(
     "Required. Immutable. UnitKind that this rollout kind corresponds to. Rollouts stemming from this rollout kind will target the units of this unit kind. In other words, this defines the population of target units to be upgraded by rollouts.",
   ).optional(),
-  unitUpdatePacing: z.object({
-    maxConcurrentOperationsCount: z.number().int().describe(
-      "Optional. An absolute cap on concurrent units operations. If both percent and count are provided, the system uses the MINIMUM (most restrictive).",
-    ).optional(),
-    maxConcurrentOperationsPercent: z.object({
-      value: z.string().describe(
-        "The decimal value, as a string. The string representation consists of an optional sign, `+` (`U+002B`) or `-` (`U+002D`), followed by a sequence of zero or more decimal digits (\"the integer\"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as `0`. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character `e` (`U+0065`) or `E` (`U+0045`) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided `+` sign (`+2.5` -> `2.5`). - Replacing a zero-length integer value with `0` (`.5` -> `0.5`). - Coercing the exponent character to upper-case, with explicit sign (`2.5e8` -> `2.5E+8`). - Removing an explicitly-provided zero exponent (`2.5E0` -> `2.5`). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: `2.5E-1`  `0.25`). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the `.` character is supported to divide the integer and the fraction; `,` **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '' | [Sign] Significand [Exponent]; Sign = '+' | '-'; Significand = Digits '.' | [Digits] '.' Digits; Exponent = ('e' | 'E') [Sign] Digits; Digits = { '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if precision would be lost. Services **should** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if the service receives a value outside of the supported range.",
-      ).optional(),
-    }).describe(
-      "A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java's [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python's [decimal.Decimal](https://docs.python.org/3/library/decimal.html).",
-    ).optional(),
-  }).describe(
-    "UnitUpdatePacing defines the policy for the maximum number of unit operations that can run for a rollout in parallel in a single region.",
-  ).optional(),
   updateUnitKindStrategy: z.enum([
     "UPDATE_UNIT_KIND_STRATEGY_UNSPECIFIED",
     "UPDATE_UNIT_KIND_STRATEGY_ON_START",
@@ -350,10 +316,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud App Lifecycle Manager RolloutKinds. Registered at `@swamp/gcp/saasservicemgmt/rolloutkinds`. */
+/** Swamp extension model for Google Cloud SaaS Runtime RolloutKinds. Registered at `@swamp/gcp/saasservicemgmt/rolloutkinds`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/rolloutkinds",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -480,6 +446,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: unitUpdatePacing",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { unitUpdatePacing: _unitUpdatePacing, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -519,9 +493,6 @@ export const model = {
         }
         if (g["unitFilter"] !== undefined) body["unitFilter"] = g["unitFilter"];
         if (g["unitKind"] !== undefined) body["unitKind"] = g["unitKind"];
-        if (g["unitUpdatePacing"] !== undefined) {
-          body["unitUpdatePacing"] = g["unitUpdatePacing"];
-        }
         if (g["updateUnitKindStrategy"] !== undefined) {
           body["updateUnitKindStrategy"] = g["updateUnitKindStrategy"];
         }
@@ -601,22 +572,29 @@ export const model = {
     },
     update: {
       description: "Update rolloutKinds attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific rolloutKinds by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -642,9 +620,6 @@ export const model = {
             g["rolloutOrchestrationStrategy"];
         }
         if (g["unitFilter"] !== undefined) body["unitFilter"] = g["unitFilter"];
-        if (g["unitUpdatePacing"] !== undefined) {
-          body["unitUpdatePacing"] = g["unitUpdatePacing"];
-        }
         if (g["updateUnitKindStrategy"] !== undefined) {
           body["updateUnitKindStrategy"] = g["updateUnitKindStrategy"];
         }
@@ -712,22 +687,29 @@ export const model = {
     },
     sync: {
       description: "Sync rolloutKinds state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific rolloutKinds by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

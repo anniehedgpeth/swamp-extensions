@@ -185,29 +185,6 @@ const GlobalArgsSchema = z.object({
   bigqueryProfile: z.object({}).describe(
     "Profile for connecting to a BigQuery destination.",
   ).optional(),
-  dataverseProfile: z.object({
-    environmentUrl: z.string().describe(
-      "Required. Environment URL of the Microsoft Dataverse instance. Example: `.crm.dynamics.com`",
-    ).optional(),
-    oauthClientCredentials: z.object({
-      clientId: z.string().describe(
-        "Required. Client ID for OAuth Client Credentials.",
-      ).optional(),
-      clientSecret: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
-    tenantId: z.string().describe(
-      "Required. Tenant id of the Microsoft Dataverse instance.",
-    ).optional(),
-  }).describe("Profile for connecting to a Dataverse source.").optional(),
   displayName: z.string().describe("Required. Display name.").optional(),
   forwardSshConnectivity: z.object({
     hostname: z.string().describe("Required. Hostname for the SSH tunnel.")
@@ -444,27 +421,6 @@ const GlobalArgsSchema = z.object({
       "Required. A reference to a private connection resource. Format: `projects/{project}/locations/{location}/privateConnections/{name}`",
     ).optional(),
   }).describe("Private Connectivity").optional(),
-  salesforceMarketingCloudProfile: z.object({
-    oauthClientCredentials: z.object({
-      clientId: z.string().describe(
-        "Required. Client ID for OAuth Client Credentials.",
-      ).optional(),
-      clientSecret: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
-    subdomain: z.string().describe(
-      "Required. Subdomain for the Salesforce Marketing Cloud connection. Example: if your specific endpoint is `https://{your-specific-subdomain}.rest.marketingcloudapis.com/`, the subdomain is `{your-specific-subdomain}`. Must be 1-63 characters, start and end with an alphanumeric character, and contain only lowercase letters, numbers, and hyphens (-).",
-    ).optional(),
-  }).describe("Profile for connecting to a Salesforce Marketing Cloud source.")
-    .optional(),
   salesforceProfile: z.object({
     domain: z.string().describe(
       "Required. Domain endpoint for the Salesforce connection.",
@@ -496,44 +452,8 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Required. Username for the Salesforce connection.",
       ).optional(),
-    }).describe(
-      "Deprecated: Salesforce is retiring Username-Password authentication. Use `Oauth2ClientCredentials` instead.",
-    ).optional(),
+    }).describe("Username-password credentials.").optional(),
   }).describe("Profile for connecting to a Salesforce source.").optional(),
-  serviceNowProfile: z.object({
-    instance: z.string().describe(
-      "Required. The instance of the ServiceNow account. This is the `` part of the URL `https://.service-now.com`.",
-    ).optional(),
-    oauthClientCredentials: z.object({
-      clientId: z.string().describe(
-        "Required. Client ID for OAuth Client Credentials.",
-      ).optional(),
-      clientSecret: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
-    userPasswordCredentials: z.object({
-      password: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-      username: z.string().describe("Required. Username for the connection.")
-        .optional(),
-    }).describe("User-password credentials.").optional(),
-  }).describe("Profile for connecting to a ServiceNow source.").optional(),
   spannerProfile: z.object({
     database: z.string().describe(
       "Required. Immutable. Cloud Spanner database resource. This field is immutable. Must be in the format: projects/{project}/instances/{instance}/databases/{database_id}.",
@@ -600,17 +520,6 @@ const GlobalArgsSchema = z.object({
 const StateSchema = z.object({
   bigqueryProfile: z.object({}).optional(),
   createTime: z.string().optional(),
-  dataverseProfile: z.object({
-    environmentUrl: z.string(),
-    oauthClientCredentials: z.object({
-      clientId: z.string(),
-      clientSecret: z.object({
-        rawValue: z.string(),
-        secretVersion: z.string(),
-      }),
-    }),
-    tenantId: z.string(),
-  }).optional(),
   displayName: z.string().optional(),
   forwardSshConnectivity: z.object({
     hostname: z.string(),
@@ -715,16 +624,6 @@ const StateSchema = z.object({
   privateConnectivity: z.object({
     privateConnection: z.string(),
   }).optional(),
-  salesforceMarketingCloudProfile: z.object({
-    oauthClientCredentials: z.object({
-      clientId: z.string(),
-      clientSecret: z.object({
-        rawValue: z.string(),
-        secretVersion: z.string(),
-      }),
-    }),
-    subdomain: z.string(),
-  }).optional(),
   salesforceProfile: z.object({
     domain: z.string(),
     oauth2ClientCredentials: z.object({
@@ -742,23 +641,6 @@ const StateSchema = z.object({
   }).optional(),
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
-  serviceNowProfile: z.object({
-    instance: z.string(),
-    oauthClientCredentials: z.object({
-      clientId: z.string(),
-      clientSecret: z.object({
-        rawValue: z.string(),
-        secretVersion: z.string(),
-      }),
-    }),
-    userPasswordCredentials: z.object({
-      password: z.object({
-        rawValue: z.string(),
-        secretVersion: z.string(),
-      }),
-      username: z.string(),
-    }),
-  }).optional(),
   spannerProfile: z.object({
     database: z.string(),
     host: z.string(),
@@ -794,29 +676,6 @@ const InputsSchema = z.object({
   bigqueryProfile: z.object({}).describe(
     "Profile for connecting to a BigQuery destination.",
   ).optional(),
-  dataverseProfile: z.object({
-    environmentUrl: z.string().describe(
-      "Required. Environment URL of the Microsoft Dataverse instance. Example: `.crm.dynamics.com`",
-    ).optional(),
-    oauthClientCredentials: z.object({
-      clientId: z.string().describe(
-        "Required. Client ID for OAuth Client Credentials.",
-      ).optional(),
-      clientSecret: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
-    tenantId: z.string().describe(
-      "Required. Tenant id of the Microsoft Dataverse instance.",
-    ).optional(),
-  }).describe("Profile for connecting to a Dataverse source.").optional(),
   displayName: z.string().describe("Required. Display name.").optional(),
   forwardSshConnectivity: z.object({
     hostname: z.string().describe("Required. Hostname for the SSH tunnel.")
@@ -1053,27 +912,6 @@ const InputsSchema = z.object({
       "Required. A reference to a private connection resource. Format: `projects/{project}/locations/{location}/privateConnections/{name}`",
     ).optional(),
   }).describe("Private Connectivity").optional(),
-  salesforceMarketingCloudProfile: z.object({
-    oauthClientCredentials: z.object({
-      clientId: z.string().describe(
-        "Required. Client ID for OAuth Client Credentials.",
-      ).optional(),
-      clientSecret: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
-    subdomain: z.string().describe(
-      "Required. Subdomain for the Salesforce Marketing Cloud connection. Example: if your specific endpoint is `https://{your-specific-subdomain}.rest.marketingcloudapis.com/`, the subdomain is `{your-specific-subdomain}`. Must be 1-63 characters, start and end with an alphanumeric character, and contain only lowercase letters, numbers, and hyphens (-).",
-    ).optional(),
-  }).describe("Profile for connecting to a Salesforce Marketing Cloud source.")
-    .optional(),
   salesforceProfile: z.object({
     domain: z.string().describe(
       "Required. Domain endpoint for the Salesforce connection.",
@@ -1105,44 +943,8 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Required. Username for the Salesforce connection.",
       ).optional(),
-    }).describe(
-      "Deprecated: Salesforce is retiring Username-Password authentication. Use `Oauth2ClientCredentials` instead.",
-    ).optional(),
+    }).describe("Username-password credentials.").optional(),
   }).describe("Profile for connecting to a Salesforce source.").optional(),
-  serviceNowProfile: z.object({
-    instance: z.string().describe(
-      "Required. The instance of the ServiceNow account. This is the `` part of the URL `https://.service-now.com`.",
-    ).optional(),
-    oauthClientCredentials: z.object({
-      clientId: z.string().describe(
-        "Required. Client ID for OAuth Client Credentials.",
-      ).optional(),
-      clientSecret: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
-    userPasswordCredentials: z.object({
-      password: z.object({
-        rawValue: z.string().describe(
-          "Optional. Input only. The actual raw value of the secret as plain text.",
-        ).optional(),
-        secretVersion: z.string().describe(
-          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
-        ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-      username: z.string().describe("Required. Username for the connection.")
-        .optional(),
-    }).describe("User-password credentials.").optional(),
-  }).describe("Profile for connecting to a ServiceNow source.").optional(),
   spannerProfile: z.object({
     database: z.string().describe(
       "Required. Immutable. Cloud Spanner database resource. This field is immutable. Must be in the format: projects/{project}/instances/{instance}/databases/{database_id}.",
@@ -1229,7 +1031,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream ConnectionProfiles. Registered at `@swamp/gcp/datastream/connectionprofiles`. */
 export const model = {
   type: "@swamp/gcp/datastream/connectionprofiles",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1342,6 +1144,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description:
+        "Removed: dataverseProfile, salesforceMarketingCloudProfile, serviceNowProfile",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          dataverseProfile: _dataverseProfile,
+          salesforceMarketingCloudProfile: _salesforceMarketingCloudProfile,
+          serviceNowProfile: _serviceNowProfile,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1370,9 +1186,6 @@ export const model = {
         if (g["bigqueryProfile"] !== undefined) {
           body["bigqueryProfile"] = g["bigqueryProfile"];
         }
-        if (g["dataverseProfile"] !== undefined) {
-          body["dataverseProfile"] = g["dataverseProfile"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
@@ -1396,15 +1209,8 @@ export const model = {
         if (g["privateConnectivity"] !== undefined) {
           body["privateConnectivity"] = g["privateConnectivity"];
         }
-        if (g["salesforceMarketingCloudProfile"] !== undefined) {
-          body["salesforceMarketingCloudProfile"] =
-            g["salesforceMarketingCloudProfile"];
-        }
         if (g["salesforceProfile"] !== undefined) {
           body["salesforceProfile"] = g["salesforceProfile"];
-        }
-        if (g["serviceNowProfile"] !== undefined) {
-          body["serviceNowProfile"] = g["serviceNowProfile"];
         }
         if (g["spannerProfile"] !== undefined) {
           body["spannerProfile"] = g["spannerProfile"];
@@ -1494,22 +1300,29 @@ export const model = {
     },
     update: {
       description: "Update connectionProfiles attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific connectionProfiles by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1525,9 +1338,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["bigqueryProfile"] !== undefined) {
           body["bigqueryProfile"] = g["bigqueryProfile"];
-        }
-        if (g["dataverseProfile"] !== undefined) {
-          body["dataverseProfile"] = g["dataverseProfile"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
@@ -1552,15 +1362,8 @@ export const model = {
         if (g["privateConnectivity"] !== undefined) {
           body["privateConnectivity"] = g["privateConnectivity"];
         }
-        if (g["salesforceMarketingCloudProfile"] !== undefined) {
-          body["salesforceMarketingCloudProfile"] =
-            g["salesforceMarketingCloudProfile"];
-        }
         if (g["salesforceProfile"] !== undefined) {
           body["salesforceProfile"] = g["salesforceProfile"];
-        }
-        if (g["serviceNowProfile"] !== undefined) {
-          body["serviceNowProfile"] = g["serviceNowProfile"];
         }
         if (g["spannerProfile"] !== undefined) {
           body["spannerProfile"] = g["spannerProfile"];
@@ -1636,22 +1439,29 @@ export const model = {
     },
     sync: {
       description: "Sync connectionProfiles state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific connectionProfiles by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1759,7 +1569,6 @@ export const model = {
         oracleRdbms: z.any().optional(),
         postgresqlRdbms: z.any().optional(),
         salesforceOrg: z.any().optional(),
-        sourceCatalog: z.any().optional(),
         spannerDatabase: z.any().optional(),
         sqlServerRdbms: z.any().optional(),
       }),
@@ -1798,9 +1607,6 @@ export const model = {
         }
         if (args["salesforceOrg"] !== undefined) {
           body["salesforceOrg"] = args["salesforceOrg"];
-        }
-        if (args["sourceCatalog"] !== undefined) {
-          body["sourceCatalog"] = args["sourceCatalog"];
         }
         if (args["spannerDatabase"] !== undefined) {
           body["spannerDatabase"] = args["spannerDatabase"];

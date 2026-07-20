@@ -37,6 +37,7 @@ import { z } from "npm:zod@4.3.6";
 import {
   createResource,
   deleteResource,
+  type ExplicitGcpCredentials,
   getProjectId,
   isResourceNotFoundError,
   listResources,
@@ -154,6 +155,18 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
   ),
+  accessToken: z.string().meta({ sensitive: true }).describe(
+    "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).describe(
+    "GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  project: z.string().describe(
+    "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
+  ).optional(),
+  scopes: z.string().describe(
+    "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
+  ).optional(),
   cloudKmsKey: z.string().describe(
     "Optional. Cloud KMS resource name for the CMEK encryption key.",
   ).optional(),
@@ -464,7 +477,7 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "Attributes are additional options that can be associated with each event property. For more information, see",
       ).optional(),
-      children: z.array(z.string()).describe(
+      children: z.array(z.record(z.string(), z.unknown())).describe(
         "Child parameters nested within this parameter. This field only applies to protobuf parameters",
       ).optional(),
       containsLargeData: z.boolean().describe(
@@ -946,6 +959,9 @@ const GlobalArgsSchema = z.object({
   newIntegration: z.string().describe(
     "Set this flag to true, if draft version is to be created for a brand new integration. False, if the request is for an existing integration. For backward compatibility reasons, even if this flag is set to `false` and no existing integration is found, a new draft integration will still be created.",
   ).optional(),
+  parent: z.string().describe(
+    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
+  ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -1090,7 +1106,7 @@ const StateSchema = z.object({
         searchable: z.string(),
         taskVisibility: z.array(z.unknown()),
       }),
-      children: z.array(z.string()),
+      children: z.array(z.record(z.string(), z.unknown())),
       containsLargeData: z.boolean(),
       dataType: z.string(),
       defaultValue: z.object({
@@ -1483,6 +1499,10 @@ type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
   name: z.string().optional(),
+  accessToken: z.string().meta({ sensitive: true }).optional(),
+  credentialsJson: z.string().meta({ sensitive: true }).optional(),
+  project: z.string().optional(),
+  scopes: z.string().optional(),
   cloudKmsKey: z.string().describe(
     "Optional. Cloud KMS resource name for the CMEK encryption key.",
   ).optional(),
@@ -1793,7 +1813,7 @@ const InputsSchema = z.object({
       }).describe(
         "Attributes are additional options that can be associated with each event property. For more information, see",
       ).optional(),
-      children: z.array(z.string()).describe(
+      children: z.array(z.record(z.string(), z.unknown())).describe(
         "Child parameters nested within this parameter. This field only applies to protobuf parameters",
       ).optional(),
       containsLargeData: z.boolean().describe(
@@ -2275,15 +2295,38 @@ const InputsSchema = z.object({
   newIntegration: z.string().describe(
     "Set this flag to true, if draft version is to be created for a brand new integration. False, if the request is for an existing integration. For backward compatibility reasons, even if this flag is set to `false` and no existing integration is found, a new draft integration will still be created.",
   ).optional(),
+  parent: z.string().describe(
+    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
+  ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
 });
 
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "scopes",
+]);
+
+function _buildGcpCredentials(
+  g: Record<string, unknown>,
+): ExplicitGcpCredentials {
+  return {
+    accessToken: g.accessToken as string | undefined,
+    credentialsJson: g.credentialsJson as string | undefined,
+    project: g.project as string | undefined,
+    scopes: typeof g.scopes === "string"
+      ? g.scopes.split(",").map((s: string) => s.trim())
+      : undefined,
+  };
+}
+
 /** Swamp extension model for Google Cloud Application Integration Integrations.Versions. Registered at `@swamp/gcp/integrations/integrations-versions`. */
 export const model = {
   type: "@swamp/gcp/integrations/integrations-versions",
-  version: "2026.06.08.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2335,9 +2378,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
-      {
+    {
       toVersion: "2026.06.08.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
+      description:
+        "Added: accessToken, credentialsJson, project, scopes, parent",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -2361,11 +2410,10 @@ export const model = {
       }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["cloudKmsKey"] !== undefined) {
           body["cloudKmsKey"] = g["cloudKmsKey"];
@@ -2418,14 +2466,16 @@ export const model = {
         }
         if (g["userLabel"] !== undefined) body["userLabel"] = g["userLabel"];
         if (g["createSampleIntegrations"] !== undefined) {
-          body["createSampleIntegrations"] = g["createSampleIntegrations"];
+          params["createSampleIntegrations"] = String(
+            g["createSampleIntegrations"],
+          );
         }
         if (g["newIntegration"] !== undefined) {
-          body["newIntegration"] = g["newIntegration"];
+          params["newIntegration"] = String(g["newIntegration"]);
         }
-        if (g["name"] !== undefined) {
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["parent"]),
             String(g["name"]),
           );
         }
@@ -2445,13 +2495,12 @@ export const model = {
           {
             listConfig: LIST_CONFIG,
             listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
+              "parent": String(body["parent"] ?? g["parent"] ?? ""),
             },
             matchField: "name",
             matchValue: String(g["name"] ?? ""),
           },
+          credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
@@ -2471,17 +2520,19 @@ export const model = {
         identifier: z.string().describe("The name of the versions"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
-        const projectId = await getProjectId();
-        const params: Record<string, string> = { project: projectId };
         const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+          String(g["parent"] ?? ""),
           args.identifier,
         );
         const result = await readResource(
           BASE_URL,
           GET_CONFIG,
           params,
+          credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? args.identifier).replace(
           /[\/\\]/g,
@@ -2498,31 +2549,46 @@ export const model = {
     update: {
       description: "Update versions attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific versions by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-          existing["name"]?.toString() ?? g["name"]?.toString() ?? "",
-        );
+        const existingName = existing["name"]?.toString();
+        if (existingName && existingName.includes("/")) {
+          params["name"] = existingName;
+        } else {
+          params["name"] = buildResourceName(
+            String(g["parent"] ?? ""),
+            existingName ?? g["name"]?.toString() ?? "",
+          );
+        }
         const body: Record<string, unknown> = {};
         if (g["cloudKmsKey"] !== undefined) {
           body["cloudKmsKey"] = g["cloudKmsKey"];
@@ -2574,6 +2640,10 @@ export const model = {
           body["triggerConfigs"] = g["triggerConfigs"];
         }
         if (g["userLabel"] !== undefined) body["userLabel"] = g["userLabel"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||
@@ -2595,6 +2665,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
+          credentials,
         ) as StateData;
         const handle = await context.writeResource(
           "state",
@@ -2611,16 +2682,18 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+          String(g["parent"] ?? ""),
           args.identifier,
         );
         const { existed } = await deleteResource(
           BASE_URL,
           DELETE_CONFIG,
           params,
+          credentials,
         );
         const instanceName = (g.name?.toString() ?? args.identifier).replace(
           /[\/\\]/g,
@@ -2637,35 +2710,49 @@ export const model = {
     },
     sync: {
       description: "Sync versions state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific versions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const shortName = existing.name?.toString() ?? g["name"]?.toString();
-          if (!shortName) throw new Error("No identifier found");
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            shortName,
-          );
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              String(g["parent"] ?? ""),
+              shortName,
+            );
+          }
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,
             params,
+            credentials,
           ) as StateData;
           const handle = await context.writeResource(
             "state",
@@ -2706,11 +2793,10 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         if (args["fieldMask"] !== undefined) {
           params["fieldMask"] = String(args["fieldMask"]);
         }
@@ -2729,6 +2815,7 @@ export const model = {
           params,
           "integrationVersions",
           (args.maxPages as number | undefined) ?? 10,
+          credentials,
         );
         const dataHandles = [];
         for (let i = 0; i < items.length; i++) {
@@ -2752,11 +2839,12 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) {
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["parent"]),
             String(g["name"]),
           );
         }
@@ -2776,6 +2864,10 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
         );
         return { result };
       },
@@ -2785,11 +2877,12 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) {
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["parent"]),
             String(g["name"]),
           );
         }
@@ -2808,6 +2901,10 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
         );
         return { result };
       },
@@ -2819,11 +2916,12 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) {
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["parent"]),
             String(g["name"]),
           );
         }
@@ -2843,6 +2941,10 @@ export const model = {
           },
           params,
           body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
         );
         return { result };
       },
@@ -2861,11 +2963,12 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) {
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["parent"]),
             String(g["name"]),
           );
         }
@@ -2901,6 +3004,10 @@ export const model = {
           },
           params,
           body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
         );
         return { result };
       },
@@ -2910,11 +3017,12 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) {
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["parent"]),
             String(g["name"]),
           );
         }
@@ -2930,6 +3038,10 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
         );
         return { result };
       },
@@ -2942,11 +3054,10 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
-        const projectId = await getProjectId();
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (args["content"] !== undefined) body["content"] = args["content"];
         if (args["fileFormat"] !== undefined) {
@@ -2966,6 +3077,10 @@ export const model = {
           },
           params,
           body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
         );
         return { result };
       },

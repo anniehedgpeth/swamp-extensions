@@ -237,7 +237,6 @@ const GlobalArgsSchema = z.object({
     "CREATIVE_AUTHORING_SOURCE_REMBRAND",
     "CREATIVE_AUTHORING_SOURCE_TRACKTO_STUDIO",
     "CREATIVE_AUTHORING_SOURCE_BORNLOGIC",
-    "CREATIVE_AUTHORING_SOURCE_BEGEN_AI",
   ]).describe(
     "Source application where creative was authored. Presently, only DBM authored creatives will have this field set. Applicable to all creative types.",
   ).optional(),
@@ -1871,7 +1870,6 @@ const InputsSchema = z.object({
     "CREATIVE_AUTHORING_SOURCE_REMBRAND",
     "CREATIVE_AUTHORING_SOURCE_TRACKTO_STUDIO",
     "CREATIVE_AUTHORING_SOURCE_BORNLOGIC",
-    "CREATIVE_AUTHORING_SOURCE_BEGEN_AI",
   ]).describe(
     "Source application where creative was authored. Presently, only DBM authored creatives will have this field set. Applicable to all creative types.",
   ).optional(),
@@ -3090,7 +3088,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Creatives. Registered at `@swamp/gcp/dfareporting/creatives`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/creatives",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3204,6 +3202,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -3450,22 +3453,26 @@ export const model = {
     },
     update: {
       description: "Update creatives attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific creatives by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.id?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = (g.id?.toString() ?? args.identifier ?? "current")
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -3656,22 +3663,26 @@ export const model = {
     },
     sync: {
       description: "Sync creatives state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific creatives by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.id?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = (g.id?.toString() ?? args.identifier ?? "current")
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

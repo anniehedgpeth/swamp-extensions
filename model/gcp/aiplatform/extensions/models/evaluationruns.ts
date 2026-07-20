@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Agent Platform EvaluationRuns.
+ * Swamp extension model for Google Cloud Vertex AI EvaluationRuns.
  *
  * EvaluationRun is a resource that represents a single evaluation run, which includes a set of prompts, model responses, evaluation configuration and the resulting metrics.
  *
@@ -250,33 +250,17 @@ const GlobalArgsSchema = z.object({
         presencePenalty: z.number().describe(
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
-        responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
-        })).describe(
-          "Optional. New response format field for the model to configure output formatting and delivery.",
-        ).optional(),
         responseJsonSchema: z.string().describe(
-          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`. Deprecated: Use `response_format` instead.",
+          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`.",
         ).optional(),
         responseLogprobs: z.boolean().describe(
           "Optional. If set to true, the log probabilities of the output tokens are returned. Log probabilities are the logarithm of the probability of a token appearing in the output. A higher log probability means the token is more likely to be generated. This can be useful for analyzing the model's confidence in its own output and for debugging.",
         ).optional(),
         responseMimeType: z.string().describe(
-          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. Deprecated: Use `response_format` instead.",
+          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined.",
         ).optional(),
         responseModalities: z.array(
-          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO", "VIDEO"]),
+          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO"]),
         ).describe(
           "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
         ).optional(),
@@ -444,30 +428,6 @@ const GlobalArgsSchema = z.object({
         "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
       ).optional(),
     }).describe("The autorater config used for the evaluation run.").optional(),
-    cloudLoggingConfig: z.object({
-      project: z.string().describe(
-        "Optional. Google Cloud project to write logs to. Defaults to the request project.",
-      ).optional(),
-      resourceLabels: z.record(z.string(), z.string()).describe(
-        "Optional. MonitoredResource labels to associate the log with. The backend will automatically inject project and location.",
-      ).optional(),
-      resourceType: z.string().describe(
-        'Optional. MonitoredResource type. Defaults to "global" if unspecified.',
-      ).optional(),
-      tracingContext: z.object({
-        conversationId: z.string().describe(
-          "Optional. Unique identifier for a conversation (session thread), used to store and correlate messages within a conversation. The value corresponds to the `gen_ai.conversation.id` field in the the OpenTelemetry GenAI attributes.",
-        ).optional(),
-        spanId: z.string().describe(
-          "Optional. ID of the Cloud Trace span associated with the current operation in which the log is being written. e.g., `7a2190356c3fc94b`. If a span is being evaluated, this field should be populated.",
-        ).optional(),
-        traceId: z.string().describe(
-          "Optional. Trace ID being written to Cloud Trace in association with this log entry. e.g., `12345`, the numeric ID from the resource name. If a trace or span is being evaluated, this field should be populated.",
-        ).optional(),
-      }).describe("Tracing context for Observability correlation.").optional(),
-    }).describe(
-      "Specifies configuration for exporting evaluation results to Cloud Logging.",
-    ).optional(),
     datasetCustomMetrics: z.array(z.object({
       aggregationFunction: z.string().describe(
         'Required. The Python code string containing the aggregation function. Expected function signature: `def aggregate(instances: list[dict[str, Any]]) -> dict[str, float]:` The `instances` argument is a list of dictionaries, where each dictionary represents a single evaluation result item. The structure of each dictionary corresponds to the fields in the `EvaluationResult` message. This includes: - `"request"`: Contains the original input data and model inputs (from `EvaluationResult.EvaluationRequest`). - `"candidate_results"`: Contains the results of any instance-level metrics (from `EvaluationResult.CandidateResults`). Example of a single item in the `instances` list: { "request": { "prompt": {"text": "What is the capital of France?"}, "golden_response": {"text": "Paris"}, "candidate_responses": [{"candidate": "model-v1", "text": "Paris"}] }, "candidate_results": [ {"metric": "exact_match", "score": 1.0}, {"metric": "bleu", "score": 0.9} ] }',
@@ -477,16 +437,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe(
       "Optional. Specifications for custom dataset-level aggregations.",
-    ).optional(),
-    lossAnalysisConfig: z.array(z.object({
-      candidate: z.string().describe(
-        'Required. The candidate model/agent to analyze (e.g., "gemini-3.0-pro"). This targets the specific CandidateResult within the EvaluationResult.',
-      ).optional(),
-      metric: z.string().describe(
-        'Required. The metric to analyze (e.g., "tool_use_quality"). This filters the EvaluationItems in the EvalSet to only those where EvaluationResult.metric matches this value.',
-      ).optional(),
-    })).describe(
-      "Optional. Specifications for loss analysis. Each config can be specified for one metric.",
     ).optional(),
     metrics: z.array(z.object({
       computationBasedMetricSpec: z.object({
@@ -596,9 +546,6 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           predefinedRubricGenerationSpec: z.unknown().describe(
             "The spec for a pre-defined metric.",
-          ).optional(),
-          resultParserConfig: z.unknown().describe(
-            "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
           ).optional(),
           rubricGenerationSpec: z.unknown().describe(
             "Specification for how rubrics should be generated.",
@@ -729,7 +676,7 @@ const GlobalArgsSchema = z.object({
       }).describe("Specification for a metric that is based on rubrics.")
         .optional(),
     })).describe(
-      "Optional. The metrics to be calculated in the evaluation run. Required when analysis_configs is not set.",
+      "Required. The metrics to be calculated in the evaluation run.",
     ).optional(),
     outputConfig: z.object({
       bigqueryDestination: z.object({
@@ -867,17 +814,14 @@ const GlobalArgsSchema = z.object({
             presencePenalty: z.unknown().describe(
               "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
             ).optional(),
-            responseFormat: z.unknown().describe(
-              "Optional. New response format field for the model to configure output formatting and delivery.",
-            ).optional(),
             responseJsonSchema: z.unknown().describe(
-              "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`. Deprecated: Use `response_format` instead.",
+              "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`.",
             ).optional(),
             responseLogprobs: z.unknown().describe(
               "Optional. If set to true, the log probabilities of the output tokens are returned. Log probabilities are the logarithm of the probability of a token appearing in the output. A higher log probability means the token is more likely to be generated. This can be useful for analyzing the model's confidence in its own output and for debugging.",
             ).optional(),
             responseMimeType: z.unknown().describe(
-              "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. Deprecated: Use `response_format` instead.",
+              "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined.",
             ).optional(),
             responseModalities: z.unknown().describe(
               "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
@@ -919,31 +863,6 @@ const GlobalArgsSchema = z.object({
           "Used for multi-turn agent scraping. Contains configuration for a user simulator that uses an LLM to generate messages on behalf of the user.",
         ).optional(),
       }).describe("Configuration for Agent Run.").optional(),
-      agents: z.record(
-        z.string(),
-        z.object({
-          agentId: z.string().describe(
-            "Required. Unique identifier of the agent. This ID is used to refer to this agent, e.g., in AgentEvent.author, or in the `sub_agents` field. It must be unique within the `agents` map.",
-          ).optional(),
-          agentType: z.string().describe(
-            'Optional. The type or class of the agent (e.g., "LlmAgent", "RouterAgent", "ToolUseAgent"). Useful for the autorater to understand the expected behavior of the agent.',
-          ).optional(),
-          description: z.string().describe(
-            "Optional. A high-level description of the agent's role and responsibilities. Critical for evaluating if the agent is routing tasks correctly.",
-          ).optional(),
-          instruction: z.string().describe(
-            "Optional. Provides instructions for the LLM model, guiding the agent's behavior. Can be static or dynamic. Dynamic instructions can contain placeholders like {variable_name} that will be resolved at runtime using the `AgentEvent.state_delta` field.",
-          ).optional(),
-          subAgents: z.array(z.unknown()).describe(
-            "Optional. The list of valid agent IDs that this agent can delegate to. This defines the directed edges in the multi-agent system graph topology.",
-          ).optional(),
-          tools: z.array(z.unknown()).describe(
-            "Optional. The list of tools available to this agent.",
-          ).optional(),
-        }),
-      ).describe(
-        "Optional. Contains the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-      ).optional(),
       generationConfig: z.object({
         audioTimestamp: z.boolean().describe(
           "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
@@ -1008,33 +927,17 @@ const GlobalArgsSchema = z.object({
         presencePenalty: z.number().describe(
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
-        responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
-        })).describe(
-          "Optional. New response format field for the model to configure output formatting and delivery.",
-        ).optional(),
         responseJsonSchema: z.string().describe(
-          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`. Deprecated: Use `response_format` instead.",
+          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`.",
         ).optional(),
         responseLogprobs: z.boolean().describe(
           "Optional. If set to true, the log probabilities of the output tokens are returned. Log probabilities are the logarithm of the probability of a token appearing in the output. A higher log probability means the token is more likely to be generated. This can be useful for analyzing the model's confidence in its own output and for debugging.",
         ).optional(),
         responseMimeType: z.string().describe(
-          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. Deprecated: Use `response_format` instead.",
+          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined.",
         ).optional(),
         responseModalities: z.array(
-          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO", "VIDEO"]),
+          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO"]),
         ).describe(
           "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
         ).optional(),
@@ -1201,17 +1104,6 @@ const GlobalArgsSchema = z.object({
       model: z.string().describe(
         "Optional. The fully qualified name of the publisher model or endpoint to use. Anthropic and Llama third-party models are also supported through Model Garden. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Third-party model formats: `projects/{project}/locations/{location}/publishers/anthropic/models/{model}` or `projects/{project}/locations/{location}/publishers/llama/models/{model}` Endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
       ).optional(),
-      parallelism: z.number().int().describe(
-        "Optional. The parallelism of the evaluation run for the inference step. If not specified, the default parallelism will be used.",
-      ).optional(),
-      promptTemplate: z.object({
-        gcsUri: z.string().describe(
-          'Prompt template stored in Cloud Storage. Format: "gs://my-bucket/file-name.txt".',
-        ).optional(),
-        promptTemplate: z.string().describe(
-          'Inline prompt template. Template variables should be in the format "{var_name}". Example: "Translate the following from {source_lang} to {target_lang}: {text}"',
-        ).optional(),
-      }).describe("Prompt template used for inference.").optional(),
     }),
   ).describe(
     "Optional. The candidate to inference config map for the evaluation run. The candidate can be up to 128 characters long and can consist of any UTF-8 characters.",
@@ -1275,12 +1167,6 @@ const StateSchema = z.object({
         maxOutputTokens: z.number(),
         mediaResolution: z.string(),
         presencePenalty: z.number(),
-        responseFormat: z.array(z.object({
-          audio: z.unknown(),
-          image: z.unknown(),
-          text: z.unknown(),
-          video: z.unknown(),
-        })),
         responseJsonSchema: z.string(),
         responseLogprobs: z.boolean(),
         responseMimeType: z.string(),
@@ -1343,23 +1229,9 @@ const StateSchema = z.object({
       }),
       sampleCount: z.number(),
     }),
-    cloudLoggingConfig: z.object({
-      project: z.string(),
-      resourceLabels: z.record(z.string(), z.unknown()),
-      resourceType: z.string(),
-      tracingContext: z.object({
-        conversationId: z.string(),
-        spanId: z.string(),
-        traceId: z.string(),
-      }),
-    }),
     datasetCustomMetrics: z.array(z.object({
       aggregationFunction: z.string(),
       displayName: z.string(),
-    })),
-    lossAnalysisConfig: z.array(z.object({
-      candidate: z.string(),
-      metric: z.string(),
     })),
     metrics: z.array(z.object({
       computationBasedMetricSpec: z.object({
@@ -1407,7 +1279,6 @@ const StateSchema = z.object({
           judgeAutoraterConfig: z.unknown(),
           metricPromptTemplate: z.unknown(),
           predefinedRubricGenerationSpec: z.unknown(),
-          resultParserConfig: z.unknown(),
           rubricGenerationSpec: z.unknown(),
           rubricGroupKey: z.unknown(),
           systemInstruction: z.unknown(),
@@ -1632,33 +1503,17 @@ const InputsSchema = z.object({
         presencePenalty: z.number().describe(
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
-        responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
-        })).describe(
-          "Optional. New response format field for the model to configure output formatting and delivery.",
-        ).optional(),
         responseJsonSchema: z.string().describe(
-          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`. Deprecated: Use `response_format` instead.",
+          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`.",
         ).optional(),
         responseLogprobs: z.boolean().describe(
           "Optional. If set to true, the log probabilities of the output tokens are returned. Log probabilities are the logarithm of the probability of a token appearing in the output. A higher log probability means the token is more likely to be generated. This can be useful for analyzing the model's confidence in its own output and for debugging.",
         ).optional(),
         responseMimeType: z.string().describe(
-          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. Deprecated: Use `response_format` instead.",
+          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined.",
         ).optional(),
         responseModalities: z.array(
-          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO", "VIDEO"]),
+          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO"]),
         ).describe(
           "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
         ).optional(),
@@ -1826,30 +1681,6 @@ const InputsSchema = z.object({
         "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
       ).optional(),
     }).describe("The autorater config used for the evaluation run.").optional(),
-    cloudLoggingConfig: z.object({
-      project: z.string().describe(
-        "Optional. Google Cloud project to write logs to. Defaults to the request project.",
-      ).optional(),
-      resourceLabels: z.record(z.string(), z.string()).describe(
-        "Optional. MonitoredResource labels to associate the log with. The backend will automatically inject project and location.",
-      ).optional(),
-      resourceType: z.string().describe(
-        'Optional. MonitoredResource type. Defaults to "global" if unspecified.',
-      ).optional(),
-      tracingContext: z.object({
-        conversationId: z.string().describe(
-          "Optional. Unique identifier for a conversation (session thread), used to store and correlate messages within a conversation. The value corresponds to the `gen_ai.conversation.id` field in the the OpenTelemetry GenAI attributes.",
-        ).optional(),
-        spanId: z.string().describe(
-          "Optional. ID of the Cloud Trace span associated with the current operation in which the log is being written. e.g., `7a2190356c3fc94b`. If a span is being evaluated, this field should be populated.",
-        ).optional(),
-        traceId: z.string().describe(
-          "Optional. Trace ID being written to Cloud Trace in association with this log entry. e.g., `12345`, the numeric ID from the resource name. If a trace or span is being evaluated, this field should be populated.",
-        ).optional(),
-      }).describe("Tracing context for Observability correlation.").optional(),
-    }).describe(
-      "Specifies configuration for exporting evaluation results to Cloud Logging.",
-    ).optional(),
     datasetCustomMetrics: z.array(z.object({
       aggregationFunction: z.string().describe(
         'Required. The Python code string containing the aggregation function. Expected function signature: `def aggregate(instances: list[dict[str, Any]]) -> dict[str, float]:` The `instances` argument is a list of dictionaries, where each dictionary represents a single evaluation result item. The structure of each dictionary corresponds to the fields in the `EvaluationResult` message. This includes: - `"request"`: Contains the original input data and model inputs (from `EvaluationResult.EvaluationRequest`). - `"candidate_results"`: Contains the results of any instance-level metrics (from `EvaluationResult.CandidateResults`). Example of a single item in the `instances` list: { "request": { "prompt": {"text": "What is the capital of France?"}, "golden_response": {"text": "Paris"}, "candidate_responses": [{"candidate": "model-v1", "text": "Paris"}] }, "candidate_results": [ {"metric": "exact_match", "score": 1.0}, {"metric": "bleu", "score": 0.9} ] }',
@@ -1859,16 +1690,6 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe(
       "Optional. Specifications for custom dataset-level aggregations.",
-    ).optional(),
-    lossAnalysisConfig: z.array(z.object({
-      candidate: z.string().describe(
-        'Required. The candidate model/agent to analyze (e.g., "gemini-3.0-pro"). This targets the specific CandidateResult within the EvaluationResult.',
-      ).optional(),
-      metric: z.string().describe(
-        'Required. The metric to analyze (e.g., "tool_use_quality"). This filters the EvaluationItems in the EvalSet to only those where EvaluationResult.metric matches this value.',
-      ).optional(),
-    })).describe(
-      "Optional. Specifications for loss analysis. Each config can be specified for one metric.",
     ).optional(),
     metrics: z.array(z.object({
       computationBasedMetricSpec: z.object({
@@ -1978,9 +1799,6 @@ const InputsSchema = z.object({
           ).optional(),
           predefinedRubricGenerationSpec: z.unknown().describe(
             "The spec for a pre-defined metric.",
-          ).optional(),
-          resultParserConfig: z.unknown().describe(
-            "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
           ).optional(),
           rubricGenerationSpec: z.unknown().describe(
             "Specification for how rubrics should be generated.",
@@ -2111,7 +1929,7 @@ const InputsSchema = z.object({
       }).describe("Specification for a metric that is based on rubrics.")
         .optional(),
     })).describe(
-      "Optional. The metrics to be calculated in the evaluation run. Required when analysis_configs is not set.",
+      "Required. The metrics to be calculated in the evaluation run.",
     ).optional(),
     outputConfig: z.object({
       bigqueryDestination: z.object({
@@ -2249,17 +2067,14 @@ const InputsSchema = z.object({
             presencePenalty: z.unknown().describe(
               "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
             ).optional(),
-            responseFormat: z.unknown().describe(
-              "Optional. New response format field for the model to configure output formatting and delivery.",
-            ).optional(),
             responseJsonSchema: z.unknown().describe(
-              "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`. Deprecated: Use `response_format` instead.",
+              "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`.",
             ).optional(),
             responseLogprobs: z.unknown().describe(
               "Optional. If set to true, the log probabilities of the output tokens are returned. Log probabilities are the logarithm of the probability of a token appearing in the output. A higher log probability means the token is more likely to be generated. This can be useful for analyzing the model's confidence in its own output and for debugging.",
             ).optional(),
             responseMimeType: z.unknown().describe(
-              "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. Deprecated: Use `response_format` instead.",
+              "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined.",
             ).optional(),
             responseModalities: z.unknown().describe(
               "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
@@ -2301,31 +2116,6 @@ const InputsSchema = z.object({
           "Used for multi-turn agent scraping. Contains configuration for a user simulator that uses an LLM to generate messages on behalf of the user.",
         ).optional(),
       }).describe("Configuration for Agent Run.").optional(),
-      agents: z.record(
-        z.string(),
-        z.object({
-          agentId: z.string().describe(
-            "Required. Unique identifier of the agent. This ID is used to refer to this agent, e.g., in AgentEvent.author, or in the `sub_agents` field. It must be unique within the `agents` map.",
-          ).optional(),
-          agentType: z.string().describe(
-            'Optional. The type or class of the agent (e.g., "LlmAgent", "RouterAgent", "ToolUseAgent"). Useful for the autorater to understand the expected behavior of the agent.',
-          ).optional(),
-          description: z.string().describe(
-            "Optional. A high-level description of the agent's role and responsibilities. Critical for evaluating if the agent is routing tasks correctly.",
-          ).optional(),
-          instruction: z.string().describe(
-            "Optional. Provides instructions for the LLM model, guiding the agent's behavior. Can be static or dynamic. Dynamic instructions can contain placeholders like {variable_name} that will be resolved at runtime using the `AgentEvent.state_delta` field.",
-          ).optional(),
-          subAgents: z.array(z.unknown()).describe(
-            "Optional. The list of valid agent IDs that this agent can delegate to. This defines the directed edges in the multi-agent system graph topology.",
-          ).optional(),
-          tools: z.array(z.unknown()).describe(
-            "Optional. The list of tools available to this agent.",
-          ).optional(),
-        }),
-      ).describe(
-        "Optional. Contains the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-      ).optional(),
       generationConfig: z.object({
         audioTimestamp: z.boolean().describe(
           "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
@@ -2390,33 +2180,17 @@ const InputsSchema = z.object({
         presencePenalty: z.number().describe(
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
-        responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
-        })).describe(
-          "Optional. New response format field for the model to configure output formatting and delivery.",
-        ).optional(),
         responseJsonSchema: z.string().describe(
-          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`. Deprecated: Use `response_format` instead.",
+          "Optional. When this field is set, response_schema must be omitted and response_mime_type must be set to `application/json`.",
         ).optional(),
         responseLogprobs: z.boolean().describe(
           "Optional. If set to true, the log probabilities of the output tokens are returned. Log probabilities are the logarithm of the probability of a token appearing in the output. A higher log probability means the token is more likely to be generated. This can be useful for analyzing the model's confidence in its own output and for debugging.",
         ).optional(),
         responseMimeType: z.string().describe(
-          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. Deprecated: Use `response_format` instead.",
+          "Optional. The IANA standard MIME type of the response. The model will generate output that conforms to this MIME type. Supported values include 'text/plain' (default) and 'application/json'. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined.",
         ).optional(),
         responseModalities: z.array(
-          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO", "VIDEO"]),
+          z.enum(["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "AUDIO"]),
         ).describe(
           "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
         ).optional(),
@@ -2583,17 +2357,6 @@ const InputsSchema = z.object({
       model: z.string().describe(
         "Optional. The fully qualified name of the publisher model or endpoint to use. Anthropic and Llama third-party models are also supported through Model Garden. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Third-party model formats: `projects/{project}/locations/{location}/publishers/anthropic/models/{model}` or `projects/{project}/locations/{location}/publishers/llama/models/{model}` Endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
       ).optional(),
-      parallelism: z.number().int().describe(
-        "Optional. The parallelism of the evaluation run for the inference step. If not specified, the default parallelism will be used.",
-      ).optional(),
-      promptTemplate: z.object({
-        gcsUri: z.string().describe(
-          'Prompt template stored in Cloud Storage. Format: "gs://my-bucket/file-name.txt".',
-        ).optional(),
-        promptTemplate: z.string().describe(
-          'Inline prompt template. Template variables should be in the format "{var_name}". Example: "Translate the following from {source_lang} to {target_lang}: {text}"',
-        ).optional(),
-      }).describe("Prompt template used for inference.").optional(),
     }),
   ).describe(
     "Optional. The candidate to inference config map for the evaluation run. The candidate can be up to 128 characters long and can consist of any UTF-8 characters.",
@@ -2632,10 +2395,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Agent Platform EvaluationRuns. Registered at `@swamp/gcp/aiplatform/evaluationruns`. */
+/** Swamp extension model for Google Cloud Vertex AI EvaluationRuns. Registered at `@swamp/gcp/aiplatform/evaluationruns`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationruns",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2789,6 +2552,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2947,22 +2715,29 @@ export const model = {
     },
     sync: {
       description: "Sync evaluationRuns state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific evaluationRuns by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

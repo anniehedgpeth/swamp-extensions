@@ -151,9 +151,6 @@ const LIST_CONFIG = {
     "readTime": {
       "location": "query",
     },
-    "recursive": {
-      "location": "query",
-    },
     "showMissing": {
       "location": "query",
     },
@@ -413,7 +410,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.Documents. Registered at `@swamp/gcp/firestore/databases-documents`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-documents",
-  version: "2026.07.19.2",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -555,6 +552,11 @@ export const model = {
       description: "Added: collectionId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -599,22 +601,29 @@ export const model = {
     },
     update: {
       description: "Update documents attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific documents by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -680,22 +689,29 @@ export const model = {
     },
     sync: {
       description: "Sync documents state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific documents by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -746,9 +762,6 @@ export const model = {
         readTime: z.string().describe(
           "Perform the read at the provided time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.",
         ).optional(),
-        recursive: z.boolean().describe(
-          "Optional. If the list should recursively include all documents nested under the parent at any level. If the request specifies a `collection_id`, then the list will include all nested documents in the collection under the parent. This is optional, and when not provided, Firestore will only list documents nested immediately under the parent. Requests with `recursive` may not specify `show_missing`.",
-        ).optional(),
         showMissing: z.boolean().describe(
           "If the list should show missing documents. A document is missing if it does not exist, but there are sub-documents nested underneath it. When true, such missing documents will be returned with a key but will not have fields, `create_time`, or `update_time` set. Requests with `show_missing` may not specify `where` or `order_by`.",
         ).optional(),
@@ -779,9 +792,6 @@ export const model = {
         }
         if (args["readTime"] !== undefined) {
           params["readTime"] = String(args["readTime"]);
-        }
-        if (args["recursive"] !== undefined) {
-          params["recursive"] = String(args["recursive"]);
         }
         if (args["showMissing"] !== undefined) {
           params["showMissing"] = String(args["showMissing"]);
@@ -1075,7 +1085,6 @@ export const model = {
     execute_pipeline: {
       description: "execute pipeline",
       arguments: z.object({
-        autoCommitTransaction: z.any().optional(),
         newTransaction: z.any().optional(),
         readTime: z.any().optional(),
         structuredPipeline: z.any().optional(),
@@ -1101,9 +1110,6 @@ export const model = {
         params["database"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (args["autoCommitTransaction"] !== undefined) {
-          body["autoCommitTransaction"] = args["autoCommitTransaction"];
-        }
         if (args["newTransaction"] !== undefined) {
           body["newTransaction"] = args["newTransaction"];
         }
@@ -1202,7 +1208,6 @@ export const model = {
               "pageToken": { "location": "query" },
               "parent": { "location": "path", "required": true },
               "readTime": { "location": "query" },
-              "recursive": { "location": "query" },
               "showMissing": { "location": "query" },
               "transaction": { "location": "query" },
             },

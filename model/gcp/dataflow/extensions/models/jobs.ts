@@ -353,9 +353,6 @@ const GlobalArgsSchema = z.object({
           "The resource to read the package from. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket} bucket.storage.googleapis.com/",
         ).optional(),
         name: z.unknown().describe("The name of the package.").optional(),
-        sha256: z.unknown().describe(
-          "Optional. The hex-encoded SHA256 checksum of the package. If the checksum is provided, the worker will verify the checksum of the package before using it. If the checksum does not match, the worker will fail to start.",
-        ).optional(),
       })).describe("Packages to be installed on workers.").optional(),
       poolArgs: z.record(z.string(), z.string()).describe(
         "Extra arguments for this worker pool.",
@@ -798,12 +795,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   runtimeUpdatableParams: z.object({
     acceptableBacklogDuration: z.string().describe(
-      "Optional. Deprecated: Use `latency_tier` instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.",
+      "Optional. Deprecated: Use `autoscaling_tier` instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.",
     ).optional(),
     autoscalingTier: z.string().describe(
-      'Optional. Deprecated: Use `latency_tier` instead. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".',
-    ).optional(),
-    latencyTier: z.string().describe(
       'Optional. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".',
     ).optional(),
     maxNumWorkers: z.number().int().describe(
@@ -941,7 +935,6 @@ const StateSchema = z.object({
       packages: z.array(z.object({
         location: z.unknown(),
         name: z.unknown(),
-        sha256: z.unknown(),
       })),
       poolArgs: z.record(z.string(), z.unknown()),
       sdkHarnessContainerImages: z.array(z.object({
@@ -1107,7 +1100,6 @@ const StateSchema = z.object({
   runtimeUpdatableParams: z.object({
     acceptableBacklogDuration: z.string(),
     autoscalingTier: z.string(),
-    latencyTier: z.string(),
     maxNumWorkers: z.number(),
     minNumWorkers: z.number(),
     workerUtilizationHint: z.number(),
@@ -1326,9 +1318,6 @@ const InputsSchema = z.object({
           "The resource to read the package from. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket} bucket.storage.googleapis.com/",
         ).optional(),
         name: z.unknown().describe("The name of the package.").optional(),
-        sha256: z.unknown().describe(
-          "Optional. The hex-encoded SHA256 checksum of the package. If the checksum is provided, the worker will verify the checksum of the package before using it. If the checksum does not match, the worker will fail to start.",
-        ).optional(),
       })).describe("Packages to be installed on workers.").optional(),
       poolArgs: z.record(z.string(), z.string()).describe(
         "Extra arguments for this worker pool.",
@@ -1771,12 +1760,9 @@ const InputsSchema = z.object({
   ).optional(),
   runtimeUpdatableParams: z.object({
     acceptableBacklogDuration: z.string().describe(
-      "Optional. Deprecated: Use `latency_tier` instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.",
+      "Optional. Deprecated: Use `autoscaling_tier` instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.",
     ).optional(),
     autoscalingTier: z.string().describe(
-      'Optional. Deprecated: Use `latency_tier` instead. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".',
-    ).optional(),
-    latencyTier: z.string().describe(
       'Optional. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".',
     ).optional(),
     maxNumWorkers: z.number().int().describe(
@@ -1881,7 +1867,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataflow Jobs. Registered at `@swamp/gcp/dataflow/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataflow/jobs",
-  version: "2026.07.19.2",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2020,6 +2006,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2166,22 +2157,29 @@ export const model = {
     },
     update: {
       description: "Update jobs attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific jobs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -2272,22 +2270,29 @@ export const model = {
     },
     sync: {
       description: "Sync jobs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific jobs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

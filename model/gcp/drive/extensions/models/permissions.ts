@@ -253,6 +253,11 @@ const GlobalArgsSchema = z.object({
   allowFileDiscovery: z.boolean().describe(
     "Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type `domain` or `anyone`.",
   ).optional(),
+  domain: z.string().describe("The domain to which this permission refers.")
+    .optional(),
+  emailAddress: z.string().describe(
+    "The email address of the user or group to which this permission refers.",
+  ).optional(),
   expirationTime: z.string().describe(
     "The time at which this permission will expire (RFC 3339 date-time). Expiration times have the following restrictions: - They can only be set on user and group permissions - The time must be in the future - The time cannot be more than a year in the future",
   ).optional(),
@@ -332,6 +337,11 @@ const InputsSchema = z.object({
   allowFileDiscovery: z.boolean().describe(
     "Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type `domain` or `anyone`.",
   ).optional(),
+  domain: z.string().describe("The domain to which this permission refers.")
+    .optional(),
+  emailAddress: z.string().describe(
+    "The email address of the user or group to which this permission refers.",
+  ).optional(),
   expirationTime: z.string().describe(
     "The time at which this permission will expire (RFC 3339 date-time). Expiration times have the following restrictions: - They can only be set on user and group permissions - The time must be in the future - The time cannot be more than a year in the future",
   ).optional(),
@@ -394,7 +404,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Permissions. Registered at `@swamp/gcp/drive/permissions`. */
 export const model = {
   type: "@swamp/gcp/drive/permissions",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -523,6 +533,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Added: domain, emailAddress",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -548,6 +563,10 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["allowFileDiscovery"] !== undefined) {
           body["allowFileDiscovery"] = g["allowFileDiscovery"];
+        }
+        if (g["domain"] !== undefined) body["domain"] = g["domain"];
+        if (g["emailAddress"] !== undefined) {
+          body["emailAddress"] = g["emailAddress"];
         }
         if (g["expirationTime"] !== undefined) {
           body["expirationTime"] = g["expirationTime"];
@@ -640,22 +659,29 @@ export const model = {
     },
     update: {
       description: "Update permissions attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific permissions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -667,6 +693,10 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["allowFileDiscovery"] !== undefined) {
           body["allowFileDiscovery"] = g["allowFileDiscovery"];
+        }
+        if (g["domain"] !== undefined) body["domain"] = g["domain"];
+        if (g["emailAddress"] !== undefined) {
+          body["emailAddress"] = g["emailAddress"];
         }
         if (g["expirationTime"] !== undefined) {
           body["expirationTime"] = g["expirationTime"];
@@ -739,22 +769,29 @@ export const model = {
     },
     sync: {
       description: "Sync permissions state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific permissions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -801,7 +838,7 @@ export const model = {
           "Specifies which additional view's permissions to include in the response. Only `published` is supported.",
         ).optional(),
         pageSize: z.number().describe(
-          "The maximum number of permissions to return. The service may return fewer than this value. If unspecified, at most 100 permissions will be returned for shared drives, and the entire list of permissions for non-shared drives. The maximum value is 100; values above 100 will be coerced to 100.",
+          "The maximum number of permissions to return per page. When not set for files in a shared drive, at most 100 results will be returned. When not set for files that are not in a shared drive, the entire list will be returned.",
         ).optional(),
         supportsAllDrives: z.boolean().describe(
           "Whether the requesting application supports both My Drives and shared drives.",

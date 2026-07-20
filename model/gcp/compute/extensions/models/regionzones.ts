@@ -113,41 +113,6 @@ const StateSchema = z.object({
   kind: z.string().optional(),
   name: z.string(),
   region: z.string().optional(),
-  resourceStatus: z.object({
-    upcomingMaintenances: z.array(z.object({
-      subType: z.string(),
-      targetResource: z.string(),
-      type: z.string(),
-      windowEndTime: z.object({
-        day: z.number(),
-        hours: z.number(),
-        minutes: z.number(),
-        month: z.number(),
-        nanos: z.number(),
-        seconds: z.number(),
-        timeZone: z.object({
-          id: z.unknown(),
-          version: z.unknown(),
-        }),
-        utcOffset: z.string(),
-        year: z.number(),
-      }),
-      windowStartTime: z.object({
-        day: z.number(),
-        hours: z.number(),
-        minutes: z.number(),
-        month: z.number(),
-        nanos: z.number(),
-        seconds: z.number(),
-        timeZone: z.object({
-          id: z.unknown(),
-          version: z.unknown(),
-        }),
-        utcOffset: z.string(),
-        year: z.number(),
-      }),
-    })),
-  }).optional(),
   selfLink: z.string().optional(),
   status: z.string().optional(),
   supportsPzs: z.boolean().optional(),
@@ -187,7 +152,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionZones. Registered at `@swamp/gcp/compute/regionzones`. */
 export const model = {
   type: "@swamp/gcp/compute/regionzones",
-  version: "2026.07.19.2",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -284,6 +249,11 @@ export const model = {
       description: "Added: region",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -330,22 +300,29 @@ export const model = {
     },
     sync: {
       description: "Sync regionZones state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific regionZones by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

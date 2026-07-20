@@ -169,11 +169,8 @@ const GlobalArgsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
-      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
-      "WHATSAPP",
-      "INSTAGRAM",
     ]).describe("Optional. The type of the channel profile.").optional(),
     disableBargeInControl: z.boolean().describe(
       "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -181,20 +178,6 @@ const GlobalArgsSchema = z.object({
     disableDtmf: z.boolean().describe(
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
-    instagramConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      instagramAccountId: z.string().describe(
-        "Required. The Instagram Account ID.",
-      ).optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -235,84 +218,14 @@ const GlobalArgsSchema = z.object({
         "Optional. The title of the web widget.",
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
-    whatsappConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      phoneNumber: z.string().describe(
-        "Optional. The phone number in E.164 format.",
-      ).optional(),
-      phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
-        .optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-      wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
-        .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
   }).describe(
     "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
   ).optional(),
   displayName: z.string().describe("Required. Display name of the deployment.")
     .optional(),
-  experimentConfig: z.object({
-    versionRelease: z.object({
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "PENDING",
-        "RUNNING",
-        "DONE",
-        "EXPIRED",
-      ]).describe("Optional. State of the version release.").optional(),
-      trafficAllocations: z.array(z.object({
-        appVersion: z.string().describe(
-          "Optional. App version of the traffic allocation. Format: `projects/{project}/locations/{location}/apps/{app}/versions/{version}`",
-        ).optional(),
-        id: z.string().describe(
-          "Optional. Id of the traffic allocation. Free format string, up to 128 characters.",
-        ).optional(),
-        trafficPercentage: z.number().int().describe(
-          "Optional. Traffic percentage of the traffic allocation. Must be between 0 and 100.",
-        ).optional(),
-      })).describe("Optional. Traffic allocations for the version release.")
-        .optional(),
-    }).describe("Version release for the experiment.").optional(),
-  }).describe("Experiment for the deployment.").optional(),
-  instagramCredentials: z.object({
-    authCode: z.string().describe(
-      "Required. The Meta auth code provided by the embedded signup flow.",
-    ).optional(),
-    conversationProfileId: z.string().describe(
-      "Optional. The Conversation Profile ID to use for the deployment.",
-    ).optional(),
-  }).describe("Ephemeral Meta credentials for Instagram native integration.")
-    .optional(),
   name: z.string().describe(
     "Identifier. The resource name of the deployment. Format: `projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}`",
   ).optional(),
-  whatsappCredentials: z.object({
-    authCode: z.string().describe(
-      "Required. The Meta auth code provided by the embedded signup flow.",
-    ).optional(),
-    businessAccountId: z.string().describe(
-      "Required. The Business Account ID to use for the phone number.",
-    ).optional(),
-    conversationProfileId: z.string().describe(
-      "Optional. The Conversation Profile ID to use for the deployment.",
-    ).optional(),
-    phoneNumber: z.string().describe(
-      "Required. The phone number to register with WhatsApp.",
-    ).optional(),
-    pin: z.string().describe(
-      "Required. The 6-digit PIN created by the user for two-step verification.",
-    ).optional(),
-    wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
-      .optional(),
-  }).describe("Ephemeral Meta credentials for WhatsApp native integration.")
-    .optional(),
   deploymentId: z.string().describe(
     "Optional. The ID to use for the deployment, which will become the final component of the deployment's resource name. If not provided, a unique ID will be automatically assigned for the deployment.",
   ).optional(),
@@ -330,12 +243,6 @@ const StateSchema = z.object({
     channelType: z.string(),
     disableBargeInControl: z.boolean(),
     disableDtmf: z.boolean(),
-    instagramConfig: z.object({
-      description: z.string(),
-      displayName: z.string(),
-      instagramAccountId: z.string(),
-      thumbnailUrl: z.string(),
-    }),
     noiseSuppressionLevel: z.string(),
     personaProperty: z.object({
       persona: z.string(),
@@ -352,42 +259,12 @@ const StateSchema = z.object({
       theme: z.string(),
       webWidgetTitle: z.string(),
     }),
-    whatsappConfig: z.object({
-      description: z.string(),
-      displayName: z.string(),
-      phoneNumber: z.string(),
-      phoneNumberId: z.string(),
-      thumbnailUrl: z.string(),
-      wabaId: z.string(),
-    }),
   }).optional(),
   createTime: z.string().optional(),
   displayName: z.string().optional(),
   etag: z.string().optional(),
-  experimentConfig: z.object({
-    versionRelease: z.object({
-      state: z.string(),
-      trafficAllocations: z.array(z.object({
-        appVersion: z.string(),
-        id: z.string(),
-        trafficPercentage: z.number(),
-      })),
-    }),
-  }).optional(),
-  instagramCredentials: z.object({
-    authCode: z.string(),
-    conversationProfileId: z.string(),
-  }).optional(),
   name: z.string(),
   updateTime: z.string().optional(),
-  whatsappCredentials: z.object({
-    authCode: z.string(),
-    businessAccountId: z.string(),
-    conversationProfileId: z.string(),
-    phoneNumber: z.string(),
-    pin: z.string(),
-    wabaId: z.string(),
-  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -408,11 +285,8 @@ const InputsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
-      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
-      "WHATSAPP",
-      "INSTAGRAM",
     ]).describe("Optional. The type of the channel profile.").optional(),
     disableBargeInControl: z.boolean().describe(
       "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -420,20 +294,6 @@ const InputsSchema = z.object({
     disableDtmf: z.boolean().describe(
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
-    instagramConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      instagramAccountId: z.string().describe(
-        "Required. The Instagram Account ID.",
-      ).optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -474,84 +334,14 @@ const InputsSchema = z.object({
         "Optional. The title of the web widget.",
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
-    whatsappConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      phoneNumber: z.string().describe(
-        "Optional. The phone number in E.164 format.",
-      ).optional(),
-      phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
-        .optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-      wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
-        .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
   }).describe(
     "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
   ).optional(),
   displayName: z.string().describe("Required. Display name of the deployment.")
     .optional(),
-  experimentConfig: z.object({
-    versionRelease: z.object({
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "PENDING",
-        "RUNNING",
-        "DONE",
-        "EXPIRED",
-      ]).describe("Optional. State of the version release.").optional(),
-      trafficAllocations: z.array(z.object({
-        appVersion: z.string().describe(
-          "Optional. App version of the traffic allocation. Format: `projects/{project}/locations/{location}/apps/{app}/versions/{version}`",
-        ).optional(),
-        id: z.string().describe(
-          "Optional. Id of the traffic allocation. Free format string, up to 128 characters.",
-        ).optional(),
-        trafficPercentage: z.number().int().describe(
-          "Optional. Traffic percentage of the traffic allocation. Must be between 0 and 100.",
-        ).optional(),
-      })).describe("Optional. Traffic allocations for the version release.")
-        .optional(),
-    }).describe("Version release for the experiment.").optional(),
-  }).describe("Experiment for the deployment.").optional(),
-  instagramCredentials: z.object({
-    authCode: z.string().describe(
-      "Required. The Meta auth code provided by the embedded signup flow.",
-    ).optional(),
-    conversationProfileId: z.string().describe(
-      "Optional. The Conversation Profile ID to use for the deployment.",
-    ).optional(),
-  }).describe("Ephemeral Meta credentials for Instagram native integration.")
-    .optional(),
   name: z.string().describe(
     "Identifier. The resource name of the deployment. Format: `projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}`",
   ).optional(),
-  whatsappCredentials: z.object({
-    authCode: z.string().describe(
-      "Required. The Meta auth code provided by the embedded signup flow.",
-    ).optional(),
-    businessAccountId: z.string().describe(
-      "Required. The Business Account ID to use for the phone number.",
-    ).optional(),
-    conversationProfileId: z.string().describe(
-      "Optional. The Conversation Profile ID to use for the deployment.",
-    ).optional(),
-    phoneNumber: z.string().describe(
-      "Required. The phone number to register with WhatsApp.",
-    ).optional(),
-    pin: z.string().describe(
-      "Required. The 6-digit PIN created by the user for two-step verification.",
-    ).optional(),
-    wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
-      .optional(),
-  }).describe("Ephemeral Meta credentials for WhatsApp native integration.")
-    .optional(),
   deploymentId: z.string().describe(
     "Optional. The ID to use for the deployment, which will become the final component of the deployment's resource name. If not provided, a unique ID will be automatically assigned for the deployment.",
   ).optional(),
@@ -586,7 +376,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Deployments. Registered at `@swamp/gcp/ces/apps-deployments`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-deployments",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -727,6 +517,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description:
+        "Removed: experimentConfig, instagramCredentials, whatsappCredentials",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          experimentConfig: _experimentConfig,
+          instagramCredentials: _instagramCredentials,
+          whatsappCredentials: _whatsappCredentials,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -757,16 +561,7 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["experimentConfig"] !== undefined) {
-          body["experimentConfig"] = g["experimentConfig"];
-        }
-        if (g["instagramCredentials"] !== undefined) {
-          body["instagramCredentials"] = g["instagramCredentials"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["whatsappCredentials"] !== undefined) {
-          body["whatsappCredentials"] = g["whatsappCredentials"];
-        }
         if (g["deploymentId"] !== undefined) {
           params["deploymentId"] = String(g["deploymentId"]);
         }
@@ -838,22 +633,29 @@ export const model = {
     },
     update: {
       description: "Update deployments attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific deployments by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -873,15 +675,6 @@ export const model = {
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
-        }
-        if (g["experimentConfig"] !== undefined) {
-          body["experimentConfig"] = g["experimentConfig"];
-        }
-        if (g["instagramCredentials"] !== undefined) {
-          body["instagramCredentials"] = g["instagramCredentials"];
-        }
-        if (g["whatsappCredentials"] !== undefined) {
-          body["whatsappCredentials"] = g["whatsappCredentials"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
@@ -947,22 +740,29 @@ export const model = {
     },
     sync: {
       description: "Sync deployments state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific deployments by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1050,50 +850,6 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
-      },
-    },
-    get_extended_agent_card: {
-      description: "get extended agent card",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["tenant"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "ces.projects.locations.apps.deployments.getExtendedAgentCard",
-            "path": "v1/{+tenant}/extendedAgentCard",
-            "httpMethod": "GET",
-            "parameterOrder": ["tenant"],
-            "parameters": {
-              "tenant": { "location": "path", "required": true },
-            },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
       },
     },
   },

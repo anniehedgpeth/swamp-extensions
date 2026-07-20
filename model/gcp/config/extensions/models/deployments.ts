@@ -177,7 +177,7 @@ const GlobalArgsSchema = z.object({
     "Optional. Arbitrary key-value metadata storage e.g. to help client tools identify deployments during automation. See https://google.aip.dev/148#annotations for details on format and size limitations.",
   ).optional(),
   artifactsGcsBucket: z.string().describe(
-    "User-defined location of Cloud Build logs and artifacts in Google Cloud Storage. Format: `gs://{bucket}/{folder}` A default bucket will be bootstrapped if the field is not set or empty. Default bucket format: `gs://--blueprint-config` Constraints: - The bucket needs to be in the same project as the deployment - The path cannot be within the path of `gcs_source` - The field cannot be updated, including changing its presence",
+    "Optional. User-defined location of Cloud Build logs and artifacts in Google Cloud Storage. Format: `gs://{bucket}/{folder}` A default bucket will be bootstrapped if the field is not set or empty. Default bucket format: `gs://--blueprint-config` Constraints: - The bucket needs to be in the same project as the deployment - The path cannot be within the path of `gcs_source` - The field cannot be updated, including changing its presence",
   ).optional(),
   deleteResults: z.object({
     artifacts: z.string().describe(
@@ -244,12 +244,12 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     gitSource: z.object({
       directory: z.string().describe(
-        "Subdirectory inside the repository. Example: 'staging/my-package'",
+        "Optional. Subdirectory inside the repository. Example: 'staging/my-package'",
       ).optional(),
-      ref: z.string().describe("Git reference (e.g. branch or tag).")
+      ref: z.string().describe("Optional. Git reference (e.g. branch or tag).")
         .optional(),
       repo: z.string().describe(
-        "Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
+        "Optional. Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
       ).optional(),
     }).describe("A set of files in a Git repository.").optional(),
     inputValues: z.record(
@@ -264,10 +264,10 @@ const GlobalArgsSchema = z.object({
     "TerraformBlueprint describes the source of a Terraform root module which describes the resources and configs to be deployed.",
   ).optional(),
   tfVersionConstraint: z.string().describe(
-    'The user-specified Terraform version constraint. Example: "=1.3.10".',
+    'Optional. The user-specified Terraform version constraint. Example: "=1.3.10".',
   ).optional(),
   workerPool: z.string().describe(
-    "The user-specified Cloud Build worker pool resource in which the Cloud Build job will execute. Format: `projects/{project}/locations/{location}/workerPools/{workerPoolId}`. If this field is unspecified, the default Cloud Build worker pool will be used.",
+    "Optional. The user-specified Cloud Build worker pool resource in which the Cloud Build job will execute. Format: `projects/{project}/locations/{location}/workerPools/{workerPoolId}`. If this field is unspecified, the default Cloud Build worker pool will be used.",
   ).optional(),
   deploymentId: z.string().describe("Required. The Deployment ID.").optional(),
   requestId: z.string().describe(
@@ -340,7 +340,7 @@ const InputsSchema = z.object({
     "Optional. Arbitrary key-value metadata storage e.g. to help client tools identify deployments during automation. See https://google.aip.dev/148#annotations for details on format and size limitations.",
   ).optional(),
   artifactsGcsBucket: z.string().describe(
-    "User-defined location of Cloud Build logs and artifacts in Google Cloud Storage. Format: `gs://{bucket}/{folder}` A default bucket will be bootstrapped if the field is not set or empty. Default bucket format: `gs://--blueprint-config` Constraints: - The bucket needs to be in the same project as the deployment - The path cannot be within the path of `gcs_source` - The field cannot be updated, including changing its presence",
+    "Optional. User-defined location of Cloud Build logs and artifacts in Google Cloud Storage. Format: `gs://{bucket}/{folder}` A default bucket will be bootstrapped if the field is not set or empty. Default bucket format: `gs://--blueprint-config` Constraints: - The bucket needs to be in the same project as the deployment - The path cannot be within the path of `gcs_source` - The field cannot be updated, including changing its presence",
   ).optional(),
   deleteResults: z.object({
     artifacts: z.string().describe(
@@ -407,12 +407,12 @@ const InputsSchema = z.object({
     ).optional(),
     gitSource: z.object({
       directory: z.string().describe(
-        "Subdirectory inside the repository. Example: 'staging/my-package'",
+        "Optional. Subdirectory inside the repository. Example: 'staging/my-package'",
       ).optional(),
-      ref: z.string().describe("Git reference (e.g. branch or tag).")
+      ref: z.string().describe("Optional. Git reference (e.g. branch or tag).")
         .optional(),
       repo: z.string().describe(
-        "Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
+        "Optional. Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
       ).optional(),
     }).describe("A set of files in a Git repository.").optional(),
     inputValues: z.record(
@@ -427,10 +427,10 @@ const InputsSchema = z.object({
     "TerraformBlueprint describes the source of a Terraform root module which describes the resources and configs to be deployed.",
   ).optional(),
   tfVersionConstraint: z.string().describe(
-    'The user-specified Terraform version constraint. Example: "=1.3.10".',
+    'Optional. The user-specified Terraform version constraint. Example: "=1.3.10".',
   ).optional(),
   workerPool: z.string().describe(
-    "The user-specified Cloud Build worker pool resource in which the Cloud Build job will execute. Format: `projects/{project}/locations/{location}/workerPools/{workerPoolId}`. If this field is unspecified, the default Cloud Build worker pool will be used.",
+    "Optional. The user-specified Cloud Build worker pool resource in which the Cloud Build job will execute. Format: `projects/{project}/locations/{location}/workerPools/{workerPoolId}`. If this field is unspecified, the default Cloud Build worker pool will be used.",
   ).optional(),
   deploymentId: z.string().describe("Required. The Deployment ID.").optional(),
   requestId: z.string().describe(
@@ -464,7 +464,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Infrastructure Manager Deployments. Registered at `@swamp/gcp/config/deployments`. */
 export const model = {
   type: "@swamp/gcp/config/deployments",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -578,6 +578,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -723,25 +728,34 @@ export const model = {
     update: {
       description: "Update deployments attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific deployments by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -851,22 +865,29 @@ export const model = {
     },
     sync: {
       description: "Sync deployments state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific deployments by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

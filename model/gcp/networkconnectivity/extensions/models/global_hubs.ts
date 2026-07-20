@@ -182,14 +182,10 @@ const GlobalArgsSchema = z.object({
   policyMode: z.enum(["POLICY_MODE_UNSPECIFIED", "PRESET"]).describe(
     "Optional. The policy mode of this hub. This field can be either PRESET or CUSTOM. If unspecified, the policy_mode defaults to PRESET.",
   ).optional(),
-  presetTopology: z.enum([
-    "PRESET_TOPOLOGY_UNSPECIFIED",
-    "MESH",
-    "STAR",
-    "HYBRID_INSPECTION",
-  ]).describe(
-    "Optional. The topology implemented in this hub. Currently, this field is only used when policy_mode = PRESET. The available preset topologies are MESH and STAR. If preset_topology is unspecified and policy_mode = PRESET, the preset_topology defaults to MESH. When policy_mode = CUSTOM, the preset_topology is set to PRESET_TOPOLOGY_UNSPECIFIED.",
-  ).optional(),
+  presetTopology: z.enum(["PRESET_TOPOLOGY_UNSPECIFIED", "MESH", "STAR"])
+    .describe(
+      "Optional. The topology implemented in this hub. Currently, this field is only used when policy_mode = PRESET. The available preset topologies are MESH and STAR. If preset_topology is unspecified and policy_mode = PRESET, the preset_topology defaults to MESH. When policy_mode = CUSTOM, the preset_topology is set to PRESET_TOPOLOGY_UNSPECIFIED.",
+    ).optional(),
   spokeSummary: z.object({
     spokeStateCounts: z.array(z.object({
       count: z.string().describe(
@@ -238,7 +234,6 @@ const GlobalArgsSchema = z.object({
         "INTERCONNECT_ATTACHMENT",
         "ROUTER_APPLIANCE",
         "VPC_NETWORK",
-        "GATEWAY",
         "PRODUCER_VPC_NETWORK",
       ]).describe("Output only. The type of the spokes.").optional(),
     })).describe(
@@ -314,14 +309,10 @@ const InputsSchema = z.object({
   policyMode: z.enum(["POLICY_MODE_UNSPECIFIED", "PRESET"]).describe(
     "Optional. The policy mode of this hub. This field can be either PRESET or CUSTOM. If unspecified, the policy_mode defaults to PRESET.",
   ).optional(),
-  presetTopology: z.enum([
-    "PRESET_TOPOLOGY_UNSPECIFIED",
-    "MESH",
-    "STAR",
-    "HYBRID_INSPECTION",
-  ]).describe(
-    "Optional. The topology implemented in this hub. Currently, this field is only used when policy_mode = PRESET. The available preset topologies are MESH and STAR. If preset_topology is unspecified and policy_mode = PRESET, the preset_topology defaults to MESH. When policy_mode = CUSTOM, the preset_topology is set to PRESET_TOPOLOGY_UNSPECIFIED.",
-  ).optional(),
+  presetTopology: z.enum(["PRESET_TOPOLOGY_UNSPECIFIED", "MESH", "STAR"])
+    .describe(
+      "Optional. The topology implemented in this hub. Currently, this field is only used when policy_mode = PRESET. The available preset topologies are MESH and STAR. If preset_topology is unspecified and policy_mode = PRESET, the preset_topology defaults to MESH. When policy_mode = CUSTOM, the preset_topology is set to PRESET_TOPOLOGY_UNSPECIFIED.",
+    ).optional(),
   spokeSummary: z.object({
     spokeStateCounts: z.array(z.object({
       count: z.string().describe(
@@ -370,7 +361,6 @@ const InputsSchema = z.object({
         "INTERCONNECT_ATTACHMENT",
         "ROUTER_APPLIANCE",
         "VPC_NETWORK",
-        "GATEWAY",
         "PRODUCER_VPC_NETWORK",
       ]).describe("Output only. The type of the spokes.").optional(),
     })).describe(
@@ -415,7 +405,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity Global.Hubs. Registered at `@swamp/gcp/networkconnectivity/global-hubs`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/global-hubs",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -529,6 +519,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -651,25 +646,34 @@ export const model = {
     update: {
       description: "Update hubs attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific hubs by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -765,22 +769,29 @@ export const model = {
     },
     sync: {
       description: "Sync hubs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific hubs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

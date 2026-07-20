@@ -17,15 +17,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/gcp/merchantapi/termsofservice
+// Auto-generated extension model for @swamp/gcp/firebaseappcheck/apps-safetynetconfig
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Merchant TermsOfService.
+ * Swamp extension model for Google Cloud Firebase App Check Apps.SafetyNetConfig.
  *
- * The `TermsOfService` message represents a specific version of the terms of service that merchants must accept to access certain features or services. For more information, see [Terms of Service](https://support.google.com/merchants/answer/160173). This message is important for the onboarding process, ensuring that merchants agree to the necessary legal agreements for using the service. Merchants can retrieve the latest terms of service for a given `kind` and `region` through `RetrieveLatestTermsOfService`, and accept them as required through `AcceptTermsOfService`.
+ * An app's SafetyNet configuration object. This configuration controls certain properties of the `AppCheckToken` returned by ExchangeSafetyNetToken, such as its ttl. Note that your registered SHA-256 certificate fingerprints are used to validate tokens issued by SafetyNet; please register them via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.androidApps.sha/create).
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -40,13 +40,14 @@ import {
   getProjectId,
   isResourceNotFoundError,
   readResource,
+  updateResource,
 } from "./_lib/gcp.ts";
 
-const BASE_URL = "https://merchantapi.googleapis.com/";
+const BASE_URL = "https://firebaseappcheck.googleapis.com/";
 
 const GET_CONFIG = {
-  "id": "merchantapi.termsOfService.get",
-  "path": "accounts/v1/{+name}",
+  "id": "firebaseappcheck.projects.apps.safetyNetConfig.get",
+  "path": "v1/{+name}",
   "httpMethod": "GET",
   "parameterOrder": [
     "name",
@@ -59,14 +60,25 @@ const GET_CONFIG = {
   },
 } as const;
 
-const _defaultOAuthScopes: string[] = [
-  "https://www.googleapis.com/auth/content",
-];
+const PATCH_CONFIG = {
+  "id": "firebaseappcheck.projects.apps.safetyNetConfig.patch",
+  "path": "v1/{+name}",
+  "httpMethod": "PATCH",
+  "parameterOrder": [
+    "name",
+  ],
+  "parameters": {
+    "name": {
+      "location": "path",
+      "required": true,
+    },
+    "updateMask": {
+      "location": "query",
+    },
+  },
+} as const;
 
 const GlobalArgsSchema = z.object({
-  name: z.string().describe(
-    "Instance name for this resource (used as the unique identifier in the factory pattern)",
-  ),
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -79,24 +91,32 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  name: z.string().describe(
+    "Required. The relative resource name of the SafetyNet configuration object, in the format: ` projects/{project_number}/apps/{app_id}/safetyNetConfig `",
+  ).optional(),
+  tokenTtl: z.string().describe(
+    "Specifies the duration for which App Check tokens exchanged from SafetyNet tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
-  external: z.boolean().optional(),
-  fileUri: z.string().optional(),
-  kind: z.string().optional(),
   name: z.string(),
-  regionCode: z.string().optional(),
+  tokenTtl: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
-  name: z.string().optional(),
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  name: z.string().describe(
+    "Required. The relative resource name of the SafetyNet configuration object, in the format: ` projects/{project_number}/apps/{app_id}/safetyNetConfig `",
+  ).optional(),
+  tokenTtl: z.string().describe(
+    "Specifies the duration for which App Check tokens exchanged from SafetyNet tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -115,42 +135,20 @@ function _buildGcpCredentials(
     project: g.project as string | undefined,
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
-      : _defaultOAuthScopes,
+      : undefined,
   };
 }
 
-/** Swamp extension model for Google Cloud Merchant TermsOfService. Registered at `@swamp/gcp/merchantapi/termsofservice`. */
+/** Swamp extension model for Google Cloud Firebase App Check Apps.SafetyNetConfig. Registered at `@swamp/gcp/firebaseappcheck/apps-safetynetconfig`. */
 export const model = {
-  type: "@swamp/gcp/merchantapi/termsofservice",
-  version: "2026.07.19.1",
-  upgrades: [
-    {
-      toVersion: "2026.06.07.1",
-      description: "Added: accessToken, credentialsJson, project",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.18.1",
-      description: "Added: scopes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.19.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
+  type: "@swamp/gcp/firebaseappcheck/apps-safetynetconfig",
+  version: "2026.07.20.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "The `TermsOfService` message represents a specific version of the terms of se...",
+        "An app's SafetyNet configuration object. This configuration controls certain ...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -158,9 +156,9 @@ export const model = {
   },
   methods: {
     get: {
-      description: "Get a termsOfService",
+      description: "Get a safetyNetConfig",
       arguments: z.object({
-        identifier: z.string().describe("The name of the termsOfService"),
+        identifier: z.string().describe("The name of the safetyNetConfig"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
@@ -174,10 +172,71 @@ export const model = {
           params,
           credentials,
         ) as StateData;
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update safetyNetConfig attributes",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific safetyNetConfig by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const params: Record<string, string> = { project: projectId };
+        params["name"] = existing["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (g["tokenTtl"] !== undefined) body["tokenTtl"] = g["tokenTtl"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
+        for (const key of Object.keys(existing)) {
+          if (
+            key === "fingerprint" || key === "labelFingerprint" ||
+            key === "etag" || key.endsWith("Fingerprint")
+          ) {
+            body[key] = existing[key];
+          }
+        }
+        const result = await updateResource(
+          BASE_URL,
+          PATCH_CONFIG,
+          params,
+          body,
+          GET_CONFIG,
+          undefined,
+          credentials,
+        ) as StateData;
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -187,23 +246,30 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync termsOfService state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      description: "Sync safetyNetConfig state from GCP",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific safetyNetConfig by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -239,56 +305,27 @@ export const model = {
         }
       },
     },
-    accept: {
-      description: "accept",
+    batch_get: {
+      description: "batch get",
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) params["name"] = String(g["name"]);
+        params["parent"] = `projects/${projectId}/locations/${
+          String(g["location"] ?? "")
+        }`;
         const result = await createResource(
           BASE_URL,
           {
-            "id": "merchantapi.termsOfService.accept",
-            "path": "accounts/v1/{+name}:accept",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": {
-              "account": { "location": "query" },
-              "name": { "location": "path", "required": true },
-              "regionCode": { "location": "query" },
-            },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    retrieve_latest: {
-      description: "retrieve latest",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "merchantapi.termsOfService.retrieveLatest",
-            "path": "accounts/v1/termsOfService:retrieveLatest",
+            "id": "firebaseappcheck.projects.apps.safetyNetConfig.batchGet",
+            "path": "v1/{+parent}/apps/-/safetyNetConfig:batchGet",
             "httpMethod": "GET",
-            "parameterOrder": [],
+            "parameterOrder": ["parent"],
             "parameters": {
-              "kind": { "location": "query" },
-              "regionCode": { "location": "query" },
+              "names": { "location": "query" },
+              "parent": { "location": "path", "required": true },
             },
           },
           params,

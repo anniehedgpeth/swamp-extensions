@@ -163,24 +163,6 @@ const GlobalArgsSchema = z.object({
     "The linking_token identifies a YouTube account and channel with which the third party account is linked.",
   ).optional(),
   snippet: z.object({
-    channelToAffiliateProgramLink: z.object({
-      merchantId: z.string().describe(
-        "Required. Google Merchant Center ID of the partner.",
-      ).optional(),
-      programStatus: z.enum([
-        "affiliateProgramStatusUnspecified",
-        "active",
-        "inactive",
-      ]).describe("Required. Affiliate program status.").optional(),
-      statusUpdateReason: z.string().describe(
-        "Optional. Reason for the last update of the affiliate program status.",
-      ).optional(),
-      statusUpdateTime: z.string().describe(
-        "Optional. Timestamp when the affiliate program status was last updated.",
-      ).optional(),
-    }).describe(
-      "Information specific to a creator in an affiliate program linked to a YouTube channel.",
-    ).optional(),
     channelToStoreLink: z.object({
       billingDetails: z.object({
         billingStatus: z.enum([
@@ -207,11 +189,7 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Information specific to a store on a merchandising platform linked to a YouTube channel.",
     ).optional(),
-    type: z.enum([
-      "linkUnspecified",
-      "channelToStoreLink",
-      "channelToAffiliateProgramLink",
-    ]).describe(
+    type: z.enum(["linkUnspecified", "channelToStoreLink"]).describe(
       "Type of the link named after the entities that are being linked.",
     ).optional(),
   }).describe(
@@ -235,12 +213,6 @@ const StateSchema = z.object({
   kind: z.string().optional(),
   linkingToken: z.string().optional(),
   snippet: z.object({
-    channelToAffiliateProgramLink: z.object({
-      merchantId: z.string(),
-      programStatus: z.string(),
-      statusUpdateReason: z.string(),
-      statusUpdateTime: z.string(),
-    }),
     channelToStoreLink: z.object({
       billingDetails: z.object({
         billingStatus: z.string(),
@@ -271,24 +243,6 @@ const InputsSchema = z.object({
     "The linking_token identifies a YouTube account and channel with which the third party account is linked.",
   ).optional(),
   snippet: z.object({
-    channelToAffiliateProgramLink: z.object({
-      merchantId: z.string().describe(
-        "Required. Google Merchant Center ID of the partner.",
-      ).optional(),
-      programStatus: z.enum([
-        "affiliateProgramStatusUnspecified",
-        "active",
-        "inactive",
-      ]).describe("Required. Affiliate program status.").optional(),
-      statusUpdateReason: z.string().describe(
-        "Optional. Reason for the last update of the affiliate program status.",
-      ).optional(),
-      statusUpdateTime: z.string().describe(
-        "Optional. Timestamp when the affiliate program status was last updated.",
-      ).optional(),
-    }).describe(
-      "Information specific to a creator in an affiliate program linked to a YouTube channel.",
-    ).optional(),
     channelToStoreLink: z.object({
       billingDetails: z.object({
         billingStatus: z.enum([
@@ -315,11 +269,7 @@ const InputsSchema = z.object({
     }).describe(
       "Information specific to a store on a merchandising platform linked to a YouTube channel.",
     ).optional(),
-    type: z.enum([
-      "linkUnspecified",
-      "channelToStoreLink",
-      "channelToAffiliateProgramLink",
-    ]).describe(
+    type: z.enum(["linkUnspecified", "channelToStoreLink"]).describe(
       "Type of the link named after the entities that are being linked.",
     ).optional(),
   }).describe(
@@ -361,7 +311,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data ThirdPartyLinks. Registered at `@swamp/gcp/youtube/thirdpartylinks`. */
 export const model = {
   type: "@swamp/gcp/youtube/thirdpartylinks",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -463,6 +413,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -554,22 +509,29 @@ export const model = {
     },
     update: {
       description: "Update thirdPartyLinks attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific thirdPartyLinks by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -640,22 +602,29 @@ export const model = {
     },
     sync: {
       description: "Sync thirdPartyLinks state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific thirdPartyLinks by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

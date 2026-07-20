@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Display & Video 360 InventorySources.
  *
- * An inventory source.
+ * An inventory source. Next ID: 22
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -303,7 +303,6 @@ const GlobalArgsSchema = z.object({
     "EXCHANGE_TUBI",
     "EXCHANGE_SNAP",
     "EXCHANGE_CADENT",
-    "EXCHANGE_EXTE",
   ]).describe("The exchange to which the inventory source belongs.").optional(),
   guaranteedOrderId: z.string().describe(
     "Immutable. The ID of the guaranteed order that this inventory source belongs to. Only applicable when commitment is `INVENTORY_SOURCE_COMMITMENT_GUARANTEED`.",
@@ -635,7 +634,6 @@ const InputsSchema = z.object({
     "EXCHANGE_TUBI",
     "EXCHANGE_SNAP",
     "EXCHANGE_CADENT",
-    "EXCHANGE_EXTE",
   ]).describe("The exchange to which the inventory source belongs.").optional(),
   guaranteedOrderId: z.string().describe(
     "Immutable. The ID of the guaranteed order that this inventory source belongs to. Only applicable when commitment is `INVENTORY_SOURCE_COMMITMENT_GUARANTEED`.",
@@ -773,7 +771,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 InventorySources. Registered at `@swamp/gcp/displayvideo/inventorysources`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/inventorysources",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -900,12 +898,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "An inventory source.",
+      description: "An inventory source. Next ID: 22",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -1017,22 +1020,29 @@ export const model = {
     },
     update: {
       description: "Update inventorySources attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific inventorySources by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1095,22 +1105,29 @@ export const model = {
     },
     sync: {
       description: "Sync inventorySources state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific inventorySources by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

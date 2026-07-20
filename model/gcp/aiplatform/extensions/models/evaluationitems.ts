@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Agent Platform EvaluationItems.
+ * Swamp extension model for Google Cloud Vertex AI EvaluationItems.
  *
  * EvaluationItem is a single evaluation request or result. The content of an EvaluationItem is immutable - it cannot be updated once created. EvaluationItems can be deleted when no longer needed.
  *
@@ -159,15 +159,6 @@ const GlobalArgsSchema = z.object({
   ]).describe("Required. The type of the EvaluationItem.").optional(),
   evaluationRequest: z.object({
     candidateResponses: z.array(z.object({
-      agentData: z.object({
-        agents: z.record(z.string(), z.unknown()).describe(
-          "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-        ).optional(),
-        turns: z.array(z.unknown()).describe(
-          "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-        ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -192,47 +183,6 @@ const GlobalArgsSchema = z.object({
       "Optional. Responses from model under test and other baseline models for comparison.",
     ).optional(),
     goldenResponse: z.object({
-      agentData: z.object({
-        agents: z.record(
-          z.string(),
-          z.object({
-            agentId: z.unknown().describe(
-              "Required. Unique identifier of the agent. This ID is used to refer to this agent, e.g., in AgentEvent.author, or in the `sub_agents` field. It must be unique within the `agents` map.",
-            ).optional(),
-            agentType: z.unknown().describe(
-              'Optional. The type or class of the agent (e.g., "LlmAgent", "RouterAgent", "ToolUseAgent"). Useful for the autorater to understand the expected behavior of the agent.',
-            ).optional(),
-            description: z.unknown().describe(
-              "Optional. A high-level description of the agent's role and responsibilities. Critical for evaluating if the agent is routing tasks correctly.",
-            ).optional(),
-            instruction: z.unknown().describe(
-              "Optional. Provides instructions for the LLM model, guiding the agent's behavior. Can be static or dynamic. Dynamic instructions can contain placeholders like {variable_name} that will be resolved at runtime using the `AgentEvent.state_delta` field.",
-            ).optional(),
-            subAgents: z.unknown().describe(
-              "Optional. The list of valid agent IDs that this agent can delegate to. This defines the directed edges in the multi-agent system graph topology.",
-            ).optional(),
-            tools: z.unknown().describe(
-              "Optional. The list of tools available to this agent.",
-            ).optional(),
-          }),
-        ).describe(
-          "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-        ).optional(),
-        turns: z.array(z.object({
-          events: z.unknown().describe(
-            "Optional. The list of events that occurred during this turn.",
-          ).optional(),
-          turnId: z.unknown().describe(
-            "Optional. A unique identifier for the turn. Useful for referencing specific turns across systems.",
-          ).optional(),
-          turnIndex: z.unknown().describe(
-            "Required. The 0-based index of the turn in the conversation sequence.",
-          ).optional(),
-        })).describe(
-          "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-        ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -255,47 +205,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Responses from model or agent.").optional(),
     prompt: z.object({
-      agentData: z.object({
-        agents: z.record(
-          z.string(),
-          z.object({
-            agentId: z.unknown().describe(
-              "Required. Unique identifier of the agent. This ID is used to refer to this agent, e.g., in AgentEvent.author, or in the `sub_agents` field. It must be unique within the `agents` map.",
-            ).optional(),
-            agentType: z.unknown().describe(
-              'Optional. The type or class of the agent (e.g., "LlmAgent", "RouterAgent", "ToolUseAgent"). Useful for the autorater to understand the expected behavior of the agent.',
-            ).optional(),
-            description: z.unknown().describe(
-              "Optional. A high-level description of the agent's role and responsibilities. Critical for evaluating if the agent is routing tasks correctly.",
-            ).optional(),
-            instruction: z.unknown().describe(
-              "Optional. Provides instructions for the LLM model, guiding the agent's behavior. Can be static or dynamic. Dynamic instructions can contain placeholders like {variable_name} that will be resolved at runtime using the `AgentEvent.state_delta` field.",
-            ).optional(),
-            subAgents: z.unknown().describe(
-              "Optional. The list of valid agent IDs that this agent can delegate to. This defines the directed edges in the multi-agent system graph topology.",
-            ).optional(),
-            tools: z.unknown().describe(
-              "Optional. The list of tools available to this agent.",
-            ).optional(),
-          }),
-        ).describe(
-          "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-        ).optional(),
-        turns: z.array(z.object({
-          events: z.unknown().describe(
-            "Optional. The list of events that occurred during this turn.",
-          ).optional(),
-          turnId: z.unknown().describe(
-            "Optional. A unique identifier for the turn. Useful for referencing specific turns across systems.",
-          ).optional(),
-          turnIndex: z.unknown().describe(
-            "Required. The 0-based index of the turn in the conversation sequence.",
-          ).optional(),
-        })).describe(
-          "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-        ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
       promptTemplateData: z.object({
         values: z.record(
           z.string(),
@@ -312,16 +221,6 @@ const GlobalArgsSchema = z.object({
         "Message to hold a prompt template and the values to populate the template.",
       ).optional(),
       text: z.string().describe("Text prompt.").optional(),
-      userScenario: z.object({
-        conversationPlan: z.string().describe(
-          "Required. The plan for the conversation, used to drive the multi-turn agent run and generate the simulated agent evaluation dataset.",
-        ).optional(),
-        startingPrompt: z.string().describe(
-          "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
-        ).optional(),
-      }).describe(
-        "User scenario to help simulate multi-turn agent running results.",
-      ).optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the prompt template.",
       ).optional(),
@@ -365,19 +264,6 @@ const GlobalArgsSchema = z.object({
       candidate: z.string().describe(
         "Required. The candidate that is being evaluated. The value is the same as the candidate name in the EvaluationRequest.",
       ).optional(),
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.unknown()).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
       explanation: z.string().describe(
         "Optional. The explanation for the metric.",
       ).optional(),
@@ -410,15 +296,6 @@ const GlobalArgsSchema = z.object({
       .optional(),
     request: z.object({
       candidateResponses: z.array(z.object({
-        agentData: z.object({
-          agents: z.unknown().describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.unknown().describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
         candidate: z.string().describe(
           "Required. The name of the candidate that produced the response.",
         ).optional(),
@@ -443,15 +320,6 @@ const GlobalArgsSchema = z.object({
         "Optional. Responses from model under test and other baseline models for comparison.",
       ).optional(),
       goldenResponse: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
         candidate: z.string().describe(
           "Required. The name of the candidate that produced the response.",
         ).optional(),
@@ -474,15 +342,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       }).describe("Responses from model or agent.").optional(),
       prompt: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
         promptTemplateData: z.object({
           values: z.record(z.string(), z.unknown()).describe(
             "The values for fields in the prompt template.",
@@ -491,16 +350,6 @@ const GlobalArgsSchema = z.object({
           "Message to hold a prompt template and the values to populate the template.",
         ).optional(),
         text: z.string().describe("Text prompt.").optional(),
-        userScenario: z.object({
-          conversationPlan: z.string().describe(
-            "Required. The plan for the conversation, used to drive the multi-turn agent run and generate the simulated agent evaluation dataset.",
-          ).optional(),
-          startingPrompt: z.string().describe(
-            "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
-          ).optional(),
-        }).describe(
-          "User scenario to help simulate multi-turn agent running results.",
-        ).optional(),
         value: z.string().describe(
           "Fields and values that can be used to populate the prompt template.",
         ).optional(),
@@ -553,10 +402,6 @@ const StateSchema = z.object({
   evaluationItemType: z.string().optional(),
   evaluationRequest: z.object({
     candidateResponses: z.array(z.object({
-      agentData: z.object({
-        agents: z.record(z.string(), z.unknown()),
-        turns: z.array(z.unknown()),
-      }),
       candidate: z.string(),
       error: z.object({
         code: z.number(),
@@ -567,14 +412,6 @@ const StateSchema = z.object({
       value: z.string(),
     })),
     goldenResponse: z.object({
-      agentData: z.object({
-        agents: z.record(z.string(), z.unknown()),
-        turns: z.array(z.object({
-          events: z.unknown(),
-          turnId: z.unknown(),
-          turnIndex: z.unknown(),
-        })),
-      }),
       candidate: z.string(),
       error: z.object({
         code: z.number(),
@@ -585,22 +422,10 @@ const StateSchema = z.object({
       value: z.string(),
     }),
     prompt: z.object({
-      agentData: z.object({
-        agents: z.record(z.string(), z.unknown()),
-        turns: z.array(z.object({
-          events: z.unknown(),
-          turnId: z.unknown(),
-          turnIndex: z.unknown(),
-        })),
-      }),
       promptTemplateData: z.object({
         values: z.record(z.string(), z.unknown()),
       }),
       text: z.string(),
-      userScenario: z.object({
-        conversationPlan: z.string(),
-        startingPrompt: z.string(),
-      }),
       value: z.string(),
     }),
     rubrics: z.record(z.string(), z.unknown()),
@@ -609,11 +434,6 @@ const StateSchema = z.object({
     candidateResults: z.array(z.object({
       additionalResults: z.string(),
       candidate: z.string(),
-      error: z.object({
-        code: z.number(),
-        details: z.array(z.unknown()),
-        message: z.string(),
-      }),
       explanation: z.string(),
       metric: z.string(),
       rubricVerdicts: z.array(z.object({
@@ -629,10 +449,6 @@ const StateSchema = z.object({
     metric: z.string(),
     request: z.object({
       candidateResponses: z.array(z.object({
-        agentData: z.object({
-          agents: z.unknown(),
-          turns: z.unknown(),
-        }),
         candidate: z.string(),
         error: z.object({
           code: z.unknown(),
@@ -643,10 +459,6 @@ const StateSchema = z.object({
         value: z.string(),
       })),
       goldenResponse: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()),
-          turns: z.array(z.unknown()),
-        }),
         candidate: z.string(),
         error: z.object({
           code: z.number(),
@@ -657,18 +469,10 @@ const StateSchema = z.object({
         value: z.string(),
       }),
       prompt: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()),
-          turns: z.array(z.unknown()),
-        }),
         promptTemplateData: z.object({
           values: z.record(z.string(), z.unknown()),
         }),
         text: z.string(),
-        userScenario: z.object({
-          conversationPlan: z.string(),
-          startingPrompt: z.string(),
-        }),
         value: z.string(),
       }),
       rubrics: z.record(z.string(), z.unknown()),
@@ -710,15 +514,6 @@ const InputsSchema = z.object({
   ]).describe("Required. The type of the EvaluationItem.").optional(),
   evaluationRequest: z.object({
     candidateResponses: z.array(z.object({
-      agentData: z.object({
-        agents: z.record(z.string(), z.unknown()).describe(
-          "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-        ).optional(),
-        turns: z.array(z.unknown()).describe(
-          "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-        ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -743,47 +538,6 @@ const InputsSchema = z.object({
       "Optional. Responses from model under test and other baseline models for comparison.",
     ).optional(),
     goldenResponse: z.object({
-      agentData: z.object({
-        agents: z.record(
-          z.string(),
-          z.object({
-            agentId: z.unknown().describe(
-              "Required. Unique identifier of the agent. This ID is used to refer to this agent, e.g., in AgentEvent.author, or in the `sub_agents` field. It must be unique within the `agents` map.",
-            ).optional(),
-            agentType: z.unknown().describe(
-              'Optional. The type or class of the agent (e.g., "LlmAgent", "RouterAgent", "ToolUseAgent"). Useful for the autorater to understand the expected behavior of the agent.',
-            ).optional(),
-            description: z.unknown().describe(
-              "Optional. A high-level description of the agent's role and responsibilities. Critical for evaluating if the agent is routing tasks correctly.",
-            ).optional(),
-            instruction: z.unknown().describe(
-              "Optional. Provides instructions for the LLM model, guiding the agent's behavior. Can be static or dynamic. Dynamic instructions can contain placeholders like {variable_name} that will be resolved at runtime using the `AgentEvent.state_delta` field.",
-            ).optional(),
-            subAgents: z.unknown().describe(
-              "Optional. The list of valid agent IDs that this agent can delegate to. This defines the directed edges in the multi-agent system graph topology.",
-            ).optional(),
-            tools: z.unknown().describe(
-              "Optional. The list of tools available to this agent.",
-            ).optional(),
-          }),
-        ).describe(
-          "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-        ).optional(),
-        turns: z.array(z.object({
-          events: z.unknown().describe(
-            "Optional. The list of events that occurred during this turn.",
-          ).optional(),
-          turnId: z.unknown().describe(
-            "Optional. A unique identifier for the turn. Useful for referencing specific turns across systems.",
-          ).optional(),
-          turnIndex: z.unknown().describe(
-            "Required. The 0-based index of the turn in the conversation sequence.",
-          ).optional(),
-        })).describe(
-          "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-        ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -806,47 +560,6 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Responses from model or agent.").optional(),
     prompt: z.object({
-      agentData: z.object({
-        agents: z.record(
-          z.string(),
-          z.object({
-            agentId: z.unknown().describe(
-              "Required. Unique identifier of the agent. This ID is used to refer to this agent, e.g., in AgentEvent.author, or in the `sub_agents` field. It must be unique within the `agents` map.",
-            ).optional(),
-            agentType: z.unknown().describe(
-              'Optional. The type or class of the agent (e.g., "LlmAgent", "RouterAgent", "ToolUseAgent"). Useful for the autorater to understand the expected behavior of the agent.',
-            ).optional(),
-            description: z.unknown().describe(
-              "Optional. A high-level description of the agent's role and responsibilities. Critical for evaluating if the agent is routing tasks correctly.",
-            ).optional(),
-            instruction: z.unknown().describe(
-              "Optional. Provides instructions for the LLM model, guiding the agent's behavior. Can be static or dynamic. Dynamic instructions can contain placeholders like {variable_name} that will be resolved at runtime using the `AgentEvent.state_delta` field.",
-            ).optional(),
-            subAgents: z.unknown().describe(
-              "Optional. The list of valid agent IDs that this agent can delegate to. This defines the directed edges in the multi-agent system graph topology.",
-            ).optional(),
-            tools: z.unknown().describe(
-              "Optional. The list of tools available to this agent.",
-            ).optional(),
-          }),
-        ).describe(
-          "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-        ).optional(),
-        turns: z.array(z.object({
-          events: z.unknown().describe(
-            "Optional. The list of events that occurred during this turn.",
-          ).optional(),
-          turnId: z.unknown().describe(
-            "Optional. A unique identifier for the turn. Useful for referencing specific turns across systems.",
-          ).optional(),
-          turnIndex: z.unknown().describe(
-            "Required. The 0-based index of the turn in the conversation sequence.",
-          ).optional(),
-        })).describe(
-          "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-        ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
       promptTemplateData: z.object({
         values: z.record(
           z.string(),
@@ -863,16 +576,6 @@ const InputsSchema = z.object({
         "Message to hold a prompt template and the values to populate the template.",
       ).optional(),
       text: z.string().describe("Text prompt.").optional(),
-      userScenario: z.object({
-        conversationPlan: z.string().describe(
-          "Required. The plan for the conversation, used to drive the multi-turn agent run and generate the simulated agent evaluation dataset.",
-        ).optional(),
-        startingPrompt: z.string().describe(
-          "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
-        ).optional(),
-      }).describe(
-        "User scenario to help simulate multi-turn agent running results.",
-      ).optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the prompt template.",
       ).optional(),
@@ -916,19 +619,6 @@ const InputsSchema = z.object({
       candidate: z.string().describe(
         "Required. The candidate that is being evaluated. The value is the same as the candidate name in the EvaluationRequest.",
       ).optional(),
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.unknown()).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
       explanation: z.string().describe(
         "Optional. The explanation for the metric.",
       ).optional(),
@@ -961,15 +651,6 @@ const InputsSchema = z.object({
       .optional(),
     request: z.object({
       candidateResponses: z.array(z.object({
-        agentData: z.object({
-          agents: z.unknown().describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.unknown().describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
         candidate: z.string().describe(
           "Required. The name of the candidate that produced the response.",
         ).optional(),
@@ -994,15 +675,6 @@ const InputsSchema = z.object({
         "Optional. Responses from model under test and other baseline models for comparison.",
       ).optional(),
       goldenResponse: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
         candidate: z.string().describe(
           "Required. The name of the candidate that produced the response.",
         ).optional(),
@@ -1025,15 +697,6 @@ const InputsSchema = z.object({
         ).optional(),
       }).describe("Responses from model or agent.").optional(),
       prompt: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
         promptTemplateData: z.object({
           values: z.record(z.string(), z.unknown()).describe(
             "The values for fields in the prompt template.",
@@ -1042,16 +705,6 @@ const InputsSchema = z.object({
           "Message to hold a prompt template and the values to populate the template.",
         ).optional(),
         text: z.string().describe("Text prompt.").optional(),
-        userScenario: z.object({
-          conversationPlan: z.string().describe(
-            "Required. The plan for the conversation, used to drive the multi-turn agent run and generate the simulated agent evaluation dataset.",
-          ).optional(),
-          startingPrompt: z.string().describe(
-            "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
-          ).optional(),
-        }).describe(
-          "User scenario to help simulate multi-turn agent running results.",
-        ).optional(),
         value: z.string().describe(
           "Fields and values that can be used to populate the prompt template.",
         ).optional(),
@@ -1113,10 +766,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Agent Platform EvaluationItems. Registered at `@swamp/gcp/aiplatform/evaluationitems`. */
+/** Swamp extension model for Google Cloud Vertex AI EvaluationItems. Registered at `@swamp/gcp/aiplatform/evaluationitems`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationitems",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1245,6 +898,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1393,22 +1051,29 @@ export const model = {
     },
     sync: {
       description: "Sync evaluationItems state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific evaluationItems by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

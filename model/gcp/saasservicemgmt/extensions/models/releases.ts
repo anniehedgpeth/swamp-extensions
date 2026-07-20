@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud App Lifecycle Manager Releases.
+ * Swamp extension model for Google Cloud SaaS Runtime Releases.
  *
  * A new version to be propagated and deployed to units. This includes pointers to packaged blueprints for actuation (e.g Helm or Terraform configuration packages) via artifact registry.
  *
@@ -196,14 +196,7 @@ const GlobalArgsSchema = z.object({
     "Blueprints are OCI Images that contain all of the artifacts needed to provision a unit. Metadata such as, type of the engine used to actuate the blueprint (e.g. terraform, helm etc) and version will come from the image manifest. If the hostname is omitted, it will be assumed to be the regional path to Artifact Registry (eg. us-east1-docker.pkg.dev).",
   ).optional(),
   inputVariableDefaults: z.array(z.object({
-    type: z.enum([
-      "TYPE_UNSPECIFIED",
-      "STRING",
-      "INT",
-      "BOOL",
-      "STRUCT",
-      "LIST",
-    ]).describe(
+    type: z.enum(["TYPE_UNSPECIFIED", "STRING", "INT", "BOOL"]).describe(
       "Optional. Immutable. Name of a supported variable type. Supported types are string, int, bool.",
     ).optional(),
     value: z.string().describe(
@@ -299,14 +292,7 @@ const InputsSchema = z.object({
     "Blueprints are OCI Images that contain all of the artifacts needed to provision a unit. Metadata such as, type of the engine used to actuate the blueprint (e.g. terraform, helm etc) and version will come from the image manifest. If the hostname is omitted, it will be assumed to be the regional path to Artifact Registry (eg. us-east1-docker.pkg.dev).",
   ).optional(),
   inputVariableDefaults: z.array(z.object({
-    type: z.enum([
-      "TYPE_UNSPECIFIED",
-      "STRING",
-      "INT",
-      "BOOL",
-      "STRUCT",
-      "LIST",
-    ]).describe(
+    type: z.enum(["TYPE_UNSPECIFIED", "STRING", "INT", "BOOL"]).describe(
       "Optional. Immutable. Name of a supported variable type. Supported types are string, int, bool.",
     ).optional(),
     value: z.string().describe(
@@ -364,10 +350,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud App Lifecycle Manager Releases. Registered at `@swamp/gcp/saasservicemgmt/releases`. */
+/** Swamp extension model for Google Cloud SaaS Runtime Releases. Registered at `@swamp/gcp/saasservicemgmt/releases`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/releases",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -489,6 +475,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -603,22 +594,29 @@ export const model = {
     },
     update: {
       description: "Update releases attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific releases by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -707,22 +705,29 @@ export const model = {
     },
     sync: {
       description: "Sync releases state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific releases by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

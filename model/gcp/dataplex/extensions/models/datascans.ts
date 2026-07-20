@@ -265,15 +265,6 @@ const GlobalArgsSchema = z.object({
           "Optional. Whether to disable the inference of data types for JSON data. If true, all columns are registered as their primitive types (strings, number, or boolean).",
         ).optional(),
       }).describe("Describes JSON data format.").optional(),
-      unstructuredDataOptions: z.object({
-        globalEndpointEnabled: z.boolean().describe(
-          "Optional. Whether to use the global model endpoint.",
-        ).optional(),
-        semanticInferenceEnabled: z.boolean().describe(
-          "Optional. Specifies whether deeper semantic inference over the objects' contents using GenAI is enabled.",
-        ).optional(),
-      }).describe("Describes options for unstructured data discovery.")
-        .optional(),
     }).describe("Configurations related to Cloud Storage as the data source.")
       .optional(),
   }).describe("Spec for a data discovery scan.").optional(),
@@ -321,6 +312,24 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Output only. Relationships suggesting how tables in the dataset are related to each other, based on their schema.",
       ).optional(),
+      tableResults: z.array(z.object({
+        name: z.string().describe(
+          "Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
+        ).optional(),
+        overview: z.string().describe(
+          "Output only. Generated description of the table.",
+        ).optional(),
+        queries: z.array(z.unknown()).describe(
+          "Output only. Sample SQL queries for the table.",
+        ).optional(),
+        schema: z.object({
+          fields: z.unknown().describe("Output only. The list of columns.")
+            .optional(),
+        }).describe("Schema of the table with generated metadata of columns.")
+          .optional(),
+      })).describe(
+        "Output only. Generated table and column descriptions for each table in the dataset.",
+      ).optional(),
     }).describe("Insights for a dataset resource.").optional(),
     tableResult: z.object({
       name: z.string().describe(
@@ -361,7 +370,6 @@ const GlobalArgsSchema = z.object({
         "ALL",
         "TABLE_AND_COLUMN_DESCRIPTIONS",
         "SQL_QUERIES",
-        "BUSINESS_GLOSSARY_TERM_ASSOCIATIONS",
       ]),
     ).describe(
       "Optional. Specifies which components of the data documentation to generate. Any component that is required to generate the specified components will also be generated. If no generation scope is specified, all available documentation components will be generated.",
@@ -460,9 +468,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe(
       "The specification for fields to include or exclude in data profile scan.",
-    ).optional(),
-    mode: z.enum(["MODE_UNSPECIFIED", "STANDARD", "LIGHTWEIGHT"]).describe(
-      "Optional. The execution mode for the profile scan.",
     ).optional(),
     postScanActions: z.object({
       bigqueryExport: z.object({
@@ -591,9 +596,6 @@ const GlobalArgsSchema = z.object({
         "Output only. The number of rows which passed a rule evaluation.This field is only valid for row-level type rules.This field is not set for rule SqlAssertion.",
       ).optional(),
       rule: z.object({
-        attributes: z.record(z.string(), z.unknown()).describe(
-          "Optional. Map of attribute name and value linked to the rule. The rules to evaluate can be filtered based on attributes provided here and a filter expression provided in the DataQualitySpec.filter field.",
-        ).optional(),
         column: z.string().describe(
           "Optional. The unnested column which this rule is evaluated against.",
         ).optional(),
@@ -644,12 +646,6 @@ const GlobalArgsSchema = z.object({
         }).describe(
           "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
         ).optional(),
-        ruleSource: z.object({
-          rulePathElements: z.unknown().describe(
-            "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
-          ).optional(),
-        }).describe("Represents the rule source information from Catalog.")
-          .optional(),
         setExpectation: z.object({
           values: z.unknown().describe(
             "Optional. Expected values for the column value.",
@@ -691,22 +687,6 @@ const GlobalArgsSchema = z.object({
         }).describe(
           "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
         ).optional(),
-        templateReference: z.object({
-          name: z.unknown().describe(
-            "Required. The template entry name. Entry must be of EntryType projects/dataplex-types/locations/global/entryTypes/data-quality-rule-template and contains top-level aspect of AspectType projects/dataplex-types/locations/global/aspectTypes/data-quality-rule-template. The format is: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-          ).optional(),
-          resolvedSql: z.unknown().describe(
-            "Output only. The resolved SQL statement generated from the template with parameters substituted. It is only populated in the result.",
-          ).optional(),
-          ruleTemplate: z.unknown().describe(
-            "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
-          ).optional(),
-          values: z.unknown().describe(
-            "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
-          ).optional(),
-        }).describe(
-          "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
-        ).optional(),
         threshold: z.number().describe(
           "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
         ).optional(),
@@ -742,12 +722,6 @@ const GlobalArgsSchema = z.object({
   dataQualitySpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.",
-    ).optional(),
-    enableCatalogBasedRules: z.boolean().describe(
-      "Optional. If enabled, the data scan will retrieve rules defined in the dataplex-types.global.data-rules aspect on all paths of the catalog entry corresponding to the BigQuery table resource and all attached glossary terms. The path that data-rules aspect is attached on the table entry defines the column that the rule will be evaluated against. For glossary terms, the path that the terms are attached on the table entry defines the column that the rule will be evaluated against. At the start of scan execution, the rules reflect the latest state retrieved from the catalog entry and any updates on the rules thereafter are ignored for that execution. The updates will be reflected from the next execution. Rules defined in the datascan must be empty if this field is enabled.",
-    ).optional(),
-    filter: z.string().describe(
-      "Optional. Filter for selectively running a subset of rules. You can filter the request by the name or attribute key-value pairs defined on the rule. If not specified, all rules are run. The filter is applicable to both, the rules retrieved from catalog and explicitly defined rules in the scan. Please see filter syntax (https://docs.cloud.google.com/dataplex/docs/auto-data-quality-overview#rule-filtering) for more details.",
     ).optional(),
     postScanActions: z.object({
       bigqueryExport: z.object({
@@ -785,9 +759,6 @@ const GlobalArgsSchema = z.object({
       "Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#where_clause).Example: col1 >= 0 AND col2 < 10",
     ).optional(),
     rules: z.array(z.object({
-      attributes: z.record(z.string(), z.string()).describe(
-        "Optional. Map of attribute name and value linked to the rule. The rules to evaluate can be filtered based on attributes provided here and a filter expression provided in the DataQualitySpec.filter field.",
-      ).optional(),
       column: z.string().describe(
         "Optional. The unnested column which this rule is evaluated against.",
       ).optional(),
@@ -845,12 +816,6 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
       ).optional(),
-      ruleSource: z.object({
-        rulePathElements: z.array(z.unknown()).describe(
-          "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
-        ).optional(),
-      }).describe("Represents the rule source information from Catalog.")
-        .optional(),
       setExpectation: z.object({
         values: z.array(z.unknown()).describe(
           "Optional. Expected values for the column value.",
@@ -891,38 +856,6 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
       ).optional(),
-      templateReference: z.object({
-        name: z.string().describe(
-          "Required. The template entry name. Entry must be of EntryType projects/dataplex-types/locations/global/entryTypes/data-quality-rule-template and contains top-level aspect of AspectType projects/dataplex-types/locations/global/aspectTypes/data-quality-rule-template. The format is: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-        ).optional(),
-        resolvedSql: z.string().describe(
-          "Output only. The resolved SQL statement generated from the template with parameters substituted. It is only populated in the result.",
-        ).optional(),
-        ruleTemplate: z.object({
-          capabilities: z.unknown().describe(
-            "Output only. A list of features or properties supported by this rule template.",
-          ).optional(),
-          dimension: z.unknown().describe(
-            "Output only. The dimension a rule template belongs to. Rule level results are also aggregated at the dimension level.",
-          ).optional(),
-          inputParameters: z.unknown().describe(
-            "Output only. Description for input parameters",
-          ).optional(),
-          name: z.unknown().describe(
-            "Output only. The name of the rule template in the format: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-          ).optional(),
-          sqlCollection: z.unknown().describe(
-            "Output only. Collection of SQLs for data quality rules. Currently only one SQL is supported.",
-          ).optional(),
-        }).describe(
-          "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
-        ).optional(),
-        values: z.record(z.string(), z.unknown()).describe(
-          "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
-        ).optional(),
-      }).describe(
-        "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
-      ).optional(),
       threshold: z.number().describe(
         "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
       ).optional(),
@@ -942,18 +875,6 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "Optional. User friendly display name. Must be between 1-256 characters.",
   ).optional(),
-  executionIdentity: z.object({
-    dataplexServiceAgent: z.object({}).describe(
-      "The Dataplex service agent associated with the user's project.",
-    ).optional(),
-    serviceAccount: z.object({
-      email: z.string().describe(
-        "Required. Service account email. The datascan will execute with this service account's credentials. The user calling this API must have permissions to act as this service account. Dataplex service agent must be granted iam.serviceAccounts.getAccessToken permission on this service account, for example, through the iam.serviceAccountTokenCreator role.",
-      ).optional(),
-    }).describe("The service account").optional(),
-    userCredential: z.object({}).describe("The credential of the calling user.")
-      .optional(),
-  }).describe("The identity to run the datascan.").optional(),
   executionSpec: z.object({
     field: z.string().describe(
       "Immutable. The unnested field (of type Date or Timestamp) that contains values which monotonically increase over time.If not specified, a data scan will run for all data in the table.",
@@ -987,73 +908,8 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the scan.",
   ).optional(),
-  unstructuredDataProfileResult: z.object({
-    description: z.string().describe("Output only. The inferred description.")
-      .optional(),
-    graphProfile: z.object({
-      edgeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the edge type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected connectivity topology and bounds of this relationship. Format: "Topology - Description" Example: "1:N - One company can have multiple financial reports."',
-          ).optional(),
-        }).describe("Extraction hints (edge-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the edge type.",
-        ).optional(),
-        foreignKeys: z.array(z.unknown()).describe(
-          "Output only. Defines the Foreign Key constraints for the edge.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the edge type.")
-          .optional(),
-        sourceNodeType: z.string().describe("Output only. Source node type.")
-          .optional(),
-        targetNodeType: z.string().describe("Output only. Target node type.")
-          .optional(),
-      })).describe("Output only. Edge types.").optional(),
-      nodeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the node type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected occurrence frequency of this node type within a document. Format: "Bounds - Description" Example: "0:N - A document may contain multiple people names."',
-          ).optional(),
-        }).describe("Extraction hints (node-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the node type.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the node type.")
-          .optional(),
-        primaryKeys: z.array(z.unknown()).describe(
-          "Output only. Field names forming the primary keys. The order in this array defines the key's ordinal positions for composite keys.",
-        ).optional(),
-      })).describe("Output only. Node types.").optional(),
-    }).describe(
-      "Contains the strict structure for graph-profile for semantic inference scan result.",
-    ).optional(),
-    partialFailureMessage: z.string().describe(
-      "Output only. Optional message for partial failures (e.g. node type extraction failed).",
-    ).optional(),
-  }).describe("Contains the result of an unstructured data profile scan.")
-    .optional(),
-  unstructuredDataProfileSpec: z.object({
-    customizedPrompt: z.string().describe(
-      "Optional. Customized prompt for unstructured data profile. The field will be used as part of the prompt, could be some instruction, specifying skill, or specific area to focus.",
-    ).optional(),
-    globalEndpointEnabled: z.boolean().describe(
-      "Optional. Whether to use the global model.",
-    ).optional(),
-    graphProfilePublishingEnabled: z.boolean().describe(
-      "Optional. Whether to publish graph-profile as aspect on the catalog entry.",
-    ).optional(),
-  }).describe(
-    "Contains the specification for an unstructured data profile scan.",
-  ).optional(),
   dataScanId: z.string().describe(
-    'Optional. DataScan identifier. If not provided, a unique ID will be generated with the prefix "data-scan-". Must contain only lowercase letters, numbers and hyphens. Must start with a letter. Must end with a number or a letter. Must be between 1-63 characters. Must be unique within the customer project / location.',
+    "Required. DataScan identifier. Must contain only lowercase letters, numbers and hyphens. Must start with a letter. Must end with a number or a letter. Must be between 1-63 characters. Must be unique within the customer project / location.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -1104,10 +960,6 @@ const StateSchema = z.object({
         encoding: z.string(),
         typeInferenceDisabled: z.boolean(),
       }),
-      unstructuredDataOptions: z.object({
-        globalEndpointEnabled: z.boolean(),
-        semanticInferenceEnabled: z.boolean(),
-      }),
     }),
   }).optional(),
   dataDocumentationResult: z.object({
@@ -1128,6 +980,14 @@ const StateSchema = z.object({
         }),
         sources: z.array(z.unknown()),
         type: z.string(),
+      })),
+      tableResults: z.array(z.object({
+        name: z.string(),
+        overview: z.string(),
+        queries: z.array(z.unknown()),
+        schema: z.object({
+          fields: z.unknown(),
+        }),
       })),
     }),
     tableResult: z.object({
@@ -1192,7 +1052,6 @@ const StateSchema = z.object({
     includeFields: z.object({
       fieldNames: z.array(z.string()),
     }),
-    mode: z.string(),
     postScanActions: z.object({
       bigqueryExport: z.object({
         resultsTable: z.string(),
@@ -1248,7 +1107,6 @@ const StateSchema = z.object({
       passed: z.boolean(),
       passedCount: z.string(),
       rule: z.object({
-        attributes: z.record(z.string(), z.unknown()),
         column: z.string(),
         debugQueries: z.array(z.unknown()),
         description: z.string(),
@@ -1268,9 +1126,6 @@ const StateSchema = z.object({
         rowConditionExpectation: z.object({
           sqlExpression: z.unknown(),
         }),
-        ruleSource: z.object({
-          rulePathElements: z.unknown(),
-        }),
         setExpectation: z.object({
           values: z.unknown(),
         }),
@@ -1288,12 +1143,6 @@ const StateSchema = z.object({
         tableConditionExpectation: z.object({
           sqlExpression: z.unknown(),
         }),
-        templateReference: z.object({
-          name: z.unknown(),
-          resolvedSql: z.unknown(),
-          ruleTemplate: z.unknown(),
-          values: z.unknown(),
-        }),
         threshold: z.number(),
         uniquenessExpectation: z.object({}),
       }),
@@ -1309,8 +1158,6 @@ const StateSchema = z.object({
   }).optional(),
   dataQualitySpec: z.object({
     catalogPublishingEnabled: z.boolean(),
-    enableCatalogBasedRules: z.boolean(),
-    filter: z.string(),
     postScanActions: z.object({
       bigqueryExport: z.object({
         resultsTable: z.string(),
@@ -1328,7 +1175,6 @@ const StateSchema = z.object({
     }),
     rowFilter: z.string(),
     rules: z.array(z.object({
-      attributes: z.record(z.string(), z.unknown()),
       column: z.string(),
       debugQueries: z.array(z.object({
         description: z.unknown(),
@@ -1351,9 +1197,6 @@ const StateSchema = z.object({
       rowConditionExpectation: z.object({
         sqlExpression: z.string(),
       }),
-      ruleSource: z.object({
-        rulePathElements: z.array(z.unknown()),
-      }),
       setExpectation: z.object({
         values: z.array(z.unknown()),
       }),
@@ -1371,18 +1214,6 @@ const StateSchema = z.object({
       tableConditionExpectation: z.object({
         sqlExpression: z.string(),
       }),
-      templateReference: z.object({
-        name: z.string(),
-        resolvedSql: z.string(),
-        ruleTemplate: z.object({
-          capabilities: z.unknown(),
-          dimension: z.unknown(),
-          inputParameters: z.unknown(),
-          name: z.unknown(),
-          sqlCollection: z.unknown(),
-        }),
-        values: z.record(z.string(), z.unknown()),
-      }),
       threshold: z.number(),
       uniquenessExpectation: z.object({}),
     })),
@@ -1390,13 +1221,6 @@ const StateSchema = z.object({
   }).optional(),
   description: z.string().optional(),
   displayName: z.string().optional(),
-  executionIdentity: z.object({
-    dataplexServiceAgent: z.object({}),
-    serviceAccount: z.object({
-      email: z.string(),
-    }),
-    userCredential: z.object({}),
-  }).optional(),
   executionSpec: z.object({
     field: z.string(),
     trigger: z.object({
@@ -1419,37 +1243,6 @@ const StateSchema = z.object({
   state: z.string().optional(),
   type: z.string().optional(),
   uid: z.string().optional(),
-  unstructuredDataProfileResult: z.object({
-    description: z.string(),
-    graphProfile: z.object({
-      edgeTypes: z.array(z.object({
-        description: z.string(),
-        extractionHints: z.object({
-          cardinality: z.unknown(),
-        }),
-        fields: z.array(z.unknown()),
-        foreignKeys: z.array(z.unknown()),
-        name: z.string(),
-        sourceNodeType: z.string(),
-        targetNodeType: z.string(),
-      })),
-      nodeTypes: z.array(z.object({
-        description: z.string(),
-        extractionHints: z.object({
-          cardinality: z.unknown(),
-        }),
-        fields: z.array(z.unknown()),
-        name: z.string(),
-        primaryKeys: z.array(z.unknown()),
-      })),
-    }),
-    partialFailureMessage: z.string(),
-  }).optional(),
-  unstructuredDataProfileSpec: z.object({
-    customizedPrompt: z.string(),
-    globalEndpointEnabled: z.boolean(),
-    graphProfilePublishingEnabled: z.boolean(),
-  }).optional(),
   updateTime: z.string().optional(),
 }).passthrough();
 
@@ -1553,15 +1346,6 @@ const InputsSchema = z.object({
           "Optional. Whether to disable the inference of data types for JSON data. If true, all columns are registered as their primitive types (strings, number, or boolean).",
         ).optional(),
       }).describe("Describes JSON data format.").optional(),
-      unstructuredDataOptions: z.object({
-        globalEndpointEnabled: z.boolean().describe(
-          "Optional. Whether to use the global model endpoint.",
-        ).optional(),
-        semanticInferenceEnabled: z.boolean().describe(
-          "Optional. Specifies whether deeper semantic inference over the objects' contents using GenAI is enabled.",
-        ).optional(),
-      }).describe("Describes options for unstructured data discovery.")
-        .optional(),
     }).describe("Configurations related to Cloud Storage as the data source.")
       .optional(),
   }).describe("Spec for a data discovery scan.").optional(),
@@ -1609,6 +1393,24 @@ const InputsSchema = z.object({
       })).describe(
         "Output only. Relationships suggesting how tables in the dataset are related to each other, based on their schema.",
       ).optional(),
+      tableResults: z.array(z.object({
+        name: z.string().describe(
+          "Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
+        ).optional(),
+        overview: z.string().describe(
+          "Output only. Generated description of the table.",
+        ).optional(),
+        queries: z.array(z.unknown()).describe(
+          "Output only. Sample SQL queries for the table.",
+        ).optional(),
+        schema: z.object({
+          fields: z.unknown().describe("Output only. The list of columns.")
+            .optional(),
+        }).describe("Schema of the table with generated metadata of columns.")
+          .optional(),
+      })).describe(
+        "Output only. Generated table and column descriptions for each table in the dataset.",
+      ).optional(),
     }).describe("Insights for a dataset resource.").optional(),
     tableResult: z.object({
       name: z.string().describe(
@@ -1649,7 +1451,6 @@ const InputsSchema = z.object({
         "ALL",
         "TABLE_AND_COLUMN_DESCRIPTIONS",
         "SQL_QUERIES",
-        "BUSINESS_GLOSSARY_TERM_ASSOCIATIONS",
       ]),
     ).describe(
       "Optional. Specifies which components of the data documentation to generate. Any component that is required to generate the specified components will also be generated. If no generation scope is specified, all available documentation components will be generated.",
@@ -1748,9 +1549,6 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe(
       "The specification for fields to include or exclude in data profile scan.",
-    ).optional(),
-    mode: z.enum(["MODE_UNSPECIFIED", "STANDARD", "LIGHTWEIGHT"]).describe(
-      "Optional. The execution mode for the profile scan.",
     ).optional(),
     postScanActions: z.object({
       bigqueryExport: z.object({
@@ -1879,9 +1677,6 @@ const InputsSchema = z.object({
         "Output only. The number of rows which passed a rule evaluation.This field is only valid for row-level type rules.This field is not set for rule SqlAssertion.",
       ).optional(),
       rule: z.object({
-        attributes: z.record(z.string(), z.unknown()).describe(
-          "Optional. Map of attribute name and value linked to the rule. The rules to evaluate can be filtered based on attributes provided here and a filter expression provided in the DataQualitySpec.filter field.",
-        ).optional(),
         column: z.string().describe(
           "Optional. The unnested column which this rule is evaluated against.",
         ).optional(),
@@ -1932,12 +1727,6 @@ const InputsSchema = z.object({
         }).describe(
           "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
         ).optional(),
-        ruleSource: z.object({
-          rulePathElements: z.unknown().describe(
-            "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
-          ).optional(),
-        }).describe("Represents the rule source information from Catalog.")
-          .optional(),
         setExpectation: z.object({
           values: z.unknown().describe(
             "Optional. Expected values for the column value.",
@@ -1979,22 +1768,6 @@ const InputsSchema = z.object({
         }).describe(
           "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
         ).optional(),
-        templateReference: z.object({
-          name: z.unknown().describe(
-            "Required. The template entry name. Entry must be of EntryType projects/dataplex-types/locations/global/entryTypes/data-quality-rule-template and contains top-level aspect of AspectType projects/dataplex-types/locations/global/aspectTypes/data-quality-rule-template. The format is: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-          ).optional(),
-          resolvedSql: z.unknown().describe(
-            "Output only. The resolved SQL statement generated from the template with parameters substituted. It is only populated in the result.",
-          ).optional(),
-          ruleTemplate: z.unknown().describe(
-            "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
-          ).optional(),
-          values: z.unknown().describe(
-            "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
-          ).optional(),
-        }).describe(
-          "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
-        ).optional(),
         threshold: z.number().describe(
           "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
         ).optional(),
@@ -2030,12 +1803,6 @@ const InputsSchema = z.object({
   dataQualitySpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.",
-    ).optional(),
-    enableCatalogBasedRules: z.boolean().describe(
-      "Optional. If enabled, the data scan will retrieve rules defined in the dataplex-types.global.data-rules aspect on all paths of the catalog entry corresponding to the BigQuery table resource and all attached glossary terms. The path that data-rules aspect is attached on the table entry defines the column that the rule will be evaluated against. For glossary terms, the path that the terms are attached on the table entry defines the column that the rule will be evaluated against. At the start of scan execution, the rules reflect the latest state retrieved from the catalog entry and any updates on the rules thereafter are ignored for that execution. The updates will be reflected from the next execution. Rules defined in the datascan must be empty if this field is enabled.",
-    ).optional(),
-    filter: z.string().describe(
-      "Optional. Filter for selectively running a subset of rules. You can filter the request by the name or attribute key-value pairs defined on the rule. If not specified, all rules are run. The filter is applicable to both, the rules retrieved from catalog and explicitly defined rules in the scan. Please see filter syntax (https://docs.cloud.google.com/dataplex/docs/auto-data-quality-overview#rule-filtering) for more details.",
     ).optional(),
     postScanActions: z.object({
       bigqueryExport: z.object({
@@ -2073,9 +1840,6 @@ const InputsSchema = z.object({
       "Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#where_clause).Example: col1 >= 0 AND col2 < 10",
     ).optional(),
     rules: z.array(z.object({
-      attributes: z.record(z.string(), z.string()).describe(
-        "Optional. Map of attribute name and value linked to the rule. The rules to evaluate can be filtered based on attributes provided here and a filter expression provided in the DataQualitySpec.filter field.",
-      ).optional(),
       column: z.string().describe(
         "Optional. The unnested column which this rule is evaluated against.",
       ).optional(),
@@ -2133,12 +1897,6 @@ const InputsSchema = z.object({
       }).describe(
         "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
       ).optional(),
-      ruleSource: z.object({
-        rulePathElements: z.array(z.unknown()).describe(
-          "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
-        ).optional(),
-      }).describe("Represents the rule source information from Catalog.")
-        .optional(),
       setExpectation: z.object({
         values: z.array(z.unknown()).describe(
           "Optional. Expected values for the column value.",
@@ -2179,38 +1937,6 @@ const InputsSchema = z.object({
       }).describe(
         "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
       ).optional(),
-      templateReference: z.object({
-        name: z.string().describe(
-          "Required. The template entry name. Entry must be of EntryType projects/dataplex-types/locations/global/entryTypes/data-quality-rule-template and contains top-level aspect of AspectType projects/dataplex-types/locations/global/aspectTypes/data-quality-rule-template. The format is: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-        ).optional(),
-        resolvedSql: z.string().describe(
-          "Output only. The resolved SQL statement generated from the template with parameters substituted. It is only populated in the result.",
-        ).optional(),
-        ruleTemplate: z.object({
-          capabilities: z.unknown().describe(
-            "Output only. A list of features or properties supported by this rule template.",
-          ).optional(),
-          dimension: z.unknown().describe(
-            "Output only. The dimension a rule template belongs to. Rule level results are also aggregated at the dimension level.",
-          ).optional(),
-          inputParameters: z.unknown().describe(
-            "Output only. Description for input parameters",
-          ).optional(),
-          name: z.unknown().describe(
-            "Output only. The name of the rule template in the format: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-          ).optional(),
-          sqlCollection: z.unknown().describe(
-            "Output only. Collection of SQLs for data quality rules. Currently only one SQL is supported.",
-          ).optional(),
-        }).describe(
-          "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
-        ).optional(),
-        values: z.record(z.string(), z.unknown()).describe(
-          "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
-        ).optional(),
-      }).describe(
-        "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
-      ).optional(),
       threshold: z.number().describe(
         "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
       ).optional(),
@@ -2230,18 +1956,6 @@ const InputsSchema = z.object({
   displayName: z.string().describe(
     "Optional. User friendly display name. Must be between 1-256 characters.",
   ).optional(),
-  executionIdentity: z.object({
-    dataplexServiceAgent: z.object({}).describe(
-      "The Dataplex service agent associated with the user's project.",
-    ).optional(),
-    serviceAccount: z.object({
-      email: z.string().describe(
-        "Required. Service account email. The datascan will execute with this service account's credentials. The user calling this API must have permissions to act as this service account. Dataplex service agent must be granted iam.serviceAccounts.getAccessToken permission on this service account, for example, through the iam.serviceAccountTokenCreator role.",
-      ).optional(),
-    }).describe("The service account").optional(),
-    userCredential: z.object({}).describe("The credential of the calling user.")
-      .optional(),
-  }).describe("The identity to run the datascan.").optional(),
   executionSpec: z.object({
     field: z.string().describe(
       "Immutable. The unnested field (of type Date or Timestamp) that contains values which monotonically increase over time.If not specified, a data scan will run for all data in the table.",
@@ -2275,73 +1989,8 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the scan.",
   ).optional(),
-  unstructuredDataProfileResult: z.object({
-    description: z.string().describe("Output only. The inferred description.")
-      .optional(),
-    graphProfile: z.object({
-      edgeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the edge type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected connectivity topology and bounds of this relationship. Format: "Topology - Description" Example: "1:N - One company can have multiple financial reports."',
-          ).optional(),
-        }).describe("Extraction hints (edge-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the edge type.",
-        ).optional(),
-        foreignKeys: z.array(z.unknown()).describe(
-          "Output only. Defines the Foreign Key constraints for the edge.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the edge type.")
-          .optional(),
-        sourceNodeType: z.string().describe("Output only. Source node type.")
-          .optional(),
-        targetNodeType: z.string().describe("Output only. Target node type.")
-          .optional(),
-      })).describe("Output only. Edge types.").optional(),
-      nodeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the node type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected occurrence frequency of this node type within a document. Format: "Bounds - Description" Example: "0:N - A document may contain multiple people names."',
-          ).optional(),
-        }).describe("Extraction hints (node-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the node type.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the node type.")
-          .optional(),
-        primaryKeys: z.array(z.unknown()).describe(
-          "Output only. Field names forming the primary keys. The order in this array defines the key's ordinal positions for composite keys.",
-        ).optional(),
-      })).describe("Output only. Node types.").optional(),
-    }).describe(
-      "Contains the strict structure for graph-profile for semantic inference scan result.",
-    ).optional(),
-    partialFailureMessage: z.string().describe(
-      "Output only. Optional message for partial failures (e.g. node type extraction failed).",
-    ).optional(),
-  }).describe("Contains the result of an unstructured data profile scan.")
-    .optional(),
-  unstructuredDataProfileSpec: z.object({
-    customizedPrompt: z.string().describe(
-      "Optional. Customized prompt for unstructured data profile. The field will be used as part of the prompt, could be some instruction, specifying skill, or specific area to focus.",
-    ).optional(),
-    globalEndpointEnabled: z.boolean().describe(
-      "Optional. Whether to use the global model.",
-    ).optional(),
-    graphProfilePublishingEnabled: z.boolean().describe(
-      "Optional. Whether to publish graph-profile as aspect on the catalog entry.",
-    ).optional(),
-  }).describe(
-    "Contains the specification for an unstructured data profile scan.",
-  ).optional(),
   dataScanId: z.string().describe(
-    'Optional. DataScan identifier. If not provided, a unique ID will be generated with the prefix "data-scan-". Must contain only lowercase letters, numbers and hyphens. Must start with a letter. Must end with a number or a letter. Must be between 1-63 characters. Must be unique within the customer project / location.',
+    "Required. DataScan identifier. Must contain only lowercase letters, numbers and hyphens. Must start with a letter. Must end with a number or a letter. Must be between 1-63 characters. Must be unique within the customer project / location.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -2371,7 +2020,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataScans. Registered at `@swamp/gcp/dataplex/datascans`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datascans",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2538,6 +2187,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description:
+        "Removed: executionIdentity, unstructuredDataProfileResult, unstructuredDataProfileSpec",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          executionIdentity: _executionIdentity,
+          unstructuredDataProfileResult: _unstructuredDataProfileResult,
+          unstructuredDataProfileSpec: _unstructuredDataProfileSpec,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2598,9 +2261,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["executionIdentity"] !== undefined) {
-          body["executionIdentity"] = g["executionIdentity"];
-        }
         if (g["executionSpec"] !== undefined) {
           body["executionSpec"] = g["executionSpec"];
         }
@@ -2608,14 +2268,6 @@ export const model = {
           body["executionStatus"] = g["executionStatus"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["unstructuredDataProfileResult"] !== undefined) {
-          body["unstructuredDataProfileResult"] =
-            g["unstructuredDataProfileResult"];
-        }
-        if (g["unstructuredDataProfileSpec"] !== undefined) {
-          body["unstructuredDataProfileSpec"] =
-            g["unstructuredDataProfileSpec"];
-        }
         if (g["dataScanId"] !== undefined) {
           params["dataScanId"] = String(g["dataScanId"]);
         }
@@ -2697,25 +2349,34 @@ export const model = {
     update: {
       description: "Update dataScans attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific dataScans by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -2760,9 +2421,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["executionIdentity"] !== undefined) {
-          body["executionIdentity"] = g["executionIdentity"];
-        }
         if (g["executionSpec"] !== undefined) {
           body["executionSpec"] = g["executionSpec"];
         }
@@ -2770,14 +2428,6 @@ export const model = {
           body["executionStatus"] = g["executionStatus"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["unstructuredDataProfileResult"] !== undefined) {
-          body["unstructuredDataProfileResult"] =
-            g["unstructuredDataProfileResult"];
-        }
-        if (g["unstructuredDataProfileSpec"] !== undefined) {
-          body["unstructuredDataProfileSpec"] =
-            g["unstructuredDataProfileSpec"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");
@@ -2848,22 +2498,29 @@ export const model = {
     },
     sync: {
       description: "Sync dataScans state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific dataScans by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

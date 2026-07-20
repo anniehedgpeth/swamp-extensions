@@ -223,16 +223,6 @@ const GlobalArgsSchema = z.object({
     }).describe("SSL configuration.").optional(),
   }).describe("Client connection configuration").optional(),
   connectionPoolConfig: z.object({
-    authproxyPoolerCount: z.number().int().describe(
-      "Output only. The number of running AuthProxy poolers per instance.",
-    ).optional(),
-    authproxyPoolerScalingType: z.enum([
-      "POOLER_SCALING_TYPE_UNSPECIFIED",
-      "POOLER_NONE",
-      "POOLER_MACHINE_SIZED",
-      "POOLER_MANUAL_OVERRIDE",
-    ]).describe("Optional. The scaling type of the AuthProxy pooler.")
-      .optional(),
     enabled: z.boolean().describe(
       "Optional. Whether to enable Managed Connection Pool (MCP).",
     ).optional(),
@@ -242,12 +232,6 @@ const GlobalArgsSchema = z.object({
     poolerCount: z.number().int().describe(
       "Output only. The number of running poolers per instance.",
     ).optional(),
-    poolerScalingType: z.enum([
-      "POOLER_SCALING_TYPE_UNSPECIFIED",
-      "POOLER_NONE",
-      "POOLER_MACHINE_SIZED",
-      "POOLER_MANUAL_OVERRIDE",
-    ]).describe("Optional. The scaling type of the regular pooler.").optional(),
   }).describe("Configuration for Managed Connection Pool (MCP).").optional(),
   dataApiAccess: z.enum([
     "DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES",
@@ -396,9 +380,6 @@ const GlobalArgsSchema = z.object({
     ip: z.string().describe(
       'Output only. The private IP address of the VM e.g. "10.57.0.34".',
     ).optional(),
-    isHotStandby: z.boolean().describe(
-      "Output only. Indicates whether the node set up to be configured as a hot standby.",
-    ).optional(),
     state: z.string().describe(
       "Output only. Determined by state of the compute VM and postgres-service health. Compute VM state can have values listed in https://cloud.google.com/compute/docs/instances/instance-life-cycle and postgres-service health can have values: HEALTHY and UNHEALTHY.",
     ).optional(),
@@ -433,12 +414,9 @@ const StateSchema = z.object({
     }),
   }).optional(),
   connectionPoolConfig: z.object({
-    authproxyPoolerCount: z.number(),
-    authproxyPoolerScalingType: z.string(),
     enabled: z.boolean(),
     flags: z.record(z.string(), z.unknown()),
     poolerCount: z.number(),
-    poolerScalingType: z.string(),
   }).optional(),
   createTime: z.string().optional(),
   dataApiAccess: z.string().optional(),
@@ -468,7 +446,6 @@ const StateSchema = z.object({
   nodes: z.array(z.object({
     id: z.string(),
     ip: z.string(),
-    isHotStandby: z.boolean(),
     state: z.string(),
     zoneId: z.string(),
   })).optional(),
@@ -516,7 +493,6 @@ const StateSchema = z.object({
   writableNode: z.object({
     id: z.string(),
     ip: z.string(),
-    isHotStandby: z.boolean(),
     state: z.string(),
     zoneId: z.string(),
   }).optional(),
@@ -565,16 +541,6 @@ const InputsSchema = z.object({
     }).describe("SSL configuration.").optional(),
   }).describe("Client connection configuration").optional(),
   connectionPoolConfig: z.object({
-    authproxyPoolerCount: z.number().int().describe(
-      "Output only. The number of running AuthProxy poolers per instance.",
-    ).optional(),
-    authproxyPoolerScalingType: z.enum([
-      "POOLER_SCALING_TYPE_UNSPECIFIED",
-      "POOLER_NONE",
-      "POOLER_MACHINE_SIZED",
-      "POOLER_MANUAL_OVERRIDE",
-    ]).describe("Optional. The scaling type of the AuthProxy pooler.")
-      .optional(),
     enabled: z.boolean().describe(
       "Optional. Whether to enable Managed Connection Pool (MCP).",
     ).optional(),
@@ -584,12 +550,6 @@ const InputsSchema = z.object({
     poolerCount: z.number().int().describe(
       "Output only. The number of running poolers per instance.",
     ).optional(),
-    poolerScalingType: z.enum([
-      "POOLER_SCALING_TYPE_UNSPECIFIED",
-      "POOLER_NONE",
-      "POOLER_MACHINE_SIZED",
-      "POOLER_MANUAL_OVERRIDE",
-    ]).describe("Optional. The scaling type of the regular pooler.").optional(),
   }).describe("Configuration for Managed Connection Pool (MCP).").optional(),
   dataApiAccess: z.enum([
     "DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES",
@@ -738,9 +698,6 @@ const InputsSchema = z.object({
     ip: z.string().describe(
       'Output only. The private IP address of the VM e.g. "10.57.0.34".',
     ).optional(),
-    isHotStandby: z.boolean().describe(
-      "Output only. Indicates whether the node set up to be configured as a hot standby.",
-    ).optional(),
     state: z.string().describe(
       "Output only. Determined by state of the compute VM and postgres-service health. Compute VM state can have values listed in https://cloud.google.com/compute/docs/instances/instance-life-cycle and postgres-service health can have values: HEALTHY and UNHEALTHY.",
     ).optional(),
@@ -786,7 +743,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AlloyDB Clusters.Instances. Registered at `@swamp/gcp/alloydb/clusters-instances`. */
 export const model = {
   type: "@swamp/gcp/alloydb/clusters-instances",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -915,6 +872,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1077,25 +1039,34 @@ export const model = {
     update: {
       description: "Update instances attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific instances by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1223,22 +1194,29 @@ export const model = {
     },
     sync: {
       description: "Sync instances state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific instances by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

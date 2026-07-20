@@ -166,11 +166,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   cluster: z.object({
     addonsConfig: z.object({
-      agentSandboxConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether AgentSandbox is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the AgentSandbox addon.").optional(),
       cloudRunConfig: z.object({
         disabled: z.boolean().describe(
           "Whether Cloud Run addon is enabled for this cluster.",
@@ -258,25 +253,12 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "Configuration for NetworkPolicy. This only tracks whether the addon is enabled or not on the Master, it does not track whether network policy is enabled for the nodes.",
       ).optional(),
-      nodeReadinessConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether the GKE Node Readiness Controller is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the GKE Node Readiness Controller.")
-        .optional(),
       parallelstoreCsiDriverConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Cloud Storage Parallelstore CSI driver is enabled for this cluster.",
         ).optional(),
       }).describe(
         "Configuration for the Cloud Storage Parallelstore CSI driver.",
-      ).optional(),
-      podSnapshotConfig: z.object({
-        enabled: z.boolean().describe(
-          "Whether or not the Pod Snapshots feature is enabled.",
-        ).optional(),
-      }).describe(
-        "PodSnapshotConfig is the configuration for GKE Pod Snapshots feature.",
       ).optional(),
       rayOperatorConfig: z.object({
         enabled: z.boolean().describe(
@@ -303,11 +285,6 @@ const GlobalArgsSchema = z.object({
           "Optional. Indicates whether Slice Controller is enabled in the cluster.",
         ).optional(),
       }).describe("Configuration for the Slice Controller.").optional(),
-      slurmOperatorConfig: z.object({
-        enabled: z.boolean().describe(
-          "When enabled, it runs a Slurm Operator that manages the set of compute pods for Slurm Cluster.",
-        ).optional(),
-      }).describe("Configuration for the Slurm Operator.").optional(),
       statefulHaConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Stateful HA add-on is enabled for this cluster.",
@@ -646,9 +623,6 @@ const GlobalArgsSchema = z.object({
     createTime: z.string().describe(
       "Output only. The time the cluster was created, in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) text format.",
     ).optional(),
-    currentEmulatedVersion: z.string().describe(
-      "Output only. The current emulated version of the master endpoint. The version is in minor version format, e.g. 1.30. No value or empty string means the cluster has no emulated version.",
-    ).optional(),
     currentMasterVersion: z.string().describe(
       "Output only. The current software version of the master endpoint.",
     ).optional(),
@@ -918,7 +892,6 @@ const GlobalArgsSchema = z.object({
             "KCP_SSHD",
             "KCP_CONNECTION",
             "KCP_HPA",
-            "KCP_VPA",
           ]),
         ).describe(
           "Select components to collect logs. An empty set would disable all logging.",
@@ -975,45 +948,6 @@ const GlobalArgsSchema = z.object({
           }),
         ).describe(
           "Exceptions to maintenance window. Non-emergency maintenance should not occur in these windows.",
-        ).optional(),
-        recurringMaintenanceWindow: z.object({
-          delayUntil: z.object({
-            day: z.unknown().describe(
-              "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-            ).optional(),
-            month: z.unknown().describe(
-              "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-            ).optional(),
-            year: z.unknown().describe(
-              "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-            ).optional(),
-          }).describe(
-            "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-          ).optional(),
-          recurrence: z.string().describe(
-            "Required. An RRULE (https://tools.ietf.org/html/rfc5545#section-3.8.5.3) for how this window recurs. For example, to have something repeat every weekday, you'd use: `FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR` To repeat some window daily (equivalent to the DailyMaintenanceWindow): `FREQ=DAILY` For the first weekend of every month: `FREQ=MONTHLY;BYSETPOS=1;BYDAY=SA,SU` The FREQ values of HOURLY, MINUTELY, and SECONDLY are not supported.",
-          ).optional(),
-          windowDuration: z.string().describe(
-            "Required. Duration of the window.",
-          ).optional(),
-          windowStartTime: z.object({
-            hours: z.unknown().describe(
-              'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
-            ).optional(),
-            minutes: z.unknown().describe(
-              "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
-            ).optional(),
-            nanos: z.unknown().describe(
-              "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
-            ).optional(),
-            seconds: z.unknown().describe(
-              "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
-            ).optional(),
-          }).describe(
-            "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-          ).optional(),
-        }).describe(
-          "Represents an arbitrary window of time that recurs. Will replace RecurringTimeWindow.",
         ).optional(),
         recurringWindow: z.object({
           recurrence: z.string().describe(
@@ -1179,14 +1113,6 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "The desired datapath provider for this cluster. By default, uses the IPTables-based kube-proxy implementation.",
       ).optional(),
-      dataplaneV2Config: z.object({
-        scalabilityMode: z.enum([
-          "SCALABILITY_MODE_UNSPECIFIED",
-          "DISABLED",
-          "SCALE_OPTIMIZED",
-        ]).describe("Optional. Scalability mode for the cluster.").optional(),
-      }).describe("DataplaneV2Config is the configuration for DPv2.")
-        .optional(),
       defaultEnablePrivateNodes: z.boolean().describe(
         "Controls whether by default nodes have private IP addresses only. It is invalid to specify both PrivateClusterConfig.enablePrivateNodes and this field at the same time. To update the default setting, use ClusterUpdate.desired_default_enable_private_nodes",
       ).optional(),
@@ -1359,7 +1285,7 @@ const GlobalArgsSchema = z.object({
           "Disk size in GB. Replaces NodeConfig.disk_size_gb",
         ).optional(),
       }).describe(
-        "BootDisk specifies the boot disk configuration for node pools.",
+        "BootDisk specifies the boot disk configuration for nodepools.",
       ).optional(),
       bootDiskKmsKey: z.string().describe(
         "The Customer Managed Encryption Key used to encrypt the boot disk attached to each node in the node pool. This should be of the form projects/[KEY_PROJECT_ID]/locations/[LOCATION]/keyRings/[RING_NAME]/cryptoKeys/[KEY_NAME]. For more information about protecting resources with Cloud KMS Keys please see: https://cloud.google.com/compute/docs/disks/customer-managed-encryption",
@@ -1605,7 +1531,7 @@ const GlobalArgsSchema = z.object({
             "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
           ).optional(),
         }).describe(
-          "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+          "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
         ).optional(),
       }).describe("Node kubelet configs.").optional(),
       labels: z.record(z.string(), z.string()).describe(
@@ -1626,36 +1552,6 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "cgroup_mode specifies the cgroup mode to be used on the node.",
         ).optional(),
-        customNodeInit: z.object({
-          initScript: z.object({
-            args: z.unknown().describe(
-              "Optional. The optional arguments line to be passed to the init script.",
-            ).optional(),
-            gcpSecretManagerSecretUri: z.unknown().describe(
-              "The resource name of the secret manager secret hosting the init script. Both global and regional secrets are supported with format below: Global secret: projects/{project}/secrets/{secret}/versions/{version} Regional secret: projects/{project}/locations/{location}/secrets/{secret}/versions/{version} Example: projects/1234567890/secrets/script_1/versions/1. Accept version number only, not support version alias. User can't configure both gcp_secret_manager_secret_uri and gcs_uri.",
-            ).optional(),
-            gcsGeneration: z.unknown().describe(
-              'The generation of the init script stored in Gloud Storage. This is the required field to identify the version of the init script. User can get the genetaion from `gcloud storage objects describe gs://BUCKET_NAME/OBJECT_NAME --format="value(generation)"` or from the "Version history" tab of the object in the Cloud Console UI.',
-            ).optional(),
-            gcsUri: z.unknown().describe(
-              "The Cloud Storage URI for storing the init script. Format: gs://BUCKET_NAME/OBJECT_NAME The service account on the node pool must have read access to the object. User can't configure both gcs_uri and gcp_secret_manager_secret_uri.",
-            ).optional(),
-          }).describe(
-            "InitScript provide a simply bash script to be executed on the node.",
-          ).optional(),
-        }).describe(
-          "Support for running custom init code while bootstrapping nodes.",
-        ).optional(),
-        diskIoScheduler: z.object({
-          nodeAttachedDiskIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the attached disks. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-          nodeSystemIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the boot disk or ephemeral lssd that runs node system workloads. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-        }).describe(
-          "DiskIoScheduler contains the configuration for the disk IO scheduler.",
-        ).optional(),
         hugepages: z.object({
           hugepageSize1g: z.number().int().describe(
             "Optional. Amount of 1G hugepages",
@@ -1674,13 +1570,6 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         }).describe("Configuration for kernel module loading on nodes.")
           .optional(),
-        nodeVfioConfig: z.object({
-          dmaEntryLimit: z.number().int().describe(
-            "Optional. Specifies the maximum number of DMA entries (pages) that can be mapped by the VFIO IOMMU type 1 driver for a container. This limit affects the total amount of host memory that can be pinned for direct device access, which is often critical for high-performance devices like TPUs and GPUs. This setting corresponds to the kernel parameter at: `/sys/module/vfio_iommu_type1/parameters/dma_entry_limit`. The default value in the kernel is `65535`. Higher values may be needed for workloads mapping large memory regions. Supported values are integers between `65535` and `4194304`.",
-          ).optional(),
-        }).describe(
-          "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-        ).optional(),
         swapConfig: z.object({
           bootDiskProfile: z.object({
             swapSizeGib: z.unknown().describe(
@@ -1718,7 +1607,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         }).describe("Configuration for swap memory on a node pool.").optional(),
         sysctls: z.record(z.string(), z.string()).describe(
-          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
         ).optional(),
         transparentHugepageDefrag: z.enum([
           "TRANSPARENT_HUGEPAGE_DEFRAG_UNSPECIFIED",
@@ -1765,7 +1654,7 @@ const GlobalArgsSchema = z.object({
           "LoggingVariantConfig specifies the behaviour of the logging component.",
         ).optional(),
       }).describe(
-        "NodePoolLoggingConfig specifies logging configuration for node pools.",
+        "NodePoolLoggingConfig specifies logging configuration for nodepools.",
       ).optional(),
       machineType: z.string().describe(
         "The name of a Google Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-types) If unspecified, the default machine type is `e2-medium`.",
@@ -1782,14 +1671,6 @@ const GlobalArgsSchema = z.object({
       nodeGroup: z.string().describe(
         "Setting this field will assign instances of this pool to run on the specified node group. This is useful for running workloads on [sole tenant nodes](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes).",
       ).optional(),
-      nodeImageConfig: z.object({
-        image: z.string().describe(
-          "The name of the image to use for this node.",
-        ).optional(),
-        imageProject: z.string().describe(
-          "The project containing the image to use for this node.",
-        ).optional(),
-      }).describe("CustomImageConfig contains the information r").optional(),
       oauthScopes: z.array(z.string()).describe(
         'The set of Google API scopes to be made available on all of the node VMs under the "default" service account. The following scopes are recommended, but not required, and by default are not included: * `https://www.googleapis.com/auth/compute` is required for mounting persistent storage on your nodes. * `https://www.googleapis.com/auth/devstorage.read_only` is required for communicating with **gcr.io** (the [Artifact Registry](https://cloud.google.com/artifact-registry/)). If unspecified, no scopes are added, unless Cloud Logging or Cloud Monitoring are enabled, in which case their required scopes will be added.',
       ).optional(),
@@ -1802,7 +1683,6 @@ const GlobalArgsSchema = z.object({
           "NO_RESERVATION",
           "ANY_RESERVATION",
           "SPECIFIC_RESERVATION",
-          "ANY_RESERVATION_THEN_FAIL",
         ]).describe("Corresponds to the type of reservation consumption.")
           .optional(),
         key: z.string().describe(
@@ -1922,15 +1802,6 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Parameters that describe the nodes in a cluster. GKE Autopilot clusters do not recognize parameters in `NodeConfig`. Use AutoprovisioningNodePoolDefaults instead.",
     ).optional(),
-    nodeCreationConfig: z.object({
-      nodeCreationMode: z.enum([
-        "MODE_UNSPECIFIED",
-        "VIA_KUBELET",
-        "VIA_CONTROL_PLANE",
-      ]).describe("The mode of node creation.").optional(),
-    }).describe(
-      "NodeCreationConfig defines the settings of node creation mode.",
-    ).optional(),
     nodeIpv4CidrSize: z.number().int().describe(
       "Output only. The size of the address space on each node for hosting containers. This is provisioned from within the `container_ipv4_cidr` range. This field will only be set when cluster is in route-based network mode.",
     ).optional(),
@@ -1950,36 +1821,6 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "cgroup_mode specifies the cgroup mode to be used on the node.",
         ).optional(),
-        customNodeInit: z.object({
-          initScript: z.object({
-            args: z.unknown().describe(
-              "Optional. The optional arguments line to be passed to the init script.",
-            ).optional(),
-            gcpSecretManagerSecretUri: z.unknown().describe(
-              "The resource name of the secret manager secret hosting the init script. Both global and regional secrets are supported with format below: Global secret: projects/{project}/secrets/{secret}/versions/{version} Regional secret: projects/{project}/locations/{location}/secrets/{secret}/versions/{version} Example: projects/1234567890/secrets/script_1/versions/1. Accept version number only, not support version alias. User can't configure both gcp_secret_manager_secret_uri and gcs_uri.",
-            ).optional(),
-            gcsGeneration: z.unknown().describe(
-              'The generation of the init script stored in Gloud Storage. This is the required field to identify the version of the init script. User can get the genetaion from `gcloud storage objects describe gs://BUCKET_NAME/OBJECT_NAME --format="value(generation)"` or from the "Version history" tab of the object in the Cloud Console UI.',
-            ).optional(),
-            gcsUri: z.unknown().describe(
-              "The Cloud Storage URI for storing the init script. Format: gs://BUCKET_NAME/OBJECT_NAME The service account on the node pool must have read access to the object. User can't configure both gcs_uri and gcp_secret_manager_secret_uri.",
-            ).optional(),
-          }).describe(
-            "InitScript provide a simply bash script to be executed on the node.",
-          ).optional(),
-        }).describe(
-          "Support for running custom init code while bootstrapping nodes.",
-        ).optional(),
-        diskIoScheduler: z.object({
-          nodeAttachedDiskIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the attached disks. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-          nodeSystemIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the boot disk or ephemeral lssd that runs node system workloads. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-        }).describe(
-          "DiskIoScheduler contains the configuration for the disk IO scheduler.",
-        ).optional(),
         hugepages: z.object({
           hugepageSize1g: z.number().int().describe(
             "Optional. Amount of 1G hugepages",
@@ -1998,13 +1839,6 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         }).describe("Configuration for kernel module loading on nodes.")
           .optional(),
-        nodeVfioConfig: z.object({
-          dmaEntryLimit: z.number().int().describe(
-            "Optional. Specifies the maximum number of DMA entries (pages) that can be mapped by the VFIO IOMMU type 1 driver for a container. This limit affects the total amount of host memory that can be pinned for direct device access, which is often critical for high-performance devices like TPUs and GPUs. This setting corresponds to the kernel parameter at: `/sys/module/vfio_iommu_type1/parameters/dma_entry_limit`. The default value in the kernel is `65535`. Higher values may be needed for workloads mapping large memory regions. Supported values are integers between `65535` and `4194304`.",
-          ).optional(),
-        }).describe(
-          "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-        ).optional(),
         swapConfig: z.object({
           bootDiskProfile: z.object({
             swapSizeGib: z.unknown().describe(
@@ -2042,7 +1876,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         }).describe("Configuration for swap memory on a node pool.").optional(),
         sysctls: z.record(z.string(), z.string()).describe(
-          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
         ).optional(),
         transparentHugepageDefrag: z.enum([
           "TRANSPARENT_HUGEPAGE_DEFRAG_UNSPECIFIED",
@@ -2209,7 +2043,7 @@ const GlobalArgsSchema = z.object({
             "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
           ).optional(),
         }).describe(
-          "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+          "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
         ).optional(),
       }).describe("Node kubelet configs.").optional(),
       resourceManagerTags: z.object({
@@ -2258,7 +2092,7 @@ const GlobalArgsSchema = z.object({
             "LoggingVariantConfig specifies the behaviour of the logging component.",
           ).optional(),
         }).describe(
-          "NodePoolLoggingConfig specifies logging configuration for node pools.",
+          "NodePoolLoggingConfig specifies logging configuration for nodepools.",
         ).optional(),
         nodeKubeletConfig: z.object({
           allowedUnsafeSysctls: z.array(z.unknown()).describe(
@@ -2400,7 +2234,7 @@ const GlobalArgsSchema = z.object({
               "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
             ).optional(),
           }).describe(
-            "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+            "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
           ).optional(),
         }).describe("Node kubelet configs.").optional(),
       }).describe("Subset of NodeConfig message that has defaults.").optional(),
@@ -2411,7 +2245,7 @@ const GlobalArgsSchema = z.object({
           "Denotes that nodes belonging to this node pool are Autopilot nodes.",
         ).optional(),
       }).describe(
-        "AutopilotConfig contains configuration of autopilot feature for this node pool.",
+        "AutopilotConfig contains configuration of autopilot feature for this nodepool.",
       ).optional(),
       autoscaling: z.object({
         autoprovisioned: z.boolean().describe(
@@ -2424,7 +2258,7 @@ const GlobalArgsSchema = z.object({
           "LOCATION_POLICY_UNSPECIFIED",
           "BALANCED",
           "ANY",
-        ]).describe("Location policy used when scaling up a node pool.")
+        ]).describe("Location policy used when scaling up a nodepool.")
           .optional(),
         maxNodeCount: z.number().int().describe(
           "Maximum number of nodes for one location in the node pool. Must be >= min_node_count. There has to be enough quota to scale up the cluster.",
@@ -2458,9 +2292,8 @@ const GlobalArgsSchema = z.object({
         message: z.unknown().describe(
           "Human-friendly representation of the condition",
         ).optional(),
-      })).describe(
-        "Output only. Which conditions caused the current node pool state.",
-      ).optional(),
+      })).describe("Which conditions caused the current node pool state.")
+        .optional(),
       config: z.object({
         accelerators: z.array(z.unknown()).describe(
           "A list of hardware accelerators to be attached to each node. See https://cloud.google.com/compute/docs/gpus for more information about support for GPUs.",
@@ -2492,7 +2325,7 @@ const GlobalArgsSchema = z.object({
             "Disk size in GB. Replaces NodeConfig.disk_size_gb",
           ).optional(),
         }).describe(
-          "BootDisk specifies the boot disk configuration for node pools.",
+          "BootDisk specifies the boot disk configuration for nodepools.",
         ).optional(),
         bootDiskKmsKey: z.string().describe(
           "The Customer Managed Encryption Key used to encrypt the boot disk attached to each node in the node pool. This should be of the form projects/[KEY_PROJECT_ID]/locations/[LOCATION]/keyRings/[RING_NAME]/cryptoKeys/[KEY_NAME]. For more information about protecting resources with Cloud KMS Keys please see: https://cloud.google.com/compute/docs/disks/customer-managed-encryption",
@@ -2645,7 +2478,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Defines whether to enable single process OOM killer. If true, will prevent the memory.oom.group flag from being set for container cgroups in cgroups v2. This causes processes in the container to be OOM killed individually instead of as a group.",
           ).optional(),
           topologyManager: z.unknown().describe(
-            "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+            "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
           ).optional(),
         }).describe("Node kubelet configs.").optional(),
         labels: z.record(z.string(), z.unknown()).describe(
@@ -2658,26 +2491,17 @@ const GlobalArgsSchema = z.object({
           cgroupMode: z.unknown().describe(
             "cgroup_mode specifies the cgroup mode to be used on the node.",
           ).optional(),
-          customNodeInit: z.unknown().describe(
-            "Support for running custom init code while bootstrapping nodes.",
-          ).optional(),
-          diskIoScheduler: z.unknown().describe(
-            "DiskIoScheduler contains the configuration for the disk IO scheduler.",
-          ).optional(),
           hugepages: z.unknown().describe(
             "Hugepages amount in both 2m and 1g size",
           ).optional(),
           nodeKernelModuleLoading: z.unknown().describe(
             "Configuration for kernel module loading on nodes.",
           ).optional(),
-          nodeVfioConfig: z.unknown().describe(
-            "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-          ).optional(),
           swapConfig: z.unknown().describe(
             "Configuration for swap memory on a node pool.",
           ).optional(),
           sysctls: z.unknown().describe(
-            "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+            "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
           ).optional(),
           transparentHugepageDefrag: z.unknown().describe(
             "Optional. Defines the transparent hugepage defrag configuration on the node. VM hugepage allocation can be managed by either limiting defragmentation for delayed allocation or skipping it entirely for immediate allocation only. See https://docs.kernel.org/admin-guide/mm/transhuge.html for more details.",
@@ -2709,7 +2533,7 @@ const GlobalArgsSchema = z.object({
             "LoggingVariantConfig specifies the behaviour of the logging component.",
           ).optional(),
         }).describe(
-          "NodePoolLoggingConfig specifies logging configuration for node pools.",
+          "NodePoolLoggingConfig specifies logging configuration for nodepools.",
         ).optional(),
         machineType: z.string().describe(
           "The name of a Google Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-types) If unspecified, the default machine type is `e2-medium`.",
@@ -2726,14 +2550,6 @@ const GlobalArgsSchema = z.object({
         nodeGroup: z.string().describe(
           "Setting this field will assign instances of this pool to run on the specified node group. This is useful for running workloads on [sole tenant nodes](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes).",
         ).optional(),
-        nodeImageConfig: z.object({
-          image: z.unknown().describe(
-            "The name of the image to use for this node.",
-          ).optional(),
-          imageProject: z.unknown().describe(
-            "The project containing the image to use for this node.",
-          ).optional(),
-        }).describe("CustomImageConfig contains the information r").optional(),
         oauthScopes: z.array(z.unknown()).describe(
           'The set of Google API scopes to be made available on all of the node VMs under the "default" service account. The following scopes are recommended, but not required, and by default are not included: * `https://www.googleapis.com/auth/compute` is required for mounting persistent storage on your nodes. * `https://www.googleapis.com/auth/devstorage.read_only` is required for communicating with **gcr.io** (the [Artifact Registry](https://cloud.google.com/artifact-registry/)). If unspecified, no scopes are added, unless Cloud Logging or Cloud Monitoring are enabled, in which case their required scopes will be added.',
         ).optional(),
@@ -2833,7 +2649,7 @@ const GlobalArgsSchema = z.object({
         "Parameters that describe the nodes in a cluster. GKE Autopilot clusters do not recognize parameters in `NodeConfig`. Use AutoprovisioningNodePoolDefaults instead.",
       ).optional(),
       etag: z.string().describe(
-        "Output only. This checksum is computed by the server based on the value of node pool fields, and may be sent on update requests to ensure the client has an up-to-date value before proceeding.",
+        "This checksum is computed by the server based on the value of node pool fields, and may be sent on update requests to ensure the client has an up-to-date value before proceeding.",
       ).optional(),
       initialNodeCount: z.number().int().describe(
         "The initial node count for the pool. You must ensure that your Compute Engine [resource quota](https://cloud.google.com/compute/quotas) is sufficient for this number of instances. You must also have available firewall and routes quota.",
@@ -2841,31 +2657,9 @@ const GlobalArgsSchema = z.object({
       instanceGroupUrls: z.array(z.string()).describe(
         "Output only. The resource URLs of the [managed instance groups](https://cloud.google.com/compute/docs/instance-groups/creating-groups-of-managed-instances) associated with this node pool. During the node pool blue-green upgrade operation, the URLs contain both blue and green resources.",
       ).optional(),
-      kubeletCertInfo: z.object({
-        nonTpmBootstrapCertExpireTime: z.string().describe("Output only.")
-          .optional(),
-        tpmBootstrapCertExpireTime: z.string().describe("Output only.")
-          .optional(),
-      }).describe("Contains expiry information about the kubelet certificate.")
-        .optional(),
       locations: z.array(z.string()).describe(
         "The list of Google Compute Engine [zones](https://cloud.google.com/compute/docs/zones#available) in which the NodePool's nodes should be located. If this value is unspecified during node pool creation, the [Cluster.Locations](https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters#Cluster.FIELDS.locations) value will be used, instead. Warning: changing node pool locations will result in nodes being added and/or removed.",
       ).optional(),
-      maintenancePolicy: z.object({
-        exclusionUntilEndOfSupport: z.object({
-          enabled: z.unknown().describe(
-            "Optional. Indicates whether the exclusion is enabled.",
-          ).optional(),
-          endTime: z.unknown().describe(
-            "Output only. The end time of the maintenance exclusion. It is output only. It is the cluster control plane version's end of support time, or end of extended support time when the cluster is on extended support channel.",
-          ).optional(),
-          startTime: z.unknown().describe(
-            "Output only. The start time of the maintenance exclusion. It is output only. It is the exclusion creation time.",
-          ).optional(),
-        }).describe("Defines the maintenance exclusion for the node pool.")
-          .optional(),
-      }).describe("Defines the maintenance policy for the node pool.")
-        .optional(),
       management: z.object({
         autoRepair: z.boolean().describe(
           "A flag that specifies whether the node auto-repair is enabled for the node pool. If enabled, the nodes in this node pool will be monitored and, if they fail health checks too many times, an automatic repair action will be triggered.",
@@ -2893,9 +2687,6 @@ const GlobalArgsSchema = z.object({
       }).describe("Constraints applied to pods.").optional(),
       name: z.string().describe("The name of the node pool.").optional(),
       networkConfig: z.object({
-        acceleratorNetworkProfile: z.string().describe(
-          'Immutable. The accelerator network profile for the node pool. For now the only valid value is "auto". If specified, the network configuration of the nodes in this node pool will be managed by this profile for the supported machine types, zone, etc.',
-        ).optional(),
         additionalNodeNetworkConfigs: z.array(z.unknown()).describe(
           "We specify the additional node networks for this node pool using this list. Each node network corresponds to an additional interface",
         ).optional(),
@@ -2907,9 +2698,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         enablePrivateNodes: z.boolean().describe(
           "Whether nodes have internal IP addresses only. If enable_private_nodes is not specified, then the value is derived from Cluster.NetworkConfig.default_enable_private_nodes",
-        ).optional(),
-        network: z.string().describe(
-          "Optional. Immutable. The VPC network for the node pool.",
         ).optional(),
         networkPerformanceConfig: z.object({
           totalEgressBandwidthTier: z.unknown().describe(
@@ -2942,17 +2730,11 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       }).describe("Parameters for node pool-level network config.").optional(),
       nodeDrainConfig: z.object({
-        graceTerminationDuration: z.string().describe(
-          "The duration of the grace termination period for node drain.",
-        ).optional(),
-        pdbTimeoutDuration: z.string().describe(
-          "The duration of the PDB timeout period for node drain.",
-        ).optional(),
         respectPdbDuringNodePoolDeletion: z.boolean().describe(
           "Whether to respect PDB during node pool deletion.",
         ).optional(),
       }).describe(
-        "NodeDrainConfig contains the node drain related configurations for this node pool.",
+        "NodeDrainConfig contains the node drain related configurations for this nodepool.",
       ).optional(),
       placementPolicy: z.object({
         policyName: z.string().describe(
@@ -2972,7 +2754,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       queuedProvisioning: z.object({
         enabled: z.boolean().describe(
-          "Denotes that this node pool is QRM specific, meaning nodes can be only obtained through queuing via the Cluster Autoscaler ProvisioningRequest API.",
+          "Denotes that this nodepool is QRM specific, meaning nodes can be only obtained through queuing via the Cluster Autoscaler ProvisioningRequest API.",
         ).optional(),
       }).describe(
         "QueuedProvisioning defines the queued provisioning used by the node pool.",
@@ -3146,13 +2928,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
-    rollbackSafeUpgrade: z.object({
-      controlPlaneSoakDuration: z.string().describe(
-        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
-      ).optional(),
-    }).describe(
-      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
-    ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
     satisfiesPzs: z.boolean().describe("Output only. Reserved for future use.")
@@ -3321,11 +3096,6 @@ const GlobalArgsSchema = z.object({
       "DesiredAdditionalIPRangesConfig is a wrapper used for cluster update operation and contains multiple AdditionalIPRangesConfigs.",
     ).optional(),
     desiredAddonsConfig: z.object({
-      agentSandboxConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether AgentSandbox is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the AgentSandbox addon.").optional(),
       cloudRunConfig: z.object({
         disabled: z.boolean().describe(
           "Whether Cloud Run addon is enabled for this cluster.",
@@ -3413,25 +3183,12 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "Configuration for NetworkPolicy. This only tracks whether the addon is enabled or not on the Master, it does not track whether network policy is enabled for the nodes.",
       ).optional(),
-      nodeReadinessConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether the GKE Node Readiness Controller is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the GKE Node Readiness Controller.")
-        .optional(),
       parallelstoreCsiDriverConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Cloud Storage Parallelstore CSI driver is enabled for this cluster.",
         ).optional(),
       }).describe(
         "Configuration for the Cloud Storage Parallelstore CSI driver.",
-      ).optional(),
-      podSnapshotConfig: z.object({
-        enabled: z.boolean().describe(
-          "Whether or not the Pod Snapshots feature is enabled.",
-        ).optional(),
-      }).describe(
-        "PodSnapshotConfig is the configuration for GKE Pod Snapshots feature.",
       ).optional(),
       rayOperatorConfig: z.object({
         enabled: z.boolean().describe(
@@ -3458,11 +3215,6 @@ const GlobalArgsSchema = z.object({
           "Optional. Indicates whether Slice Controller is enabled in the cluster.",
         ).optional(),
       }).describe("Configuration for the Slice Controller.").optional(),
-      slurmOperatorConfig: z.object({
-        enabled: z.boolean().describe(
-          "When enabled, it runs a Slurm Operator that manages the set of compute pods for Slurm Cluster.",
-        ).optional(),
-      }).describe("Configuration for the Slurm Operator.").optional(),
       statefulHaConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Stateful HA add-on is enabled for this cluster.",
@@ -3847,9 +3599,6 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "DNSConfig contains the desired set of options for configuring clusterDNS.",
     ).optional(),
-    desiredEmulatedVersion: z.string().describe(
-      "Optional. The desired emulated version for the cluster.",
-    ).optional(),
     desiredEnableCiliumClusterwideNetworkPolicy: z.boolean().describe(
       "Enable/Disable Cilium Clusterwide Network Policy for the cluster.",
     ).optional(),
@@ -3908,12 +3657,6 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "IdentityServiceConfig is configuration for Identity Service which allows customers to use external identity providers with the K8S API",
     ).optional(),
-    desiredImage: z.string().describe(
-      'The desired name of the image to use for this node. This is used to create clusters using a custom image. NOTE: Set the "desired_node_pool" field as well.',
-    ).optional(),
-    desiredImageProject: z.string().describe(
-      'The project containing the desired image to use for this node. This is used to create clusters using a custom image. NOTE: Set the "desired_node_pool" field as well.',
-    ).optional(),
     desiredImageType: z.string().describe(
       'The desired image type for the node pool. NOTE: Set the "desired_node_pool" field as well.',
     ).optional(),
@@ -3956,7 +3699,6 @@ const GlobalArgsSchema = z.object({
             "KCP_SSHD",
             "KCP_CONNECTION",
             "KCP_HPA",
-            "KCP_VPA",
           ]),
         ).describe(
           "Select components to collect logs. An empty set would disable all logging.",
@@ -4087,15 +3829,6 @@ const GlobalArgsSchema = z.object({
       ]).describe("Network tier configuration.").optional(),
     }).describe("NetworkTierConfig contains network tier information.")
       .optional(),
-    desiredNodeCreationConfig: z.object({
-      nodeCreationMode: z.enum([
-        "MODE_UNSPECIFIED",
-        "VIA_KUBELET",
-        "VIA_CONTROL_PLANE",
-      ]).describe("The mode of node creation.").optional(),
-    }).describe(
-      "NodeCreationConfig defines the settings of node creation mode.",
-    ).optional(),
     desiredNodeKubeletConfig: z.object({
       allowedUnsafeSysctls: z.array(z.string()).describe(
         "Optional. Defines a comma-separated allowlist of unsafe sysctls or sysctl patterns (ending in `*`). The unsafe namespaced sysctl groups are `kernel.shm*`, `kernel.msg*`, `kernel.sem`, `fs.mqueue.*`, and `net.*`. Leaving this allowlist empty means they cannot be set on Pods. To allow certain sysctls or sysctl patterns to be set on Pods, list them separated by commas. For example: `kernel.msg*,net.ipv4.route.min_pmtu`. See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for more details.",
@@ -4236,7 +3969,7 @@ const GlobalArgsSchema = z.object({
           "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
         ).optional(),
       }).describe(
-        "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+        "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
       ).optional(),
     }).describe("Node kubelet configs.").optional(),
     desiredNodePoolAutoConfigKubeletConfig: z.object({
@@ -4379,7 +4112,7 @@ const GlobalArgsSchema = z.object({
           "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
         ).optional(),
       }).describe(
-        "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+        "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
       ).optional(),
     }).describe("Node kubelet configs.").optional(),
     desiredNodePoolAutoConfigLinuxNodeConfig: z.object({
@@ -4396,36 +4129,6 @@ const GlobalArgsSchema = z.object({
         "CGROUP_MODE_V2",
       ]).describe(
         "cgroup_mode specifies the cgroup mode to be used on the node.",
-      ).optional(),
-      customNodeInit: z.object({
-        initScript: z.object({
-          args: z.array(z.unknown()).describe(
-            "Optional. The optional arguments line to be passed to the init script.",
-          ).optional(),
-          gcpSecretManagerSecretUri: z.string().describe(
-            "The resource name of the secret manager secret hosting the init script. Both global and regional secrets are supported with format below: Global secret: projects/{project}/secrets/{secret}/versions/{version} Regional secret: projects/{project}/locations/{location}/secrets/{secret}/versions/{version} Example: projects/1234567890/secrets/script_1/versions/1. Accept version number only, not support version alias. User can't configure both gcp_secret_manager_secret_uri and gcs_uri.",
-          ).optional(),
-          gcsGeneration: z.string().describe(
-            'The generation of the init script stored in Gloud Storage. This is the required field to identify the version of the init script. User can get the genetaion from `gcloud storage objects describe gs://BUCKET_NAME/OBJECT_NAME --format="value(generation)"` or from the "Version history" tab of the object in the Cloud Console UI.',
-          ).optional(),
-          gcsUri: z.string().describe(
-            "The Cloud Storage URI for storing the init script. Format: gs://BUCKET_NAME/OBJECT_NAME The service account on the node pool must have read access to the object. User can't configure both gcs_uri and gcp_secret_manager_secret_uri.",
-          ).optional(),
-        }).describe(
-          "InitScript provide a simply bash script to be executed on the node.",
-        ).optional(),
-      }).describe(
-        "Support for running custom init code while bootstrapping nodes.",
-      ).optional(),
-      diskIoScheduler: z.object({
-        nodeAttachedDiskIoScheduler: z.string().describe(
-          "Optional. Configures the IO scheduler for the attached disks. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-        ).optional(),
-        nodeSystemIoScheduler: z.string().describe(
-          "Optional. Configures the IO scheduler for the boot disk or ephemeral lssd that runs node system workloads. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-        ).optional(),
-      }).describe(
-        "DiskIoScheduler contains the configuration for the disk IO scheduler.",
       ).optional(),
       hugepages: z.object({
         hugepageSize1g: z.number().int().describe(
@@ -4445,13 +4148,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       }).describe("Configuration for kernel module loading on nodes.")
         .optional(),
-      nodeVfioConfig: z.object({
-        dmaEntryLimit: z.number().int().describe(
-          "Optional. Specifies the maximum number of DMA entries (pages) that can be mapped by the VFIO IOMMU type 1 driver for a container. This limit affects the total amount of host memory that can be pinned for direct device access, which is often critical for high-performance devices like TPUs and GPUs. This setting corresponds to the kernel parameter at: `/sys/module/vfio_iommu_type1/parameters/dma_entry_limit`. The default value in the kernel is `65535`. Higher values may be needed for workloads mapping large memory regions. Supported values are integers between `65535` and `4194304`.",
-        ).optional(),
-      }).describe(
-        "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-      ).optional(),
       swapConfig: z.object({
         bootDiskProfile: z.object({
           swapSizeGib: z.string().describe(
@@ -4488,7 +4184,7 @@ const GlobalArgsSchema = z.object({
           .optional(),
       }).describe("Configuration for swap memory on a node pool.").optional(),
       sysctls: z.record(z.string(), z.string()).describe(
-        "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+        "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
       ).optional(),
       transparentHugepageDefrag: z.enum([
         "TRANSPARENT_HUGEPAGE_DEFRAG_UNSPECIFIED",
@@ -4529,7 +4225,7 @@ const GlobalArgsSchema = z.object({
         "Is autoscaling enabled for this node pool.",
       ).optional(),
       locationPolicy: z.enum(["LOCATION_POLICY_UNSPECIFIED", "BALANCED", "ANY"])
-        .describe("Location policy used when scaling up a node pool.")
+        .describe("Location policy used when scaling up a nodepool.")
         .optional(),
       maxNodeCount: z.number().int().describe(
         "Maximum number of nodes for one location in the node pool. Must be >= min_node_count. There has to be enough quota to scale up the cluster.",
@@ -4557,7 +4253,7 @@ const GlobalArgsSchema = z.object({
         "LoggingVariantConfig specifies the behaviour of the logging component.",
       ).optional(),
     }).describe(
-      "NodePoolLoggingConfig specifies logging configuration for node pools.",
+      "NodePoolLoggingConfig specifies logging configuration for nodepools.",
     ).optional(),
     desiredNodeVersion: z.string().describe(
       'The Kubernetes version to change the nodes to (typically an upgrade). Users may specify either explicit versions offered by Kubernetes Engine or version aliases, which have the following behavior: - "latest": picks the highest valid Kubernetes version - "1.X": picks the highest valid patch+gke.N patch in the 1.X version - "1.X.Y": picks the highest valid gke.N patch in the 1.X.Y version - "1.X.Y-gke.N": picks an explicit Kubernetes version - "-": picks the Kubernetes master version',
@@ -4674,13 +4370,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
-    desiredRollbackSafeUpgrade: z.object({
-      controlPlaneSoakDuration: z.string().describe(
-        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
-      ).optional(),
-    }).describe(
-      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
-    ).optional(),
     desiredSecretManagerConfig: z.object({
       enabled: z.boolean().describe("Enable/Disable Secret Manager Config.")
         .optional(),
@@ -4847,9 +4536,6 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   addonsConfig: z.object({
-    agentSandboxConfig: z.object({
-      enabled: z.boolean(),
-    }),
     cloudRunConfig: z.object({
       disabled: z.boolean(),
       loadBalancerType: z.string(),
@@ -4892,13 +4578,7 @@ const StateSchema = z.object({
     networkPolicyConfig: z.object({
       disabled: z.boolean(),
     }),
-    nodeReadinessConfig: z.object({
-      enabled: z.boolean(),
-    }),
     parallelstoreCsiDriverConfig: z.object({
-      enabled: z.boolean(),
-    }),
-    podSnapshotConfig: z.object({
       enabled: z.boolean(),
     }),
     rayOperatorConfig: z.object({
@@ -4911,9 +4591,6 @@ const StateSchema = z.object({
       }),
     }),
     sliceControllerConfig: z.object({
-      enabled: z.boolean(),
-    }),
-    slurmOperatorConfig: z.object({
       enabled: z.boolean(),
     }),
     statefulHaConfig: z.object({
@@ -5048,7 +4725,6 @@ const StateSchema = z.object({
     enabled: z.boolean(),
   }).optional(),
   createTime: z.string().optional(),
-  currentEmulatedVersion: z.string().optional(),
   currentMasterVersion: z.string().optional(),
   currentNodeCount: z.number().optional(),
   currentNodeVersion: z.string().optional(),
@@ -5162,21 +4838,6 @@ const StateSchema = z.object({
         startTime: z.string(),
       }),
       maintenanceExclusions: z.record(z.string(), z.unknown()),
-      recurringMaintenanceWindow: z.object({
-        delayUntil: z.object({
-          day: z.number(),
-          month: z.number(),
-          year: z.number(),
-        }),
-        recurrence: z.string(),
-        windowDuration: z.string(),
-        windowStartTime: z.object({
-          hours: z.number(),
-          minutes: z.number(),
-          nanos: z.number(),
-          seconds: z.number(),
-        }),
-      }),
       recurringWindow: z.object({
         recurrence: z.string(),
         window: z.object({
@@ -5239,9 +4900,6 @@ const StateSchema = z.object({
   network: z.string().optional(),
   networkConfig: z.object({
     datapathProvider: z.string(),
-    dataplaneV2Config: z.object({
-      scalabilityMode: z.string(),
-    }),
     defaultEnablePrivateNodes: z.boolean(),
     defaultSnatStatus: z.object({
       disabled: z.boolean(),
@@ -5403,27 +5061,12 @@ const StateSchema = z.object({
         enablePtpKvmTimeSync: z.boolean(),
       }),
       cgroupMode: z.string(),
-      customNodeInit: z.object({
-        initScript: z.object({
-          args: z.array(z.unknown()),
-          gcpSecretManagerSecretUri: z.string(),
-          gcsGeneration: z.string(),
-          gcsUri: z.string(),
-        }),
-      }),
-      diskIoScheduler: z.object({
-        nodeAttachedDiskIoScheduler: z.string(),
-        nodeSystemIoScheduler: z.string(),
-      }),
       hugepages: z.object({
         hugepageSize1g: z.number(),
         hugepageSize2m: z.number(),
       }),
       nodeKernelModuleLoading: z.object({
         policy: z.string(),
-      }),
-      nodeVfioConfig: z.object({
-        dmaEntryLimit: z.number(),
       }),
       swapConfig: z.object({
         bootDiskProfile: z.object({
@@ -5461,10 +5104,6 @@ const StateSchema = z.object({
     metadata: z.record(z.string(), z.unknown()),
     minCpuPlatform: z.string(),
     nodeGroup: z.string(),
-    nodeImageConfig: z.object({
-      image: z.string(),
-      imageProject: z.string(),
-    }),
     oauthScopes: z.array(z.string()),
     preemptible: z.boolean(),
     reservationAffinity: z.object({
@@ -5515,9 +5154,6 @@ const StateSchema = z.object({
       mode: z.string(),
     }),
   }).optional(),
-  nodeCreationConfig: z.object({
-    nodeCreationMode: z.string(),
-  }).optional(),
   nodeIpv4CidrSize: z.number().optional(),
   nodePoolAutoConfig: z.object({
     linuxNodeConfig: z.object({
@@ -5525,27 +5161,12 @@ const StateSchema = z.object({
         enablePtpKvmTimeSync: z.boolean(),
       }),
       cgroupMode: z.string(),
-      customNodeInit: z.object({
-        initScript: z.object({
-          args: z.array(z.unknown()),
-          gcpSecretManagerSecretUri: z.string(),
-          gcsGeneration: z.string(),
-          gcsUri: z.string(),
-        }),
-      }),
-      diskIoScheduler: z.object({
-        nodeAttachedDiskIoScheduler: z.string(),
-        nodeSystemIoScheduler: z.string(),
-      }),
       hugepages: z.object({
         hugepageSize1g: z.number(),
         hugepageSize2m: z.number(),
       }),
       nodeKernelModuleLoading: z.object({
         policy: z.string(),
-      }),
-      nodeVfioConfig: z.object({
-        dmaEntryLimit: z.number(),
       }),
       swapConfig: z.object({
         bootDiskProfile: z.object({
@@ -5844,22 +5465,12 @@ const StateSchema = z.object({
           enablePtpKvmTimeSync: z.unknown(),
         }),
         cgroupMode: z.string(),
-        customNodeInit: z.object({
-          initScript: z.unknown(),
-        }),
-        diskIoScheduler: z.object({
-          nodeAttachedDiskIoScheduler: z.unknown(),
-          nodeSystemIoScheduler: z.unknown(),
-        }),
         hugepages: z.object({
           hugepageSize1g: z.unknown(),
           hugepageSize2m: z.unknown(),
         }),
         nodeKernelModuleLoading: z.object({
           policy: z.unknown(),
-        }),
-        nodeVfioConfig: z.object({
-          dmaEntryLimit: z.unknown(),
         }),
         swapConfig: z.object({
           bootDiskProfile: z.unknown(),
@@ -5887,10 +5498,6 @@ const StateSchema = z.object({
       metadata: z.record(z.string(), z.unknown()),
       minCpuPlatform: z.string(),
       nodeGroup: z.string(),
-      nodeImageConfig: z.object({
-        image: z.string(),
-        imageProject: z.string(),
-      }),
       oauthScopes: z.array(z.string()),
       preemptible: z.boolean(),
       reservationAffinity: z.object({
@@ -5940,18 +5547,7 @@ const StateSchema = z.object({
     etag: z.string(),
     initialNodeCount: z.number(),
     instanceGroupUrls: z.array(z.string()),
-    kubeletCertInfo: z.object({
-      nonTpmBootstrapCertExpireTime: z.string(),
-      tpmBootstrapCertExpireTime: z.string(),
-    }),
     locations: z.array(z.string()),
-    maintenancePolicy: z.object({
-      exclusionUntilEndOfSupport: z.object({
-        enabled: z.boolean(),
-        endTime: z.string(),
-        startTime: z.string(),
-      }),
-    }),
     management: z.object({
       autoRepair: z.boolean(),
       autoUpgrade: z.boolean(),
@@ -5965,7 +5561,6 @@ const StateSchema = z.object({
     }),
     name: z.string(),
     networkConfig: z.object({
-      acceleratorNetworkProfile: z.string(),
       additionalNodeNetworkConfigs: z.array(z.object({
         network: z.unknown(),
         subnetwork: z.unknown(),
@@ -5978,7 +5573,6 @@ const StateSchema = z.object({
       })),
       createPodRange: z.boolean(),
       enablePrivateNodes: z.boolean(),
-      network: z.string(),
       networkPerformanceConfig: z.object({
         totalEgressBandwidthTier: z.string(),
       }),
@@ -5994,8 +5588,6 @@ const StateSchema = z.object({
       subnetwork: z.string(),
     }),
     nodeDrainConfig: z.object({
-      graceTerminationDuration: z.string(),
-      pdbTimeoutDuration: z.string(),
       respectPdbDuringNodePoolDeletion: z.boolean(),
     }),
     placementPolicy: z.object({
@@ -6082,9 +5674,6 @@ const StateSchema = z.object({
     }),
     enableNetworkEgressMetering: z.boolean(),
   }).optional(),
-  rollbackSafeUpgrade: z.object({
-    controlPlaneSoakDuration: z.string(),
-  }).optional(),
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
   scheduleUpgradeConfig: z.object({
@@ -6146,11 +5735,6 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   cluster: z.object({
     addonsConfig: z.object({
-      agentSandboxConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether AgentSandbox is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the AgentSandbox addon.").optional(),
       cloudRunConfig: z.object({
         disabled: z.boolean().describe(
           "Whether Cloud Run addon is enabled for this cluster.",
@@ -6238,25 +5822,12 @@ const InputsSchema = z.object({
       }).describe(
         "Configuration for NetworkPolicy. This only tracks whether the addon is enabled or not on the Master, it does not track whether network policy is enabled for the nodes.",
       ).optional(),
-      nodeReadinessConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether the GKE Node Readiness Controller is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the GKE Node Readiness Controller.")
-        .optional(),
       parallelstoreCsiDriverConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Cloud Storage Parallelstore CSI driver is enabled for this cluster.",
         ).optional(),
       }).describe(
         "Configuration for the Cloud Storage Parallelstore CSI driver.",
-      ).optional(),
-      podSnapshotConfig: z.object({
-        enabled: z.boolean().describe(
-          "Whether or not the Pod Snapshots feature is enabled.",
-        ).optional(),
-      }).describe(
-        "PodSnapshotConfig is the configuration for GKE Pod Snapshots feature.",
       ).optional(),
       rayOperatorConfig: z.object({
         enabled: z.boolean().describe(
@@ -6283,11 +5854,6 @@ const InputsSchema = z.object({
           "Optional. Indicates whether Slice Controller is enabled in the cluster.",
         ).optional(),
       }).describe("Configuration for the Slice Controller.").optional(),
-      slurmOperatorConfig: z.object({
-        enabled: z.boolean().describe(
-          "When enabled, it runs a Slurm Operator that manages the set of compute pods for Slurm Cluster.",
-        ).optional(),
-      }).describe("Configuration for the Slurm Operator.").optional(),
       statefulHaConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Stateful HA add-on is enabled for this cluster.",
@@ -6626,9 +6192,6 @@ const InputsSchema = z.object({
     createTime: z.string().describe(
       "Output only. The time the cluster was created, in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) text format.",
     ).optional(),
-    currentEmulatedVersion: z.string().describe(
-      "Output only. The current emulated version of the master endpoint. The version is in minor version format, e.g. 1.30. No value or empty string means the cluster has no emulated version.",
-    ).optional(),
     currentMasterVersion: z.string().describe(
       "Output only. The current software version of the master endpoint.",
     ).optional(),
@@ -6898,7 +6461,6 @@ const InputsSchema = z.object({
             "KCP_SSHD",
             "KCP_CONNECTION",
             "KCP_HPA",
-            "KCP_VPA",
           ]),
         ).describe(
           "Select components to collect logs. An empty set would disable all logging.",
@@ -6955,45 +6517,6 @@ const InputsSchema = z.object({
           }),
         ).describe(
           "Exceptions to maintenance window. Non-emergency maintenance should not occur in these windows.",
-        ).optional(),
-        recurringMaintenanceWindow: z.object({
-          delayUntil: z.object({
-            day: z.unknown().describe(
-              "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-            ).optional(),
-            month: z.unknown().describe(
-              "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-            ).optional(),
-            year: z.unknown().describe(
-              "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-            ).optional(),
-          }).describe(
-            "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-          ).optional(),
-          recurrence: z.string().describe(
-            "Required. An RRULE (https://tools.ietf.org/html/rfc5545#section-3.8.5.3) for how this window recurs. For example, to have something repeat every weekday, you'd use: `FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR` To repeat some window daily (equivalent to the DailyMaintenanceWindow): `FREQ=DAILY` For the first weekend of every month: `FREQ=MONTHLY;BYSETPOS=1;BYDAY=SA,SU` The FREQ values of HOURLY, MINUTELY, and SECONDLY are not supported.",
-          ).optional(),
-          windowDuration: z.string().describe(
-            "Required. Duration of the window.",
-          ).optional(),
-          windowStartTime: z.object({
-            hours: z.unknown().describe(
-              'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
-            ).optional(),
-            minutes: z.unknown().describe(
-              "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
-            ).optional(),
-            nanos: z.unknown().describe(
-              "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
-            ).optional(),
-            seconds: z.unknown().describe(
-              "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
-            ).optional(),
-          }).describe(
-            "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-          ).optional(),
-        }).describe(
-          "Represents an arbitrary window of time that recurs. Will replace RecurringTimeWindow.",
         ).optional(),
         recurringWindow: z.object({
           recurrence: z.string().describe(
@@ -7159,14 +6682,6 @@ const InputsSchema = z.object({
       ]).describe(
         "The desired datapath provider for this cluster. By default, uses the IPTables-based kube-proxy implementation.",
       ).optional(),
-      dataplaneV2Config: z.object({
-        scalabilityMode: z.enum([
-          "SCALABILITY_MODE_UNSPECIFIED",
-          "DISABLED",
-          "SCALE_OPTIMIZED",
-        ]).describe("Optional. Scalability mode for the cluster.").optional(),
-      }).describe("DataplaneV2Config is the configuration for DPv2.")
-        .optional(),
       defaultEnablePrivateNodes: z.boolean().describe(
         "Controls whether by default nodes have private IP addresses only. It is invalid to specify both PrivateClusterConfig.enablePrivateNodes and this field at the same time. To update the default setting, use ClusterUpdate.desired_default_enable_private_nodes",
       ).optional(),
@@ -7339,7 +6854,7 @@ const InputsSchema = z.object({
           "Disk size in GB. Replaces NodeConfig.disk_size_gb",
         ).optional(),
       }).describe(
-        "BootDisk specifies the boot disk configuration for node pools.",
+        "BootDisk specifies the boot disk configuration for nodepools.",
       ).optional(),
       bootDiskKmsKey: z.string().describe(
         "The Customer Managed Encryption Key used to encrypt the boot disk attached to each node in the node pool. This should be of the form projects/[KEY_PROJECT_ID]/locations/[LOCATION]/keyRings/[RING_NAME]/cryptoKeys/[KEY_NAME]. For more information about protecting resources with Cloud KMS Keys please see: https://cloud.google.com/compute/docs/disks/customer-managed-encryption",
@@ -7585,7 +7100,7 @@ const InputsSchema = z.object({
             "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
           ).optional(),
         }).describe(
-          "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+          "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
         ).optional(),
       }).describe("Node kubelet configs.").optional(),
       labels: z.record(z.string(), z.string()).describe(
@@ -7606,36 +7121,6 @@ const InputsSchema = z.object({
         ]).describe(
           "cgroup_mode specifies the cgroup mode to be used on the node.",
         ).optional(),
-        customNodeInit: z.object({
-          initScript: z.object({
-            args: z.unknown().describe(
-              "Optional. The optional arguments line to be passed to the init script.",
-            ).optional(),
-            gcpSecretManagerSecretUri: z.unknown().describe(
-              "The resource name of the secret manager secret hosting the init script. Both global and regional secrets are supported with format below: Global secret: projects/{project}/secrets/{secret}/versions/{version} Regional secret: projects/{project}/locations/{location}/secrets/{secret}/versions/{version} Example: projects/1234567890/secrets/script_1/versions/1. Accept version number only, not support version alias. User can't configure both gcp_secret_manager_secret_uri and gcs_uri.",
-            ).optional(),
-            gcsGeneration: z.unknown().describe(
-              'The generation of the init script stored in Gloud Storage. This is the required field to identify the version of the init script. User can get the genetaion from `gcloud storage objects describe gs://BUCKET_NAME/OBJECT_NAME --format="value(generation)"` or from the "Version history" tab of the object in the Cloud Console UI.',
-            ).optional(),
-            gcsUri: z.unknown().describe(
-              "The Cloud Storage URI for storing the init script. Format: gs://BUCKET_NAME/OBJECT_NAME The service account on the node pool must have read access to the object. User can't configure both gcs_uri and gcp_secret_manager_secret_uri.",
-            ).optional(),
-          }).describe(
-            "InitScript provide a simply bash script to be executed on the node.",
-          ).optional(),
-        }).describe(
-          "Support for running custom init code while bootstrapping nodes.",
-        ).optional(),
-        diskIoScheduler: z.object({
-          nodeAttachedDiskIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the attached disks. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-          nodeSystemIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the boot disk or ephemeral lssd that runs node system workloads. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-        }).describe(
-          "DiskIoScheduler contains the configuration for the disk IO scheduler.",
-        ).optional(),
         hugepages: z.object({
           hugepageSize1g: z.number().int().describe(
             "Optional. Amount of 1G hugepages",
@@ -7654,13 +7139,6 @@ const InputsSchema = z.object({
           ).optional(),
         }).describe("Configuration for kernel module loading on nodes.")
           .optional(),
-        nodeVfioConfig: z.object({
-          dmaEntryLimit: z.number().int().describe(
-            "Optional. Specifies the maximum number of DMA entries (pages) that can be mapped by the VFIO IOMMU type 1 driver for a container. This limit affects the total amount of host memory that can be pinned for direct device access, which is often critical for high-performance devices like TPUs and GPUs. This setting corresponds to the kernel parameter at: `/sys/module/vfio_iommu_type1/parameters/dma_entry_limit`. The default value in the kernel is `65535`. Higher values may be needed for workloads mapping large memory regions. Supported values are integers between `65535` and `4194304`.",
-          ).optional(),
-        }).describe(
-          "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-        ).optional(),
         swapConfig: z.object({
           bootDiskProfile: z.object({
             swapSizeGib: z.unknown().describe(
@@ -7698,7 +7176,7 @@ const InputsSchema = z.object({
           ).optional(),
         }).describe("Configuration for swap memory on a node pool.").optional(),
         sysctls: z.record(z.string(), z.string()).describe(
-          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
         ).optional(),
         transparentHugepageDefrag: z.enum([
           "TRANSPARENT_HUGEPAGE_DEFRAG_UNSPECIFIED",
@@ -7745,7 +7223,7 @@ const InputsSchema = z.object({
           "LoggingVariantConfig specifies the behaviour of the logging component.",
         ).optional(),
       }).describe(
-        "NodePoolLoggingConfig specifies logging configuration for node pools.",
+        "NodePoolLoggingConfig specifies logging configuration for nodepools.",
       ).optional(),
       machineType: z.string().describe(
         "The name of a Google Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-types) If unspecified, the default machine type is `e2-medium`.",
@@ -7762,14 +7240,6 @@ const InputsSchema = z.object({
       nodeGroup: z.string().describe(
         "Setting this field will assign instances of this pool to run on the specified node group. This is useful for running workloads on [sole tenant nodes](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes).",
       ).optional(),
-      nodeImageConfig: z.object({
-        image: z.string().describe(
-          "The name of the image to use for this node.",
-        ).optional(),
-        imageProject: z.string().describe(
-          "The project containing the image to use for this node.",
-        ).optional(),
-      }).describe("CustomImageConfig contains the information r").optional(),
       oauthScopes: z.array(z.string()).describe(
         'The set of Google API scopes to be made available on all of the node VMs under the "default" service account. The following scopes are recommended, but not required, and by default are not included: * `https://www.googleapis.com/auth/compute` is required for mounting persistent storage on your nodes. * `https://www.googleapis.com/auth/devstorage.read_only` is required for communicating with **gcr.io** (the [Artifact Registry](https://cloud.google.com/artifact-registry/)). If unspecified, no scopes are added, unless Cloud Logging or Cloud Monitoring are enabled, in which case their required scopes will be added.',
       ).optional(),
@@ -7782,7 +7252,6 @@ const InputsSchema = z.object({
           "NO_RESERVATION",
           "ANY_RESERVATION",
           "SPECIFIC_RESERVATION",
-          "ANY_RESERVATION_THEN_FAIL",
         ]).describe("Corresponds to the type of reservation consumption.")
           .optional(),
         key: z.string().describe(
@@ -7902,15 +7371,6 @@ const InputsSchema = z.object({
     }).describe(
       "Parameters that describe the nodes in a cluster. GKE Autopilot clusters do not recognize parameters in `NodeConfig`. Use AutoprovisioningNodePoolDefaults instead.",
     ).optional(),
-    nodeCreationConfig: z.object({
-      nodeCreationMode: z.enum([
-        "MODE_UNSPECIFIED",
-        "VIA_KUBELET",
-        "VIA_CONTROL_PLANE",
-      ]).describe("The mode of node creation.").optional(),
-    }).describe(
-      "NodeCreationConfig defines the settings of node creation mode.",
-    ).optional(),
     nodeIpv4CidrSize: z.number().int().describe(
       "Output only. The size of the address space on each node for hosting containers. This is provisioned from within the `container_ipv4_cidr` range. This field will only be set when cluster is in route-based network mode.",
     ).optional(),
@@ -7930,36 +7390,6 @@ const InputsSchema = z.object({
         ]).describe(
           "cgroup_mode specifies the cgroup mode to be used on the node.",
         ).optional(),
-        customNodeInit: z.object({
-          initScript: z.object({
-            args: z.unknown().describe(
-              "Optional. The optional arguments line to be passed to the init script.",
-            ).optional(),
-            gcpSecretManagerSecretUri: z.unknown().describe(
-              "The resource name of the secret manager secret hosting the init script. Both global and regional secrets are supported with format below: Global secret: projects/{project}/secrets/{secret}/versions/{version} Regional secret: projects/{project}/locations/{location}/secrets/{secret}/versions/{version} Example: projects/1234567890/secrets/script_1/versions/1. Accept version number only, not support version alias. User can't configure both gcp_secret_manager_secret_uri and gcs_uri.",
-            ).optional(),
-            gcsGeneration: z.unknown().describe(
-              'The generation of the init script stored in Gloud Storage. This is the required field to identify the version of the init script. User can get the genetaion from `gcloud storage objects describe gs://BUCKET_NAME/OBJECT_NAME --format="value(generation)"` or from the "Version history" tab of the object in the Cloud Console UI.',
-            ).optional(),
-            gcsUri: z.unknown().describe(
-              "The Cloud Storage URI for storing the init script. Format: gs://BUCKET_NAME/OBJECT_NAME The service account on the node pool must have read access to the object. User can't configure both gcs_uri and gcp_secret_manager_secret_uri.",
-            ).optional(),
-          }).describe(
-            "InitScript provide a simply bash script to be executed on the node.",
-          ).optional(),
-        }).describe(
-          "Support for running custom init code while bootstrapping nodes.",
-        ).optional(),
-        diskIoScheduler: z.object({
-          nodeAttachedDiskIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the attached disks. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-          nodeSystemIoScheduler: z.string().describe(
-            "Optional. Configures the IO scheduler for the boot disk or ephemeral lssd that runs node system workloads. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-          ).optional(),
-        }).describe(
-          "DiskIoScheduler contains the configuration for the disk IO scheduler.",
-        ).optional(),
         hugepages: z.object({
           hugepageSize1g: z.number().int().describe(
             "Optional. Amount of 1G hugepages",
@@ -7978,13 +7408,6 @@ const InputsSchema = z.object({
           ).optional(),
         }).describe("Configuration for kernel module loading on nodes.")
           .optional(),
-        nodeVfioConfig: z.object({
-          dmaEntryLimit: z.number().int().describe(
-            "Optional. Specifies the maximum number of DMA entries (pages) that can be mapped by the VFIO IOMMU type 1 driver for a container. This limit affects the total amount of host memory that can be pinned for direct device access, which is often critical for high-performance devices like TPUs and GPUs. This setting corresponds to the kernel parameter at: `/sys/module/vfio_iommu_type1/parameters/dma_entry_limit`. The default value in the kernel is `65535`. Higher values may be needed for workloads mapping large memory regions. Supported values are integers between `65535` and `4194304`.",
-          ).optional(),
-        }).describe(
-          "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-        ).optional(),
         swapConfig: z.object({
           bootDiskProfile: z.object({
             swapSizeGib: z.unknown().describe(
@@ -8022,7 +7445,7 @@ const InputsSchema = z.object({
           ).optional(),
         }).describe("Configuration for swap memory on a node pool.").optional(),
         sysctls: z.record(z.string(), z.string()).describe(
-          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+          "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
         ).optional(),
         transparentHugepageDefrag: z.enum([
           "TRANSPARENT_HUGEPAGE_DEFRAG_UNSPECIFIED",
@@ -8189,7 +7612,7 @@ const InputsSchema = z.object({
             "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
           ).optional(),
         }).describe(
-          "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+          "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
         ).optional(),
       }).describe("Node kubelet configs.").optional(),
       resourceManagerTags: z.object({
@@ -8238,7 +7661,7 @@ const InputsSchema = z.object({
             "LoggingVariantConfig specifies the behaviour of the logging component.",
           ).optional(),
         }).describe(
-          "NodePoolLoggingConfig specifies logging configuration for node pools.",
+          "NodePoolLoggingConfig specifies logging configuration for nodepools.",
         ).optional(),
         nodeKubeletConfig: z.object({
           allowedUnsafeSysctls: z.array(z.unknown()).describe(
@@ -8380,7 +7803,7 @@ const InputsSchema = z.object({
               "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
             ).optional(),
           }).describe(
-            "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+            "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
           ).optional(),
         }).describe("Node kubelet configs.").optional(),
       }).describe("Subset of NodeConfig message that has defaults.").optional(),
@@ -8391,7 +7814,7 @@ const InputsSchema = z.object({
           "Denotes that nodes belonging to this node pool are Autopilot nodes.",
         ).optional(),
       }).describe(
-        "AutopilotConfig contains configuration of autopilot feature for this node pool.",
+        "AutopilotConfig contains configuration of autopilot feature for this nodepool.",
       ).optional(),
       autoscaling: z.object({
         autoprovisioned: z.boolean().describe(
@@ -8404,7 +7827,7 @@ const InputsSchema = z.object({
           "LOCATION_POLICY_UNSPECIFIED",
           "BALANCED",
           "ANY",
-        ]).describe("Location policy used when scaling up a node pool.")
+        ]).describe("Location policy used when scaling up a nodepool.")
           .optional(),
         maxNodeCount: z.number().int().describe(
           "Maximum number of nodes for one location in the node pool. Must be >= min_node_count. There has to be enough quota to scale up the cluster.",
@@ -8438,9 +7861,8 @@ const InputsSchema = z.object({
         message: z.unknown().describe(
           "Human-friendly representation of the condition",
         ).optional(),
-      })).describe(
-        "Output only. Which conditions caused the current node pool state.",
-      ).optional(),
+      })).describe("Which conditions caused the current node pool state.")
+        .optional(),
       config: z.object({
         accelerators: z.array(z.unknown()).describe(
           "A list of hardware accelerators to be attached to each node. See https://cloud.google.com/compute/docs/gpus for more information about support for GPUs.",
@@ -8472,7 +7894,7 @@ const InputsSchema = z.object({
             "Disk size in GB. Replaces NodeConfig.disk_size_gb",
           ).optional(),
         }).describe(
-          "BootDisk specifies the boot disk configuration for node pools.",
+          "BootDisk specifies the boot disk configuration for nodepools.",
         ).optional(),
         bootDiskKmsKey: z.string().describe(
           "The Customer Managed Encryption Key used to encrypt the boot disk attached to each node in the node pool. This should be of the form projects/[KEY_PROJECT_ID]/locations/[LOCATION]/keyRings/[RING_NAME]/cryptoKeys/[KEY_NAME]. For more information about protecting resources with Cloud KMS Keys please see: https://cloud.google.com/compute/docs/disks/customer-managed-encryption",
@@ -8625,7 +8047,7 @@ const InputsSchema = z.object({
             "Optional. Defines whether to enable single process OOM killer. If true, will prevent the memory.oom.group flag from being set for container cgroups in cgroups v2. This causes processes in the container to be OOM killed individually instead of as a group.",
           ).optional(),
           topologyManager: z.unknown().describe(
-            "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+            "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
           ).optional(),
         }).describe("Node kubelet configs.").optional(),
         labels: z.record(z.string(), z.unknown()).describe(
@@ -8638,26 +8060,17 @@ const InputsSchema = z.object({
           cgroupMode: z.unknown().describe(
             "cgroup_mode specifies the cgroup mode to be used on the node.",
           ).optional(),
-          customNodeInit: z.unknown().describe(
-            "Support for running custom init code while bootstrapping nodes.",
-          ).optional(),
-          diskIoScheduler: z.unknown().describe(
-            "DiskIoScheduler contains the configuration for the disk IO scheduler.",
-          ).optional(),
           hugepages: z.unknown().describe(
             "Hugepages amount in both 2m and 1g size",
           ).optional(),
           nodeKernelModuleLoading: z.unknown().describe(
             "Configuration for kernel module loading on nodes.",
           ).optional(),
-          nodeVfioConfig: z.unknown().describe(
-            "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-          ).optional(),
           swapConfig: z.unknown().describe(
             "Configuration for swap memory on a node pool.",
           ).optional(),
           sysctls: z.unknown().describe(
-            "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+            "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
           ).optional(),
           transparentHugepageDefrag: z.unknown().describe(
             "Optional. Defines the transparent hugepage defrag configuration on the node. VM hugepage allocation can be managed by either limiting defragmentation for delayed allocation or skipping it entirely for immediate allocation only. See https://docs.kernel.org/admin-guide/mm/transhuge.html for more details.",
@@ -8689,7 +8102,7 @@ const InputsSchema = z.object({
             "LoggingVariantConfig specifies the behaviour of the logging component.",
           ).optional(),
         }).describe(
-          "NodePoolLoggingConfig specifies logging configuration for node pools.",
+          "NodePoolLoggingConfig specifies logging configuration for nodepools.",
         ).optional(),
         machineType: z.string().describe(
           "The name of a Google Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-types) If unspecified, the default machine type is `e2-medium`.",
@@ -8706,14 +8119,6 @@ const InputsSchema = z.object({
         nodeGroup: z.string().describe(
           "Setting this field will assign instances of this pool to run on the specified node group. This is useful for running workloads on [sole tenant nodes](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes).",
         ).optional(),
-        nodeImageConfig: z.object({
-          image: z.unknown().describe(
-            "The name of the image to use for this node.",
-          ).optional(),
-          imageProject: z.unknown().describe(
-            "The project containing the image to use for this node.",
-          ).optional(),
-        }).describe("CustomImageConfig contains the information r").optional(),
         oauthScopes: z.array(z.unknown()).describe(
           'The set of Google API scopes to be made available on all of the node VMs under the "default" service account. The following scopes are recommended, but not required, and by default are not included: * `https://www.googleapis.com/auth/compute` is required for mounting persistent storage on your nodes. * `https://www.googleapis.com/auth/devstorage.read_only` is required for communicating with **gcr.io** (the [Artifact Registry](https://cloud.google.com/artifact-registry/)). If unspecified, no scopes are added, unless Cloud Logging or Cloud Monitoring are enabled, in which case their required scopes will be added.',
         ).optional(),
@@ -8813,7 +8218,7 @@ const InputsSchema = z.object({
         "Parameters that describe the nodes in a cluster. GKE Autopilot clusters do not recognize parameters in `NodeConfig`. Use AutoprovisioningNodePoolDefaults instead.",
       ).optional(),
       etag: z.string().describe(
-        "Output only. This checksum is computed by the server based on the value of node pool fields, and may be sent on update requests to ensure the client has an up-to-date value before proceeding.",
+        "This checksum is computed by the server based on the value of node pool fields, and may be sent on update requests to ensure the client has an up-to-date value before proceeding.",
       ).optional(),
       initialNodeCount: z.number().int().describe(
         "The initial node count for the pool. You must ensure that your Compute Engine [resource quota](https://cloud.google.com/compute/quotas) is sufficient for this number of instances. You must also have available firewall and routes quota.",
@@ -8821,31 +8226,9 @@ const InputsSchema = z.object({
       instanceGroupUrls: z.array(z.string()).describe(
         "Output only. The resource URLs of the [managed instance groups](https://cloud.google.com/compute/docs/instance-groups/creating-groups-of-managed-instances) associated with this node pool. During the node pool blue-green upgrade operation, the URLs contain both blue and green resources.",
       ).optional(),
-      kubeletCertInfo: z.object({
-        nonTpmBootstrapCertExpireTime: z.string().describe("Output only.")
-          .optional(),
-        tpmBootstrapCertExpireTime: z.string().describe("Output only.")
-          .optional(),
-      }).describe("Contains expiry information about the kubelet certificate.")
-        .optional(),
       locations: z.array(z.string()).describe(
         "The list of Google Compute Engine [zones](https://cloud.google.com/compute/docs/zones#available) in which the NodePool's nodes should be located. If this value is unspecified during node pool creation, the [Cluster.Locations](https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters#Cluster.FIELDS.locations) value will be used, instead. Warning: changing node pool locations will result in nodes being added and/or removed.",
       ).optional(),
-      maintenancePolicy: z.object({
-        exclusionUntilEndOfSupport: z.object({
-          enabled: z.unknown().describe(
-            "Optional. Indicates whether the exclusion is enabled.",
-          ).optional(),
-          endTime: z.unknown().describe(
-            "Output only. The end time of the maintenance exclusion. It is output only. It is the cluster control plane version's end of support time, or end of extended support time when the cluster is on extended support channel.",
-          ).optional(),
-          startTime: z.unknown().describe(
-            "Output only. The start time of the maintenance exclusion. It is output only. It is the exclusion creation time.",
-          ).optional(),
-        }).describe("Defines the maintenance exclusion for the node pool.")
-          .optional(),
-      }).describe("Defines the maintenance policy for the node pool.")
-        .optional(),
       management: z.object({
         autoRepair: z.boolean().describe(
           "A flag that specifies whether the node auto-repair is enabled for the node pool. If enabled, the nodes in this node pool will be monitored and, if they fail health checks too many times, an automatic repair action will be triggered.",
@@ -8873,9 +8256,6 @@ const InputsSchema = z.object({
       }).describe("Constraints applied to pods.").optional(),
       name: z.string().describe("The name of the node pool.").optional(),
       networkConfig: z.object({
-        acceleratorNetworkProfile: z.string().describe(
-          'Immutable. The accelerator network profile for the node pool. For now the only valid value is "auto". If specified, the network configuration of the nodes in this node pool will be managed by this profile for the supported machine types, zone, etc.',
-        ).optional(),
         additionalNodeNetworkConfigs: z.array(z.unknown()).describe(
           "We specify the additional node networks for this node pool using this list. Each node network corresponds to an additional interface",
         ).optional(),
@@ -8887,9 +8267,6 @@ const InputsSchema = z.object({
         ).optional(),
         enablePrivateNodes: z.boolean().describe(
           "Whether nodes have internal IP addresses only. If enable_private_nodes is not specified, then the value is derived from Cluster.NetworkConfig.default_enable_private_nodes",
-        ).optional(),
-        network: z.string().describe(
-          "Optional. Immutable. The VPC network for the node pool.",
         ).optional(),
         networkPerformanceConfig: z.object({
           totalEgressBandwidthTier: z.unknown().describe(
@@ -8922,17 +8299,11 @@ const InputsSchema = z.object({
         ).optional(),
       }).describe("Parameters for node pool-level network config.").optional(),
       nodeDrainConfig: z.object({
-        graceTerminationDuration: z.string().describe(
-          "The duration of the grace termination period for node drain.",
-        ).optional(),
-        pdbTimeoutDuration: z.string().describe(
-          "The duration of the PDB timeout period for node drain.",
-        ).optional(),
         respectPdbDuringNodePoolDeletion: z.boolean().describe(
           "Whether to respect PDB during node pool deletion.",
         ).optional(),
       }).describe(
-        "NodeDrainConfig contains the node drain related configurations for this node pool.",
+        "NodeDrainConfig contains the node drain related configurations for this nodepool.",
       ).optional(),
       placementPolicy: z.object({
         policyName: z.string().describe(
@@ -8952,7 +8323,7 @@ const InputsSchema = z.object({
       ).optional(),
       queuedProvisioning: z.object({
         enabled: z.boolean().describe(
-          "Denotes that this node pool is QRM specific, meaning nodes can be only obtained through queuing via the Cluster Autoscaler ProvisioningRequest API.",
+          "Denotes that this nodepool is QRM specific, meaning nodes can be only obtained through queuing via the Cluster Autoscaler ProvisioningRequest API.",
         ).optional(),
       }).describe(
         "QueuedProvisioning defines the queued provisioning used by the node pool.",
@@ -9126,13 +8497,6 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
-    rollbackSafeUpgrade: z.object({
-      controlPlaneSoakDuration: z.string().describe(
-        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
-      ).optional(),
-    }).describe(
-      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
-    ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
     satisfiesPzs: z.boolean().describe("Output only. Reserved for future use.")
@@ -9301,11 +8665,6 @@ const InputsSchema = z.object({
       "DesiredAdditionalIPRangesConfig is a wrapper used for cluster update operation and contains multiple AdditionalIPRangesConfigs.",
     ).optional(),
     desiredAddonsConfig: z.object({
-      agentSandboxConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether AgentSandbox is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the AgentSandbox addon.").optional(),
       cloudRunConfig: z.object({
         disabled: z.boolean().describe(
           "Whether Cloud Run addon is enabled for this cluster.",
@@ -9393,25 +8752,12 @@ const InputsSchema = z.object({
       }).describe(
         "Configuration for NetworkPolicy. This only tracks whether the addon is enabled or not on the Master, it does not track whether network policy is enabled for the nodes.",
       ).optional(),
-      nodeReadinessConfig: z.object({
-        enabled: z.boolean().describe(
-          "Optional. Whether the GKE Node Readiness Controller is enabled for this cluster.",
-        ).optional(),
-      }).describe("Configuration for the GKE Node Readiness Controller.")
-        .optional(),
       parallelstoreCsiDriverConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Cloud Storage Parallelstore CSI driver is enabled for this cluster.",
         ).optional(),
       }).describe(
         "Configuration for the Cloud Storage Parallelstore CSI driver.",
-      ).optional(),
-      podSnapshotConfig: z.object({
-        enabled: z.boolean().describe(
-          "Whether or not the Pod Snapshots feature is enabled.",
-        ).optional(),
-      }).describe(
-        "PodSnapshotConfig is the configuration for GKE Pod Snapshots feature.",
       ).optional(),
       rayOperatorConfig: z.object({
         enabled: z.boolean().describe(
@@ -9438,11 +8784,6 @@ const InputsSchema = z.object({
           "Optional. Indicates whether Slice Controller is enabled in the cluster.",
         ).optional(),
       }).describe("Configuration for the Slice Controller.").optional(),
-      slurmOperatorConfig: z.object({
-        enabled: z.boolean().describe(
-          "When enabled, it runs a Slurm Operator that manages the set of compute pods for Slurm Cluster.",
-        ).optional(),
-      }).describe("Configuration for the Slurm Operator.").optional(),
       statefulHaConfig: z.object({
         enabled: z.boolean().describe(
           "Whether the Stateful HA add-on is enabled for this cluster.",
@@ -9827,9 +9168,6 @@ const InputsSchema = z.object({
     }).describe(
       "DNSConfig contains the desired set of options for configuring clusterDNS.",
     ).optional(),
-    desiredEmulatedVersion: z.string().describe(
-      "Optional. The desired emulated version for the cluster.",
-    ).optional(),
     desiredEnableCiliumClusterwideNetworkPolicy: z.boolean().describe(
       "Enable/Disable Cilium Clusterwide Network Policy for the cluster.",
     ).optional(),
@@ -9888,12 +9226,6 @@ const InputsSchema = z.object({
     }).describe(
       "IdentityServiceConfig is configuration for Identity Service which allows customers to use external identity providers with the K8S API",
     ).optional(),
-    desiredImage: z.string().describe(
-      'The desired name of the image to use for this node. This is used to create clusters using a custom image. NOTE: Set the "desired_node_pool" field as well.',
-    ).optional(),
-    desiredImageProject: z.string().describe(
-      'The project containing the desired image to use for this node. This is used to create clusters using a custom image. NOTE: Set the "desired_node_pool" field as well.',
-    ).optional(),
     desiredImageType: z.string().describe(
       'The desired image type for the node pool. NOTE: Set the "desired_node_pool" field as well.',
     ).optional(),
@@ -9936,7 +9268,6 @@ const InputsSchema = z.object({
             "KCP_SSHD",
             "KCP_CONNECTION",
             "KCP_HPA",
-            "KCP_VPA",
           ]),
         ).describe(
           "Select components to collect logs. An empty set would disable all logging.",
@@ -10067,15 +9398,6 @@ const InputsSchema = z.object({
       ]).describe("Network tier configuration.").optional(),
     }).describe("NetworkTierConfig contains network tier information.")
       .optional(),
-    desiredNodeCreationConfig: z.object({
-      nodeCreationMode: z.enum([
-        "MODE_UNSPECIFIED",
-        "VIA_KUBELET",
-        "VIA_CONTROL_PLANE",
-      ]).describe("The mode of node creation.").optional(),
-    }).describe(
-      "NodeCreationConfig defines the settings of node creation mode.",
-    ).optional(),
     desiredNodeKubeletConfig: z.object({
       allowedUnsafeSysctls: z.array(z.string()).describe(
         "Optional. Defines a comma-separated allowlist of unsafe sysctls or sysctl patterns (ending in `*`). The unsafe namespaced sysctl groups are `kernel.shm*`, `kernel.msg*`, `kernel.sem`, `fs.mqueue.*`, and `net.*`. Leaving this allowlist empty means they cannot be set on Pods. To allow certain sysctls or sysctl patterns to be set on Pods, list them separated by commas. For example: `kernel.msg*,net.ipv4.route.min_pmtu`. See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for more details.",
@@ -10216,7 +9538,7 @@ const InputsSchema = z.object({
           "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
         ).optional(),
       }).describe(
-        "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+        "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
       ).optional(),
     }).describe("Node kubelet configs.").optional(),
     desiredNodePoolAutoConfigKubeletConfig: z.object({
@@ -10359,7 +9681,7 @@ const InputsSchema = z.object({
           "The Topology Manager aligns resources in following scopes: * container * pod The default scope is 'container' if unspecified. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes",
         ).optional(),
       }).describe(
-        "TopologyManager defines the configuration options for the [`kubelet` Topology Manager component](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/). For more information about the supported machine types and versions for the Topology Manager in GKE, see [Customizing node system configuration](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-resource-managers).",
+        "TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/",
       ).optional(),
     }).describe("Node kubelet configs.").optional(),
     desiredNodePoolAutoConfigLinuxNodeConfig: z.object({
@@ -10376,36 +9698,6 @@ const InputsSchema = z.object({
         "CGROUP_MODE_V2",
       ]).describe(
         "cgroup_mode specifies the cgroup mode to be used on the node.",
-      ).optional(),
-      customNodeInit: z.object({
-        initScript: z.object({
-          args: z.array(z.unknown()).describe(
-            "Optional. The optional arguments line to be passed to the init script.",
-          ).optional(),
-          gcpSecretManagerSecretUri: z.string().describe(
-            "The resource name of the secret manager secret hosting the init script. Both global and regional secrets are supported with format below: Global secret: projects/{project}/secrets/{secret}/versions/{version} Regional secret: projects/{project}/locations/{location}/secrets/{secret}/versions/{version} Example: projects/1234567890/secrets/script_1/versions/1. Accept version number only, not support version alias. User can't configure both gcp_secret_manager_secret_uri and gcs_uri.",
-          ).optional(),
-          gcsGeneration: z.string().describe(
-            'The generation of the init script stored in Gloud Storage. This is the required field to identify the version of the init script. User can get the genetaion from `gcloud storage objects describe gs://BUCKET_NAME/OBJECT_NAME --format="value(generation)"` or from the "Version history" tab of the object in the Cloud Console UI.',
-          ).optional(),
-          gcsUri: z.string().describe(
-            "The Cloud Storage URI for storing the init script. Format: gs://BUCKET_NAME/OBJECT_NAME The service account on the node pool must have read access to the object. User can't configure both gcs_uri and gcp_secret_manager_secret_uri.",
-          ).optional(),
-        }).describe(
-          "InitScript provide a simply bash script to be executed on the node.",
-        ).optional(),
-      }).describe(
-        "Support for running custom init code while bootstrapping nodes.",
-      ).optional(),
-      diskIoScheduler: z.object({
-        nodeAttachedDiskIoScheduler: z.string().describe(
-          "Optional. Configures the IO scheduler for the attached disks. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-        ).optional(),
-        nodeSystemIoScheduler: z.string().describe(
-          "Optional. Configures the IO scheduler for the boot disk or ephemeral lssd that runs node system workloads. Supported values are `mq-deadline`, `bfq`, `kyber`, `none`.",
-        ).optional(),
-      }).describe(
-        "DiskIoScheduler contains the configuration for the disk IO scheduler.",
       ).optional(),
       hugepages: z.object({
         hugepageSize1g: z.number().int().describe(
@@ -10425,13 +9717,6 @@ const InputsSchema = z.object({
         ).optional(),
       }).describe("Configuration for kernel module loading on nodes.")
         .optional(),
-      nodeVfioConfig: z.object({
-        dmaEntryLimit: z.number().int().describe(
-          "Optional. Specifies the maximum number of DMA entries (pages) that can be mapped by the VFIO IOMMU type 1 driver for a container. This limit affects the total amount of host memory that can be pinned for direct device access, which is often critical for high-performance devices like TPUs and GPUs. This setting corresponds to the kernel parameter at: `/sys/module/vfio_iommu_type1/parameters/dma_entry_limit`. The default value in the kernel is `65535`. Higher values may be needed for workloads mapping large memory regions. Supported values are integers between `65535` and `4194304`.",
-        ).optional(),
-      }).describe(
-        "Configuration settings for VFIO (Virtual Function I/O) on a node. VFIO allows safe, unprivileged, userspace drivers to access I/O devices.",
-      ).optional(),
       swapConfig: z.object({
         bootDiskProfile: z.object({
           swapSizeGib: z.string().describe(
@@ -10468,7 +9753,7 @@ const InputsSchema = z.object({
           .optional(),
       }).describe("Configuration for swap memory on a node pool.").optional(),
       sysctls: z.record(z.string(), z.string()).describe(
-        "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.neigh.default.gc_thresh1 net.ipv4.neigh.default.gc_thresh2 net.ipv4.neigh.default.gc_thresh3 net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.keys.maxkeys kernel.keys.maxbytes kernel.shmmni kernel.shmmax kernel.shmall kernel.core_pattern kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
+        "The Linux kernel parameters to be applied to the nodes and all pods running on the nodes. The following parameters are supported. net.core.busy_poll net.core.busy_read net.core.netdev_max_backlog net.core.rmem_max net.core.rmem_default net.core.wmem_default net.core.wmem_max net.core.optmem_max net.core.somaxconn net.ipv4.tcp_rmem net.ipv4.tcp_wmem net.ipv4.tcp_tw_reuse net.ipv4.tcp_mtu_probing net.ipv4.tcp_max_orphans net.ipv4.tcp_max_tw_buckets net.ipv4.tcp_syn_retries net.ipv4.tcp_ecn net.ipv4.tcp_congestion_control net.netfilter.nf_conntrack_max net.netfilter.nf_conntrack_buckets net.netfilter.nf_conntrack_tcp_timeout_close_wait net.netfilter.nf_conntrack_tcp_timeout_time_wait net.netfilter.nf_conntrack_tcp_timeout_established net.netfilter.nf_conntrack_acct kernel.shmmni kernel.shmmax kernel.shmall kernel.perf_event_paranoid kernel.sched_rt_runtime_us kernel.softlockup_panic kernel.yama.ptrace_scope kernel.kptr_restrict kernel.dmesg_restrict kernel.sysrq fs.aio-max-nr fs.file-max fs.inotify.max_user_instances fs.inotify.max_user_watches fs.nr_open vm.dirty_background_ratio vm.dirty_background_bytes vm.dirty_expire_centisecs vm.dirty_ratio vm.dirty_bytes vm.dirty_writeback_centisecs vm.max_map_count vm.overcommit_memory vm.overcommit_ratio vm.vfs_cache_pressure vm.swappiness vm.watermark_scale_factor vm.min_free_kbytes",
       ).optional(),
       transparentHugepageDefrag: z.enum([
         "TRANSPARENT_HUGEPAGE_DEFRAG_UNSPECIFIED",
@@ -10509,7 +9794,7 @@ const InputsSchema = z.object({
         "Is autoscaling enabled for this node pool.",
       ).optional(),
       locationPolicy: z.enum(["LOCATION_POLICY_UNSPECIFIED", "BALANCED", "ANY"])
-        .describe("Location policy used when scaling up a node pool.")
+        .describe("Location policy used when scaling up a nodepool.")
         .optional(),
       maxNodeCount: z.number().int().describe(
         "Maximum number of nodes for one location in the node pool. Must be >= min_node_count. There has to be enough quota to scale up the cluster.",
@@ -10537,7 +9822,7 @@ const InputsSchema = z.object({
         "LoggingVariantConfig specifies the behaviour of the logging component.",
       ).optional(),
     }).describe(
-      "NodePoolLoggingConfig specifies logging configuration for node pools.",
+      "NodePoolLoggingConfig specifies logging configuration for nodepools.",
     ).optional(),
     desiredNodeVersion: z.string().describe(
       'The Kubernetes version to change the nodes to (typically an upgrade). Users may specify either explicit versions offered by Kubernetes Engine or version aliases, which have the following behavior: - "latest": picks the highest valid Kubernetes version - "1.X": picks the highest valid patch+gke.N patch in the 1.X version - "1.X.Y": picks the highest valid gke.N patch in the 1.X.Y version - "1.X.Y-gke.N": picks an explicit Kubernetes version - "-": picks the Kubernetes master version',
@@ -10654,13 +9939,6 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Configuration for exporting cluster resource usages.")
       .optional(),
-    desiredRollbackSafeUpgrade: z.object({
-      controlPlaneSoakDuration: z.string().describe(
-        "Optional. A user-defined period for the cluster remains in the rollbackable state. ex: {seconds: 21600}.",
-      ).optional(),
-    }).describe(
-      "RollbackSafeUpgrade is the configuration for the rollback safe upgrade.",
-    ).optional(),
     desiredSecretManagerConfig: z.object({
       enabled: z.boolean().describe("Enable/Disable Secret Manager Config.")
         .optional(),
@@ -10848,7 +10126,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Kubernetes Engine Clusters. Registered at `@swamp/gcp/container/clusters`. */
 export const model = {
   type: "@swamp/gcp/container/clusters",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -11045,6 +10323,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -11147,25 +10430,34 @@ export const model = {
     update: {
       description: "Update clusters attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific clusters by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -11246,22 +10538,29 @@ export const model = {
     },
     sync: {
       description: "Sync clusters state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific clusters by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -11365,44 +10664,6 @@ export const model = {
           },
           params,
           {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    complete_control_plane_upgrade: {
-      description: "complete control plane upgrade",
-      arguments: z.object({
-        version: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const body: Record<string, unknown> = {};
-        if (args["version"] !== undefined) body["version"] = args["version"];
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "container.projects.locations.clusters.completeControlPlaneUpgrade",
-            "path": "v1/{+name}:completeControlPlaneUpgrade",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          body,
           undefined,
           undefined,
           undefined,

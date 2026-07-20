@@ -17,15 +17,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/gcp/compute/rollouts
+// Auto-generated extension model for @swamp/gcp/androidpublisher/purchases-subscriptions
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Compute Engine Rollouts.
+ * Swamp extension model for Google Cloud Google Play Android Developer Purchases.Subscriptions.
  *
- * Rollout resource. A Rollout is a specific instance of a RolloutPlan. It represents a single execution of a strategy to roll out a specific resource. It also provides APIs to interact with the rollout.
+ * A SubscriptionPurchase resource indicates the status of a user's subscription purchase.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -36,88 +36,43 @@
 import { z } from "npm:zod@4.3.6";
 import {
   createResource,
-  deleteResource,
   type ExplicitGcpCredentials,
   getProjectId,
   isResourceNotFoundError,
-  listResources,
   readResource,
 } from "./_lib/gcp.ts";
 
-const BASE_URL = "https://compute.googleapis.com/compute/v1/";
+const BASE_URL = "https://androidpublisher.googleapis.com/";
 
 const GET_CONFIG = {
-  "id": "compute.rollouts.get",
-  "path": "projects/{project}/global/rollouts/{rollout}",
+  "id": "androidpublisher.purchases.subscriptions.get",
+  "path":
+    "androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}",
   "httpMethod": "GET",
   "parameterOrder": [
-    "project",
-    "rollout",
+    "packageName",
+    "subscriptionId",
+    "token",
   ],
   "parameters": {
-    "project": {
+    "packageName": {
       "location": "path",
       "required": true,
     },
-    "rollout": {
+    "subscriptionId": {
+      "location": "path",
+      "required": true,
+    },
+    "token": {
       "location": "path",
       "required": true,
     },
   },
 } as const;
 
-const DELETE_CONFIG = {
-  "id": "compute.rollouts.delete",
-  "path": "projects/{project}/global/rollouts/{rollout}",
-  "httpMethod": "DELETE",
-  "parameterOrder": [
-    "project",
-    "rollout",
-  ],
-  "parameters": {
-    "project": {
-      "location": "path",
-      "required": true,
-    },
-    "requestId": {
-      "location": "query",
-    },
-    "rollout": {
-      "location": "path",
-      "required": true,
-    },
-  },
-} as const;
-
-const LIST_CONFIG = {
-  "id": "compute.rollouts.list",
-  "path": "projects/{project}/global/rollouts",
-  "httpMethod": "GET",
-  "parameterOrder": [
-    "project",
-  ],
-  "parameters": {
-    "filter": {
-      "location": "query",
-    },
-    "maxResults": {
-      "location": "query",
-    },
-    "orderBy": {
-      "location": "query",
-    },
-    "pageToken": {
-      "location": "query",
-    },
-    "project": {
-      "location": "path",
-      "required": true,
-    },
-    "returnPartialSuccess": {
-      "location": "query",
-    },
-  },
-} as const;
+const _defaultOAuthScopes: string[] = [
+  "https://www.googleapis.com/auth/androidpublisher",
+];
 
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
@@ -135,43 +90,58 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  packageName: z.string().describe(
+    "The package name of the application for which this subscription was purchased (for example, 'com.some.thing').",
+  ),
+  subscriptionId: z.string().describe(
+    "The purchased subscription ID (for example, 'monthly001').",
+  ),
 });
 
 const StateSchema = z.object({
-  cancellationTime: z.string().optional(),
-  completionTime: z.string().optional(),
-  creationTimestamp: z.string().optional(),
-  currentWaveNumber: z.string().optional(),
-  description: z.string().optional(),
-  etag: z.string().optional(),
-  id: z.string().optional(),
-  kind: z.string().optional(),
-  name: z.string(),
-  pauseTime: z.string().optional(),
-  resumeTime: z.string().optional(),
-  rolloutEntity: z.object({
-    orchestratedEntity: z.object({
-      conflictBehavior: z.string(),
-      orchestrationAction: z.string(),
-      orchestrationSource: z.string(),
-    }),
+  acknowledgementState: z.number().optional(),
+  autoRenewing: z.boolean().optional(),
+  autoResumeTimeMillis: z.string().optional(),
+  cancelReason: z.number().optional(),
+  cancelSurveyResult: z.object({
+    cancelSurveyReason: z.number(),
+    userInputCancelReason: z.string(),
   }).optional(),
-  rolloutPlan: z.string().optional(),
-  selfLink: z.string().optional(),
-  selfLinkWithId: z.string().optional(),
-  state: z.string().optional(),
-  waveDetails: z.array(z.object({
-    orchestratedWaveDetails: z.object({
-      completedResourcesCount: z.string(),
-      estimatedCompletionTime: z.string(),
-      estimatedTotalResourcesCount: z.string(),
-      failedLocations: z.array(z.string()),
-      failedResourcesCount: z.string(),
-      locationStatus: z.record(z.string(), z.unknown()),
+  countryCode: z.string().optional(),
+  developerPayload: z.string().optional(),
+  emailAddress: z.string().optional(),
+  expiryTimeMillis: z.string().optional(),
+  externalAccountId: z.string().optional(),
+  familyName: z.string().optional(),
+  givenName: z.string().optional(),
+  introductoryPriceInfo: z.object({
+    introductoryPriceAmountMicros: z.string(),
+    introductoryPriceCurrencyCode: z.string(),
+    introductoryPriceCycles: z.number(),
+    introductoryPricePeriod: z.string(),
+  }).optional(),
+  kind: z.string().optional(),
+  linkedPurchaseToken: z.string().optional(),
+  obfuscatedExternalAccountId: z.string().optional(),
+  obfuscatedExternalProfileId: z.string().optional(),
+  orderId: z.string().optional(),
+  paymentState: z.number().optional(),
+  priceAmountMicros: z.string().optional(),
+  priceChange: z.object({
+    newPrice: z.object({
+      currency: z.string(),
+      priceMicros: z.string(),
     }),
-    waveDisplayName: z.string(),
-    waveNumber: z.string(),
-  })).optional(),
+    state: z.number(),
+  }).optional(),
+  priceCurrencyCode: z.string().optional(),
+  profileId: z.string().optional(),
+  profileName: z.string().optional(),
+  promotionCode: z.string().optional(),
+  promotionType: z.number().optional(),
+  purchaseType: z.number().optional(),
+  startTimeMillis: z.string().optional(),
+  userCancellationTimeMillis: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -182,6 +152,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  packageName: z.string().describe(
+    "The package name of the application for which this subscription was purchased (for example, 'com.some.thing').",
+  ).optional(),
+  subscriptionId: z.string().describe(
+    "The purchased subscription ID (for example, 'monthly001').",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -200,52 +176,20 @@ function _buildGcpCredentials(
     project: g.project as string | undefined,
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
-      : undefined,
+      : _defaultOAuthScopes,
   };
 }
 
-/** Swamp extension model for Google Cloud Compute Engine Rollouts. Registered at `@swamp/gcp/compute/rollouts`. */
+/** Swamp extension model for Google Cloud Google Play Android Developer Purchases.Subscriptions. Registered at `@swamp/gcp/androidpublisher/purchases-subscriptions`. */
 export const model = {
-  type: "@swamp/gcp/compute/rollouts",
-  version: "2026.07.19.1",
-  upgrades: [
-    {
-      toVersion: "2026.06.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.07.1",
-      description: "Added: accessToken, credentialsJson, project",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.18.1",
-      description: "Added: scopes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.18.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.19.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
+  type: "@swamp/gcp/androidpublisher/purchases-subscriptions",
+  version: "2026.07.20.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "Rollout resource. A Rollout is a specific instance of a RolloutPlan. It repre...",
+        "A SubscriptionPurchase resource indicates the status of a user's subscription...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -253,16 +197,22 @@ export const model = {
   },
   methods: {
     get: {
-      description: "Get a rollouts",
+      description: "Get a subscriptions",
       arguments: z.object({
-        identifier: z.string().describe("The name of the rollouts"),
+        identifier: z.string().describe("The name of the subscriptions"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["rollout"] = args.identifier;
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["subscriptionId"] !== undefined) {
+          params["subscriptionId"] = String(g["subscriptionId"]);
+        }
+        params["token"] = args.identifier;
         const result = await readResource(
           BASE_URL,
           GET_CONFIG,
@@ -281,65 +231,52 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
-    delete: {
-      description: "Delete the rollouts",
-      arguments: z.object({
-        identifier: z.string().describe("The name of the rollouts"),
-      }),
-      execute: async (args: { identifier: string }, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        params["rollout"] = args.identifier;
-        const { existed } = await deleteResource(
-          BASE_URL,
-          DELETE_CONFIG,
-          params,
-          credentials,
-        );
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
-          identifier: args.identifier,
-          existed,
-          status: existed ? "deleted" : "not_found",
-          deletedAt: new Date().toISOString(),
-        });
-        return { dataHandles: [handle] };
-      },
-    },
     sync: {
-      description: "Sync rollouts state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      description: "Sync subscriptions state from GCP",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific subscriptions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
+          if (g["packageName"] !== undefined) {
+            params["packageName"] = String(g["packageName"]);
+          } else if (existing["packageName"]) {
+            params["packageName"] = String(existing["packageName"]);
+          }
+          if (g["subscriptionId"] !== undefined) {
+            params["subscriptionId"] = String(g["subscriptionId"]);
+          } else if (existing["subscriptionId"]) {
+            params["subscriptionId"] = String(existing["subscriptionId"]);
+          }
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) {
             throw new Error(
               "No identifier found in existing state or globalArgs",
             );
           }
-          params["rollout"] = identifier;
+          params["token"] = identifier;
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,
@@ -364,75 +301,23 @@ export const model = {
         }
       },
     },
-    list: {
-      description: "List rollouts resources",
+    acknowledge: {
+      description: "acknowledge",
       arguments: z.object({
-        filter: z.string().describe(
-          "A filter expression that filters resources listed in the response. Most",
-        ).optional(),
-        maxResults: z.number().describe(
-          "The maximum number of results per page that should be returned.",
-        ).optional(),
-        orderBy: z.string().describe(
-          "Sorts list results by a certain order. By default, results",
-        ).optional(),
-        returnPartialSuccess: z.boolean().describe(
-          "Opt-in for partial success behavior which provides partial results in case",
-        ).optional(),
-        maxPages: z.number().describe(
-          "Maximum number of pages to fetch (default: 10)",
-        ).optional(),
+        developerPayload: z.any().optional(),
+        externalAccountIds: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        if (args["filter"] !== undefined) {
-          params["filter"] = String(args["filter"]);
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
         }
-        if (args["maxResults"] !== undefined) {
-          params["maxResults"] = String(args["maxResults"]);
+        if (g["subscriptionId"] !== undefined) {
+          params["subscriptionId"] = String(g["subscriptionId"]);
         }
-        if (args["orderBy"] !== undefined) {
-          params["orderBy"] = String(args["orderBy"]);
-        }
-        if (args["returnPartialSuccess"] !== undefined) {
-          params["returnPartialSuccess"] = String(args["returnPartialSuccess"]);
-        }
-        const { items, nextPageToken } = await listResources(
-          BASE_URL,
-          LIST_CONFIG,
-          params,
-          "items",
-          (args.maxPages as number | undefined) ?? 10,
-          credentials,
-        );
-        const dataHandles = [];
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i] as StateData;
-          const instanceName = (item.name?.toString() ?? String(i)).replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-          const handle = await context.writeResource(
-            "state",
-            instanceName,
-            item,
-          );
-          dataHandles.push(handle);
-        }
-        return { dataHandles, result: { count: items.length, nextPageToken } };
-      },
-    },
-    advance: {
-      description: "advance",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -445,24 +330,31 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["rollout"] = existing["name"]?.toString() ??
+        params["token"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["developerPayload"] !== undefined) {
+          body["developerPayload"] = args["developerPayload"];
+        }
+        if (args["externalAccountIds"] !== undefined) {
+          body["externalAccountIds"] = args["externalAccountIds"];
+        }
         const result = await createResource(
           BASE_URL,
           {
-            "id": "compute.rollouts.advance",
-            "path": "projects/{project}/global/rollouts/{rollout}/advance",
+            "id": "androidpublisher.purchases.subscriptions.acknowledge",
+            "path":
+              "androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge",
             "httpMethod": "POST",
-            "parameterOrder": ["project", "rollout"],
+            "parameterOrder": ["packageName", "subscriptionId", "token"],
             "parameters": {
-              "currentWaveNumber": { "location": "query" },
-              "project": { "location": "path", "required": true },
-              "requestId": { "location": "query" },
-              "rollout": { "location": "path", "required": true },
+              "packageName": { "location": "path", "required": true },
+              "subscriptionId": { "location": "path", "required": true },
+              "token": { "location": "path", "required": true },
             },
           },
           params,
-          {},
+          body,
           undefined,
           undefined,
           undefined,
@@ -479,6 +371,12 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["subscriptionId"] !== undefined) {
+          params["subscriptionId"] = String(g["subscriptionId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -491,20 +389,20 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["rollout"] = existing["name"]?.toString() ??
+        params["token"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {
-            "id": "compute.rollouts.cancel",
-            "path": "projects/{project}/global/rollouts/{rollout}",
-            "httpMethod": "PATCH",
-            "parameterOrder": ["project", "rollout"],
+            "id": "androidpublisher.purchases.subscriptions.cancel",
+            "path":
+              "androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel",
+            "httpMethod": "POST",
+            "parameterOrder": ["packageName", "subscriptionId", "token"],
             "parameters": {
-              "project": { "location": "path", "required": true },
-              "requestId": { "location": "query" },
-              "rollback": { "location": "query" },
-              "rollout": { "location": "path", "required": true },
+              "packageName": { "location": "path", "required": true },
+              "subscriptionId": { "location": "path", "required": true },
+              "token": { "location": "path", "required": true },
             },
           },
           params,
@@ -517,14 +415,22 @@ export const model = {
         return { result };
       },
     },
-    pause: {
-      description: "pause",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
+    defer: {
+      description: "defer",
+      arguments: z.object({
+        deferralInfo: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["subscriptionId"] !== undefined) {
+          params["subscriptionId"] = String(g["subscriptionId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -537,20 +443,76 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["rollout"] = existing["name"]?.toString() ??
+        params["token"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["deferralInfo"] !== undefined) {
+          body["deferralInfo"] = args["deferralInfo"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "androidpublisher.purchases.subscriptions.defer",
+            "path":
+              "androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer",
+            "httpMethod": "POST",
+            "parameterOrder": ["packageName", "subscriptionId", "token"],
+            "parameters": {
+              "packageName": { "location": "path", "required": true },
+              "subscriptionId": { "location": "path", "required": true },
+              "token": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    refund: {
+      description: "refund",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["subscriptionId"] !== undefined) {
+          params["subscriptionId"] = String(g["subscriptionId"]);
+        }
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["token"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {
-            "id": "compute.rollouts.pause",
-            "path": "projects/{project}/global/rollouts/{rollout}/pause",
+            "id": "androidpublisher.purchases.subscriptions.refund",
+            "path":
+              "androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund",
             "httpMethod": "POST",
-            "parameterOrder": ["project", "rollout"],
+            "parameterOrder": ["packageName", "subscriptionId", "token"],
             "parameters": {
-              "etag": { "location": "query" },
-              "project": { "location": "path", "required": true },
-              "requestId": { "location": "query" },
-              "rollout": { "location": "path", "required": true },
+              "packageName": { "location": "path", "required": true },
+              "subscriptionId": { "location": "path", "required": true },
+              "token": { "location": "path", "required": true },
             },
           },
           params,
@@ -563,14 +525,20 @@ export const model = {
         return { result };
       },
     },
-    resume: {
-      description: "resume",
+    revoke: {
+      description: "revoke",
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        if (g["subscriptionId"] !== undefined) {
+          params["subscriptionId"] = String(g["subscriptionId"]);
+        }
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -583,20 +551,20 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        params["rollout"] = existing["name"]?.toString() ??
+        params["token"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
           BASE_URL,
           {
-            "id": "compute.rollouts.resume",
-            "path": "projects/{project}/global/rollouts/{rollout}/resume",
+            "id": "androidpublisher.purchases.subscriptions.revoke",
+            "path":
+              "androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke",
             "httpMethod": "POST",
-            "parameterOrder": ["project", "rollout"],
+            "parameterOrder": ["packageName", "subscriptionId", "token"],
             "parameters": {
-              "etag": { "location": "query" },
-              "project": { "location": "path", "required": true },
-              "requestId": { "location": "query" },
-              "rollout": { "location": "path", "required": true },
+              "packageName": { "location": "path", "required": true },
+              "subscriptionId": { "location": "path", "required": true },
+              "token": { "location": "path", "required": true },
             },
           },
           params,

@@ -77,9 +77,6 @@ const LIST_CONFIG = {
     "filter": {
       "location": "query",
     },
-    "orderBy": {
-      "location": "query",
-    },
     "pageSize": {
       "location": "query",
     },
@@ -124,7 +121,6 @@ const StateSchema = z.object({
     containerStatusSummary: z.string(),
     deployTime: z.string(),
     id: z.string(),
-    sourceCodeUris: z.array(z.string()),
     sourceCommitUris: z.array(z.string()),
     undeployTime: z.string(),
   })).optional(),
@@ -197,7 +193,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Developer Connect InsightsConfigs.DeploymentEvents. Registered at `@swamp/gcp/developerconnect/insightsconfigs-deploymentevents`. */
 export const model = {
   type: "@swamp/gcp/developerconnect/insightsconfigs-deploymentevents",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -304,6 +300,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -351,22 +352,29 @@ export const model = {
     },
     sync: {
       description: "Sync deploymentEvents state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific deploymentEvents by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -412,9 +420,6 @@ export const model = {
         filter: z.string().describe(
           "Optional. Filter expression that matches a subset of the DeploymentEvents. https://google.aip.dev/160.",
         ).optional(),
-        orderBy: z.string().describe(
-          'Optional. Field to use to order the list of DeploymentEvents. Expects AIP-132 format "field_name asc" or "field_name desc", e.g. "deploy_time desc" Supported fields for ordering are: deploy_time, update_time. Currently, only sorting by a single field is supported. If this field is not provided, the list will be sorted by "deploy_time desc". For more details on the ordering syntax, see https://google.aip.dev/132#ordering.',
-        ).optional(),
         pageSize: z.number().describe(
           "Optional. The maximum number of deployment events to return. The service may return fewer than this value. If unspecified, at most 50 deployment events will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.",
         ).optional(),
@@ -430,9 +435,6 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         if (args["filter"] !== undefined) {
           params["filter"] = String(args["filter"]);
-        }
-        if (args["orderBy"] !== undefined) {
-          params["orderBy"] = String(args["orderBy"]);
         }
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);

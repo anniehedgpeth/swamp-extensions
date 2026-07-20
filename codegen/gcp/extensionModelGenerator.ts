@@ -774,20 +774,23 @@ export function generateGcpExtensionModel(
   ) {
     const updateMethodName = resource.methodConfigs.update ? "UPDATE" : "PATCH";
     const readConfigRef = resource.methodConfigs.get ? "GET_CONFIG" : undefined;
+    const primaryId = resource.primaryIdentifier[0] || "name";
 
     lines.push(`    update: {`);
     lines.push(`      description: "Update ${singularName} attributes",`);
     if (resource.readiness) {
       lines.push(
-        `      arguments: z.object({ waitForReady: z.boolean().describe("Wait for the resource to reach a ready state after update (default: true)").optional() }),`,
+        `      arguments: z.object({ identifier: z.string().describe("Target a specific ${singularName} by ${primaryId} (e.g. one discovered by list)").optional(), waitForReady: z.boolean().describe("Wait for the resource to reach a ready state after update (default: true)").optional() }),`,
       );
       lines.push(
-        `      execute: async (args: { waitForReady?: boolean }, context: any) => {`,
+        `      execute: async (args: { identifier?: string; waitForReady?: boolean }, context: any) => {`,
       );
     } else {
-      lines.push(`      arguments: z.object({}),`);
       lines.push(
-        `      execute: async (_args: Record<string, never>, context: any) => {`,
+        `      arguments: z.object({ identifier: z.string().describe("Target a specific ${singularName} by ${primaryId} (e.g. one discovered by list)").optional() }),`,
+      );
+      lines.push(
+        `      execute: async (args: { identifier?: string }, context: any) => {`,
       );
     }
     lines.push(`        const g = context.globalArgs;`);
@@ -797,13 +800,17 @@ export function generateGcpExtensionModel(
     if (isSyntheticName) {
       lines.push(
         `        const instanceName = ${
-          wrapWithSanitize(`g.name?.toString() ?? "current"`)
+          wrapWithSanitize(
+            `g.name?.toString() ?? args.identifier ?? "current"`,
+          )
         };`,
       );
     } else {
       lines.push(
         `        const instanceName = ${
-          wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+          wrapWithSanitize(
+            `g.${namingField}?.toString() ?? args.identifier ?? "current"`,
+          )
         };`,
       );
     }
@@ -823,7 +830,7 @@ export function generateGcpExtensionModel(
       );
       lines.push(`        );`);
       lines.push(
-        `        if (!content) throw new Error("No existing state found - run create or get first");`,
+        `        if (!content) throw new Error("No existing state found - run create, get, or list first");`,
       );
       lines.push(
         `        const existing = JSON.parse(new TextDecoder().decode(content));`,
@@ -1056,9 +1063,11 @@ export function generateGcpExtensionModel(
     lines.push(
       `      description: "Sync ${singularName} state from GCP",`,
     );
-    lines.push(`      arguments: z.object({}),`);
     lines.push(
-      `      execute: async (_args: Record<string, never>, context: any) => {`,
+      `      arguments: z.object({ identifier: z.string().describe("Target a specific ${singularName} by ${primaryId} (e.g. one discovered by list)").optional() }),`,
+    );
+    lines.push(
+      `      execute: async (args: { identifier?: string }, context: any) => {`,
     );
     lines.push(`        const g = context.globalArgs;`);
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
@@ -1067,13 +1076,17 @@ export function generateGcpExtensionModel(
     if (isSyntheticName) {
       lines.push(
         `        const instanceName = ${
-          wrapWithSanitize(`g.name?.toString() ?? "current"`)
+          wrapWithSanitize(
+            `g.name?.toString() ?? args.identifier ?? "current"`,
+          )
         };`,
       );
     } else {
       lines.push(
         `        const instanceName = ${
-          wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+          wrapWithSanitize(
+            `g.${namingField}?.toString() ?? args.identifier ?? "current"`,
+          )
         };`,
       );
     }
@@ -1100,7 +1113,7 @@ export function generateGcpExtensionModel(
       );
       lines.push(`        );`);
       lines.push(
-        `        if (!content) throw new Error("No existing state found - run create or get first");`,
+        `        if (!content) throw new Error("No existing state found - run create, get, or list first");`,
       );
       lines.push(
         `        const existing = JSON.parse(new TextDecoder().decode(content));`,

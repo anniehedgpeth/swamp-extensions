@@ -183,19 +183,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. A unique identifier for a repository. The name should be of the format: `projects/{project}/locations/{location_id}/repositories/{repository_id}`",
   ).optional(),
-  scanConfig: z.object({
-    secretScanConfig: z.object({
-      enabled: z.boolean().describe(
-        "Optional. Enables secret scanning for the repository.",
-      ).optional(),
-      inspectTemplate: z.string().describe(
-        "Optional. The DLP inspect template to use for secret scanning.",
-      ).optional(),
-    }).describe("Configuration for secret scanning.").optional(),
-  }).describe("Configuration for scanning.").optional(),
-  serviceAccount: z.string().describe(
-    "Optional. Repository level service account (BYOSA).",
-  ).optional(),
   uris: z.object({
     api: z.string().describe("Output only. API is the URI for API access.")
       .optional(),
@@ -226,13 +213,6 @@ const StateSchema = z.object({
   }).optional(),
   instance: z.string().optional(),
   name: z.string(),
-  scanConfig: z.object({
-    secretScanConfig: z.object({
-      enabled: z.boolean(),
-      inspectTemplate: z.string(),
-    }),
-  }).optional(),
-  serviceAccount: z.string().optional(),
   uid: z.string().optional(),
   updateTime: z.string().optional(),
   uris: z.object({
@@ -267,19 +247,6 @@ const InputsSchema = z.object({
   }).describe("Repository initialization configuration.").optional(),
   name: z.string().describe(
     "Identifier. A unique identifier for a repository. The name should be of the format: `projects/{project}/locations/{location_id}/repositories/{repository_id}`",
-  ).optional(),
-  scanConfig: z.object({
-    secretScanConfig: z.object({
-      enabled: z.boolean().describe(
-        "Optional. Enables secret scanning for the repository.",
-      ).optional(),
-      inspectTemplate: z.string().describe(
-        "Optional. The DLP inspect template to use for secret scanning.",
-      ).optional(),
-    }).describe("Configuration for secret scanning.").optional(),
-  }).describe("Configuration for scanning.").optional(),
-  serviceAccount: z.string().describe(
-    "Optional. Repository level service account (BYOSA).",
   ).optional(),
   uris: z.object({
     api: z.string().describe("Output only. API is the URI for API access.")
@@ -322,7 +289,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secure Source Manager Repositories. Registered at `@swamp/gcp/securesourcemanager/repositories`. */
 export const model = {
   type: "@swamp/gcp/securesourcemanager/repositories",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -434,6 +401,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: scanConfig, serviceAccount",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          scanConfig: _scanConfig,
+          serviceAccount: _serviceAccount,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -465,10 +444,6 @@ export const model = {
           body["initialConfig"] = g["initialConfig"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["scanConfig"] !== undefined) body["scanConfig"] = g["scanConfig"];
-        if (g["serviceAccount"] !== undefined) {
-          body["serviceAccount"] = g["serviceAccount"];
-        }
         if (g["uris"] !== undefined) body["uris"] = g["uris"];
         if (g["repositoryId"] !== undefined) {
           params["repositoryId"] = String(g["repositoryId"]);
@@ -543,22 +518,29 @@ export const model = {
     },
     update: {
       description: "Update repositories attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific repositories by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -577,10 +559,6 @@ export const model = {
         }
         if (g["initialConfig"] !== undefined) {
           body["initialConfig"] = g["initialConfig"];
-        }
-        if (g["scanConfig"] !== undefined) body["scanConfig"] = g["scanConfig"];
-        if (g["serviceAccount"] !== undefined) {
-          body["serviceAccount"] = g["serviceAccount"];
         }
         if (g["uris"] !== undefined) body["uris"] = g["uris"];
         const updateMaskKeys = Object.keys(body);
@@ -647,22 +625,29 @@ export const model = {
     },
     sync: {
       description: "Sync repositories state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific repositories by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -791,53 +776,6 @@ export const model = {
             "parameters": {
               "repository": { "location": "path", "required": true },
               "sha": { "location": "query" },
-            },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    fetch_refs: {
-      description: "fetch refs",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["repository"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "securesourcemanager.projects.locations.repositories.fetchRefs",
-            "path": "v1/{+repository}:fetchRefs",
-            "httpMethod": "GET",
-            "parameterOrder": ["repository"],
-            "parameters": {
-              "pageSize": { "location": "query" },
-              "pageToken": { "location": "query" },
-              "repository": { "location": "path", "required": true },
-              "type": { "location": "query" },
             },
           },
           params,

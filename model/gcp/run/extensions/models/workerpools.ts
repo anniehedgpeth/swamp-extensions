@@ -395,9 +395,6 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "ResourceRequirements describes the compute resource requirements.",
       ).optional(),
-      sandboxLauncher: z.boolean().describe(
-        "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
-      ).optional(),
       sourceCode: z.object({
         cloudStorageSource: z.object({
           bucket: z.unknown().describe(
@@ -469,7 +466,7 @@ const GlobalArgsSchema = z.object({
           "Required. This must match the Name of a Volume.",
         ).optional(),
         subPath: z.unknown().describe(
-          "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently rejected in Secret volume mounts.",
+          "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently ignored for Secret volumes.",
         ).optional(),
       })).describe("Volume to mount into the container's filesystem.")
         .optional(),
@@ -611,13 +608,6 @@ const GlobalArgsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
-    instanceReason: z.enum([
-      "INSTANCE_REASON_UNSPECIFIED",
-      "INSTANCE_DELETED",
-      "INSTANCE_STOPPED",
-      "INSTANCE_STOPPING",
-      "INSTANCE_NON_ZERO_EXIT_CODE",
-    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -693,7 +683,6 @@ const StateSchema = z.object({
   clientVersion: z.string().optional(),
   conditions: z.array(z.object({
     executionReason: z.string(),
-    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -797,7 +786,6 @@ const StateSchema = z.object({
         limits: z.record(z.string(), z.unknown()),
         startupCpuBoost: z.boolean(),
       }),
-      sandboxLauncher: z.boolean(),
       sourceCode: z.object({
         cloudStorageSource: z.object({
           bucket: z.unknown(),
@@ -883,7 +871,6 @@ const StateSchema = z.object({
   }).optional(),
   terminalCondition: z.object({
     executionReason: z.string(),
-    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -1126,9 +1113,6 @@ const InputsSchema = z.object({
       }).describe(
         "ResourceRequirements describes the compute resource requirements.",
       ).optional(),
-      sandboxLauncher: z.boolean().describe(
-        "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
-      ).optional(),
       sourceCode: z.object({
         cloudStorageSource: z.object({
           bucket: z.unknown().describe(
@@ -1200,7 +1184,7 @@ const InputsSchema = z.object({
           "Required. This must match the Name of a Volume.",
         ).optional(),
         subPath: z.unknown().describe(
-          "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently rejected in Secret volume mounts.",
+          "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently ignored for Secret volumes.",
         ).optional(),
       })).describe("Volume to mount into the container's filesystem.")
         .optional(),
@@ -1342,13 +1326,6 @@ const InputsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
-    instanceReason: z.enum([
-      "INSTANCE_REASON_UNSPECIFIED",
-      "INSTANCE_DELETED",
-      "INSTANCE_STOPPED",
-      "INSTANCE_STOPPING",
-      "INSTANCE_NON_ZERO_EXIT_CODE",
-    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -1436,7 +1413,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin WorkerPools. Registered at `@swamp/gcp/run/workerpools`. */
 export const model = {
   type: "@swamp/gcp/run/workerpools",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1573,6 +1550,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1697,22 +1679,29 @@ export const model = {
     },
     update: {
       description: "Update workerPools attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific workerPools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1815,22 +1804,29 @@ export const model = {
     },
     sync: {
       description: "Sync workerPools state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific workerPools by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

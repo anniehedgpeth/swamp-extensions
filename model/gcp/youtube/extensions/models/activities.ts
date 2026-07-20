@@ -294,7 +294,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Activities. Registered at `@swamp/gcp/youtube/activities`. */
 export const model = {
   type: "@swamp/gcp/youtube/activities",
-  version: "2026.07.19.2",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -386,6 +386,11 @@ export const model = {
       description: "Added: part",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -432,22 +437,29 @@ export const model = {
     },
     sync: {
       description: "Sync activities state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific activities by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -490,10 +502,10 @@ export const model = {
       description: "List activities resources",
       arguments: z.object({
         channelId: z.string().optional(),
+        home: z.boolean().optional(),
         maxResults: z.number().describe(
           "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
         ).optional(),
-        mine: z.boolean().optional(),
         part: z.string().describe(
           "The *part* parameter specifies a comma-separated list of one or more activity resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in an activity resource, the snippet property contains other properties that identify the type of activity, a display title for the activity, and so forth. If you set *part=snippet*, the API response will also contain all of those nested properties.",
         ).optional(),
@@ -513,10 +525,10 @@ export const model = {
         if (args["channelId"] !== undefined) {
           params["channelId"] = String(args["channelId"]);
         }
+        if (args["home"] !== undefined) params["home"] = String(args["home"]);
         if (args["maxResults"] !== undefined) {
           params["maxResults"] = String(args["maxResults"]);
         }
-        if (args["mine"] !== undefined) params["mine"] = String(args["mine"]);
         if (args["part"] !== undefined) params["part"] = String(args["part"]);
         if (args["publishedAfter"] !== undefined) {
           params["publishedAfter"] = String(args["publishedAfter"]);

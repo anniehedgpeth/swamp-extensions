@@ -191,14 +191,11 @@ const GlobalArgsSchema = z.object({
     "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
   ).optional(),
   externalProtectionLevelOptions: z.object({
-    ekmConnectionBackendOverride: z.string().describe(
-      "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
-    ).optional(),
     ekmConnectionKeyPath: z.string().describe(
-      'Optional. The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
+      'The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
     ).optional(),
     externalKeyUri: z.string().describe(
-      "Optional. The URI for an external resource that this CryptoKeyVersion represents.",
+      "The URI for an external resource that this CryptoKeyVersion represents.",
     ).optional(),
   }).describe(
     "ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.",
@@ -216,9 +213,6 @@ const GlobalArgsSchema = z.object({
     "PENDING_EXTERNAL_DESTRUCTION",
     "EXTERNAL_DESTRUCTION_FAILED",
   ]).describe("The current state of the CryptoKeyVersion.").optional(),
-  trustedWrappingEnabled: z.boolean().describe(
-    "Immutable. Field indicating that the key may be wrapped by a trusted key. This field can be set for all key purposes except ENCRYPT_DECRYPT, and is only valid for keys with protection level HSM_SINGLE_TENANT. This field can only be set at creation or import time via CreateCryptoKeyVersion, or ImportCryptoKeyVersion.",
-  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -243,13 +237,11 @@ const StateSchema = z.object({
   destroyTime: z.string().optional(),
   externalDestructionFailureReason: z.string().optional(),
   externalProtectionLevelOptions: z.object({
-    ekmConnectionBackendOverride: z.string(),
     ekmConnectionKeyPath: z.string(),
     externalKeyUri: z.string(),
   }).optional(),
   generateTime: z.string().optional(),
   generationFailureReason: z.string().optional(),
-  hsmTrusted: z.boolean().optional(),
   importFailureReason: z.string().optional(),
   importJob: z.string().optional(),
   importTime: z.string().optional(),
@@ -257,7 +249,6 @@ const StateSchema = z.object({
   protectionLevel: z.string().optional(),
   reimportEligible: z.boolean().optional(),
   state: z.string().optional(),
-  trustedWrappingEnabled: z.boolean().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -294,14 +285,11 @@ const InputsSchema = z.object({
     "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
   ).optional(),
   externalProtectionLevelOptions: z.object({
-    ekmConnectionBackendOverride: z.string().describe(
-      "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
-    ).optional(),
     ekmConnectionKeyPath: z.string().describe(
-      'Optional. The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
+      'The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
     ).optional(),
     externalKeyUri: z.string().describe(
-      "Optional. The URI for an external resource that this CryptoKeyVersion represents.",
+      "The URI for an external resource that this CryptoKeyVersion represents.",
     ).optional(),
   }).describe(
     "ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.",
@@ -319,9 +307,6 @@ const InputsSchema = z.object({
     "PENDING_EXTERNAL_DESTRUCTION",
     "EXTERNAL_DESTRUCTION_FAILED",
   ]).describe("The current state of the CryptoKeyVersion.").optional(),
-  trustedWrappingEnabled: z.boolean().describe(
-    "Immutable. Field indicating that the key may be wrapped by a trusted key. This field can be set for all key purposes except ENCRYPT_DECRYPT, and is only valid for keys with protection level HSM_SINGLE_TENANT. This field can only be set at creation or import time via CreateCryptoKeyVersion, or ImportCryptoKeyVersion.",
-  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -353,7 +338,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.CryptoKeys.CryptoKeyVersions. Registered at `@swamp/gcp/cloudkms/keyrings-cryptokeys-cryptokeyversions`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-cryptokeys-cryptokeyversions",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -460,6 +445,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: trustedWrappingEnabled",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { trustedWrappingEnabled: _trustedWrappingEnabled, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -495,9 +489,6 @@ export const model = {
             g["externalProtectionLevelOptions"];
         }
         if (g["state"] !== undefined) body["state"] = g["state"];
-        if (g["trustedWrappingEnabled"] !== undefined) {
-          body["trustedWrappingEnabled"] = g["trustedWrappingEnabled"];
-        }
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
             String(g["parent"]),
@@ -574,25 +565,34 @@ export const model = {
     update: {
       description: "Update cryptoKeyVersions attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific cryptoKeyVersions by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -684,22 +684,29 @@ export const model = {
     },
     sync: {
       description: "Sync cryptoKeyVersions state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific cryptoKeyVersions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -968,43 +975,6 @@ export const model = {
         return { result };
       },
     },
-    export_trusted_key_wrapped_crypto_key_version: {
-      description: "export trusted key wrapped crypto key version",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "cloudkms.projects.locations.keyRings.cryptoKeys.cryptoKeyVersions.exportTrustedKeyWrappedCryptoKeyVersion",
-            "path": "v1/{+name}:exportTrustedKeyWrappedCryptoKeyVersion",
-            "httpMethod": "GET",
-            "parameterOrder": ["name"],
-            "parameters": {
-              "name": { "location": "path", "required": true },
-              "wrappingKey": { "location": "query" },
-            },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
     get_public_key: {
       description: "get public key",
       arguments: z.object({}),
@@ -1049,7 +1019,6 @@ export const model = {
         cryptoKeyVersion: z.any().optional(),
         importJob: z.any().optional(),
         rsaAesWrappedKey: z.any().optional(),
-        trustedWrappingEnabled: z.any().optional(),
         wrappedKey: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -1071,9 +1040,6 @@ export const model = {
         if (args["rsaAesWrappedKey"] !== undefined) {
           body["rsaAesWrappedKey"] = args["rsaAesWrappedKey"];
         }
-        if (args["trustedWrappingEnabled"] !== undefined) {
-          body["trustedWrappingEnabled"] = args["trustedWrappingEnabled"];
-        }
         if (args["wrappedKey"] !== undefined) {
           body["wrappedKey"] = args["wrappedKey"];
         }
@@ -1083,56 +1049,6 @@ export const model = {
             "id":
               "cloudkms.projects.locations.keyRings.cryptoKeys.cryptoKeyVersions.import",
             "path": "v1/{+parent}/cryptoKeyVersions:import",
-            "httpMethod": "POST",
-            "parameterOrder": ["parent"],
-            "parameters": {
-              "parent": { "location": "path", "required": true },
-            },
-          },
-          params,
-          body,
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    import_trusted_key_wrapped_crypto_key_version: {
-      description: "import trusted key wrapped crypto key version",
-      arguments: z.object({
-        algorithm: z.any().optional(),
-        cryptoKeyVersion: z.any().optional(),
-        importingKey: z.any().optional(),
-        wrappedKey: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
-        const body: Record<string, unknown> = {};
-        if (args["algorithm"] !== undefined) {
-          body["algorithm"] = args["algorithm"];
-        }
-        if (args["cryptoKeyVersion"] !== undefined) {
-          body["cryptoKeyVersion"] = args["cryptoKeyVersion"];
-        }
-        if (args["importingKey"] !== undefined) {
-          body["importingKey"] = args["importingKey"];
-        }
-        if (args["wrappedKey"] !== undefined) {
-          body["wrappedKey"] = args["wrappedKey"];
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "cloudkms.projects.locations.keyRings.cryptoKeys.cryptoKeyVersions.importTrustedKeyWrappedCryptoKeyVersion",
-            "path":
-              "v1/{+parent}/cryptoKeyVersions:importTrustedKeyWrappedCryptoKeyVersion",
             "httpMethod": "POST",
             "parameterOrder": ["parent"],
             "parameters": {

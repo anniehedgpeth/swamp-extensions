@@ -226,7 +226,7 @@ const GlobalArgsSchema = z.object({
     "Optional. Compute resources available to the cluster. Keys specify the ID of the compute resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   description: z.string().describe(
-    "Optional. A description for your cluster. You can use up to 2,048 characters.",
+    "Optional. User-provided description of the cluster. Maximum of 2048 characters.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. [Labels](https://cloud.google.com/compute/docs/labeling-resources) applied to the cluster. Labels can be used to organize clusters and to filter them in queries.",
@@ -273,7 +273,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }),
   ).describe(
-    "Optional. Network resources available to the cluster. Must contain exactly one value. Keys specify the ID of the network resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
+    "Optional. Network resources available to the cluster. Must contain at most one value. Keys specify the ID of the network resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   orchestrator: z.object({
     slurm: z.object({
@@ -286,10 +286,10 @@ const GlobalArgsSchema = z.object({
       loginNodes: z.object({
         bootDisk: z.object({
           sizeGb: z.string().describe(
-            "Optional. The size of the disk in gigabytes (GB), which must be at least 40 GB.",
+            "Required. Immutable. Size of the disk in gigabytes. Must be at least 10GB.",
           ).optional(),
           type: z.string().describe(
-            "Optional. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format `projects/{project}/zones/{zone}/diskTypes/{disk_type}`.",
+            "Required. Immutable. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format `projects/{project}/zones/{zone}/diskTypes/{disk_type}`.",
           ).optional(),
         }).describe(
           "A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.",
@@ -337,7 +337,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       nodeSets: z.array(z.object({
         computeId: z.string().describe(
-          "Required. The ID of the compute resource on which this nodeset runs. Must match a key in the cluster's compute_resources.",
+          "Optional. ID of the compute resource on which this nodeset will run. Must match a key in the cluster's compute_resources.",
         ).optional(),
         computeInstance: z.object({
           bootDisk: z.unknown().describe(
@@ -353,7 +353,7 @@ const GlobalArgsSchema = z.object({
           "When set in a SlurmNodeSet, indicates that the nodeset should be backed by Compute Engine VM instances.",
         ).optional(),
         id: z.string().describe(
-          "Required. The ID for the nodeset, which allows it to be referenced by cluster partitions. The nodeset ID must start with a lowercase letter (`a`-`z`), use only lowercase letters or numbers, and contain up to 15 characters. For example, specify `nodeset001`.",
+          "Required. Identifier for the nodeset, which allows it to be referenced by partitions. Must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
         ).optional(),
         maxDynamicNodeCount: z.string().describe(
           "Optional. Controls how many additional nodes a cluster can bring online to handle workloads. Set this value to enable dynamic node creation and limit the number of additional nodes the cluster can bring online. Leave empty if you do not want the cluster to create nodes dynamically, and instead rely only on static nodes.",
@@ -458,7 +458,7 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. File system shares on the instance. Exactly one file share must be specified.",
           ).optional(),
           filestore: z.string().describe(
-            "Required. Immutable. Name of the Filestore instance to create, in the format `projects/{project}/locations/{location}/instances/{instance}`.",
+            "Required. Immutable. Name of the Filestore instance to create, in the format `projects/{project}/locations/{location}/instances/{instance}`",
           ).optional(),
           protocol: z.enum(["PROTOCOL_UNSPECIFIED", "NFSV3", "NFSV41"])
             .describe(
@@ -482,9 +482,6 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           lustre: z.string().describe(
             "Required. Immutable. Name of the Managed Lustre instance to create, in the format `projects/{project}/locations/{location}/instances/{instance}`",
-          ).optional(),
-          perUnitStorageThroughput: z.string().describe(
-            "Optional. Immutable. Throughput of the instance in MB/s/TiB. Valid values are 125, 250, 500, 1000. See [Performance tiers and maximum storage capacities](https://cloud.google.com/managed-lustre/docs/create-instance#performance-tiers) for more information.",
           ).optional(),
         }).describe(
           "When set in a StorageResourceConfig, indicates that a new [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be created.",
@@ -511,7 +508,7 @@ const GlobalArgsSchema = z.object({
     "Optional. Storage resources available to the cluster. Keys specify the ID of the storage resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   clusterId: z.string().describe(
-    "Required. The ID of the cluster to create. The cluster ID must start with a lowercase letter (`a`-`z`), use only lowercase letters or numbers, and contain up to 10 characters. For example, specify `cluster001`.",
+    "Required. ID of the cluster to create. Must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   requestId: z.string().describe(
     "Optional. A unique identifier for this request. A random UUID is recommended. This request is idempotent if and only if `request_id` is provided.",
@@ -642,7 +639,7 @@ const InputsSchema = z.object({
     "Optional. Compute resources available to the cluster. Keys specify the ID of the compute resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   description: z.string().describe(
-    "Optional. A description for your cluster. You can use up to 2,048 characters.",
+    "Optional. User-provided description of the cluster. Maximum of 2048 characters.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. [Labels](https://cloud.google.com/compute/docs/labeling-resources) applied to the cluster. Labels can be used to organize clusters and to filter them in queries.",
@@ -689,7 +686,7 @@ const InputsSchema = z.object({
       ).optional(),
     }),
   ).describe(
-    "Optional. Network resources available to the cluster. Must contain exactly one value. Keys specify the ID of the network resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
+    "Optional. Network resources available to the cluster. Must contain at most one value. Keys specify the ID of the network resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   orchestrator: z.object({
     slurm: z.object({
@@ -702,10 +699,10 @@ const InputsSchema = z.object({
       loginNodes: z.object({
         bootDisk: z.object({
           sizeGb: z.string().describe(
-            "Optional. The size of the disk in gigabytes (GB), which must be at least 40 GB.",
+            "Required. Immutable. Size of the disk in gigabytes. Must be at least 10GB.",
           ).optional(),
           type: z.string().describe(
-            "Optional. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format `projects/{project}/zones/{zone}/diskTypes/{disk_type}`.",
+            "Required. Immutable. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format `projects/{project}/zones/{zone}/diskTypes/{disk_type}`.",
           ).optional(),
         }).describe(
           "A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.",
@@ -753,7 +750,7 @@ const InputsSchema = z.object({
       ).optional(),
       nodeSets: z.array(z.object({
         computeId: z.string().describe(
-          "Required. The ID of the compute resource on which this nodeset runs. Must match a key in the cluster's compute_resources.",
+          "Optional. ID of the compute resource on which this nodeset will run. Must match a key in the cluster's compute_resources.",
         ).optional(),
         computeInstance: z.object({
           bootDisk: z.unknown().describe(
@@ -769,7 +766,7 @@ const InputsSchema = z.object({
           "When set in a SlurmNodeSet, indicates that the nodeset should be backed by Compute Engine VM instances.",
         ).optional(),
         id: z.string().describe(
-          "Required. The ID for the nodeset, which allows it to be referenced by cluster partitions. The nodeset ID must start with a lowercase letter (`a`-`z`), use only lowercase letters or numbers, and contain up to 15 characters. For example, specify `nodeset001`.",
+          "Required. Identifier for the nodeset, which allows it to be referenced by partitions. Must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
         ).optional(),
         maxDynamicNodeCount: z.string().describe(
           "Optional. Controls how many additional nodes a cluster can bring online to handle workloads. Set this value to enable dynamic node creation and limit the number of additional nodes the cluster can bring online. Leave empty if you do not want the cluster to create nodes dynamically, and instead rely only on static nodes.",
@@ -874,7 +871,7 @@ const InputsSchema = z.object({
             "Required. Immutable. File system shares on the instance. Exactly one file share must be specified.",
           ).optional(),
           filestore: z.string().describe(
-            "Required. Immutable. Name of the Filestore instance to create, in the format `projects/{project}/locations/{location}/instances/{instance}`.",
+            "Required. Immutable. Name of the Filestore instance to create, in the format `projects/{project}/locations/{location}/instances/{instance}`",
           ).optional(),
           protocol: z.enum(["PROTOCOL_UNSPECIFIED", "NFSV3", "NFSV41"])
             .describe(
@@ -898,9 +895,6 @@ const InputsSchema = z.object({
           ).optional(),
           lustre: z.string().describe(
             "Required. Immutable. Name of the Managed Lustre instance to create, in the format `projects/{project}/locations/{location}/instances/{instance}`",
-          ).optional(),
-          perUnitStorageThroughput: z.string().describe(
-            "Optional. Immutable. Throughput of the instance in MB/s/TiB. Valid values are 125, 250, 500, 1000. See [Performance tiers and maximum storage capacities](https://cloud.google.com/managed-lustre/docs/create-instance#performance-tiers) for more information.",
           ).optional(),
         }).describe(
           "When set in a StorageResourceConfig, indicates that a new [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be created.",
@@ -927,7 +921,7 @@ const InputsSchema = z.object({
     "Optional. Storage resources available to the cluster. Keys specify the ID of the storage resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   clusterId: z.string().describe(
-    "Required. The ID of the cluster to create. The cluster ID must start with a lowercase letter (`a`-`z`), use only lowercase letters or numbers, and contain up to 10 characters. For example, specify `cluster001`.",
+    "Required. ID of the cluster to create. Must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).",
   ).optional(),
   requestId: z.string().describe(
     "Optional. A unique identifier for this request. A random UUID is recommended. This request is idempotent if and only if `request_id` is provided.",
@@ -960,7 +954,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Cluster Director Clusters. Registered at `@swamp/gcp/hypercomputecluster/clusters`. */
 export const model = {
   type: "@swamp/gcp/hypercomputecluster/clusters",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1112,6 +1106,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1230,22 +1229,29 @@ export const model = {
     },
     update: {
       description: "Update clusters attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific clusters by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1339,22 +1345,29 @@ export const model = {
     },
     sync: {
       description: "Sync clusters state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific clusters by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

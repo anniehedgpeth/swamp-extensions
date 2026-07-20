@@ -169,9 +169,6 @@ const GlobalArgsSchema = z.object({
       frequency: z.string().describe(
         "How frequently automated backups should occur. The only supported value at this time is 24 hours. An undefined frequency is treated as 24 hours.",
       ).optional(),
-      locations: z.array(z.string()).describe(
-        "Optional. A list of Cloud Bigtable zones where automated backups are allowed to be created. If empty, automated backups will be created in all zones of the instance. Locations are in the format `projects/{project}/locations/{zone}`. You can set this field only for tables in Enterprise Plus instances.",
-      ).optional(),
       retentionPeriod: z.string().describe(
         "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
       ).optional(),
@@ -314,13 +311,6 @@ const GlobalArgsSchema = z.object({
           geographyType: z.object({}).describe(
             "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
           ).optional(),
-          int32Type: z.object({
-            encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
-            ).optional(),
-          }).describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
           int64Type: z.object({
             encoding: z.unknown().describe(
               "Rules used to convert to or from lower level types.",
@@ -456,9 +446,6 @@ const GlobalArgsSchema = z.object({
           geographyType: z.unknown().describe(
             "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
           ).optional(),
-          int32Type: z.unknown().describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
           int64Type: z.unknown().describe(
             "Int64 Values of type `Int64` are stored in `Value.int_value`.",
           ).optional(),
@@ -519,9 +506,6 @@ const GlobalArgsSchema = z.object({
   automatedBackupPolicy: z.object({
     frequency: z.string().describe(
       "How frequently automated backups should occur. The only supported value at this time is 24 hours. An undefined frequency is treated as 24 hours.",
-    ).optional(),
-    locations: z.array(z.string()).describe(
-      "Optional. A list of Cloud Bigtable zones where automated backups are allowed to be created. If empty, automated backups will be created in all zones of the instance. Locations are in the format `projects/{project}/locations/{zone}`. You can set this field only for tables in Enterprise Plus instances.",
     ).optional(),
     retentionPeriod: z.string().describe(
       "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
@@ -684,19 +668,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         geographyType: z.object({}).describe(
           "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
-        int32Type: z.object({
-          encoding: z.object({
-            bigEndianBytes: z.unknown().describe(
-              "Encodes the value as a 4-byte big-endian two's complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery `BINARY` encoding - HBase `Bytes.toBytes` - Java `ByteBuffer.putInt()` with `ByteOrder.BIG_ENDIAN`",
-            ).optional(),
-            orderedCodeBytes: z.unknown().describe(
-              "Encodes the value in a variable length binary format of up to 5 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.",
-            ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
         ).optional(),
         int64Type: z.object({
           encoding: z.object({
@@ -893,13 +864,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         geographyType: z.object({}).describe(
           "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
-        int32Type: z.object({
-          encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
-          ).optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
         ).optional(),
         int64Type: z.object({
           encoding: z.unknown().describe(
@@ -986,7 +950,6 @@ const GlobalArgsSchema = z.object({
 const StateSchema = z.object({
   automatedBackupPolicy: z.object({
     frequency: z.string(),
-    locations: z.array(z.string()),
     retentionPeriod: z.string(),
   }).optional(),
   changeStreamConfig: z.object({
@@ -1043,9 +1006,6 @@ const StateSchema = z.object({
         float32Type: z.object({}),
         float64Type: z.object({}),
         geographyType: z.object({}),
-        int32Type: z.object({
-          encoding: z.unknown(),
-        }),
         int64Type: z.object({
           encoding: z.unknown(),
         }),
@@ -1097,9 +1057,6 @@ const InputsSchema = z.object({
     automatedBackupPolicy: z.object({
       frequency: z.string().describe(
         "How frequently automated backups should occur. The only supported value at this time is 24 hours. An undefined frequency is treated as 24 hours.",
-      ).optional(),
-      locations: z.array(z.string()).describe(
-        "Optional. A list of Cloud Bigtable zones where automated backups are allowed to be created. If empty, automated backups will be created in all zones of the instance. Locations are in the format `projects/{project}/locations/{zone}`. You can set this field only for tables in Enterprise Plus instances.",
       ).optional(),
       retentionPeriod: z.string().describe(
         "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
@@ -1243,13 +1200,6 @@ const InputsSchema = z.object({
           geographyType: z.object({}).describe(
             "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
           ).optional(),
-          int32Type: z.object({
-            encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
-            ).optional(),
-          }).describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
           int64Type: z.object({
             encoding: z.unknown().describe(
               "Rules used to convert to or from lower level types.",
@@ -1385,9 +1335,6 @@ const InputsSchema = z.object({
           geographyType: z.unknown().describe(
             "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
           ).optional(),
-          int32Type: z.unknown().describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
           int64Type: z.unknown().describe(
             "Int64 Values of type `Int64` are stored in `Value.int_value`.",
           ).optional(),
@@ -1448,9 +1395,6 @@ const InputsSchema = z.object({
   automatedBackupPolicy: z.object({
     frequency: z.string().describe(
       "How frequently automated backups should occur. The only supported value at this time is 24 hours. An undefined frequency is treated as 24 hours.",
-    ).optional(),
-    locations: z.array(z.string()).describe(
-      "Optional. A list of Cloud Bigtable zones where automated backups are allowed to be created. If empty, automated backups will be created in all zones of the instance. Locations are in the format `projects/{project}/locations/{zone}`. You can set this field only for tables in Enterprise Plus instances.",
     ).optional(),
     retentionPeriod: z.string().describe(
       "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
@@ -1613,19 +1557,6 @@ const InputsSchema = z.object({
         ).optional(),
         geographyType: z.object({}).describe(
           "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
-        int32Type: z.object({
-          encoding: z.object({
-            bigEndianBytes: z.unknown().describe(
-              "Encodes the value as a 4-byte big-endian two's complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery `BINARY` encoding - HBase `Bytes.toBytes` - Java `ByteBuffer.putInt()` with `ByteOrder.BIG_ENDIAN`",
-            ).optional(),
-            orderedCodeBytes: z.unknown().describe(
-              "Encodes the value in a variable length binary format of up to 5 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.",
-            ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
         ).optional(),
         int64Type: z.object({
           encoding: z.object({
@@ -1822,13 +1753,6 @@ const InputsSchema = z.object({
         ).optional(),
         geographyType: z.object({}).describe(
           "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
-        int32Type: z.object({
-          encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
-          ).optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
         ).optional(),
         int64Type: z.object({
           encoding: z.unknown().describe(
@@ -1935,7 +1859,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Tables. Registered at `@swamp/gcp/bigtableadmin/instances-tables`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-tables",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2072,6 +1996,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2172,22 +2101,29 @@ export const model = {
     },
     update: {
       description: "Update tables attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific tables by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -2293,22 +2229,29 @@ export const model = {
     },
     sync: {
       description: "Sync tables state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific tables by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

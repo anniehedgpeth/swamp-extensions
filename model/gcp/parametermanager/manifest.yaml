@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/parametermanager"
-version: "2026.07.19.2"
+version: "2026.07.20.1"
 description: "Google Cloud parametermanager infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,13 +11,11 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: locations
+  - Updated: locations, parameters, parameters_versions
 models:
   - locations.ts
   - parameters.ts
   - parameters_versions.ts
-  - templates.ts
-  - templates_versions.ts
 additionalFiles:
   - LICENSE.txt
   - README.md

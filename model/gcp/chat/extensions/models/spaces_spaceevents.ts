@@ -118,8 +118,6 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/chat.spaces",
   "https://www.googleapis.com/auth/chat.spaces.create",
   "https://www.googleapis.com/auth/chat.spaces.readonly",
-  "https://www.googleapis.com/auth/chat.users.availability",
-  "https://www.googleapis.com/auth/chat.users.availability.readonly",
   "https://www.googleapis.com/auth/chat.users.readstate",
   "https://www.googleapis.com/auth/chat.users.readstate.readonly",
   "https://www.googleapis.com/auth/chat.users.sections",
@@ -154,7 +152,6 @@ const StateSchema = z.object({
   membershipBatchCreatedEventData: z.object({
     memberships: z.array(z.object({
       membership: z.object({
-        affiliation: z.string(),
         createTime: z.string(),
         deleteTime: z.string(),
         groupMember: z.object({
@@ -176,7 +173,6 @@ const StateSchema = z.object({
   membershipBatchDeletedEventData: z.object({
     memberships: z.array(z.object({
       membership: z.object({
-        affiliation: z.string(),
         createTime: z.string(),
         deleteTime: z.string(),
         groupMember: z.object({
@@ -198,7 +194,6 @@ const StateSchema = z.object({
   membershipBatchUpdatedEventData: z.object({
     memberships: z.array(z.object({
       membership: z.object({
-        affiliation: z.string(),
         createTime: z.string(),
         deleteTime: z.string(),
         groupMember: z.object({
@@ -219,7 +214,6 @@ const StateSchema = z.object({
   }).optional(),
   membershipCreatedEventData: z.object({
     membership: z.object({
-      affiliation: z.string(),
       createTime: z.string(),
       deleteTime: z.string(),
       groupMember: z.object({
@@ -239,7 +233,6 @@ const StateSchema = z.object({
   }).optional(),
   membershipDeletedEventData: z.object({
     membership: z.object({
-      affiliation: z.string(),
       createTime: z.string(),
       deleteTime: z.string(),
       groupMember: z.object({
@@ -259,7 +252,6 @@ const StateSchema = z.object({
   }).optional(),
   membershipUpdatedEventData: z.object({
     membership: z.object({
-      affiliation: z.string(),
       createTime: z.string(),
       deleteTime: z.string(),
       groupMember: z.object({
@@ -328,7 +320,6 @@ const StateSchema = z.object({
           name: z.unknown(),
           type: z.unknown(),
         }),
-        silent: z.boolean(),
         slashCommand: z.object({
           commandId: z.unknown(),
         }),
@@ -415,7 +406,6 @@ const StateSchema = z.object({
           name: z.unknown(),
           type: z.unknown(),
         }),
-        silent: z.boolean(),
         slashCommand: z.object({
           commandId: z.unknown(),
         }),
@@ -502,7 +492,6 @@ const StateSchema = z.object({
           name: z.unknown(),
           type: z.unknown(),
         }),
-        silent: z.boolean(),
         slashCommand: z.object({
           commandId: z.unknown(),
         }),
@@ -685,16 +674,11 @@ const StateSchema = z.object({
         name: z.string(),
         type: z.string(),
       }),
-      silent: z.boolean(),
       slashCommand: z.object({
         commandId: z.string(),
       }),
       space: z.object({
         accessSettings: z.object({
-          accessPermissionSettings: z.object({
-            discoverSpaceSetting: z.unknown(),
-            joinSpaceSetting: z.unknown(),
-          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -921,16 +905,11 @@ const StateSchema = z.object({
         name: z.string(),
         type: z.string(),
       }),
-      silent: z.boolean(),
       slashCommand: z.object({
         commandId: z.string(),
       }),
       space: z.object({
         accessSettings: z.object({
-          accessPermissionSettings: z.object({
-            discoverSpaceSetting: z.unknown(),
-            joinSpaceSetting: z.unknown(),
-          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -1157,16 +1136,11 @@ const StateSchema = z.object({
         name: z.string(),
         type: z.string(),
       }),
-      silent: z.boolean(),
       slashCommand: z.object({
         commandId: z.string(),
       }),
       space: z.object({
         accessSettings: z.object({
-          accessPermissionSettings: z.object({
-            discoverSpaceSetting: z.unknown(),
-            joinSpaceSetting: z.unknown(),
-          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -1337,7 +1311,6 @@ const StateSchema = z.object({
     spaces: z.array(z.object({
       space: z.object({
         accessSettings: z.object({
-          accessPermissionSettings: z.unknown(),
           accessState: z.unknown(),
           audience: z.unknown(),
         }),
@@ -1382,14 +1355,6 @@ const StateSchema = z.object({
   spaceUpdatedEventData: z.object({
     space: z.object({
       accessSettings: z.object({
-        accessPermissionSettings: z.object({
-          discoverSpaceSetting: z.object({
-            principals: z.unknown(),
-          }),
-          joinSpaceSetting: z.object({
-            principals: z.unknown(),
-          }),
-        }),
         accessState: z.string(),
         audience: z.string(),
       }),
@@ -1500,7 +1465,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.SpaceEvents. Registered at `@swamp/gcp/chat/spaces-spaceevents`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-spaceevents",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -1627,6 +1592,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1674,22 +1644,29 @@ export const model = {
     },
     sync: {
       description: "Sync spaceEvents state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific spaceEvents by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

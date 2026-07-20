@@ -454,9 +454,9 @@ key. This ensures consistency — `get` and `create` store under the same key th
 | -------- | ------------------------------------------------------------------- |
 | `create` | Natural: `g.name ?? result.name`, Synthetic: `g.name ?? "current"`  |
 | `get`    | Natural: `g.name ?? result.name`, Synthetic: `g.name ?? identifier` |
-| `update` | `g.name ?? "current"`                                               |
+| `update` | `g.name ?? identifier ?? "current"` (identifier is optional)        |
 | `delete` | `g.name ?? identifier`                                              |
-| `sync`   | `g.name ?? "current"`                                               |
+| `sync`   | `g.name ?? identifier ?? "current"` (identifier is optional)        |
 
 ---
 
@@ -930,6 +930,35 @@ swamp model method run my-drive list --input q='"FOLDER_ID" in parents'
 # Each file becomes a data artifact accessible via:
 # data.latest("my-drive", "<file-name>").attributes.modifiedTime
 ```
+
+### Factory-aware CRUD methods
+
+The `update` and `sync` methods accept an optional `identifier` argument that
+targets a specific data artifact by name — typically one discovered by `list`.
+When `identifier` is omitted, the methods fall back to `g.name ?? "current"`
+(the original behavior). When provided, instance name resolution becomes
+`g.name ?? identifier ?? "current"`, allowing in-place management of
+list-discovered resources without creating separate model instances.
+
+This completes the fan-out lifecycle: list → discover → manage in-place:
+
+```bash
+# 1. Discover resources
+swamp model method run my-instances list
+
+# 2. Update a specific discovered instance
+swamp model method run my-instances update --input identifier="instance-2"
+
+# 3. Sync a specific discovered instance
+swamp model method run my-instances sync --input identifier="instance-2"
+
+# 4. Delete a specific discovered instance (identifier was already required)
+swamp model method run my-instances delete --input identifier="instance-2"
+```
+
+The `delete` method already required an `identifier` argument and used it for
+both the API call and artifact naming (`g.name ?? identifier`), so no change was
+needed there.
 
 ---
 

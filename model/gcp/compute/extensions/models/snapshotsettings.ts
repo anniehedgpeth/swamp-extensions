@@ -96,19 +96,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  accessLocation: z.object({
-    locations: z.record(
-      z.string(),
-      z.object({
-        region: z.string().describe("Accessible region name").optional(),
-      }),
-    ).describe(
-      "List of regions that can restore a regional snapshot from the current region",
-    ).optional(),
-    policy: z.enum(["ALL_REGIONS", "POLICY_UNSPECIFIED", "SPECIFIC_REGIONS"])
-      .describe("Policy of which location is allowed to access snapshot.")
-      .optional(),
-  }).optional(),
   storageLocation: z.object({
     locations: z.record(
       z.string(),
@@ -130,10 +117,6 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
-  accessLocation: z.object({
-    locations: z.record(z.string(), z.unknown()),
-    policy: z.string(),
-  }).optional(),
   storageLocation: z.object({
     locations: z.record(z.string(), z.unknown()),
     policy: z.string(),
@@ -148,19 +131,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  accessLocation: z.object({
-    locations: z.record(
-      z.string(),
-      z.object({
-        region: z.string().describe("Accessible region name").optional(),
-      }),
-    ).describe(
-      "List of regions that can restore a regional snapshot from the current region",
-    ).optional(),
-    policy: z.enum(["ALL_REGIONS", "POLICY_UNSPECIFIED", "SPECIFIC_REGIONS"])
-      .describe("Policy of which location is allowed to access snapshot.")
-      .optional(),
-  }).optional(),
   storageLocation: z.object({
     locations: z.record(
       z.string(),
@@ -204,7 +174,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine SnapshotSettings. Registered at `@swamp/gcp/compute/snapshotsettings`. */
 export const model = {
   type: "@swamp/gcp/compute/snapshotsettings",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -343,6 +313,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: accessLocation",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { accessLocation: _accessLocation, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -385,20 +363,22 @@ export const model = {
     },
     update: {
       description: "Update snapshotSettings attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific snapshotSettings by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["accessLocation"] !== undefined) {
-          body["accessLocation"] = g["accessLocation"];
-        }
         if (g["storageLocation"] !== undefined) {
           body["storageLocation"] = g["storageLocation"];
         }
@@ -425,15 +405,20 @@ export const model = {
     },
     sync: {
       description: "Sync snapshotSettings state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific snapshotSettings by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         try {
           const params: Record<string, string> = { project: projectId };
           const result = await readResource(

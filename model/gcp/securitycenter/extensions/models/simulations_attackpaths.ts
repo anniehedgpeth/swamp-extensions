@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Security Command Center Simulations.AttackPaths.
  *
- * GCP securitycenter Simulations.AttackPaths resource
+ * A path that an attacker could take to reach an exposed resource.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -151,7 +151,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center Simulations.AttackPaths. Registered at `@swamp/gcp/securitycenter/simulations-attackpaths`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/simulations-attackpaths",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -243,12 +243,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "GCP securitycenter Simulations.AttackPaths resource",
+      description:
+        "A path that an attacker could take to reach an exposed resource.",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -288,22 +294,29 @@ export const model = {
     },
     sync: {
       description: "Sync attackPaths state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific attackPaths by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -347,8 +360,12 @@ export const model = {
     list: {
       description: "List attackPaths resources",
       arguments: z.object({
-        filter: z.string().optional(),
-        pageSize: z.number().optional(),
+        filter: z.string().describe(
+          "The filter expression that filters the attack path in the response. Supported fields: * `valued_resources` supports =",
+        ).optional(),
+        pageSize: z.number().describe(
+          "The maximum number of results to return in a single response. Default is 10, minimum is 1, maximum is 1000.",
+        ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
         ).optional(),

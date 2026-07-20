@@ -215,9 +215,6 @@ const GlobalArgsSchema = z.object({
     .describe(
       "Name of the resource. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
     ).optional(),
-  postQuantumKeyExchange: z.enum(["DEFAULT", "DEFERRED", "ENABLED"]).describe(
-    "One of DEFAULT, ENABLED, orDEFERRED. Controls whether the load balancer negotiates X25519MLKEM768 key exchange when clients advertise support for it. When set to DEFAULT, or if no SSL Policy is attached to the target proxy, the load balancer disallows X25519MLKEM768 key exchange before October 2026, and allows it afterward. When set to ENABLED, the load balancer allows X25519MLKEM768 key exchange. When set toDEFERRED, the load balancer disallows X25519MLKEM768 key exchange until October 2027, and allows it afterward.",
-  ).optional(),
   profile: z.enum([
     "COMPATIBLE",
     "CUSTOM",
@@ -245,7 +242,6 @@ const StateSchema = z.object({
   kind: z.string().optional(),
   minTlsVersion: z.string().optional(),
   name: z.string(),
-  postQuantumKeyExchange: z.string().optional(),
   profile: z.string().optional(),
   region: z.string().optional(),
   selfLink: z.string().optional(),
@@ -282,9 +278,6 @@ const InputsSchema = z.object({
     .describe(
       "Name of the resource. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
     ).optional(),
-  postQuantumKeyExchange: z.enum(["DEFAULT", "DEFERRED", "ENABLED"]).describe(
-    "One of DEFAULT, ENABLED, orDEFERRED. Controls whether the load balancer negotiates X25519MLKEM768 key exchange when clients advertise support for it. When set to DEFAULT, or if no SSL Policy is attached to the target proxy, the load balancer disallows X25519MLKEM768 key exchange before October 2026, and allows it afterward. When set to ENABLED, the load balancer allows X25519MLKEM768 key exchange. When set toDEFERRED, the load balancer disallows X25519MLKEM768 key exchange until October 2027, and allows it afterward.",
-  ).optional(),
   profile: z.enum([
     "COMPATIBLE",
     "CUSTOM",
@@ -325,7 +318,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionSslPolicies. Registered at `@swamp/gcp/compute/regionsslpolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/regionsslpolicies",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -473,6 +466,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: postQuantumKeyExchange",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { postQuantumKeyExchange: _postQuantumKeyExchange, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -509,9 +511,6 @@ export const model = {
           body["minTlsVersion"] = g["minTlsVersion"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["postQuantumKeyExchange"] !== undefined) {
-          body["postQuantumKeyExchange"] = g["postQuantumKeyExchange"];
-        }
         if (g["profile"] !== undefined) body["profile"] = g["profile"];
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);
@@ -578,22 +577,29 @@ export const model = {
     },
     update: {
       description: "Update regionSslPolicies attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific regionSslPolicies by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -616,9 +622,6 @@ export const model = {
           body["minTlsVersion"] = g["minTlsVersion"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["postQuantumKeyExchange"] !== undefined) {
-          body["postQuantumKeyExchange"] = g["postQuantumKeyExchange"];
-        }
         if (g["profile"] !== undefined) body["profile"] = g["profile"];
         for (const key of Object.keys(existing)) {
           if (
@@ -678,22 +681,29 @@ export const model = {
     },
     sync: {
       description: "Sync regionSslPolicies state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific regionSslPolicies by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

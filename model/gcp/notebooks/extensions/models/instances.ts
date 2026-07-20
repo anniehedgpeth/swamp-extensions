@@ -203,7 +203,6 @@ const GlobalArgsSchema = z.object({
         "NVIDIA_TESLA_P100_VWS",
         "NVIDIA_TESLA_P4_VWS",
         "NVIDIA_B200",
-        "NVIDIA_RTX6000",
       ]).describe("Optional. Type of this accelerator.").optional(),
     })).describe(
       "Optional. The hardware accelerators used on this instance. If you use accelerators, make sure that your configuration has [enough vCPUs and memory to support the `machine_type` you have selected](https://cloud.google.com/compute/docs/gpus/#gpus-list). Currently supports only one accelerator configuration.",
@@ -223,10 +222,6 @@ const GlobalArgsSchema = z.object({
         "PD_BALANCED",
         "PD_EXTREME",
         "HYPERDISK_BALANCED",
-        "HYPERDISK_EXTREME",
-        "HYPERDISK_THROUGHPUT",
-        "HYPERDISK_BALANCED_HIGH_AVAILABILITY",
-        "HYPERDISK_ML",
       ]).describe("Optional. Indicates the type of the disk.").optional(),
       kmsKey: z.string().describe(
         "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
@@ -265,10 +260,6 @@ const GlobalArgsSchema = z.object({
         "PD_BALANCED",
         "PD_EXTREME",
         "HYPERDISK_BALANCED",
-        "HYPERDISK_EXTREME",
-        "HYPERDISK_THROUGHPUT",
-        "HYPERDISK_BALANCED_HIGH_AVAILABILITY",
-        "HYPERDISK_ML",
       ]).describe("Optional. Input only. Indicates the type of the disk.")
         .optional(),
       kmsKey: z.string().describe(
@@ -537,7 +528,6 @@ const InputsSchema = z.object({
         "NVIDIA_TESLA_P100_VWS",
         "NVIDIA_TESLA_P4_VWS",
         "NVIDIA_B200",
-        "NVIDIA_RTX6000",
       ]).describe("Optional. Type of this accelerator.").optional(),
     })).describe(
       "Optional. The hardware accelerators used on this instance. If you use accelerators, make sure that your configuration has [enough vCPUs and memory to support the `machine_type` you have selected](https://cloud.google.com/compute/docs/gpus/#gpus-list). Currently supports only one accelerator configuration.",
@@ -557,10 +547,6 @@ const InputsSchema = z.object({
         "PD_BALANCED",
         "PD_EXTREME",
         "HYPERDISK_BALANCED",
-        "HYPERDISK_EXTREME",
-        "HYPERDISK_THROUGHPUT",
-        "HYPERDISK_BALANCED_HIGH_AVAILABILITY",
-        "HYPERDISK_ML",
       ]).describe("Optional. Indicates the type of the disk.").optional(),
       kmsKey: z.string().describe(
         "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
@@ -599,10 +585,6 @@ const InputsSchema = z.object({
         "PD_BALANCED",
         "PD_EXTREME",
         "HYPERDISK_BALANCED",
-        "HYPERDISK_EXTREME",
-        "HYPERDISK_THROUGHPUT",
-        "HYPERDISK_BALANCED_HIGH_AVAILABILITY",
-        "HYPERDISK_ML",
       ]).describe("Optional. Input only. Indicates the type of the disk.")
         .optional(),
       kmsKey: z.string().describe(
@@ -757,7 +739,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Notebooks Instances. Registered at `@swamp/gcp/notebooks/instances`. */
 export const model = {
   type: "@swamp/gcp/notebooks/instances",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -886,6 +868,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1018,25 +1005,34 @@ export const model = {
     update: {
       description: "Update instances attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific instances by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1137,22 +1133,29 @@ export const model = {
     },
     sync: {
       description: "Sync instances state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific instances by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1852,10 +1855,8 @@ export const model = {
     },
     upgrade: {
       description: "upgrade",
-      arguments: z.object({
-        imageFamily: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
@@ -1865,10 +1866,6 @@ export const model = {
             `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
             String(g["name"]),
           );
-        }
-        const body: Record<string, unknown> = {};
-        if (args["imageFamily"] !== undefined) {
-          body["imageFamily"] = args["imageFamily"];
         }
         const result = await createResource(
           BASE_URL,
@@ -1880,7 +1877,7 @@ export const model = {
             "parameters": { "name": { "location": "path", "required": true } },
           },
           params,
-          body,
+          {},
           undefined,
           undefined,
           undefined,

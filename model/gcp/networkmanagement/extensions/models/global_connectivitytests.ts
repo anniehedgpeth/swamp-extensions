@@ -176,9 +176,6 @@ const GlobalArgsSchema = z.object({
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
     }).describe("Wrapper for Cloud Function attributes.").optional(),
-    cloudRunJob: z.string().describe(
-      "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
-    ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
         "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
@@ -189,9 +186,6 @@ const GlobalArgsSchema = z.object({
     }).describe("Wrapper for Cloud Run revision attributes.").optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
-    ).optional(),
-    dmsPrivateConnection: z.string().describe(
-      "A [DMS Private Connection](https://docs.cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.privateConnections) name format: projects/{project}/locations/{location}/privateConnections/{privateConnection}.",
     ).optional(),
     forwardingRule: z.string().describe(
       "A forwarding rule and its corresponding IP address represent the frontend configuration of a Google Cloud load balancer. Forwarding rules are also used for protocol forwarding, Private Service Connect and other network services to provide forwarding information in the control plane. Applicable only to destination endpoint. Format: `projects/{project}/global/forwardingRules/{id}` or `projects/{project}/regions/{region}/forwardingRules/{id}`",
@@ -311,7 +305,7 @@ const GlobalArgsSchema = z.object({
     endpointInfo: z.object({
       destinationIp: z.string().describe("Destination IP address.").optional(),
       destinationNetworkUri: z.string().describe(
-        "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
+        "URI of the network where this packet is sent to.",
       ).optional(),
       destinationPort: z.number().int().describe(
         "Destination port. Only valid when protocol is TCP or UDP.",
@@ -324,7 +318,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       sourceIp: z.string().describe("Source IP address.").optional(),
       sourceNetworkUri: z.string().describe(
-        "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
+        "URI of the network where this packet originates from.",
       ).optional(),
       sourcePort: z.number().int().describe(
         "Source port. Only valid when protocol is TCP or UDP.",
@@ -405,7 +399,7 @@ const GlobalArgsSchema = z.object({
         destinationIp: z.string().describe("Destination IP address.")
           .optional(),
         destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet is sent to.",
         ).optional(),
         destinationPort: z.number().int().describe(
           "Destination port. Only valid when protocol is TCP or UDP.",
@@ -418,7 +412,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         sourceIp: z.string().describe("Source IP address.").optional(),
         sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet originates from.",
         ).optional(),
         sourcePort: z.number().int().describe(
           "Source port. Only valid when protocol is TCP or UDP.",
@@ -442,17 +436,11 @@ const GlobalArgsSchema = z.object({
         cloudFunction: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Function.",
         ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
         cloudRunRevision: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Run revision.",
         ).optional(),
         cloudSqlInstance: z.unknown().describe(
           "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         deliver: z.unknown().describe(
           'Details of the final state "deliver" and associated resource.',
@@ -462,9 +450,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         directVpcEgressConnection: z.unknown().describe(
           "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         drop: z.unknown().describe(
           'Details of the final state "drop" and associated resource.',
@@ -600,7 +585,7 @@ const GlobalArgsSchema = z.object({
         destinationIp: z.string().describe("Destination IP address.")
           .optional(),
         destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet is sent to.",
         ).optional(),
         destinationPort: z.number().int().describe(
           "Destination port. Only valid when protocol is TCP or UDP.",
@@ -613,7 +598,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         sourceIp: z.string().describe("Source IP address.").optional(),
         sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet originates from.",
         ).optional(),
         sourcePort: z.number().int().describe(
           "Source port. Only valid when protocol is TCP or UDP.",
@@ -637,17 +622,11 @@ const GlobalArgsSchema = z.object({
         cloudFunction: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Function.",
         ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
         cloudRunRevision: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Run revision.",
         ).optional(),
         cloudSqlInstance: z.unknown().describe(
           "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         deliver: z.unknown().describe(
           'Details of the final state "deliver" and associated resource.',
@@ -657,9 +636,6 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         directVpcEgressConnection: z.unknown().describe(
           "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         drop: z.unknown().describe(
           'Details of the final state "drop" and associated resource.',
@@ -780,9 +756,6 @@ const GlobalArgsSchema = z.object({
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
     }).describe("Wrapper for Cloud Function attributes.").optional(),
-    cloudRunJob: z.string().describe(
-      "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
-    ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
         "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
@@ -793,9 +766,6 @@ const GlobalArgsSchema = z.object({
     }).describe("Wrapper for Cloud Run revision attributes.").optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
-    ).optional(),
-    dmsPrivateConnection: z.string().describe(
-      "A [DMS Private Connection](https://docs.cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.privateConnections) name format: projects/{project}/locations/{location}/privateConnections/{privateConnection}.",
     ).optional(),
     forwardingRule: z.string().describe(
       "A forwarding rule and its corresponding IP address represent the frontend configuration of a Google Cloud load balancer. Forwarding rules are also used for protocol forwarding, Private Service Connect and other network services to provide forwarding information in the control plane. Applicable only to destination endpoint. Format: `projects/{project}/global/forwardingRules/{id}` or `projects/{project}/regions/{region}/forwardingRules/{id}`",
@@ -886,13 +856,11 @@ const StateSchema = z.object({
     cloudFunction: z.object({
       uri: z.string(),
     }),
-    cloudRunJob: z.string(),
     cloudRunRevision: z.object({
       serviceUri: z.string(),
       uri: z.string(),
     }),
     cloudSqlInstance: z.string(),
-    dmsPrivateConnection: z.string(),
     forwardingRule: z.string(),
     forwardingRuleTarget: z.string(),
     fqdn: z.string(),
@@ -981,14 +949,11 @@ const StateSchema = z.object({
         appEngineVersion: z.unknown(),
         causesDrop: z.unknown(),
         cloudFunction: z.unknown(),
-        cloudRunJob: z.unknown(),
         cloudRunRevision: z.unknown(),
         cloudSqlInstance: z.unknown(),
-        datastreamPrivateConnection: z.unknown(),
         deliver: z.unknown(),
         description: z.unknown(),
         directVpcEgressConnection: z.unknown(),
-        dmsPrivateConnection: z.unknown(),
         drop: z.unknown(),
         endpoint: z.unknown(),
         firewall: z.unknown(),
@@ -1049,14 +1014,11 @@ const StateSchema = z.object({
         appEngineVersion: z.unknown(),
         causesDrop: z.unknown(),
         cloudFunction: z.unknown(),
-        cloudRunJob: z.unknown(),
         cloudRunRevision: z.unknown(),
         cloudSqlInstance: z.unknown(),
-        datastreamPrivateConnection: z.unknown(),
         deliver: z.unknown(),
         description: z.unknown(),
         directVpcEgressConnection: z.unknown(),
-        dmsPrivateConnection: z.unknown(),
         drop: z.unknown(),
         endpoint: z.unknown(),
         firewall: z.unknown(),
@@ -1100,13 +1062,11 @@ const StateSchema = z.object({
     cloudFunction: z.object({
       uri: z.string(),
     }),
-    cloudRunJob: z.string(),
     cloudRunRevision: z.object({
       serviceUri: z.string(),
       uri: z.string(),
     }),
     cloudSqlInstance: z.string(),
-    dmsPrivateConnection: z.string(),
     forwardingRule: z.string(),
     forwardingRuleTarget: z.string(),
     fqdn: z.string(),
@@ -1151,9 +1111,6 @@ const InputsSchema = z.object({
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
     }).describe("Wrapper for Cloud Function attributes.").optional(),
-    cloudRunJob: z.string().describe(
-      "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
-    ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
         "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
@@ -1164,9 +1121,6 @@ const InputsSchema = z.object({
     }).describe("Wrapper for Cloud Run revision attributes.").optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
-    ).optional(),
-    dmsPrivateConnection: z.string().describe(
-      "A [DMS Private Connection](https://docs.cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.privateConnections) name format: projects/{project}/locations/{location}/privateConnections/{privateConnection}.",
     ).optional(),
     forwardingRule: z.string().describe(
       "A forwarding rule and its corresponding IP address represent the frontend configuration of a Google Cloud load balancer. Forwarding rules are also used for protocol forwarding, Private Service Connect and other network services to provide forwarding information in the control plane. Applicable only to destination endpoint. Format: `projects/{project}/global/forwardingRules/{id}` or `projects/{project}/regions/{region}/forwardingRules/{id}`",
@@ -1286,7 +1240,7 @@ const InputsSchema = z.object({
     endpointInfo: z.object({
       destinationIp: z.string().describe("Destination IP address.").optional(),
       destinationNetworkUri: z.string().describe(
-        "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
+        "URI of the network where this packet is sent to.",
       ).optional(),
       destinationPort: z.number().int().describe(
         "Destination port. Only valid when protocol is TCP or UDP.",
@@ -1299,7 +1253,7 @@ const InputsSchema = z.object({
       ).optional(),
       sourceIp: z.string().describe("Source IP address.").optional(),
       sourceNetworkUri: z.string().describe(
-        "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
+        "URI of the network where this packet originates from.",
       ).optional(),
       sourcePort: z.number().int().describe(
         "Source port. Only valid when protocol is TCP or UDP.",
@@ -1380,7 +1334,7 @@ const InputsSchema = z.object({
         destinationIp: z.string().describe("Destination IP address.")
           .optional(),
         destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet is sent to.",
         ).optional(),
         destinationPort: z.number().int().describe(
           "Destination port. Only valid when protocol is TCP or UDP.",
@@ -1393,7 +1347,7 @@ const InputsSchema = z.object({
         ).optional(),
         sourceIp: z.string().describe("Source IP address.").optional(),
         sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet originates from.",
         ).optional(),
         sourcePort: z.number().int().describe(
           "Source port. Only valid when protocol is TCP or UDP.",
@@ -1417,17 +1371,11 @@ const InputsSchema = z.object({
         cloudFunction: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Function.",
         ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
         cloudRunRevision: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Run revision.",
         ).optional(),
         cloudSqlInstance: z.unknown().describe(
           "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         deliver: z.unknown().describe(
           'Details of the final state "deliver" and associated resource.',
@@ -1437,9 +1385,6 @@ const InputsSchema = z.object({
         ).optional(),
         directVpcEgressConnection: z.unknown().describe(
           "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         drop: z.unknown().describe(
           'Details of the final state "drop" and associated resource.',
@@ -1575,7 +1520,7 @@ const InputsSchema = z.object({
         destinationIp: z.string().describe("Destination IP address.")
           .optional(),
         destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet is sent to.",
         ).optional(),
         destinationPort: z.number().int().describe(
           "Destination port. Only valid when protocol is TCP or UDP.",
@@ -1588,7 +1533,7 @@ const InputsSchema = z.object({
         ).optional(),
         sourceIp: z.string().describe("Source IP address.").optional(),
         sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
+          "URI of the network where this packet originates from.",
         ).optional(),
         sourcePort: z.number().int().describe(
           "Source port. Only valid when protocol is TCP or UDP.",
@@ -1612,17 +1557,11 @@ const InputsSchema = z.object({
         cloudFunction: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Function.",
         ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
         cloudRunRevision: z.unknown().describe(
           "For display only. Metadata associated with a Cloud Run revision.",
         ).optional(),
         cloudSqlInstance: z.unknown().describe(
           "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         deliver: z.unknown().describe(
           'Details of the final state "deliver" and associated resource.',
@@ -1632,9 +1571,6 @@ const InputsSchema = z.object({
         ).optional(),
         directVpcEgressConnection: z.unknown().describe(
           "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
         ).optional(),
         drop: z.unknown().describe(
           'Details of the final state "drop" and associated resource.',
@@ -1755,9 +1691,6 @@ const InputsSchema = z.object({
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
     }).describe("Wrapper for Cloud Function attributes.").optional(),
-    cloudRunJob: z.string().describe(
-      "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
-    ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
         "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
@@ -1768,9 +1701,6 @@ const InputsSchema = z.object({
     }).describe("Wrapper for Cloud Run revision attributes.").optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
-    ).optional(),
-    dmsPrivateConnection: z.string().describe(
-      "A [DMS Private Connection](https://docs.cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.privateConnections) name format: projects/{project}/locations/{location}/privateConnections/{privateConnection}.",
     ).optional(),
     forwardingRule: z.string().describe(
       "A forwarding rule and its corresponding IP address represent the frontend configuration of a Google Cloud load balancer. Forwarding rules are also used for protocol forwarding, Private Service Connect and other network services to provide forwarding information in the control plane. Applicable only to destination endpoint. Format: `projects/{project}/global/forwardingRules/{id}` or `projects/{project}/regions/{region}/forwardingRules/{id}`",
@@ -1873,7 +1803,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Management Global.ConnectivityTests. Registered at `@swamp/gcp/networkmanagement/global-connectivitytests`. */
 export const model = {
   type: "@swamp/gcp/networkmanagement/global-connectivitytests",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2015,6 +1945,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2132,22 +2067,29 @@ export const model = {
     },
     update: {
       description: "Update connectivityTests attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific connectivityTests by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -2250,22 +2192,29 @@ export const model = {
     },
     sync: {
       description: "Sync connectivityTests state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific connectivityTests by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

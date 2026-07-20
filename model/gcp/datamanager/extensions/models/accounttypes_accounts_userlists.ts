@@ -150,7 +150,6 @@ const LIST_CONFIG = {
 
 const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/datamanager",
-  "https://www.googleapis.com/auth/datamanager.partnerlink",
 ];
 
 const GlobalArgsSchema = z.object({
@@ -295,14 +294,8 @@ const GlobalArgsSchema = z.object({
     displayNetworkMembersCount: z.string().describe(
       "Output only. Estimated number of members in this user list, on the Google Display Network.",
     ).optional(),
-    gmailMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on Gmail.",
-    ).optional(),
     searchNetworkMembersCount: z.string().describe(
       "Output only. Estimated number of members in this user list in the google.com domain. These are the members available for targeting in Search campaigns.",
-    ).optional(),
-    youtubeMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on YouTube.",
     ).optional(),
   }).describe(
     "Estimated number of members in this user list in different target networks.",
@@ -365,9 +358,7 @@ const StateSchema = z.object({
   readOnly: z.boolean().optional(),
   sizeInfo: z.object({
     displayNetworkMembersCount: z.string(),
-    gmailMembersCount: z.string(),
     searchNetworkMembersCount: z.string(),
-    youtubeMembersCount: z.string(),
   }).optional(),
   targetNetworkInfo: z.object({
     eligibleForDisplay: z.boolean(),
@@ -511,14 +502,8 @@ const InputsSchema = z.object({
     displayNetworkMembersCount: z.string().describe(
       "Output only. Estimated number of members in this user list, on the Google Display Network.",
     ).optional(),
-    gmailMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on Gmail.",
-    ).optional(),
     searchNetworkMembersCount: z.string().describe(
       "Output only. Estimated number of members in this user list in the google.com domain. These are the members available for targeting in Search campaigns.",
-    ).optional(),
-    youtubeMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on YouTube.",
     ).optional(),
   }).describe(
     "Estimated number of members in this user list in different target networks.",
@@ -560,7 +545,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Manager AccountTypes.Accounts.UserLists. Registered at `@swamp/gcp/datamanager/accounttypes-accounts-userlists`. */
 export const model = {
   type: "@swamp/gcp/datamanager/accounttypes-accounts-userlists",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -682,6 +667,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -798,22 +788,29 @@ export const model = {
     },
     update: {
       description: "Update userLists attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific userLists by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -916,22 +913,29 @@ export const model = {
     },
     sync: {
       description: "Sync userLists state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific userLists by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -975,7 +979,7 @@ export const model = {
       description: "List userLists resources",
       arguments: z.object({
         filter: z.string().describe(
-          'Optional. A [filter string](https://google.aip.dev/160). All fields need to be on the left hand side of each condition (for example: `display_name = "list 1"`). Fields must be specified using either all [camel case](https://en.wikipedia.org/wiki/Camel_case) or all [snake case](https://en.wikipedia.org/wiki/Snake_case). Don\'t use a combination of camel case and snake case. Supported operations: - `AND` - `=` - `!=` - `>` - `>=` - `<` - `<=` - `:` (has) **Supported Functions:** - `IN(field, value1, value2, ...)`: returns true if the field matches any of the values. Example: `IN(display_name, "name1", "name2")` Supported fields: - `id` - `display_name` - `description` - `membership_status` - `integration_code` - `access_reason` - `ingested_user_list_info.upload_key_types`',
+          'Optional. A [filter string](https://google.aip.dev/160). All fields need to be on the left hand side of each condition (for example: `display_name = "list 1"`). Fields must be specified using either all [camel case](https://en.wikipedia.org/wiki/Camel_case) or all [snake case](https://en.wikipedia.org/wiki/Snake_case). Don\'t use a combination of camel case and snake case. Supported operations: - `AND` - `=` - `!=` - `>` - `>=` - `<` - `<=` - `:` (has) Supported fields: - `id` - `display_name` - `description` - `membership_status` - `integration_code` - `access_reason` - `ingested_user_list_info.upload_key_types`',
         ).optional(),
         pageSize: z.number().describe(
           "Optional. The maximum number of user lists to return. The service may return fewer than this value. If unspecified, at most 50 user lists will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.",

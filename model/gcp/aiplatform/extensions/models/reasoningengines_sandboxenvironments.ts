@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironments.
+ * Swamp extension model for Google Cloud Vertex AI ReasoningEngines.SandboxEnvironments.
  *
  * SandboxEnvironment is a containerized environment that provides a customizable secure execution runtime for AI agents.
  *
@@ -144,9 +144,6 @@ const GlobalArgsSchema = z.object({
     loadBalancerIp: z.string().describe(
       "Output only. The IP address of the load balancer.",
     ).optional(),
-    routingToken: z.string().describe(
-      "Output only. The routing token for the SandboxEnvironment.",
-    ).optional(),
     sandboxInternalIp: z.string().describe(
       "Output only. The internal IP address of the SandboxEnvironment.",
     ).optional(),
@@ -160,15 +157,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   name: z.string().describe("Identifier. The name of the SandboxEnvironment.")
     .optional(),
-  owner: z.string().describe(
-    "Optional. Owner information for this sandbox environment. A Sandbox can only be restored from a snapshot that belongs to the same owner. If not set, sandbox will be created as the default owner.",
-  ).optional(),
-  sandboxEnvironmentSnapshot: z.string().describe(
-    "Optional. The resource name of the SandboxEnvironmentSnapshot to use for creating this SandboxEnvironment. Format: `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sandboxEnvironmentSnapshots/{sandbox_environment_snapshot}`",
-  ).optional(),
-  sandboxEnvironmentTemplate: z.string().describe(
-    "Optional. The name of the SandboxEnvironmentTemplate specified in the parent Agent Engine resource that this SandboxEnvironment is created from.",
-  ).optional(),
   spec: z.object({
     codeExecutionEnvironment: z.object({
       codeLanguage: z.enum([
@@ -200,17 +188,12 @@ const StateSchema = z.object({
   connectionInfo: z.object({
     loadBalancerHostname: z.string(),
     loadBalancerIp: z.string(),
-    routingToken: z.string(),
     sandboxInternalIp: z.string(),
   }).optional(),
   createTime: z.string().optional(),
   displayName: z.string().optional(),
   expireTime: z.string().optional(),
-  latestSandboxEnvironmentSnapshot: z.string().optional(),
   name: z.string(),
-  owner: z.string().optional(),
-  sandboxEnvironmentSnapshot: z.string().optional(),
-  sandboxEnvironmentTemplate: z.string().optional(),
   spec: z.object({
     codeExecutionEnvironment: z.object({
       codeLanguage: z.string(),
@@ -236,9 +219,6 @@ const InputsSchema = z.object({
     loadBalancerIp: z.string().describe(
       "Output only. The IP address of the load balancer.",
     ).optional(),
-    routingToken: z.string().describe(
-      "Output only. The routing token for the SandboxEnvironment.",
-    ).optional(),
     sandboxInternalIp: z.string().describe(
       "Output only. The internal IP address of the SandboxEnvironment.",
     ).optional(),
@@ -252,15 +232,6 @@ const InputsSchema = z.object({
   ).optional(),
   name: z.string().describe("Identifier. The name of the SandboxEnvironment.")
     .optional(),
-  owner: z.string().describe(
-    "Optional. Owner information for this sandbox environment. A Sandbox can only be restored from a snapshot that belongs to the same owner. If not set, sandbox will be created as the default owner.",
-  ).optional(),
-  sandboxEnvironmentSnapshot: z.string().describe(
-    "Optional. The resource name of the SandboxEnvironmentSnapshot to use for creating this SandboxEnvironment. Format: `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sandboxEnvironmentSnapshots/{sandbox_environment_snapshot}`",
-  ).optional(),
-  sandboxEnvironmentTemplate: z.string().describe(
-    "Optional. The name of the SandboxEnvironmentTemplate specified in the parent Agent Engine resource that this SandboxEnvironment is created from.",
-  ).optional(),
   spec: z.object({
     codeExecutionEnvironment: z.object({
       codeLanguage: z.enum([
@@ -308,10 +279,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironments. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironments`. */
+/** Swamp extension model for Google Cloud Vertex AI ReasoningEngines.SandboxEnvironments. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironments`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sandboxenvironments",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -489,6 +460,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description:
+        "Removed: owner, sandboxEnvironmentSnapshot, sandboxEnvironmentTemplate",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          owner: _owner,
+          sandboxEnvironmentSnapshot: _sandboxEnvironmentSnapshot,
+          sandboxEnvironmentTemplate: _sandboxEnvironmentTemplate,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -520,13 +505,6 @@ export const model = {
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["owner"] !== undefined) body["owner"] = g["owner"];
-        if (g["sandboxEnvironmentSnapshot"] !== undefined) {
-          body["sandboxEnvironmentSnapshot"] = g["sandboxEnvironmentSnapshot"];
-        }
-        if (g["sandboxEnvironmentTemplate"] !== undefined) {
-          body["sandboxEnvironmentTemplate"] = g["sandboxEnvironmentTemplate"];
-        }
         if (g["spec"] !== undefined) body["spec"] = g["spec"];
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
@@ -630,22 +608,29 @@ export const model = {
     },
     sync: {
       description: "Sync sandboxEnvironments state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific sandboxEnvironments by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -759,148 +744,6 @@ export const model = {
             "id":
               "aiplatform.projects.locations.reasoningEngines.sandboxEnvironments.execute",
             "path": "v1/{+name}:execute",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          body,
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    pause: {
-      description: "pause",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "aiplatform.projects.locations.reasoningEngines.sandboxEnvironments.pause",
-            "path": "v1/{+name}:pause",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    resume: {
-      description: "resume",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "aiplatform.projects.locations.reasoningEngines.sandboxEnvironments.resume",
-            "path": "v1/{+name}:resume",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    snapshot: {
-      description: "snapshot",
-      arguments: z.object({
-        createTime: z.any().optional(),
-        displayName: z.any().optional(),
-        expireTime: z.any().optional(),
-        name: z.any().optional(),
-        owner: z.any().optional(),
-        parentSnapshot: z.any().optional(),
-        postSnapshotAction: z.any().optional(),
-        sizeBytes: z.any().optional(),
-        sourceSandboxEnvironment: z.any().optional(),
-        ttl: z.any().optional(),
-        updateTime: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const body: Record<string, unknown> = {};
-        if (args["createTime"] !== undefined) {
-          body["createTime"] = args["createTime"];
-        }
-        if (args["displayName"] !== undefined) {
-          body["displayName"] = args["displayName"];
-        }
-        if (args["expireTime"] !== undefined) {
-          body["expireTime"] = args["expireTime"];
-        }
-        if (args["name"] !== undefined) body["name"] = args["name"];
-        if (args["owner"] !== undefined) body["owner"] = args["owner"];
-        if (args["parentSnapshot"] !== undefined) {
-          body["parentSnapshot"] = args["parentSnapshot"];
-        }
-        if (args["postSnapshotAction"] !== undefined) {
-          body["postSnapshotAction"] = args["postSnapshotAction"];
-        }
-        if (args["sizeBytes"] !== undefined) {
-          body["sizeBytes"] = args["sizeBytes"];
-        }
-        if (args["sourceSandboxEnvironment"] !== undefined) {
-          body["sourceSandboxEnvironment"] = args["sourceSandboxEnvironment"];
-        }
-        if (args["ttl"] !== undefined) body["ttl"] = args["ttl"];
-        if (args["updateTime"] !== undefined) {
-          body["updateTime"] = args["updateTime"];
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "aiplatform.projects.locations.reasoningEngines.sandboxEnvironments.snapshot",
-            "path": "v1/{+name}:snapshot",
             "httpMethod": "POST",
             "parameterOrder": ["name"],
             "parameters": { "name": { "location": "path", "required": true } },

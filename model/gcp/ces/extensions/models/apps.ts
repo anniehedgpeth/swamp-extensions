@@ -188,7 +188,7 @@ const GlobalArgsSchema = z.object({
         "Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn't heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.",
       ).optional(),
       disableBargeIn: z.boolean().describe(
-        "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
+        "Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile.",
       ).optional(),
     }).describe(
       "Configuration for how the user barge-in activities should be handled.",
@@ -199,20 +199,11 @@ const GlobalArgsSchema = z.object({
     synthesizeSpeechConfigs: z.record(
       z.string(),
       z.object({
-        instruction: z.string().describe(
-          "Optional. The instruction used to synthesize speech when using a generative model.",
-        ).optional(),
-        model: z.string().describe(
-          'Optional. The model used to synthesize audio. Currently supported values: - "gemini-3.1-flash-tts-preview" If empty, Chirp3-HD is used.',
-        ).optional(),
         speakingRate: z.number().describe(
           "Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.",
         ).optional(),
         voice: z.string().describe(
           "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
-        ).optional(),
-        voiceSampleGcsUri: z.string().describe(
-          "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
         ).optional(),
       }),
     ).describe(
@@ -252,11 +243,8 @@ const GlobalArgsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
-      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
-      "WHATSAPP",
-      "INSTAGRAM",
     ]).describe("Optional. The type of the channel profile.").optional(),
     disableBargeInControl: z.boolean().describe(
       "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -264,20 +252,6 @@ const GlobalArgsSchema = z.object({
     disableDtmf: z.boolean().describe(
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
-    instagramConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      instagramAccountId: z.string().describe(
-        "Required. The Instagram Account ID.",
-      ).optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -318,24 +292,6 @@ const GlobalArgsSchema = z.object({
         "Optional. The title of the web widget.",
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
-    whatsappConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      phoneNumber: z.string().describe(
-        "Optional. The phone number in E.164 format.",
-      ).optional(),
-      phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
-        .optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-      wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
-        .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
   }).describe(
     "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
   ).optional(),
@@ -345,27 +301,12 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe("Required. Display name of the app.")
     .optional(),
   errorHandlingSettings: z.object({
-    endSessionConfig: z.object({
-      escalateSession: z.boolean().describe(
-        "Optional. Whether to escalate the session in EndSession. If session is escalated, metadata in EndSession will contain `session_escalated = true`. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/deploy/google-telephony-platform#transfer_a_call_to_a_human_agent for details.",
-      ).optional(),
-    }).describe(
-      "Configuration for ending the session in case of system errors (e.g. LLM errors).",
-    ).optional(),
     errorHandlingStrategy: z.enum([
       "ERROR_HANDLING_STRATEGY_UNSPECIFIED",
       "NONE",
       "FALLBACK_RESPONSE",
       "END_SESSION",
     ]).describe("Optional. The strategy to use for error handling.").optional(),
-    fallbackResponseConfig: z.object({
-      customFallbackMessages: z.record(z.string(), z.string()).describe(
-        "Optional. The fallback messages in case of system errors (e.g. LLM errors), mapped by [supported language code](https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/reference/language).",
-      ).optional(),
-      maxFallbackAttempts: z.number().int().describe(
-        "Optional. The maximum number of fallback attempts to make before the agent emitting EndSession Signal.",
-      ).optional(),
-    }).describe("Configuration for handling fallback responses.").optional(),
   }).describe("Settings to describe how errors should be handled in the app.")
     .optional(),
   evaluationMetricsThresholds: z.object({
@@ -479,9 +420,6 @@ const GlobalArgsSchema = z.object({
       disableConversationLogging: z.boolean().describe(
         "Optional. Whether to disable conversation logging for the sessions.",
       ).optional(),
-      retentionWindow: z.string().describe(
-        "Optional. Controls the retention window for the conversation. If not set, the conversation will be retained for 365 days.",
-      ).optional(),
     }).describe(
       "Settings to describe the conversation logging behaviors for the app.",
     ).optional(),
@@ -514,29 +452,6 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe(
       "Configuration to instruct how sensitive data should be handled.",
-    ).optional(),
-    unredactedAudioRecordingConfig: z.object({
-      gcsBucket: z.string().describe(
-        'Optional. The [Cloud Storage](https://cloud.google.com/storage) bucket to store the session audio recordings. The URI must start with "gs://". Please choose a bucket location that meets your data residency requirements. Note: If the Cloud Storage bucket is in a different project from the app, you should grant `storage.objects.create` permission to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.',
-      ).optional(),
-      gcsPathPrefix: z.string().describe(
-        "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
-      ).optional(),
-    }).describe(
-      "Configuration for how the audio interactions should be recorded.",
-    ).optional(),
-    unredactedBigqueryExportSettings: z.object({
-      dataset: z.string().describe(
-        "Optional. The BigQuery **dataset ID** to export the data to.",
-      ).optional(),
-      enabled: z.boolean().describe(
-        "Optional. Indicates whether the BigQuery export is enabled.",
-      ).optional(),
-      project: z.string().describe(
-        "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
-      ).optional(),
-    }).describe(
-      "Settings to describe the BigQuery export behaviors for the app.",
     ).optional(),
   }).describe("Settings to describe the logging behaviors for the app.")
     .optional(),
@@ -644,11 +559,6 @@ const GlobalArgsSchema = z.object({
     }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
       .optional(),
   })).describe("Optional. The declarations of the variables.").optional(),
-  vpcScSettings: z.object({
-    allowedOrigins: z.array(z.string()).describe(
-      'Optional. The allowed HTTP(s) origins that OpenAPI tools in the App are able to directly call when VPC Service Controls are enabled. These strings must match the origin exactly, including the port if specified. For example, "https://example.com" or "https://example.com:443". This list does not yet apply to Python tools that may make direct HTTP calls.',
-    ).optional(),
-  }).describe("VPC-SC settings for the app.").optional(),
   appId: z.string().describe(
     "Optional. The ID to use for the app, which will become the final component of the app's resource name. If not provided, a unique ID will be automatically assigned for the app.",
   ).optional(),
@@ -688,12 +598,6 @@ const StateSchema = z.object({
     channelType: z.string(),
     disableBargeInControl: z.boolean(),
     disableDtmf: z.boolean(),
-    instagramConfig: z.object({
-      description: z.string(),
-      displayName: z.string(),
-      instagramAccountId: z.string(),
-      thumbnailUrl: z.string(),
-    }),
     noiseSuppressionLevel: z.string(),
     personaProperty: z.object({
       persona: z.string(),
@@ -710,27 +614,12 @@ const StateSchema = z.object({
       theme: z.string(),
       webWidgetTitle: z.string(),
     }),
-    whatsappConfig: z.object({
-      description: z.string(),
-      displayName: z.string(),
-      phoneNumber: z.string(),
-      phoneNumberId: z.string(),
-      thumbnailUrl: z.string(),
-      wabaId: z.string(),
-    }),
   }).optional(),
   deploymentCount: z.number().optional(),
   description: z.string().optional(),
   displayName: z.string().optional(),
   errorHandlingSettings: z.object({
-    endSessionConfig: z.object({
-      escalateSession: z.boolean(),
-    }),
     errorHandlingStrategy: z.string(),
-    fallbackResponseConfig: z.object({
-      customFallbackMessages: z.record(z.string(), z.unknown()),
-      maxFallbackAttempts: z.number(),
-    }),
   }).optional(),
   etag: z.string().optional(),
   evaluationMetricsThresholds: z.object({
@@ -775,7 +664,6 @@ const StateSchema = z.object({
     }),
     conversationLoggingSettings: z.object({
       disableConversationLogging: z.boolean(),
-      retentionWindow: z.string(),
     }),
     evaluationAudioRecordingConfig: z.object({
       gcsBucket: z.string(),
@@ -788,15 +676,6 @@ const StateSchema = z.object({
       deidentifyTemplate: z.string(),
       enableRedaction: z.boolean(),
       inspectTemplate: z.string(),
-    }),
-    unredactedAudioRecordingConfig: z.object({
-      gcsBucket: z.string(),
-      gcsPathPrefix: z.string(),
-    }),
-    unredactedBigqueryExportSettings: z.object({
-      dataset: z.string(),
-      enabled: z.boolean(),
-      project: z.string(),
     }),
   }).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -837,7 +716,6 @@ const StateSchema = z.object({
   }).optional(),
   toolExecutionMode: z.string().optional(),
   updateTime: z.string().optional(),
-  validationErrors: z.array(z.string()).optional(),
   variableDeclarations: z.array(z.object({
     description: z.string(),
     name: z.string(),
@@ -863,9 +741,6 @@ const StateSchema = z.object({
       uniqueItems: z.boolean(),
     }),
   })).optional(),
-  vpcScSettings: z.object({
-    allowedOrigins: z.array(z.string()),
-  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -902,7 +777,7 @@ const InputsSchema = z.object({
         "Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn't heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.",
       ).optional(),
       disableBargeIn: z.boolean().describe(
-        "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
+        "Optional. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile.",
       ).optional(),
     }).describe(
       "Configuration for how the user barge-in activities should be handled.",
@@ -913,20 +788,11 @@ const InputsSchema = z.object({
     synthesizeSpeechConfigs: z.record(
       z.string(),
       z.object({
-        instruction: z.string().describe(
-          "Optional. The instruction used to synthesize speech when using a generative model.",
-        ).optional(),
-        model: z.string().describe(
-          'Optional. The model used to synthesize audio. Currently supported values: - "gemini-3.1-flash-tts-preview" If empty, Chirp3-HD is used.',
-        ).optional(),
         speakingRate: z.number().describe(
           "Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.",
         ).optional(),
         voice: z.string().describe(
           "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
-        ).optional(),
-        voiceSampleGcsUri: z.string().describe(
-          "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
         ).optional(),
       }),
     ).describe(
@@ -966,11 +832,8 @@ const InputsSchema = z.object({
       "TWILIO",
       "GOOGLE_TELEPHONY_PLATFORM",
       "CONTACT_CENTER_AS_A_SERVICE",
-      "CONTACT_CENTER_AS_A_SERVICE_CHAT",
       "FIVE9",
       "CONTACT_CENTER_INTEGRATION",
-      "WHATSAPP",
-      "INSTAGRAM",
     ]).describe("Optional. The type of the channel profile.").optional(),
     disableBargeInControl: z.boolean().describe(
       "Optional. Whether to disable user barge-in control in the conversation. - **true**: User interruptions are disabled while the agent is speaking. - **false**: The agent retains automatic control over when the user can interrupt.",
@@ -978,20 +841,6 @@ const InputsSchema = z.object({
     disableDtmf: z.boolean().describe(
       "Optional. Whether to disable DTMF (dual-tone multi-frequency).",
     ).optional(),
-    instagramConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      instagramAccountId: z.string().describe(
-        "Required. The Instagram Account ID.",
-      ).optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -1032,24 +881,6 @@ const InputsSchema = z.object({
         "Optional. The title of the web widget.",
       ).optional(),
     }).describe("Message for configuration for the web widget.").optional(),
-    whatsappConfig: z.object({
-      description: z.string().describe(
-        "Output only. The description of the Meta business page or profile.",
-      ).optional(),
-      displayName: z.string().describe(
-        "Output only. The fetched Meta business page name.",
-      ).optional(),
-      phoneNumber: z.string().describe(
-        "Optional. The phone number in E.164 format.",
-      ).optional(),
-      phoneNumberId: z.string().describe("Required. The Meta phone number ID.")
-        .optional(),
-      thumbnailUrl: z.string().describe(
-        "Output only. The fetched Meta business profile thumbnail URL.",
-      ).optional(),
-      wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
-        .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
   }).describe(
     "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
   ).optional(),
@@ -1059,27 +890,12 @@ const InputsSchema = z.object({
   displayName: z.string().describe("Required. Display name of the app.")
     .optional(),
   errorHandlingSettings: z.object({
-    endSessionConfig: z.object({
-      escalateSession: z.boolean().describe(
-        "Optional. Whether to escalate the session in EndSession. If session is escalated, metadata in EndSession will contain `session_escalated = true`. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/deploy/google-telephony-platform#transfer_a_call_to_a_human_agent for details.",
-      ).optional(),
-    }).describe(
-      "Configuration for ending the session in case of system errors (e.g. LLM errors).",
-    ).optional(),
     errorHandlingStrategy: z.enum([
       "ERROR_HANDLING_STRATEGY_UNSPECIFIED",
       "NONE",
       "FALLBACK_RESPONSE",
       "END_SESSION",
     ]).describe("Optional. The strategy to use for error handling.").optional(),
-    fallbackResponseConfig: z.object({
-      customFallbackMessages: z.record(z.string(), z.string()).describe(
-        "Optional. The fallback messages in case of system errors (e.g. LLM errors), mapped by [supported language code](https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/reference/language).",
-      ).optional(),
-      maxFallbackAttempts: z.number().int().describe(
-        "Optional. The maximum number of fallback attempts to make before the agent emitting EndSession Signal.",
-      ).optional(),
-    }).describe("Configuration for handling fallback responses.").optional(),
   }).describe("Settings to describe how errors should be handled in the app.")
     .optional(),
   evaluationMetricsThresholds: z.object({
@@ -1193,9 +1009,6 @@ const InputsSchema = z.object({
       disableConversationLogging: z.boolean().describe(
         "Optional. Whether to disable conversation logging for the sessions.",
       ).optional(),
-      retentionWindow: z.string().describe(
-        "Optional. Controls the retention window for the conversation. If not set, the conversation will be retained for 365 days.",
-      ).optional(),
     }).describe(
       "Settings to describe the conversation logging behaviors for the app.",
     ).optional(),
@@ -1228,29 +1041,6 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe(
       "Configuration to instruct how sensitive data should be handled.",
-    ).optional(),
-    unredactedAudioRecordingConfig: z.object({
-      gcsBucket: z.string().describe(
-        'Optional. The [Cloud Storage](https://cloud.google.com/storage) bucket to store the session audio recordings. The URI must start with "gs://". Please choose a bucket location that meets your data residency requirements. Note: If the Cloud Storage bucket is in a different project from the app, you should grant `storage.objects.create` permission to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.',
-      ).optional(),
-      gcsPathPrefix: z.string().describe(
-        "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
-      ).optional(),
-    }).describe(
-      "Configuration for how the audio interactions should be recorded.",
-    ).optional(),
-    unredactedBigqueryExportSettings: z.object({
-      dataset: z.string().describe(
-        "Optional. The BigQuery **dataset ID** to export the data to.",
-      ).optional(),
-      enabled: z.boolean().describe(
-        "Optional. Indicates whether the BigQuery export is enabled.",
-      ).optional(),
-      project: z.string().describe(
-        "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
-      ).optional(),
-    }).describe(
-      "Settings to describe the BigQuery export behaviors for the app.",
     ).optional(),
   }).describe("Settings to describe the logging behaviors for the app.")
     .optional(),
@@ -1358,11 +1148,6 @@ const InputsSchema = z.object({
     }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
       .optional(),
   })).describe("Optional. The declarations of the variables.").optional(),
-  vpcScSettings: z.object({
-    allowedOrigins: z.array(z.string()).describe(
-      'Optional. The allowed HTTP(s) origins that OpenAPI tools in the App are able to directly call when VPC Service Controls are enabled. These strings must match the origin exactly, including the port if specified. For example, "https://example.com" or "https://example.com:443". This list does not yet apply to Python tools that may make direct HTTP calls.',
-    ).optional(),
-  }).describe("VPC-SC settings for the app.").optional(),
   appId: z.string().describe(
     "Optional. The ID to use for the app, which will become the final component of the app's resource name. If not provided, a unique ID will be automatically assigned for the app.",
   ).optional(),
@@ -1394,7 +1179,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps. Registered at `@swamp/gcp/ces/apps`. */
 export const model = {
   type: "@swamp/gcp/ces/apps",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1560,6 +1345,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: vpcScSettings",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { vpcScSettings: _vpcScSettings, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1637,9 +1430,6 @@ export const model = {
         if (g["variableDeclarations"] !== undefined) {
           body["variableDeclarations"] = g["variableDeclarations"];
         }
-        if (g["vpcScSettings"] !== undefined) {
-          body["vpcScSettings"] = g["vpcScSettings"];
-        }
         if (g["appId"] !== undefined) params["appId"] = String(g["appId"]);
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -1711,22 +1501,29 @@ export const model = {
     },
     update: {
       description: "Update apps attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific apps by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1790,9 +1587,6 @@ export const model = {
         }
         if (g["variableDeclarations"] !== undefined) {
           body["variableDeclarations"] = g["variableDeclarations"];
-        }
-        if (g["vpcScSettings"] !== undefined) {
-          body["vpcScSettings"] = g["vpcScSettings"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
@@ -1858,22 +1652,29 @@ export const model = {
     },
     sync: {
       description: "Sync apps state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific apps by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1976,7 +1777,6 @@ export const model = {
       arguments: z.object({
         args: z.any().optional(),
         context: z.any().optional(),
-        mockConfig: z.any().optional(),
         tool: z.any().optional(),
         toolsetTool: z.any().optional(),
         variables: z.any().optional(),
@@ -1992,9 +1792,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["args"] !== undefined) body["args"] = args["args"];
         if (args["context"] !== undefined) body["context"] = args["context"];
-        if (args["mockConfig"] !== undefined) {
-          body["mockConfig"] = args["mockConfig"];
-        }
         if (args["tool"] !== undefined) body["tool"] = args["tool"];
         if (args["toolsetTool"] !== undefined) {
           body["toolsetTool"] = args["toolsetTool"];
@@ -2060,49 +1857,6 @@ export const model = {
           },
           params,
           body,
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    get_extended_agent_card: {
-      description: "get extended agent card",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["tenant"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "ces.projects.locations.apps.getExtendedAgentCard",
-            "path": "v1/{+tenant}/extendedAgentCard",
-            "httpMethod": "GET",
-            "parameterOrder": ["tenant"],
-            "parameters": {
-              "tenant": { "location": "path", "required": true },
-            },
-          },
-          params,
-          {},
           undefined,
           undefined,
           undefined,

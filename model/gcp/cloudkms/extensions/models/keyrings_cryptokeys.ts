@@ -85,9 +85,6 @@ const INSERT_CONFIG = {
     "skipInitialVersionCreation": {
       "location": "query",
     },
-    "trustedWrappingEnabled": {
-      "location": "query",
-    },
   },
 } as const;
 
@@ -256,7 +253,6 @@ const GlobalArgsSchema = z.object({
       "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
-      "AES_256_KWP",
     ]).describe(
       "Output only. The CryptoKeyVersionAlgorithm that this CryptoKeyVersion supports.",
     ).optional(),
@@ -299,14 +295,11 @@ const GlobalArgsSchema = z.object({
       "Output only. The root cause of the most recent external destruction failure. Only present if state is EXTERNAL_DESTRUCTION_FAILED.",
     ).optional(),
     externalProtectionLevelOptions: z.object({
-      ekmConnectionBackendOverride: z.string().describe(
-        "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
-      ).optional(),
       ekmConnectionKeyPath: z.string().describe(
-        'Optional. The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
+        'The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
       ).optional(),
       externalKeyUri: z.string().describe(
-        "Optional. The URI for an external resource that this CryptoKeyVersion represents.",
+        "The URI for an external resource that this CryptoKeyVersion represents.",
       ).optional(),
     }).describe(
       "ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.",
@@ -316,9 +309,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     generationFailureReason: z.string().describe(
       "Output only. The root cause of the most recent generation failure. Only present if state is GENERATION_FAILED.",
-    ).optional(),
-    hsmTrusted: z.boolean().describe(
-      "Output only. Field indicating that the key wrapping key is trusted. This field is only valid for key purpose AES_256_WRAPPING, and protection level HSM_SINGLE_TENANT.",
     ).optional(),
     importFailureReason: z.string().describe(
       "Output only. The root cause of the most recent import failure. Only present if state is IMPORT_FAILED.",
@@ -358,9 +348,6 @@ const GlobalArgsSchema = z.object({
       "PENDING_EXTERNAL_DESTRUCTION",
       "EXTERNAL_DESTRUCTION_FAILED",
     ]).describe("The current state of the CryptoKeyVersion.").optional(),
-    trustedWrappingEnabled: z.boolean().describe(
-      "Immutable. Field indicating that the key may be wrapped by a trusted key. This field can be set for all key purposes except ENCRYPT_DECRYPT, and is only valid for keys with protection level HSM_SINGLE_TENANT. This field can only be set at creation or import time via CreateCryptoKeyVersion, or ImportCryptoKeyVersion.",
-    ).optional(),
   }).describe(
     "A CryptoKeyVersion represents an individual cryptographic key, and the associated key material. An ENABLED version can be used for cryptographic operations. For security reasons, the raw cryptographic key material represented by a CryptoKeyVersion can never be viewed or exported. It can only be used to encrypt, decrypt, or sign data when an authorized user or application invokes Cloud KMS.",
   ).optional(),
@@ -372,7 +359,6 @@ const GlobalArgsSchema = z.object({
     "RAW_ENCRYPT_DECRYPT",
     "MAC",
     "KEY_ENCAPSULATION",
-    "AES_WRAPPING",
   ]).describe("Immutable. The immutable purpose of this CryptoKey.").optional(),
   rotationPeriod: z.string().describe(
     "next_rotation_time will be advanced by this period when the service automatically rotates a key. Must be at least 24 hours and at most 876,000 hours. If rotation_period is set, next_rotation_time must also be set. Keys with purpose ENCRYPT_DECRYPT support automatic rotation. For other keys, this field must be omitted.",
@@ -426,7 +412,6 @@ const GlobalArgsSchema = z.object({
       "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
-      "AES_256_KWP",
     ]).describe(
       "Required. Algorithm to use when creating a CryptoKeyVersion based on this template. For backwards compatibility, GOOGLE_SYMMETRIC_ENCRYPTION is implied if both this field is omitted and CryptoKey.purpose is ENCRYPT_DECRYPT.",
     ).optional(),
@@ -448,9 +433,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   skipInitialVersionCreation: z.string().describe(
     "If set to true, the request will create a CryptoKey without any CryptoKeyVersions. You must manually call CreateCryptoKeyVersion or ImportCryptoKeyVersion before you can use this CryptoKey.",
-  ).optional(),
-  trustedWrappingEnabled: z.string().describe(
-    "Optional. Whether trusted wrapping will be enabled on the first CryptoKeyVersions created for this CryptoKey. This field is only supported for keys with CryptoKeyVersionTemplate.protection_level HSM_SINGLE_TENANT. This field is supported for all CryptoKeyPurposes except ENCRYPT_DECRYPT.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -487,13 +469,11 @@ const StateSchema = z.object({
     destroyTime: z.string(),
     externalDestructionFailureReason: z.string(),
     externalProtectionLevelOptions: z.object({
-      ekmConnectionBackendOverride: z.string(),
       ekmConnectionKeyPath: z.string(),
       externalKeyUri: z.string(),
     }),
     generateTime: z.string(),
     generationFailureReason: z.string(),
-    hsmTrusted: z.boolean(),
     importFailureReason: z.string(),
     importJob: z.string(),
     importTime: z.string(),
@@ -501,7 +481,6 @@ const StateSchema = z.object({
     protectionLevel: z.string(),
     reimportEligible: z.boolean(),
     state: z.string(),
-    trustedWrappingEnabled: z.boolean(),
   }).optional(),
   purpose: z.string().optional(),
   rotationPeriod: z.string().optional(),
@@ -605,7 +584,6 @@ const InputsSchema = z.object({
       "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
-      "AES_256_KWP",
     ]).describe(
       "Output only. The CryptoKeyVersionAlgorithm that this CryptoKeyVersion supports.",
     ).optional(),
@@ -648,14 +626,11 @@ const InputsSchema = z.object({
       "Output only. The root cause of the most recent external destruction failure. Only present if state is EXTERNAL_DESTRUCTION_FAILED.",
     ).optional(),
     externalProtectionLevelOptions: z.object({
-      ekmConnectionBackendOverride: z.string().describe(
-        "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
-      ).optional(),
       ekmConnectionKeyPath: z.string().describe(
-        'Optional. The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
+        'The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
       ).optional(),
       externalKeyUri: z.string().describe(
-        "Optional. The URI for an external resource that this CryptoKeyVersion represents.",
+        "The URI for an external resource that this CryptoKeyVersion represents.",
       ).optional(),
     }).describe(
       "ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.",
@@ -665,9 +640,6 @@ const InputsSchema = z.object({
     ).optional(),
     generationFailureReason: z.string().describe(
       "Output only. The root cause of the most recent generation failure. Only present if state is GENERATION_FAILED.",
-    ).optional(),
-    hsmTrusted: z.boolean().describe(
-      "Output only. Field indicating that the key wrapping key is trusted. This field is only valid for key purpose AES_256_WRAPPING, and protection level HSM_SINGLE_TENANT.",
     ).optional(),
     importFailureReason: z.string().describe(
       "Output only. The root cause of the most recent import failure. Only present if state is IMPORT_FAILED.",
@@ -707,9 +679,6 @@ const InputsSchema = z.object({
       "PENDING_EXTERNAL_DESTRUCTION",
       "EXTERNAL_DESTRUCTION_FAILED",
     ]).describe("The current state of the CryptoKeyVersion.").optional(),
-    trustedWrappingEnabled: z.boolean().describe(
-      "Immutable. Field indicating that the key may be wrapped by a trusted key. This field can be set for all key purposes except ENCRYPT_DECRYPT, and is only valid for keys with protection level HSM_SINGLE_TENANT. This field can only be set at creation or import time via CreateCryptoKeyVersion, or ImportCryptoKeyVersion.",
-    ).optional(),
   }).describe(
     "A CryptoKeyVersion represents an individual cryptographic key, and the associated key material. An ENABLED version can be used for cryptographic operations. For security reasons, the raw cryptographic key material represented by a CryptoKeyVersion can never be viewed or exported. It can only be used to encrypt, decrypt, or sign data when an authorized user or application invokes Cloud KMS.",
   ).optional(),
@@ -721,7 +690,6 @@ const InputsSchema = z.object({
     "RAW_ENCRYPT_DECRYPT",
     "MAC",
     "KEY_ENCAPSULATION",
-    "AES_WRAPPING",
   ]).describe("Immutable. The immutable purpose of this CryptoKey.").optional(),
   rotationPeriod: z.string().describe(
     "next_rotation_time will be advanced by this period when the service automatically rotates a key. Must be at least 24 hours and at most 876,000 hours. If rotation_period is set, next_rotation_time must also be set. Keys with purpose ENCRYPT_DECRYPT support automatic rotation. For other keys, this field must be omitted.",
@@ -775,7 +743,6 @@ const InputsSchema = z.object({
       "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
-      "AES_256_KWP",
     ]).describe(
       "Required. Algorithm to use when creating a CryptoKeyVersion based on this template. For backwards compatibility, GOOGLE_SYMMETRIC_ENCRYPTION is implied if both this field is omitted and CryptoKey.purpose is ENCRYPT_DECRYPT.",
     ).optional(),
@@ -797,9 +764,6 @@ const InputsSchema = z.object({
   ).optional(),
   skipInitialVersionCreation: z.string().describe(
     "If set to true, the request will create a CryptoKey without any CryptoKeyVersions. You must manually call CreateCryptoKeyVersion or ImportCryptoKeyVersion before you can use this CryptoKey.",
-  ).optional(),
-  trustedWrappingEnabled: z.string().describe(
-    "Optional. Whether trusted wrapping will be enabled on the first CryptoKeyVersions created for this CryptoKey. This field is only supported for keys with CryptoKeyVersionTemplate.protection_level HSM_SINGLE_TENANT. This field is supported for all CryptoKeyPurposes except ENCRYPT_DECRYPT.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -832,7 +796,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.CryptoKeys. Registered at `@swamp/gcp/cloudkms/keyrings-cryptokeys`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-cryptokeys",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -939,6 +903,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: trustedWrappingEnabled",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { trustedWrappingEnabled: _trustedWrappingEnabled, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -991,11 +964,6 @@ export const model = {
         if (g["skipInitialVersionCreation"] !== undefined) {
           params["skipInitialVersionCreation"] = String(
             g["skipInitialVersionCreation"],
-          );
-        }
-        if (g["trustedWrappingEnabled"] !== undefined) {
-          params["trustedWrappingEnabled"] = String(
-            g["trustedWrappingEnabled"],
           );
         }
         if (g["parent"] !== undefined && g["name"] !== undefined) {
@@ -1067,22 +1035,29 @@ export const model = {
     },
     update: {
       description: "Update cryptoKeys attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific cryptoKeys by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1175,22 +1150,29 @@ export const model = {
     },
     sync: {
       description: "Sync cryptoKeys state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific cryptoKeys by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

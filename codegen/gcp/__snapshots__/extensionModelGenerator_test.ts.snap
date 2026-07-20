@@ -229,16 +229,16 @@ export const model = {
     },
     update: {
       description: \\"Update instances attributes\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
@@ -279,16 +279,16 @@ export const model = {
     },
     sync: {
       description: \\"Sync instances state from GCP\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
@@ -541,16 +541,16 @@ export const model = {
     },
     update: {
       description: \\"Update instances attributes\\",
-      arguments: z.object({ waitForReady: z.boolean().describe(\\"Wait for the resource to reach a ready state after update (default: true)\\").optional() }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional(), waitForReady: z.boolean().describe(\\"Wait for the resource to reach a ready state after update (default: true)\\").optional() }),
+      execute: async (args: { identifier?: string; waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
@@ -591,16 +591,16 @@ export const model = {
     },
     sync: {
       description: \\"Sync instances state from GCP\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
@@ -782,16 +782,16 @@ export const model = {
     },
     sync: {
       description: \\"Sync regions state from GCP\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific regions by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
@@ -1013,16 +1013,16 @@ export const model = {
     },
     sync: {
       description: \\"Sync services state from GCP\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific services by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
@@ -1274,16 +1274,16 @@ export const model = {
     },
     sync: {
       description: \\"Sync instances state from GCP\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
@@ -1514,16 +1514,16 @@ export const model = {
     },
     sync: {
       description: \\"Sync snapshots state from GCP\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific snapshots by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
@@ -1760,16 +1760,16 @@ export const model = {
     },
     update: {
       description: \\"Update firewalls attributes\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific firewalls by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
         params[\\"firewall\\"] = existing[\\"name\\"]?.toString() ?? \\"\\";
@@ -1807,16 +1807,16 @@ export const model = {
     },
     sync: {
       description: \\"Sync firewalls state from GCP\\",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe(\\"Target a specific firewalls by name (e.g. one discovered by list)\\").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error(\\"No existing state found - run create or get first\\");
+        if (!content) throw new Error(\\"No existing state found - run create, get, or list first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };

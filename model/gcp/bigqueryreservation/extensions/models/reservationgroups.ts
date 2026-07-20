@@ -42,7 +42,6 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
-  updateResource,
 } from "./_lib/gcp.ts";
 
 /** Construct the fully-qualified resource name from parent and short name. */
@@ -80,24 +79,6 @@ const INSERT_CONFIG = {
       "required": true,
     },
     "reservationGroupId": {
-      "location": "query",
-    },
-  },
-} as const;
-
-const PATCH_CONFIG = {
-  "id": "bigqueryreservation.projects.locations.reservationGroups.patch",
-  "path": "v1/{+name}",
-  "httpMethod": "PATCH",
-  "parameterOrder": [
-    "name",
-  ],
-  "parameters": {
-    "name": {
-      "location": "path",
-      "required": true,
-    },
-    "updateMask": {
       "location": "query",
     },
   },
@@ -155,9 +136,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the reservation group, e.g., `projects/*/locations/*/reservationGroups/team1-prod`. The reservation_group_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.",
   ).optional(),
-  parentGroup: z.string().describe(
-    "Optional. The parent reservation group of the reservation group. Format: `projects/*/locations/*/reservationGroups/team1-prod` for non-root reservation groups, or `projects/*/locations/*` for root reservation groups.",
-  ).optional(),
   reservationGroupId: z.string().describe(
     "Required. The reservation group ID. It must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.",
   ).optional(),
@@ -168,7 +146,6 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   name: z.string(),
-  parentGroup: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -180,9 +157,6 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   name: z.string().describe(
     "Identifier. The resource name of the reservation group, e.g., `projects/*/locations/*/reservationGroups/team1-prod`. The reservation_group_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.",
-  ).optional(),
-  parentGroup: z.string().describe(
-    "Optional. The parent reservation group of the reservation group. Format: `projects/*/locations/*/reservationGroups/team1-prod` for non-root reservation groups, or `projects/*/locations/*` for root reservation groups.",
   ).optional(),
   reservationGroupId: z.string().describe(
     "Required. The reservation group ID. It must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.",
@@ -215,7 +189,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Reservation ReservationGroups. Registered at `@swamp/gcp/bigqueryreservation/reservationgroups`. */
 export const model = {
   type: "@swamp/gcp/bigqueryreservation/reservationgroups",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -322,6 +296,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: parentGroup",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { parentGroup: _parentGroup, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -347,9 +329,6 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["parentGroup"] !== undefined) {
-          body["parentGroup"] = g["parentGroup"];
-        }
         if (g["reservationGroupId"] !== undefined) {
           params["reservationGroupId"] = String(g["reservationGroupId"]);
         }
@@ -421,69 +400,6 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
-    update: {
-      description: "Update reservationGroups attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          instanceName,
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        const params: Record<string, string> = { project: projectId };
-        const existingName = existing["name"]?.toString();
-        if (existingName && existingName.includes("/")) {
-          params["name"] = existingName;
-        } else {
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            existingName ?? g["name"]?.toString() ?? "",
-          );
-        }
-        const body: Record<string, unknown> = {};
-        if (g["parentGroup"] !== undefined) {
-          body["parentGroup"] = g["parentGroup"];
-        }
-        const updateMaskKeys = Object.keys(body);
-        if (updateMaskKeys.length > 0) {
-          params["updateMask"] = updateMaskKeys.join(",");
-        }
-        for (const key of Object.keys(existing)) {
-          if (
-            key === "fingerprint" || key === "labelFingerprint" ||
-            key === "etag" || key.endsWith("Fingerprint")
-          ) {
-            body[key] = existing[key];
-          }
-        }
-        const result = await updateResource(
-          BASE_URL,
-          PATCH_CONFIG,
-          params,
-          body,
-          GET_CONFIG,
-          undefined,
-          credentials,
-        ) as StateData;
-        const handle = await context.writeResource(
-          "state",
-          instanceName,
-          result,
-        );
-        return { dataHandles: [handle] };
-      },
-    },
     delete: {
       description: "Delete the reservationGroups",
       arguments: z.object({
@@ -519,22 +435,29 @@ export const model = {
     },
     sync: {
       description: "Sync reservationGroups state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific reservationGroups by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

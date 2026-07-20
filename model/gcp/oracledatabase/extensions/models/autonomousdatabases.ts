@@ -168,10 +168,7 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   adminPassword: z.string().describe(
-    "Optional. Immutable. The password for the default ADMIN user. Note: Only one of `admin_password_secret_version` or `admin_password` can be populated.",
-  ).optional(),
-  adminPasswordSecretVersion: z.string().describe(
-    "Optional. Immutable. The resource name of a secret version in Secret Manager which contains the database admin user's password. Format: projects/{project}/secrets/{secret}/versions/{version}. Note: Only one of `admin_password_secret_version` or `admin_password` can be populated.",
+    "Optional. Immutable. The password for the default ADMIN user.",
   ).optional(),
   cidr: z.string().describe(
     "Optional. Immutable. The subnet CIDR range for the Autonomous Database.",
@@ -457,7 +454,6 @@ const GlobalArgsSchema = z.object({
       "LOCAL_DISASTER_RECOVERY_TYPE_UNSPECIFIED",
       "ADG",
       "BACKUP_BASED",
-      "NOT_AVAILABLE",
     ]).describe(
       "Output only. This field indicates the local disaster recovery (DR) type of an Autonomous Database.",
     ).optional(),
@@ -569,9 +565,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     privateEndpointLabel: z.string().describe(
       "Optional. Immutable. The private endpoint label for the Autonomous Database.",
-    ).optional(),
-    refreshableClone: z.boolean().describe(
-      "Optional. Indicates if the Autonomous Database is a refreshable clone. This field is used in update flow to connect / disconnect a refreshable clone from its source database.",
     ).optional(),
     refreshableMode: z.enum([
       "REFRESHABLE_MODE_UNSPECIFIED",
@@ -689,46 +682,11 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe("The properties of an Autonomous Database.").optional(),
   sourceConfig: z.object({
-    autoRefreshFrequencySeconds: z.number().int().describe(
-      "Optional. The frequency in seconds a refreshable clone is refreshed after auto-refresh is enabled.",
-    ).optional(),
-    autoRefreshPointLagSeconds: z.number().int().describe(
-      "Optional. The time, in seconds, the data of the automatic refreshable clone lags the primary database at the point of refresh.",
-    ).optional(),
-    autoRefreshStartTime: z.string().describe(
-      "Optional. The date and time that auto-refreshing will begin for an Autonomous Database refreshable clone. This value controls only the start time for the first refresh operation.",
-    ).optional(),
     automaticBackupsReplicationEnabled: z.boolean().describe(
       "Optional. This field specifies if the replication of automatic backups is enabled when creating a Data Guard.",
     ).optional(),
     autonomousDatabase: z.string().describe(
       "Optional. The name of the primary Autonomous Database that is used to create a Peer Autonomous Database from a source.",
-    ).optional(),
-    autonomousDatabaseBackup: z.string().describe(
-      "Optional. The name of the Autonomous Database Backup resource with the format: projects/{project}/locations/{region}/autonomousDatabaseBackups/{autonomous_database_backup} Required when source_type is BACKUP_FROM_ID.",
-    ).optional(),
-    backupTime: z.string().describe(
-      "Optional. The timestamp specified for the point-in-time clone of the source Autonomous Database. This field is only applicable in case of BACKUP_FROM_TIMESTAMP source type and when use_latest_available_backup is false.",
-    ).optional(),
-    cloneType: z.enum(["CLONE_TYPE_UNSPECIFIED", "FULL", "METADATA"]).describe(
-      "Optional. The clone type of the Autonomous Database. This field is only applicable in case of cloning",
-    ).optional(),
-    refreshableMode: z.enum([
-      "REFRESHABLE_MODE_UNSPECIFIED",
-      "AUTOMATIC",
-      "MANUAL",
-    ]).describe("Optional. The refresh mode of the clone.").optional(),
-    sourceType: z.enum([
-      "SOURCE_TYPE_UNSPECIFIED",
-      "CLONE_DATABASE",
-      "CROSS_REGION_DISASTER_RECOVERY",
-      "CLONE_TO_REFRESHABLE",
-      "BACKUP_FROM_ID",
-      "BACKUP_FROM_TIMESTAMP",
-    ]).describe("Optional. The source type of the Autonomous Database.")
-      .optional(),
-    useLatestAvailableBackup: z.boolean().describe(
-      "Optional. Clone from latest available backup timestamp. This field is only applicable in case of BACKUP_FROM_TIMESTAMP source type.",
     ).optional(),
   }).describe("The source configuration for the standby Autonomous Database.")
     .optional(),
@@ -745,7 +703,6 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   adminPassword: z.string().optional(),
-  adminPasswordSecretVersion: z.string().optional(),
   cidr: z.string().optional(),
   createTime: z.string().optional(),
   database: z.string().optional(),
@@ -862,7 +819,6 @@ const StateSchema = z.object({
     privateEndpoint: z.string(),
     privateEndpointIp: z.string(),
     privateEndpointLabel: z.string(),
-    refreshableClone: z.boolean(),
     refreshableMode: z.string(),
     refreshableState: z.string(),
     role: z.string(),
@@ -891,17 +847,8 @@ const StateSchema = z.object({
     vaultId: z.string(),
   }).optional(),
   sourceConfig: z.object({
-    autoRefreshFrequencySeconds: z.number(),
-    autoRefreshPointLagSeconds: z.number(),
-    autoRefreshStartTime: z.string(),
     automaticBackupsReplicationEnabled: z.boolean(),
     autonomousDatabase: z.string(),
-    autonomousDatabaseBackup: z.string(),
-    backupTime: z.string(),
-    cloneType: z.string(),
-    refreshableMode: z.string(),
-    sourceType: z.string(),
-    useLatestAvailableBackup: z.boolean(),
   }).optional(),
 }).passthrough();
 
@@ -913,10 +860,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   adminPassword: z.string().describe(
-    "Optional. Immutable. The password for the default ADMIN user. Note: Only one of `admin_password_secret_version` or `admin_password` can be populated.",
-  ).optional(),
-  adminPasswordSecretVersion: z.string().describe(
-    "Optional. Immutable. The resource name of a secret version in Secret Manager which contains the database admin user's password. Format: projects/{project}/secrets/{secret}/versions/{version}. Note: Only one of `admin_password_secret_version` or `admin_password` can be populated.",
+    "Optional. Immutable. The password for the default ADMIN user.",
   ).optional(),
   cidr: z.string().describe(
     "Optional. Immutable. The subnet CIDR range for the Autonomous Database.",
@@ -1202,7 +1146,6 @@ const InputsSchema = z.object({
       "LOCAL_DISASTER_RECOVERY_TYPE_UNSPECIFIED",
       "ADG",
       "BACKUP_BASED",
-      "NOT_AVAILABLE",
     ]).describe(
       "Output only. This field indicates the local disaster recovery (DR) type of an Autonomous Database.",
     ).optional(),
@@ -1314,9 +1257,6 @@ const InputsSchema = z.object({
     ).optional(),
     privateEndpointLabel: z.string().describe(
       "Optional. Immutable. The private endpoint label for the Autonomous Database.",
-    ).optional(),
-    refreshableClone: z.boolean().describe(
-      "Optional. Indicates if the Autonomous Database is a refreshable clone. This field is used in update flow to connect / disconnect a refreshable clone from its source database.",
     ).optional(),
     refreshableMode: z.enum([
       "REFRESHABLE_MODE_UNSPECIFIED",
@@ -1434,46 +1374,11 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe("The properties of an Autonomous Database.").optional(),
   sourceConfig: z.object({
-    autoRefreshFrequencySeconds: z.number().int().describe(
-      "Optional. The frequency in seconds a refreshable clone is refreshed after auto-refresh is enabled.",
-    ).optional(),
-    autoRefreshPointLagSeconds: z.number().int().describe(
-      "Optional. The time, in seconds, the data of the automatic refreshable clone lags the primary database at the point of refresh.",
-    ).optional(),
-    autoRefreshStartTime: z.string().describe(
-      "Optional. The date and time that auto-refreshing will begin for an Autonomous Database refreshable clone. This value controls only the start time for the first refresh operation.",
-    ).optional(),
     automaticBackupsReplicationEnabled: z.boolean().describe(
       "Optional. This field specifies if the replication of automatic backups is enabled when creating a Data Guard.",
     ).optional(),
     autonomousDatabase: z.string().describe(
       "Optional. The name of the primary Autonomous Database that is used to create a Peer Autonomous Database from a source.",
-    ).optional(),
-    autonomousDatabaseBackup: z.string().describe(
-      "Optional. The name of the Autonomous Database Backup resource with the format: projects/{project}/locations/{region}/autonomousDatabaseBackups/{autonomous_database_backup} Required when source_type is BACKUP_FROM_ID.",
-    ).optional(),
-    backupTime: z.string().describe(
-      "Optional. The timestamp specified for the point-in-time clone of the source Autonomous Database. This field is only applicable in case of BACKUP_FROM_TIMESTAMP source type and when use_latest_available_backup is false.",
-    ).optional(),
-    cloneType: z.enum(["CLONE_TYPE_UNSPECIFIED", "FULL", "METADATA"]).describe(
-      "Optional. The clone type of the Autonomous Database. This field is only applicable in case of cloning",
-    ).optional(),
-    refreshableMode: z.enum([
-      "REFRESHABLE_MODE_UNSPECIFIED",
-      "AUTOMATIC",
-      "MANUAL",
-    ]).describe("Optional. The refresh mode of the clone.").optional(),
-    sourceType: z.enum([
-      "SOURCE_TYPE_UNSPECIFIED",
-      "CLONE_DATABASE",
-      "CROSS_REGION_DISASTER_RECOVERY",
-      "CLONE_TO_REFRESHABLE",
-      "BACKUP_FROM_ID",
-      "BACKUP_FROM_TIMESTAMP",
-    ]).describe("Optional. The source type of the Autonomous Database.")
-      .optional(),
-    useLatestAvailableBackup: z.boolean().describe(
-      "Optional. Clone from latest available backup timestamp. This field is only applicable in case of BACKUP_FROM_TIMESTAMP source type.",
     ).optional(),
   }).describe("The source configuration for the standby Autonomous Database.")
     .optional(),
@@ -1511,7 +1416,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud AutonomousDatabases. Registered at `@swamp/gcp/oracledatabase/autonomousdatabases`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/autonomousdatabases",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1661,6 +1566,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: adminPasswordSecretVersion",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          adminPasswordSecretVersion: _adminPasswordSecretVersion,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1688,9 +1604,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["adminPassword"] !== undefined) {
           body["adminPassword"] = g["adminPassword"];
-        }
-        if (g["adminPasswordSecretVersion"] !== undefined) {
-          body["adminPasswordSecretVersion"] = g["adminPasswordSecretVersion"];
         }
         if (g["cidr"] !== undefined) body["cidr"] = g["cidr"];
         if (g["database"] !== undefined) body["database"] = g["database"];
@@ -1782,22 +1695,29 @@ export const model = {
     },
     update: {
       description: "Update autonomousDatabases attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific autonomousDatabases by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1880,22 +1800,29 @@ export const model = {
     },
     sync: {
       description: "Sync autonomousDatabases state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific autonomousDatabases by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -2063,80 +1990,6 @@ export const model = {
             "id":
               "oracledatabase.projects.locations.autonomousDatabases.generateWallet",
             "path": "v1/{+name}:generateWallet",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          body,
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    get_refreshable_clones: {
-      description: "get refreshable clones",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            String(g["name"]),
-          );
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "oracledatabase.projects.locations.autonomousDatabases.getRefreshableClones",
-            "path": "v1/{+name}:getRefreshableClones",
-            "httpMethod": "GET",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    refresh: {
-      description: "refresh",
-      arguments: z.object({
-        refreshCutoffTime: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            String(g["name"]),
-          );
-        }
-        const body: Record<string, unknown> = {};
-        if (args["refreshCutoffTime"] !== undefined) {
-          body["refreshCutoffTime"] = args["refreshCutoffTime"];
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id":
-              "oracledatabase.projects.locations.autonomousDatabases.refresh",
-            "path": "v1/{+name}:refresh",
             "httpMethod": "POST",
             "parameterOrder": ["name"],
             "parameters": { "name": { "location": "path", "required": true } },

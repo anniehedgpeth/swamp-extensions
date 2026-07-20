@@ -198,9 +198,6 @@ const GlobalArgsSchema = z.object({
   ).describe(
     "Optional. Defines a mapping from a trust domain to a TrustStore. This is used for SPIFFE certificate validation.",
   ).optional(),
-  tags: z.record(z.string(), z.string()).describe(
-    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
-  ).optional(),
   trustStores: z.array(z.object({
     intermediateCas: z.array(z.object({
       pemCertificate: z.string().describe(
@@ -237,7 +234,6 @@ const StateSchema = z.object({
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
   spiffeTrustStores: z.record(z.string(), z.unknown()).optional(),
-  tags: z.record(z.string(), z.unknown()).optional(),
   trustStores: z.array(z.object({
     intermediateCas: z.array(z.object({
       pemCertificate: z.string(),
@@ -293,9 +289,6 @@ const InputsSchema = z.object({
   ).describe(
     "Optional. Defines a mapping from a trust domain to a TrustStore. This is used for SPIFFE certificate validation.",
   ).optional(),
-  tags: z.record(z.string(), z.string()).describe(
-    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
-  ).optional(),
   trustStores: z.array(z.object({
     intermediateCas: z.array(z.object({
       pemCertificate: z.string().describe(
@@ -345,7 +338,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager TrustConfigs. Registered at `@swamp/gcp/certificatemanager/trustconfigs`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/trustconfigs",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -452,6 +445,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { tags: _tags, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -487,7 +488,6 @@ export const model = {
         if (g["spiffeTrustStores"] !== undefined) {
           body["spiffeTrustStores"] = g["spiffeTrustStores"];
         }
-        if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["trustStores"] !== undefined) {
           body["trustStores"] = g["trustStores"];
         }
@@ -564,22 +564,29 @@ export const model = {
     },
     update: {
       description: "Update trustConfigs attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific trustConfigs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -670,22 +677,29 @@ export const model = {
     },
     sync: {
       description: "Sync trustConfigs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific trustConfigs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -197,9 +197,6 @@ const GlobalArgsSchema = z.object({
     "Unconditionally routes all read/write requests to a specific cluster. This option preserves read-your-writes consistency but does not improve availability.",
   ).optional(),
   standardIsolation: z.object({
-    memoryConfig: z.object({}).describe(
-      "If set, eligible single-row requests (currently limited to ReadRows) using this app profile will be routed to the memory layer. All eligible writes populate the memory layer. MemoryConfig can only be set if the AppProfile uses single cluster routing and the configured cluster has a memory layer enabled.",
-    ).optional(),
     priority: z.enum([
       "PRIORITY_UNSPECIFIED",
       "PRIORITY_LOW",
@@ -241,7 +238,6 @@ const StateSchema = z.object({
     clusterId: z.string(),
   }).optional(),
   standardIsolation: z.object({
-    memoryConfig: z.object({}),
     priority: z.string(),
   }).optional(),
 }).passthrough();
@@ -289,9 +285,6 @@ const InputsSchema = z.object({
     "Unconditionally routes all read/write requests to a specific cluster. This option preserves read-your-writes consistency but does not improve availability.",
   ).optional(),
   standardIsolation: z.object({
-    memoryConfig: z.object({}).describe(
-      "If set, eligible single-row requests (currently limited to ReadRows) using this app profile will be routed to the memory layer. All eligible writes populate the memory layer. MemoryConfig can only be set if the AppProfile uses single cluster routing and the configured cluster has a memory layer enabled.",
-    ).optional(),
     priority: z.enum([
       "PRIORITY_UNSPECIFIED",
       "PRIORITY_LOW",
@@ -339,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.AppProfiles. Registered at `@swamp/gcp/bigtableadmin/instances-appprofiles`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-appprofiles",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -461,6 +454,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -574,22 +572,29 @@ export const model = {
     },
     update: {
       description: "Update appProfiles attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific appProfiles by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -682,22 +687,29 @@ export const model = {
     },
     sync: {
       description: "Sync appProfiles state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific appProfiles by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

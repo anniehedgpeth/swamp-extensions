@@ -36,7 +36,6 @@
 import { z } from "npm:zod@4.3.6";
 import {
   createResource,
-  deleteResource,
   type ExplicitGcpCredentials,
   getProjectId,
   isResourceNotFoundError,
@@ -50,29 +49,6 @@ const GET_CONFIG = {
   "id": "gmailpostmastertools.domains.get",
   "path": "v2/{+name}",
   "httpMethod": "GET",
-  "parameterOrder": [
-    "name",
-  ],
-  "parameters": {
-    "name": {
-      "location": "path",
-      "required": true,
-    },
-  },
-} as const;
-
-const INSERT_CONFIG = {
-  "id": "gmailpostmastertools.domains.create",
-  "path": "v2/domains",
-  "httpMethod": "POST",
-  "parameterOrder": [],
-  "parameters": {},
-} as const;
-
-const DELETE_CONFIG = {
-  "id": "gmailpostmastertools.domains.delete",
-  "path": "v2/{+name}",
-  "httpMethod": "DELETE",
   "parameterOrder": [
     "name",
   ],
@@ -103,7 +79,6 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/postmaster",
   "https://www.googleapis.com/auth/postmaster.domain",
   "https://www.googleapis.com/auth/postmaster.traffic.readonly",
-  "https://www.googleapis.com/auth/postmaster.user",
 ];
 
 const GlobalArgsSchema = z.object({
@@ -121,9 +96,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
-  ).optional(),
-  domainId: z.string().describe(
-    'Required. The domain to add. e.g., "example.com"',
   ).optional(),
 });
 
@@ -143,9 +115,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  domainId: z.string().describe(
-    'Required. The domain to add. e.g., "example.com"',
-  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -171,7 +140,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Postmaster Tools Domains. Registered at `@swamp/gcp/gmailpostmastertools/domains`. */
 export const model = {
   type: "@swamp/gcp/gmailpostmastertools/domains",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -263,6 +232,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: domainId",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { domainId: _domainId, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -275,44 +252,6 @@ export const model = {
     },
   },
   methods: {
-    create: {
-      description: "Create a domains",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const body: Record<string, unknown> = {};
-        if (g["domainId"] !== undefined) body["domainId"] = g["domainId"];
-        if (g["name"] !== undefined) params["name"] = String(g["name"]);
-        const result = await createResource(
-          BASE_URL,
-          INSERT_CONFIG,
-          params,
-          body,
-          GET_CONFIG,
-          undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
-          credentials,
-        ) as StateData;
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const handle = await context.writeResource(
-          "state",
-          instanceName,
-          result,
-        );
-        return { dataHandles: [handle] };
-      },
-    },
     get: {
       description: "Get a domains",
       arguments: z.object({
@@ -342,54 +281,31 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
-    delete: {
-      description: "Delete the domains",
-      arguments: z.object({
-        identifier: z.string().describe("The name of the domains"),
-      }),
-      execute: async (args: { identifier: string }, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        params["name"] = args.identifier;
-        const { existed } = await deleteResource(
-          BASE_URL,
-          DELETE_CONFIG,
-          params,
-          credentials,
-        );
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
-          identifier: args.identifier,
-          existed,
-          status: existed ? "deleted" : "not_found",
-          deletedAt: new Date().toISOString(),
-        });
-        return { dataHandles: [handle] };
-      },
-    },
     sync: {
       description: "Sync domains state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific domains by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -488,71 +404,6 @@ export const model = {
           },
           params,
           {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    get_verification_token: {
-      description: "get verification token",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) params["name"] = String(g["name"]);
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "gmailpostmastertools.domains.getVerificationToken",
-            "path": "v2/{+name}",
-            "httpMethod": "GET",
-            "parameterOrder": ["name"],
-            "parameters": {
-              "name": { "location": "path", "required": true },
-              "verificationMethod": { "location": "query" },
-            },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
-      },
-    },
-    verify: {
-      description: "verify",
-      arguments: z.object({
-        verificationMethod: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["name"] !== undefined) params["name"] = String(g["name"]);
-        const body: Record<string, unknown> = {};
-        if (args["verificationMethod"] !== undefined) {
-          body["verificationMethod"] = args["verificationMethod"];
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "gmailpostmastertools.domains.verify",
-            "path": "v2/{+name}:verify",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          body,
           undefined,
           undefined,
           undefined,

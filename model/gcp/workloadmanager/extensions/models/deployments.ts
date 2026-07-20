@@ -145,223 +145,223 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  description: z.string().describe("Description of the deployment.").optional(),
+  description: z.string().describe("Description of the Deployment").optional(),
   name: z.string().describe(
-    "The name of the deployment resource. The format is 'projects/{project_id}/locations/{location_id}/deployments/{deployment_id}'.",
+    "The name of deployment resource. The format will be 'projects/{project_id}/locations/{location_id}/deployments/{deployment_id}'",
   ).optional(),
   sapSystemS4Config: z.object({
     allowStoppingForUpdate: z.boolean().optional(),
     ansibleRunnerServiceAccount: z.string().describe(
-      "Ansible runner service account. Let customers bring their own service account for the Ansible runner.",
+      "Ansible runner service account - let custoemrs bring their own SA for Ansible runner",
     ).optional(),
     app: z.object({
-      appInstanceId: z.string().describe("Optional. Instance ID for app.")
+      appInstanceId: z.string().describe("Optional. instance id for app")
         .optional(),
       appServiceAccount: z.string().describe(
-        "Application service account. Let customers bring their own service account for the application.",
+        "Application service account - let custoemrs bring their own SA for application",
       ).optional(),
-      appVmNames: z.array(z.string()).describe("Optional. Customized VM names.")
+      appVmNames: z.array(z.string()).describe("Optional. Customized vm names")
         .optional(),
-      ascsImage: z.string().describe("Required. Image for the ASCS server.")
+      ascsImage: z.string().describe("Required. image for ascs server")
         .optional(),
-      ascsInstanceId: z.string().describe("Optional. Instance ID for ASCS.")
+      ascsInstanceId: z.string().describe("Optional. instance id for ascs")
         .optional(),
-      ascsMachineType: z.string().describe("Required. ASCS machine type.")
+      ascsMachineType: z.string().describe("Required. ascs_machine_type")
         .optional(),
       ascsServiceAccount: z.string().describe(
-        "ASCS service account. Let customers bring their own service account for ASCS.",
+        "ASCS service account - let custoemrs bring their own SA for ASCS",
       ).optional(),
-      ascsVm: z.string().describe("Optional. ASCS VM name.").optional(),
-      ersInstanceId: z.string().describe("Optional. Instance ID for ERS.")
+      ascsVm: z.string().describe("Optional. ASCS vm name").optional(),
+      ersInstanceId: z.string().describe("Optional. instance id for ers")
         .optional(),
-      ersVm: z.string().describe("Optional. ERS VM name.").optional(),
+      ersVm: z.string().describe("Optional. ERS vm name").optional(),
       image: z.string().describe(
-        "Required. Image for the app server and ASCS server.",
+        "Required. image for app server and ascs server",
       ).optional(),
-      machineType: z.string().describe("Required. Machine type.").optional(),
+      machineType: z.string().describe("Required. machine type").optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
-      sharedStorage: z.string().describe("Optional. Storage location.")
+      sharedStorage: z.string().describe("Optional. Storage location")
         .optional(),
       sid: z.string().describe(
         "Required. The SAP SID is a three-digit server-specific unique identification code.",
       ).optional(),
-      vmsMultiplier: z.number().int().describe("Required. VMs multiplier.")
+      vmsMultiplier: z.number().int().describe("Required. vms_multiplier")
         .optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Message for sap instant details").optional(),
     database: z.object({
       databaseServiceAccount: z.string().describe(
-        "Database service account. Let customers bring their own SA for the database.",
+        "Database service account - let custoemrs bring their own SA for database",
       ).optional(),
-      diskType: z.string().describe("Required. Disk type.").optional(),
-      image: z.string().describe("Required. Image for the database server.")
+      diskType: z.string().describe("Required. disk_type").optional(),
+      image: z.string().describe("Required. image for database server")
         .optional(),
-      instanceId: z.string().describe("Optional. Instance ID.").optional(),
-      machineType: z.string().describe("Required. Machine type.").optional(),
-      primaryDbVm: z.string().describe("Optional. Primary DB VM name.")
+      instanceId: z.string().describe("Optional. instance id").optional(),
+      machineType: z.string().describe("Required. machine type").optional(),
+      primaryDbVm: z.string().describe("Optional. primary db vm name")
         .optional(),
-      secondaryDbVm: z.string().describe("Optional. Secondary DB VM name.")
+      secondaryDbVm: z.string().describe("Optional. secondary db vm name")
         .optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
       sid: z.string().describe(
         "Required. The SID is a three-digit server-specific unique identification code.",
       ).optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Message for sap instant details").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "DISTRIBUTED",
       "DISTRIBUTED_HA",
-    ]).describe("Required. Supports non-HA and HA models.").optional(),
+    ]).describe("Required. two model non-HA and HA supported").optional(),
     environmentType: z.enum([
       "ENVIRONMENT_TYPE_UNSPECIFIED",
       "NON_PRODUCTION",
       "PRODUCTION",
-    ]).describe("Required. Deployment environment.").optional(),
+    ]).describe("Required. deployment environment").optional(),
     gcpProjectId: z.string().describe(
-      "The project that infrastructure is deployed in. Currently only supports the same project where the deployment resource exists.",
+      "the project that infrastructure deployed, current only support the same project where the deployment resource exist.",
     ).optional(),
     location: z.object({
       createCommsFirewall: z.boolean().describe(
-        "Optional. Create firewall. If true, creates a firewall for the deployment. This field provides an option to not always create a firewall for the deployment.",
+        "Optional. create firewall, if true, create firewall for the deployment. This field provides an option to not always create firewall for the deployment.",
       ).optional(),
-      customTags: z.array(z.string()).describe("Optional. Network tags.")
+      customTags: z.array(z.string()).describe("Optional. network tags")
         .optional(),
       deploymentDnsEnabled: z.boolean().describe(
-        "Optional. When the user skips DNS configuration in the UI, `deployment_dns_enabled` is false; otherwise `deployment_dns_enabled` is true.",
+        "Optional. when user skip DNS configuration from UI, deployment_dns_enabled=false otherwise deployment_dns_enabled=true",
       ).optional(),
-      dnsZone: z.string().describe("Optional. DNS zone name.").optional(),
-      dnsZoneNameSuffix: z.string().describe("Optional. DNS zone name suffix.")
+      dnsZone: z.string().describe("Optional. dns zone name").optional(),
+      dnsZoneNameSuffix: z.string().describe("Optional. dns_zone_name_suffix")
         .optional(),
       internetAccess: z.enum([
         "INTERNETACCESS_UNSPECIFIED",
         "ALLOW_EXTERNAL_IP",
         "CONFIGURE_NAT",
       ]).optional(),
-      networkProject: z.string().describe("Optional. Network project.")
+      networkProject: z.string().describe("Optional. network project")
         .optional(),
-      regionName: z.string().describe("Required. Region name.").optional(),
-      subnetName: z.string().describe("Required. Subnet name.").optional(),
-      vpcName: z.string().describe("Required. VPC name.").optional(),
-      zone1Name: z.string().describe("Required. Zone 1 name.").optional(),
-      zone2Name: z.string().describe("Optional. Zone 2 name.").optional(),
-    }).describe("Message for SAP instance details.").optional(),
-    mediaBucketName: z.string().describe("Required. Media bucket name.")
+      regionName: z.string().describe("Required. region_name").optional(),
+      subnetName: z.string().describe("Required. subnet_name").optional(),
+      vpcName: z.string().describe("Required. vpc_name").optional(),
+      zone1Name: z.string().describe("Required. zone1_name").optional(),
+      zone2Name: z.string().describe("Optional. zone2_name").optional(),
+    }).describe("Message for sap instant details").optional(),
+    mediaBucketName: z.string().describe("Required. media_bucket_name")
       .optional(),
-    sapBootDiskImage: z.string().describe("Optional. SAP boot disk image.")
+    sapBootDiskImage: z.string().describe("Optional. sap_boot_disk_image")
       .optional(),
     scalingMethod: z.enum(["SCALE_METHOD_UNSPECIFIED", "SCALE_UP", "SCALE_OUT"])
-      .describe("Required. Supports scale up and scale out.").optional(),
+      .describe("Required. support scale up and scale out").optional(),
     version: z.enum([
       "VERSION_UNSPECIFIED",
       "S4_HANA_2021",
       "S4_HANA_2022",
       "S4_HANA_2023",
-    ]).describe("Required. SAP HANA version.").optional(),
-    vmPrefix: z.string().describe("VM prefix.").optional(),
-  }).describe("Message for SAP system workload.").optional(),
+    ]).describe("Required. sap hana version").optional(),
+    vmPrefix: z.string().describe("vm_prefix").optional(),
+  }).describe("Message for sap system workload").optional(),
   serviceAccount: z.string().describe(
-    "User-specified Service Account (SA) credentials to be used for Cloud Build. Format: `projects/{projectID}/serviceAccounts/{serviceAccount}` The default Cloud Build SA will be used initially if this field is not set during deployment creation.",
+    "User-specified Service Account (SA) credentials to be used for cloud build Format: `projects/{projectID}/serviceAccounts/{serviceAccount}` The default Cloud Build SA will be used initially if this field is not set during deployment creation",
   ).optional(),
   sqlServerWorkload: z.object({
     activeDirectory: z.object({
-      dnsAddress: z.string().describe("Optional. DNS IP address.").optional(),
+      dnsAddress: z.string().describe("Optional. DNS IP address").optional(),
       domain: z.string().describe(
-        "Optional. Human readable form of a domain such as `example.com`.",
+        "Optional. human readable form of a domain such as “google.com”.",
       ).optional(),
-      domainUsername: z.string().describe("Optional. Domain username.")
+      domainUsername: z.string().describe("Optional. domain username")
         .optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
       type: z.enum([
         "ACTIVE_DIRECTORY_TYPE_UNSPECIFIED",
         "GCP_MANAGED",
         "SELF_MANAGED",
-      ]).describe("Required. Active Directory type.").optional(),
-    }).describe("Active Directory details.").optional(),
+      ]).describe("Required. active directory type").optional(),
+    }).describe("Active directory details").optional(),
     computeEngineServiceAccount: z.string().describe(
-      "Compute Engine service account. Let customers bring their own service account for Compute Engine.",
+      "Compute engine service account - let customers bring their own SA for Compute engine",
     ).optional(),
     database: z.object({
-      diskType: z.string().describe("Required. Disk type.").optional(),
+      diskType: z.string().describe("Required. disk_type").optional(),
       floatingIpAddress: z.string().describe(
-        "Optional. Only useful for Linux High Availability setup.",
+        "Optional. only useful for Linux High Availability setup",
       ).optional(),
-      machineType: z.string().describe("Required. Machine type.").optional(),
+      machineType: z.string().describe("Required. machine type").optional(),
       secondarySoleTenantNode: z.string().describe(
-        "Optional. The name of a secondary-sole-tenant node/node group.",
+        "Optional. the name of a secondary-sole-tenant node/node group",
       ).optional(),
       secondarySoleTenantNodeType: z.string().describe(
-        "Optional. The type of a secondary-sole-tenant node/node group. E.g., compute.googleapis.com/node-name.",
+        "Optional. the type of a secondary-sole-tenant node/node group e.g. compute.googleapis.com/node-name",
       ).optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
       smt: z.boolean().describe(
-        "Required. Whether simultaneous multithreading is enabled or not.",
+        "Required. whether simultaneous multithreading is enabled or not",
       ).optional(),
       soleTenantNode: z.string().describe(
-        "Optional. The name of a primary sole-tenant node/node group.",
+        "Optional. the name of a primary sole-tenant node/node group",
       ).optional(),
       soleTenantNodeType: z.string().describe(
-        "Optional. The type of a primary sole-tenant node/node group. E.g., compute.googleapis.com/node-name.",
+        "Optional. the type of a primary sole-tenant node/node group e.g. compute.googleapis.com/node-name",
       ).optional(),
       tempdbOnSsd: z.boolean().describe(
-        "Required. Whether to have TempDB on local SSD.",
+        "Required. whether to have TempDB on local SSD",
       ).optional(),
       tenancyModel: z.enum([
         "TENANCY_MODEL_UNSPECIFIED",
         "SHARED",
         "SOLE_TENANT",
-      ]).describe("Required. SHARED or SOLE_TENANT.").optional(),
-    }).describe("Database details.").optional(),
+      ]).describe("Required. SHARED or SOLE_TENANT").optional(),
+    }).describe("Database details").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "HIGH_AVAILABILITY",
       "SINGLE_INSTANCE",
-    ]).describe("Required. HIGH_AVAILABILITY or SINGLE_INSTANCE.").optional(),
+    ]).describe("Required. HIGH_AVAILABILITY or SINGLE_INSTANCE").optional(),
     environmentType: z.enum([
       "ENVIRONMENT_TYPE_UNSPECIFIED",
       "NON_PRODUCTION",
       "PRODUCTION",
-    ]).describe("Required. Deployment environment.").optional(),
+    ]).describe("Required. deployment environment").optional(),
     fciType: z.enum(["FCI_TYPE_UNSPECIFIED", "SHARED_DISK", "S2D"]).describe(
-      "Optional. SHARED_DISK or S2D.",
+      "Optional. SHARED_DISK or S2D",
     ).optional(),
     haType: z.enum(["HA_TYPE_UNSPECIFIED", "AOAG", "FCI"]).describe(
-      "Optional. AOAG or FCI. It is only needed for the High Availability deployment mode.",
+      "Optional. AOAG or FCI, it is only needed for High Availability deployment mode",
     ).optional(),
-    isSqlPayg: z.boolean().describe("Required. SQL licensing type.").optional(),
+    isSqlPayg: z.boolean().describe("Required. SQL licensing type").optional(),
     location: z.object({
       dnsZone: z.string().describe(
-        "Optional. Create a new DNS zone when the field is empty. Only shown for `Using an existing DNS`. List of existing DNS zones. Terraform variable name: existing_dns_zone_name.",
+        "Optional. create a new DNS Zone when the field is empty, Only show for `Using an existing DNS` List of existing DNS Zones tf variable name: existing_dns_zone_name",
       ).optional(),
       gcpProjectId: z.string().describe(
-        "Required. The project that infrastructure is deployed in. Currently only supports the same project where the deployment resource exists.",
+        "Required. the project that infrastructure deployed, currently only supports the same project where the deployment resource exists.",
       ).optional(),
       internetAccess: z.enum([
         "INTERNET_ACCESS_UNSPECIFIED",
         "ALLOW_EXTERNAL_IP",
         "CONFIGURE_NAT",
-      ]).describe("Required. Internet Access.").optional(),
-      network: z.string().describe("Required. Network name.").optional(),
-      primaryZone: z.string().describe("Required. Primary zone.").optional(),
-      region: z.string().describe("Required. Region name.").optional(),
+      ]).describe("Required. Internet Access").optional(),
+      network: z.string().describe("Required. network name").optional(),
+      primaryZone: z.string().describe("Required. primary zone").optional(),
+      region: z.string().describe("Required. region name").optional(),
       secondaryZone: z.string().describe(
-        "Optional. Secondary zone cannot be the same as primary_zone and is only for High Availability deployment mode.",
+        "Optional. secondary zone can't be same as primary_zone and is only for High Availability deployment mode",
       ).optional(),
-      subnetwork: z.string().describe("Required. Subnetwork name.").optional(),
+      subnetwork: z.string().describe("Required. subnetwork name").optional(),
       tertiaryZone: z.string().describe(
-        "Optional. Tertiary zone cannot be the same as primary_zone and secondary_zone, and it is only for High Availability deployment mode.",
+        "Optional. teriary zone can't be same as primary_zone and secondary zone, and it is only for High Availability deployment mode",
       ).optional(),
     }).describe(
-      "Location and networking details for configuring SQL server workload.",
+      "Location and networking details for configuring SQL server workload",
     ).optional(),
     mediaBucket: z.string().describe(
-      "Required. Name of the media storing SQL server installation files.",
+      "Required. name of the media storing SQL server installation files",
     ).optional(),
     operatingSystemType: z.enum([
       "OPERATING_SYSTEM_TYPE_UNSPECIFIED",
@@ -370,36 +370,36 @@ const GlobalArgsSchema = z.object({
       "RED_HAT_ENTERPRISE_LINUX",
       "SUSE",
     ]).describe(
-      "Required. The type of the operating system the SQL server is going to run on top of.",
+      "Required. type of the operating system the SQL server is going to run on top of",
     ).optional(),
-    osImage: z.string().describe("Required. The image of the operating system.")
+    osImage: z.string().describe("Required. the image of the operating system")
       .optional(),
     osImageType: z.enum([
       "OS_IMAGE_TYPE_UNSPECIFIED",
       "PUBLIC_IMAGE",
       "CUSTOM_IMAGE",
     ]).describe(
-      "Optional. OS image type. It's used to create boot disks for VM instances. When either Windows licensing type or SQL licensing type is BYOL, this option is disabled and defaults to a custom image.",
+      "Optional. OS image type, it's used to create boot disks for VM instances When either Windows licensing type or SQL licensing type is BYOL, this option is disabled and default to custom image",
     ).optional(),
     pacemaker: z.object({
       bucketNameNodeCertificates: z.string().describe(
-        "Required. Bucket location for node certificates.",
+        "Required. bucket location for node certificates",
       ).optional(),
-      pacemakerCluster: z.string().describe("Required. Pacemaker cluster name.")
+      pacemakerCluster: z.string().describe("Required. pacemaker cluster name")
         .optional(),
       pacemakerClusterSecret: z.string().describe(
-        "Required. Pacemaker cluster secret name.",
+        "Required. pacemaker cluster secret name",
       ).optional(),
       pacemakerClusterUsername: z.string().describe(
-        "Required. Pacemaker cluster username.",
+        "Required. pacemaker cluster username",
       ).optional(),
       sqlPacemakerSecret: z.string().describe(
-        "Required. SQL Pacemaker secret name.",
+        "Required. sql pacemaker secret name",
       ).optional(),
       sqlPacemakerUsername: z.string().describe(
-        "Required. SQL Pacemaker username.",
+        "Required. sql pacemaker username",
       ).optional(),
-    }).describe("Pacemaker configuration.").optional(),
+    }).describe("pacemaker configuration").optional(),
     sqlServerEdition: z.enum([
       "SQL_SERVER_EDITION_TYPE_UNSPECIFIED",
       "SQL_SERVER_EDITION_TYPE_DEVELOPER",
@@ -407,17 +407,17 @@ const GlobalArgsSchema = z.object({
       "SQL_SERVER_EDITION_TYPE_STANDARD",
       "SQL_SERVER_EDITION_TYPE_WEB",
     ]).describe(
-      "Optional. SQL Server Edition type, only applicable when the operating system is Linux.",
+      "Optional. SQL Server Edition type, only applicable when Operating System is Linux",
     ).optional(),
     sqlServerVersion: z.enum([
       "SQL_SERVER_VERSION_TYPE_UNSPECIFIED",
       "SQL_SERVER_VERSION_TYPE_2017",
       "SQL_SERVER_VERSION_TYPE_2019",
       "SQL_SERVER_VERSION_TYPE_2022",
-    ]).describe("Optional. 2017, 2019, or 2022.").optional(),
-    vmPrefix: z.string().describe("Required. Should be unique in the project.")
+    ]).describe("Optional. 2017 or 2019 or 2022").optional(),
+    vmPrefix: z.string().describe("Required. should be unique in the project")
       .optional(),
-  }).describe("Message for MS SQL workload.").optional(),
+  }).describe("Message for MS SQL workload").optional(),
   terraformVariables: z.record(
     z.string(),
     z.object({
@@ -435,8 +435,8 @@ const GlobalArgsSchema = z.object({
     "SAP_S4",
     "SQL_SERVER",
     "ORACLE",
-  ]).describe("Optional. Workload type of the deployment.").optional(),
-  deploymentId: z.string().describe("Required. ID of the deployment.")
+  ]).describe("Optional. Workload type of the deployment").optional(),
+  deploymentId: z.string().describe("Required. Id of the deployment")
     .optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -574,223 +574,223 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  description: z.string().describe("Description of the deployment.").optional(),
+  description: z.string().describe("Description of the Deployment").optional(),
   name: z.string().describe(
-    "The name of the deployment resource. The format is 'projects/{project_id}/locations/{location_id}/deployments/{deployment_id}'.",
+    "The name of deployment resource. The format will be 'projects/{project_id}/locations/{location_id}/deployments/{deployment_id}'",
   ).optional(),
   sapSystemS4Config: z.object({
     allowStoppingForUpdate: z.boolean().optional(),
     ansibleRunnerServiceAccount: z.string().describe(
-      "Ansible runner service account. Let customers bring their own service account for the Ansible runner.",
+      "Ansible runner service account - let custoemrs bring their own SA for Ansible runner",
     ).optional(),
     app: z.object({
-      appInstanceId: z.string().describe("Optional. Instance ID for app.")
+      appInstanceId: z.string().describe("Optional. instance id for app")
         .optional(),
       appServiceAccount: z.string().describe(
-        "Application service account. Let customers bring their own service account for the application.",
+        "Application service account - let custoemrs bring their own SA for application",
       ).optional(),
-      appVmNames: z.array(z.string()).describe("Optional. Customized VM names.")
+      appVmNames: z.array(z.string()).describe("Optional. Customized vm names")
         .optional(),
-      ascsImage: z.string().describe("Required. Image for the ASCS server.")
+      ascsImage: z.string().describe("Required. image for ascs server")
         .optional(),
-      ascsInstanceId: z.string().describe("Optional. Instance ID for ASCS.")
+      ascsInstanceId: z.string().describe("Optional. instance id for ascs")
         .optional(),
-      ascsMachineType: z.string().describe("Required. ASCS machine type.")
+      ascsMachineType: z.string().describe("Required. ascs_machine_type")
         .optional(),
       ascsServiceAccount: z.string().describe(
-        "ASCS service account. Let customers bring their own service account for ASCS.",
+        "ASCS service account - let custoemrs bring their own SA for ASCS",
       ).optional(),
-      ascsVm: z.string().describe("Optional. ASCS VM name.").optional(),
-      ersInstanceId: z.string().describe("Optional. Instance ID for ERS.")
+      ascsVm: z.string().describe("Optional. ASCS vm name").optional(),
+      ersInstanceId: z.string().describe("Optional. instance id for ers")
         .optional(),
-      ersVm: z.string().describe("Optional. ERS VM name.").optional(),
+      ersVm: z.string().describe("Optional. ERS vm name").optional(),
       image: z.string().describe(
-        "Required. Image for the app server and ASCS server.",
+        "Required. image for app server and ascs server",
       ).optional(),
-      machineType: z.string().describe("Required. Machine type.").optional(),
+      machineType: z.string().describe("Required. machine type").optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
-      sharedStorage: z.string().describe("Optional. Storage location.")
+      sharedStorage: z.string().describe("Optional. Storage location")
         .optional(),
       sid: z.string().describe(
         "Required. The SAP SID is a three-digit server-specific unique identification code.",
       ).optional(),
-      vmsMultiplier: z.number().int().describe("Required. VMs multiplier.")
+      vmsMultiplier: z.number().int().describe("Required. vms_multiplier")
         .optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Message for sap instant details").optional(),
     database: z.object({
       databaseServiceAccount: z.string().describe(
-        "Database service account. Let customers bring their own SA for the database.",
+        "Database service account - let custoemrs bring their own SA for database",
       ).optional(),
-      diskType: z.string().describe("Required. Disk type.").optional(),
-      image: z.string().describe("Required. Image for the database server.")
+      diskType: z.string().describe("Required. disk_type").optional(),
+      image: z.string().describe("Required. image for database server")
         .optional(),
-      instanceId: z.string().describe("Optional. Instance ID.").optional(),
-      machineType: z.string().describe("Required. Machine type.").optional(),
-      primaryDbVm: z.string().describe("Optional. Primary DB VM name.")
+      instanceId: z.string().describe("Optional. instance id").optional(),
+      machineType: z.string().describe("Required. machine type").optional(),
+      primaryDbVm: z.string().describe("Optional. primary db vm name")
         .optional(),
-      secondaryDbVm: z.string().describe("Optional. Secondary DB VM name.")
+      secondaryDbVm: z.string().describe("Optional. secondary db vm name")
         .optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
       sid: z.string().describe(
         "Required. The SID is a three-digit server-specific unique identification code.",
       ).optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Message for sap instant details").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "DISTRIBUTED",
       "DISTRIBUTED_HA",
-    ]).describe("Required. Supports non-HA and HA models.").optional(),
+    ]).describe("Required. two model non-HA and HA supported").optional(),
     environmentType: z.enum([
       "ENVIRONMENT_TYPE_UNSPECIFIED",
       "NON_PRODUCTION",
       "PRODUCTION",
-    ]).describe("Required. Deployment environment.").optional(),
+    ]).describe("Required. deployment environment").optional(),
     gcpProjectId: z.string().describe(
-      "The project that infrastructure is deployed in. Currently only supports the same project where the deployment resource exists.",
+      "the project that infrastructure deployed, current only support the same project where the deployment resource exist.",
     ).optional(),
     location: z.object({
       createCommsFirewall: z.boolean().describe(
-        "Optional. Create firewall. If true, creates a firewall for the deployment. This field provides an option to not always create a firewall for the deployment.",
+        "Optional. create firewall, if true, create firewall for the deployment. This field provides an option to not always create firewall for the deployment.",
       ).optional(),
-      customTags: z.array(z.string()).describe("Optional. Network tags.")
+      customTags: z.array(z.string()).describe("Optional. network tags")
         .optional(),
       deploymentDnsEnabled: z.boolean().describe(
-        "Optional. When the user skips DNS configuration in the UI, `deployment_dns_enabled` is false; otherwise `deployment_dns_enabled` is true.",
+        "Optional. when user skip DNS configuration from UI, deployment_dns_enabled=false otherwise deployment_dns_enabled=true",
       ).optional(),
-      dnsZone: z.string().describe("Optional. DNS zone name.").optional(),
-      dnsZoneNameSuffix: z.string().describe("Optional. DNS zone name suffix.")
+      dnsZone: z.string().describe("Optional. dns zone name").optional(),
+      dnsZoneNameSuffix: z.string().describe("Optional. dns_zone_name_suffix")
         .optional(),
       internetAccess: z.enum([
         "INTERNETACCESS_UNSPECIFIED",
         "ALLOW_EXTERNAL_IP",
         "CONFIGURE_NAT",
       ]).optional(),
-      networkProject: z.string().describe("Optional. Network project.")
+      networkProject: z.string().describe("Optional. network project")
         .optional(),
-      regionName: z.string().describe("Required. Region name.").optional(),
-      subnetName: z.string().describe("Required. Subnet name.").optional(),
-      vpcName: z.string().describe("Required. VPC name.").optional(),
-      zone1Name: z.string().describe("Required. Zone 1 name.").optional(),
-      zone2Name: z.string().describe("Optional. Zone 2 name.").optional(),
-    }).describe("Message for SAP instance details.").optional(),
-    mediaBucketName: z.string().describe("Required. Media bucket name.")
+      regionName: z.string().describe("Required. region_name").optional(),
+      subnetName: z.string().describe("Required. subnet_name").optional(),
+      vpcName: z.string().describe("Required. vpc_name").optional(),
+      zone1Name: z.string().describe("Required. zone1_name").optional(),
+      zone2Name: z.string().describe("Optional. zone2_name").optional(),
+    }).describe("Message for sap instant details").optional(),
+    mediaBucketName: z.string().describe("Required. media_bucket_name")
       .optional(),
-    sapBootDiskImage: z.string().describe("Optional. SAP boot disk image.")
+    sapBootDiskImage: z.string().describe("Optional. sap_boot_disk_image")
       .optional(),
     scalingMethod: z.enum(["SCALE_METHOD_UNSPECIFIED", "SCALE_UP", "SCALE_OUT"])
-      .describe("Required. Supports scale up and scale out.").optional(),
+      .describe("Required. support scale up and scale out").optional(),
     version: z.enum([
       "VERSION_UNSPECIFIED",
       "S4_HANA_2021",
       "S4_HANA_2022",
       "S4_HANA_2023",
-    ]).describe("Required. SAP HANA version.").optional(),
-    vmPrefix: z.string().describe("VM prefix.").optional(),
-  }).describe("Message for SAP system workload.").optional(),
+    ]).describe("Required. sap hana version").optional(),
+    vmPrefix: z.string().describe("vm_prefix").optional(),
+  }).describe("Message for sap system workload").optional(),
   serviceAccount: z.string().describe(
-    "User-specified Service Account (SA) credentials to be used for Cloud Build. Format: `projects/{projectID}/serviceAccounts/{serviceAccount}` The default Cloud Build SA will be used initially if this field is not set during deployment creation.",
+    "User-specified Service Account (SA) credentials to be used for cloud build Format: `projects/{projectID}/serviceAccounts/{serviceAccount}` The default Cloud Build SA will be used initially if this field is not set during deployment creation",
   ).optional(),
   sqlServerWorkload: z.object({
     activeDirectory: z.object({
-      dnsAddress: z.string().describe("Optional. DNS IP address.").optional(),
+      dnsAddress: z.string().describe("Optional. DNS IP address").optional(),
       domain: z.string().describe(
-        "Optional. Human readable form of a domain such as `example.com`.",
+        "Optional. human readable form of a domain such as “google.com”.",
       ).optional(),
-      domainUsername: z.string().describe("Optional. Domain username.")
+      domainUsername: z.string().describe("Optional. domain username")
         .optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
       type: z.enum([
         "ACTIVE_DIRECTORY_TYPE_UNSPECIFIED",
         "GCP_MANAGED",
         "SELF_MANAGED",
-      ]).describe("Required. Active Directory type.").optional(),
-    }).describe("Active Directory details.").optional(),
+      ]).describe("Required. active directory type").optional(),
+    }).describe("Active directory details").optional(),
     computeEngineServiceAccount: z.string().describe(
-      "Compute Engine service account. Let customers bring their own service account for Compute Engine.",
+      "Compute engine service account - let customers bring their own SA for Compute engine",
     ).optional(),
     database: z.object({
-      diskType: z.string().describe("Required. Disk type.").optional(),
+      diskType: z.string().describe("Required. disk_type").optional(),
       floatingIpAddress: z.string().describe(
-        "Optional. Only useful for Linux High Availability setup.",
+        "Optional. only useful for Linux High Availability setup",
       ).optional(),
-      machineType: z.string().describe("Required. Machine type.").optional(),
+      machineType: z.string().describe("Required. machine type").optional(),
       secondarySoleTenantNode: z.string().describe(
-        "Optional. The name of a secondary-sole-tenant node/node group.",
+        "Optional. the name of a secondary-sole-tenant node/node group",
       ).optional(),
       secondarySoleTenantNodeType: z.string().describe(
-        "Optional. The type of a secondary-sole-tenant node/node group. E.g., compute.googleapis.com/node-name.",
+        "Optional. the type of a secondary-sole-tenant node/node group e.g. compute.googleapis.com/node-name",
       ).optional(),
       secretManagerSecret: z.string().describe(
-        "Required. Secret Manager secret.",
+        "Required. secret_manager_secret",
       ).optional(),
       smt: z.boolean().describe(
-        "Required. Whether simultaneous multithreading is enabled or not.",
+        "Required. whether simultaneous multithreading is enabled or not",
       ).optional(),
       soleTenantNode: z.string().describe(
-        "Optional. The name of a primary sole-tenant node/node group.",
+        "Optional. the name of a primary sole-tenant node/node group",
       ).optional(),
       soleTenantNodeType: z.string().describe(
-        "Optional. The type of a primary sole-tenant node/node group. E.g., compute.googleapis.com/node-name.",
+        "Optional. the type of a primary sole-tenant node/node group e.g. compute.googleapis.com/node-name",
       ).optional(),
       tempdbOnSsd: z.boolean().describe(
-        "Required. Whether to have TempDB on local SSD.",
+        "Required. whether to have TempDB on local SSD",
       ).optional(),
       tenancyModel: z.enum([
         "TENANCY_MODEL_UNSPECIFIED",
         "SHARED",
         "SOLE_TENANT",
-      ]).describe("Required. SHARED or SOLE_TENANT.").optional(),
-    }).describe("Database details.").optional(),
+      ]).describe("Required. SHARED or SOLE_TENANT").optional(),
+    }).describe("Database details").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "HIGH_AVAILABILITY",
       "SINGLE_INSTANCE",
-    ]).describe("Required. HIGH_AVAILABILITY or SINGLE_INSTANCE.").optional(),
+    ]).describe("Required. HIGH_AVAILABILITY or SINGLE_INSTANCE").optional(),
     environmentType: z.enum([
       "ENVIRONMENT_TYPE_UNSPECIFIED",
       "NON_PRODUCTION",
       "PRODUCTION",
-    ]).describe("Required. Deployment environment.").optional(),
+    ]).describe("Required. deployment environment").optional(),
     fciType: z.enum(["FCI_TYPE_UNSPECIFIED", "SHARED_DISK", "S2D"]).describe(
-      "Optional. SHARED_DISK or S2D.",
+      "Optional. SHARED_DISK or S2D",
     ).optional(),
     haType: z.enum(["HA_TYPE_UNSPECIFIED", "AOAG", "FCI"]).describe(
-      "Optional. AOAG or FCI. It is only needed for the High Availability deployment mode.",
+      "Optional. AOAG or FCI, it is only needed for High Availability deployment mode",
     ).optional(),
-    isSqlPayg: z.boolean().describe("Required. SQL licensing type.").optional(),
+    isSqlPayg: z.boolean().describe("Required. SQL licensing type").optional(),
     location: z.object({
       dnsZone: z.string().describe(
-        "Optional. Create a new DNS zone when the field is empty. Only shown for `Using an existing DNS`. List of existing DNS zones. Terraform variable name: existing_dns_zone_name.",
+        "Optional. create a new DNS Zone when the field is empty, Only show for `Using an existing DNS` List of existing DNS Zones tf variable name: existing_dns_zone_name",
       ).optional(),
       gcpProjectId: z.string().describe(
-        "Required. The project that infrastructure is deployed in. Currently only supports the same project where the deployment resource exists.",
+        "Required. the project that infrastructure deployed, currently only supports the same project where the deployment resource exists.",
       ).optional(),
       internetAccess: z.enum([
         "INTERNET_ACCESS_UNSPECIFIED",
         "ALLOW_EXTERNAL_IP",
         "CONFIGURE_NAT",
-      ]).describe("Required. Internet Access.").optional(),
-      network: z.string().describe("Required. Network name.").optional(),
-      primaryZone: z.string().describe("Required. Primary zone.").optional(),
-      region: z.string().describe("Required. Region name.").optional(),
+      ]).describe("Required. Internet Access").optional(),
+      network: z.string().describe("Required. network name").optional(),
+      primaryZone: z.string().describe("Required. primary zone").optional(),
+      region: z.string().describe("Required. region name").optional(),
       secondaryZone: z.string().describe(
-        "Optional. Secondary zone cannot be the same as primary_zone and is only for High Availability deployment mode.",
+        "Optional. secondary zone can't be same as primary_zone and is only for High Availability deployment mode",
       ).optional(),
-      subnetwork: z.string().describe("Required. Subnetwork name.").optional(),
+      subnetwork: z.string().describe("Required. subnetwork name").optional(),
       tertiaryZone: z.string().describe(
-        "Optional. Tertiary zone cannot be the same as primary_zone and secondary_zone, and it is only for High Availability deployment mode.",
+        "Optional. teriary zone can't be same as primary_zone and secondary zone, and it is only for High Availability deployment mode",
       ).optional(),
     }).describe(
-      "Location and networking details for configuring SQL server workload.",
+      "Location and networking details for configuring SQL server workload",
     ).optional(),
     mediaBucket: z.string().describe(
-      "Required. Name of the media storing SQL server installation files.",
+      "Required. name of the media storing SQL server installation files",
     ).optional(),
     operatingSystemType: z.enum([
       "OPERATING_SYSTEM_TYPE_UNSPECIFIED",
@@ -799,36 +799,36 @@ const InputsSchema = z.object({
       "RED_HAT_ENTERPRISE_LINUX",
       "SUSE",
     ]).describe(
-      "Required. The type of the operating system the SQL server is going to run on top of.",
+      "Required. type of the operating system the SQL server is going to run on top of",
     ).optional(),
-    osImage: z.string().describe("Required. The image of the operating system.")
+    osImage: z.string().describe("Required. the image of the operating system")
       .optional(),
     osImageType: z.enum([
       "OS_IMAGE_TYPE_UNSPECIFIED",
       "PUBLIC_IMAGE",
       "CUSTOM_IMAGE",
     ]).describe(
-      "Optional. OS image type. It's used to create boot disks for VM instances. When either Windows licensing type or SQL licensing type is BYOL, this option is disabled and defaults to a custom image.",
+      "Optional. OS image type, it's used to create boot disks for VM instances When either Windows licensing type or SQL licensing type is BYOL, this option is disabled and default to custom image",
     ).optional(),
     pacemaker: z.object({
       bucketNameNodeCertificates: z.string().describe(
-        "Required. Bucket location for node certificates.",
+        "Required. bucket location for node certificates",
       ).optional(),
-      pacemakerCluster: z.string().describe("Required. Pacemaker cluster name.")
+      pacemakerCluster: z.string().describe("Required. pacemaker cluster name")
         .optional(),
       pacemakerClusterSecret: z.string().describe(
-        "Required. Pacemaker cluster secret name.",
+        "Required. pacemaker cluster secret name",
       ).optional(),
       pacemakerClusterUsername: z.string().describe(
-        "Required. Pacemaker cluster username.",
+        "Required. pacemaker cluster username",
       ).optional(),
       sqlPacemakerSecret: z.string().describe(
-        "Required. SQL Pacemaker secret name.",
+        "Required. sql pacemaker secret name",
       ).optional(),
       sqlPacemakerUsername: z.string().describe(
-        "Required. SQL Pacemaker username.",
+        "Required. sql pacemaker username",
       ).optional(),
-    }).describe("Pacemaker configuration.").optional(),
+    }).describe("pacemaker configuration").optional(),
     sqlServerEdition: z.enum([
       "SQL_SERVER_EDITION_TYPE_UNSPECIFIED",
       "SQL_SERVER_EDITION_TYPE_DEVELOPER",
@@ -836,17 +836,17 @@ const InputsSchema = z.object({
       "SQL_SERVER_EDITION_TYPE_STANDARD",
       "SQL_SERVER_EDITION_TYPE_WEB",
     ]).describe(
-      "Optional. SQL Server Edition type, only applicable when the operating system is Linux.",
+      "Optional. SQL Server Edition type, only applicable when Operating System is Linux",
     ).optional(),
     sqlServerVersion: z.enum([
       "SQL_SERVER_VERSION_TYPE_UNSPECIFIED",
       "SQL_SERVER_VERSION_TYPE_2017",
       "SQL_SERVER_VERSION_TYPE_2019",
       "SQL_SERVER_VERSION_TYPE_2022",
-    ]).describe("Optional. 2017, 2019, or 2022.").optional(),
-    vmPrefix: z.string().describe("Required. Should be unique in the project.")
+    ]).describe("Optional. 2017 or 2019 or 2022").optional(),
+    vmPrefix: z.string().describe("Required. should be unique in the project")
       .optional(),
-  }).describe("Message for MS SQL workload.").optional(),
+  }).describe("Message for MS SQL workload").optional(),
   terraformVariables: z.record(
     z.string(),
     z.object({
@@ -864,8 +864,8 @@ const InputsSchema = z.object({
     "SAP_S4",
     "SQL_SERVER",
     "ORACLE",
-  ]).describe("Optional. Workload type of the deployment.").optional(),
-  deploymentId: z.string().describe("Required. ID of the deployment.")
+  ]).describe("Optional. Workload type of the deployment").optional(),
+  deploymentId: z.string().describe("Required. Id of the deployment")
     .optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -898,7 +898,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workload Manager Deployments. Registered at `@swamp/gcp/workloadmanager/deployments`. */
 export const model = {
   type: "@swamp/gcp/workloadmanager/deployments",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1007,6 +1007,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1174,22 +1179,29 @@ export const model = {
     },
     sync: {
       description: "Sync deployments state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific deployments by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1233,7 +1245,7 @@ export const model = {
       description: "List deployments resources",
       arguments: z.object({
         filter: z.string().describe(
-          "Optional. Filter resource following https://google.aip.dev/160.",
+          "Optional. Filter resource follow https://google.aip.dev/160",
         ).optional(),
         orderBy: z.string().describe(
           "Optional. Field to sort by. See https://google.aip.dev/132#ordering for more details.",

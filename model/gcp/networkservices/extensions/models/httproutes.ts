@@ -82,9 +82,6 @@ const INSERT_CONFIG = {
       "location": "path",
       "required": true,
     },
-    "requestId": {
-      "location": "query",
-    },
   },
 } as const;
 
@@ -129,9 +126,6 @@ const LIST_CONFIG = {
     "parent",
   ],
   "parameters": {
-    "filter": {
-      "location": "query",
-    },
     "pageSize": {
       "location": "query",
     },
@@ -401,8 +395,6 @@ const GlobalArgsSchema = z.object({
   httpRouteId: z.string().describe(
     "Required. Short name of the HttpRoute resource to be created.",
   ).optional(),
-  requestId: z.string().describe("Optional. Idempotent request UUID.")
-    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -752,8 +744,6 @@ const InputsSchema = z.object({
   httpRouteId: z.string().describe(
     "Required. Short name of the HttpRoute resource to be created.",
   ).optional(),
-  requestId: z.string().describe("Optional. Idempotent request UUID.")
-    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -782,7 +772,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services HttpRoutes. Registered at `@swamp/gcp/networkservices/httproutes`. */
 export const model = {
   type: "@swamp/gcp/networkservices/httproutes",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -918,6 +908,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: requestId",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { requestId: _requestId, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -954,9 +952,6 @@ export const model = {
         if (g["rules"] !== undefined) body["rules"] = g["rules"];
         if (g["httpRouteId"] !== undefined) {
           params["httpRouteId"] = String(g["httpRouteId"]);
-        }
-        if (g["requestId"] !== undefined) {
-          params["requestId"] = String(g["requestId"]);
         }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -1028,22 +1023,29 @@ export const model = {
     },
     update: {
       description: "Update httpRoutes attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific httpRoutes by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1129,22 +1131,29 @@ export const model = {
     },
     sync: {
       description: "Sync httpRoutes state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific httpRoutes by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1187,9 +1196,6 @@ export const model = {
     list: {
       description: "List httpRoutes resources",
       arguments: z.object({
-        filter: z.string().describe(
-          "Optional. Filter expression to restrict the list.",
-        ).optional(),
         pageSize: z.number().describe(
           "Maximum number of HttpRoutes to return per call.",
         ).optional(),
@@ -1208,9 +1214,6 @@ export const model = {
         params["parent"] = `projects/${projectId}/locations/${
           String(g["location"] ?? "")
         }`;
-        if (args["filter"] !== undefined) {
-          params["filter"] = String(args["filter"]);
-        }
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

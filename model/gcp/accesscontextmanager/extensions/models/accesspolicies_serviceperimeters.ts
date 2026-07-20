@@ -166,7 +166,7 @@ const GlobalArgsSchema = z.object({
     egressPolicies: z.array(z.object({
       egressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -214,7 +214,7 @@ const GlobalArgsSchema = z.object({
     ingressPolicies: z.array(z.object({
       ingressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -256,30 +256,12 @@ const GlobalArgsSchema = z.object({
       "Google Cloud services that are subject to the Service Perimeter restrictions. For example, if `storage.googleapis.com` is specified, access to the storage buckets inside the perimeter must meet the perimeter's access restrictions.",
     ).optional(),
     vpcAccessibleServices: z.object({
-      allowedServicePatterns: z.array(z.object({
-        modifiers: z.array(z.unknown()).describe(
-          "Modifiers to apply to the requests that match the URL pattern.",
-        ).optional(),
-        pattern: z.string().describe(
-          'URL pattern to allow. Only patterns of ".googleapis.com/*", "www.googleapis.com//*" and "*.appspot.com/* forms are supported, where should be alphanumerical name.',
-        ).optional(),
-        service: z.string().describe("Supported service to allow.").optional(),
-      })).describe(
-        "Specifies which Google services are allowed to be accessed from VPC networks in the service perimeter.",
-      ).optional(),
       allowedServices: z.array(z.string()).describe(
         "The list of APIs usable within the Service Perimeter. Must be empty unless 'enable_restriction' is True. You can specify a list of individual services, as well as include the 'RESTRICTED-SERVICES' value, which automatically includes all of the services protected by the perimeter.",
       ).optional(),
       enableRestriction: z.boolean().describe(
         "Whether to restrict API calls within the Service Perimeter to the list of APIs specified in 'allowed_services'.",
       ).optional(),
-      servicePatternsEnforcementScopes: z.array(
-        z.enum([
-          "SERVICE_PATTERNS_ENFORCEMENT_SCOPE_UNSPECIFIED",
-          "GOOGLE_APIS_VIA_PRIVATE_PATH",
-        ]),
-      ).describe("Defines the enforcement scopes of service patterns.")
-        .optional(),
     }).describe(
       "Specifies how APIs are allowed to communicate within the Service Perimeter.",
     ).optional(),
@@ -293,7 +275,7 @@ const GlobalArgsSchema = z.object({
     egressPolicies: z.array(z.object({
       egressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -341,7 +323,7 @@ const GlobalArgsSchema = z.object({
     ingressPolicies: z.array(z.object({
       ingressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -383,30 +365,12 @@ const GlobalArgsSchema = z.object({
       "Google Cloud services that are subject to the Service Perimeter restrictions. For example, if `storage.googleapis.com` is specified, access to the storage buckets inside the perimeter must meet the perimeter's access restrictions.",
     ).optional(),
     vpcAccessibleServices: z.object({
-      allowedServicePatterns: z.array(z.object({
-        modifiers: z.array(z.unknown()).describe(
-          "Modifiers to apply to the requests that match the URL pattern.",
-        ).optional(),
-        pattern: z.string().describe(
-          'URL pattern to allow. Only patterns of ".googleapis.com/*", "www.googleapis.com//*" and "*.appspot.com/* forms are supported, where should be alphanumerical name.',
-        ).optional(),
-        service: z.string().describe("Supported service to allow.").optional(),
-      })).describe(
-        "Specifies which Google services are allowed to be accessed from VPC networks in the service perimeter.",
-      ).optional(),
       allowedServices: z.array(z.string()).describe(
         "The list of APIs usable within the Service Perimeter. Must be empty unless 'enable_restriction' is True. You can specify a list of individual services, as well as include the 'RESTRICTED-SERVICES' value, which automatically includes all of the services protected by the perimeter.",
       ).optional(),
       enableRestriction: z.boolean().describe(
         "Whether to restrict API calls within the Service Perimeter to the list of APIs specified in 'allowed_services'.",
       ).optional(),
-      servicePatternsEnforcementScopes: z.array(
-        z.enum([
-          "SERVICE_PATTERNS_ENFORCEMENT_SCOPE_UNSPECIFIED",
-          "GOOGLE_APIS_VIA_PRIVATE_PATH",
-        ]),
-      ).describe("Defines the enforcement scopes of service patterns.")
-        .optional(),
     }).describe(
       "Specifies how APIs are allowed to communicate within the Service Perimeter.",
     ).optional(),
@@ -462,14 +426,8 @@ const StateSchema = z.object({
     resources: z.array(z.string()),
     restrictedServices: z.array(z.string()),
     vpcAccessibleServices: z.object({
-      allowedServicePatterns: z.array(z.object({
-        modifiers: z.array(z.unknown()),
-        pattern: z.string(),
-        service: z.string(),
-      })),
       allowedServices: z.array(z.string()),
       enableRestriction: z.boolean(),
-      servicePatternsEnforcementScopes: z.array(z.string()),
     }),
   }).optional(),
   status: z.object({
@@ -505,14 +463,8 @@ const StateSchema = z.object({
     resources: z.array(z.string()),
     restrictedServices: z.array(z.string()),
     vpcAccessibleServices: z.object({
-      allowedServicePatterns: z.array(z.object({
-        modifiers: z.array(z.unknown()),
-        pattern: z.string(),
-        service: z.string(),
-      })),
       allowedServices: z.array(z.string()),
       enableRestriction: z.boolean(),
-      servicePatternsEnforcementScopes: z.array(z.string()),
     }),
   }).optional(),
   title: z.string().optional(),
@@ -543,7 +495,7 @@ const InputsSchema = z.object({
     egressPolicies: z.array(z.object({
       egressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -591,7 +543,7 @@ const InputsSchema = z.object({
     ingressPolicies: z.array(z.object({
       ingressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -633,30 +585,12 @@ const InputsSchema = z.object({
       "Google Cloud services that are subject to the Service Perimeter restrictions. For example, if `storage.googleapis.com` is specified, access to the storage buckets inside the perimeter must meet the perimeter's access restrictions.",
     ).optional(),
     vpcAccessibleServices: z.object({
-      allowedServicePatterns: z.array(z.object({
-        modifiers: z.array(z.unknown()).describe(
-          "Modifiers to apply to the requests that match the URL pattern.",
-        ).optional(),
-        pattern: z.string().describe(
-          'URL pattern to allow. Only patterns of ".googleapis.com/*", "www.googleapis.com//*" and "*.appspot.com/* forms are supported, where should be alphanumerical name.',
-        ).optional(),
-        service: z.string().describe("Supported service to allow.").optional(),
-      })).describe(
-        "Specifies which Google services are allowed to be accessed from VPC networks in the service perimeter.",
-      ).optional(),
       allowedServices: z.array(z.string()).describe(
         "The list of APIs usable within the Service Perimeter. Must be empty unless 'enable_restriction' is True. You can specify a list of individual services, as well as include the 'RESTRICTED-SERVICES' value, which automatically includes all of the services protected by the perimeter.",
       ).optional(),
       enableRestriction: z.boolean().describe(
         "Whether to restrict API calls within the Service Perimeter to the list of APIs specified in 'allowed_services'.",
       ).optional(),
-      servicePatternsEnforcementScopes: z.array(
-        z.enum([
-          "SERVICE_PATTERNS_ENFORCEMENT_SCOPE_UNSPECIFIED",
-          "GOOGLE_APIS_VIA_PRIVATE_PATH",
-        ]),
-      ).describe("Defines the enforcement scopes of service patterns.")
-        .optional(),
     }).describe(
       "Specifies how APIs are allowed to communicate within the Service Perimeter.",
     ).optional(),
@@ -670,7 +604,7 @@ const InputsSchema = z.object({
     egressPolicies: z.array(z.object({
       egressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -718,7 +652,7 @@ const InputsSchema = z.object({
     ingressPolicies: z.array(z.object({
       ingressFrom: z.object({
         identities: z.array(z.unknown()).describe(
-          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
+          "A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.",
         ).optional(),
         identityType: z.enum([
           "IDENTITY_TYPE_UNSPECIFIED",
@@ -760,30 +694,12 @@ const InputsSchema = z.object({
       "Google Cloud services that are subject to the Service Perimeter restrictions. For example, if `storage.googleapis.com` is specified, access to the storage buckets inside the perimeter must meet the perimeter's access restrictions.",
     ).optional(),
     vpcAccessibleServices: z.object({
-      allowedServicePatterns: z.array(z.object({
-        modifiers: z.array(z.unknown()).describe(
-          "Modifiers to apply to the requests that match the URL pattern.",
-        ).optional(),
-        pattern: z.string().describe(
-          'URL pattern to allow. Only patterns of ".googleapis.com/*", "www.googleapis.com//*" and "*.appspot.com/* forms are supported, where should be alphanumerical name.',
-        ).optional(),
-        service: z.string().describe("Supported service to allow.").optional(),
-      })).describe(
-        "Specifies which Google services are allowed to be accessed from VPC networks in the service perimeter.",
-      ).optional(),
       allowedServices: z.array(z.string()).describe(
         "The list of APIs usable within the Service Perimeter. Must be empty unless 'enable_restriction' is True. You can specify a list of individual services, as well as include the 'RESTRICTED-SERVICES' value, which automatically includes all of the services protected by the perimeter.",
       ).optional(),
       enableRestriction: z.boolean().describe(
         "Whether to restrict API calls within the Service Perimeter to the list of APIs specified in 'allowed_services'.",
       ).optional(),
-      servicePatternsEnforcementScopes: z.array(
-        z.enum([
-          "SERVICE_PATTERNS_ENFORCEMENT_SCOPE_UNSPECIFIED",
-          "GOOGLE_APIS_VIA_PRIVATE_PATH",
-        ]),
-      ).describe("Defines the enforcement scopes of service patterns.")
-        .optional(),
     }).describe(
       "Specifies how APIs are allowed to communicate within the Service Perimeter.",
     ).optional(),
@@ -824,7 +740,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Access Context Manager AccessPolicies.ServicePerimeters. Registered at `@swamp/gcp/accesscontextmanager/accesspolicies-serviceperimeters`. */
 export const model = {
   type: "@swamp/gcp/accesscontextmanager/accesspolicies-serviceperimeters",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -966,6 +882,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1070,22 +991,29 @@ export const model = {
     },
     update: {
       description: "Update servicePerimeters attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific servicePerimeters by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1175,22 +1103,29 @@ export const model = {
     },
     sync: {
       description: "Sync servicePerimeters state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific servicePerimeters by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

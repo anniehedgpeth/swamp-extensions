@@ -13,8 +13,8 @@ the live state in GCP. Available methods:
 - **delete** — remove the resource from GCP
 - **sync** — refresh all resource properties from the API
 
-Use `swamp model type describe @swamp/gcp/iam/oauthclients_credentials` to see
-the full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/gcp/iam/policies` to see the full list of
+configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -65,17 +65,17 @@ gcloud config set project my-project
 ## Usage
 
 ```bash
-# Create a new oauthclients_credentials model
-swamp model create @swamp/gcp/iam/oauthclients_credentials my-oauthclients_credentials
+# Create a new policies model
+swamp model create @swamp/gcp/iam/policies my-policies
 
 # Edit the model to configure its properties
-swamp model edit my-oauthclients_credentials
+swamp model edit my-policies
 
 # Create the resource in GCP
-swamp model method run my-oauthclients_credentials create
+swamp model method run my-policies create
 
 # Sync current state from GCP
-swamp model method run my-oauthclients_credentials sync
+swamp model method run my-policies sync
 ```
 
 ## License

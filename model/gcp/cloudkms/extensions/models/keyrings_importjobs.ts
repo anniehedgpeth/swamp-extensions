@@ -62,9 +62,6 @@ const GET_CONFIG = {
       "location": "path",
       "required": true,
     },
-    "publicKeyFormat": {
-      "location": "query",
-    },
   },
 } as const;
 
@@ -165,9 +162,6 @@ const GlobalArgsSchema = z.object({
     "RSA_OAEP_4096_SHA256_AES_256",
     "RSA_OAEP_3072_SHA256",
     "RSA_OAEP_4096_SHA256",
-    "HPKE_KEM_ML_KEM_768_HKDF_SHA256_AES_256_GCM",
-    "HPKE_KEM_ML_KEM_1024_HKDF_SHA256_AES_256_GCM",
-    "HPKE_KEM_XWING_HKDF_SHA256_AES_256_GCM",
   ]).describe(
     "Required. Immutable. The wrapping method to be used for incoming key material.",
   ).optional(),
@@ -182,11 +176,8 @@ const GlobalArgsSchema = z.object({
     "Required. Immutable. The protection level of the ImportJob. This must match the protection_level of the version_template on the CryptoKey you attempt to import into.",
   ).optional(),
   publicKey: z.object({
-    data: z.string().describe(
-      "Output only. Contains the public key, formatted according to the PublicKey.PublicKeyFormat specified in the KeyManagementService.GetImportJob request.",
-    ).optional(),
     pem: z.string().describe(
-      "The public key, encoded in PEM format. For more information, see the [RFC 7468](https://tools.ietf.org/html/rfc7468) sections for [General Considerations](https://tools.ietf.org/html/rfc7468#section-2) and [Textual Encoding of Subject Public Key Info] (https://tools.ietf.org/html/rfc7468#section-13). This field gets populated by default for RSA-based import methods, if no public_key_format is specified in the request. If you want to retrieve the wrapping key of an ImportJob in some other format, use KeyManagementService.GetImportJob and set the public_key_format to the desired public key format.",
+      "The public key, encoded in PEM format. For more information, see the [RFC 7468](https://tools.ietf.org/html/rfc7468) sections for [General Considerations](https://tools.ietf.org/html/rfc7468#section-2) and [Textual Encoding of Subject Public Key Info] (https://tools.ietf.org/html/rfc7468#section-13).",
     ).optional(),
   }).describe(
     "The public key component of the wrapping key. For details of the type of key this public key corresponds to, see the ImportMethod.",
@@ -221,10 +212,8 @@ const StateSchema = z.object({
   name: z.string(),
   protectionLevel: z.string().optional(),
   publicKey: z.object({
-    data: z.string(),
     pem: z.string(),
   }).optional(),
-  publicKeyFormat: z.string().optional(),
   state: z.string().optional(),
 }).passthrough();
 
@@ -272,9 +261,6 @@ const InputsSchema = z.object({
     "RSA_OAEP_4096_SHA256_AES_256",
     "RSA_OAEP_3072_SHA256",
     "RSA_OAEP_4096_SHA256",
-    "HPKE_KEM_ML_KEM_768_HKDF_SHA256_AES_256_GCM",
-    "HPKE_KEM_ML_KEM_1024_HKDF_SHA256_AES_256_GCM",
-    "HPKE_KEM_XWING_HKDF_SHA256_AES_256_GCM",
   ]).describe(
     "Required. Immutable. The wrapping method to be used for incoming key material.",
   ).optional(),
@@ -289,11 +275,8 @@ const InputsSchema = z.object({
     "Required. Immutable. The protection level of the ImportJob. This must match the protection_level of the version_template on the CryptoKey you attempt to import into.",
   ).optional(),
   publicKey: z.object({
-    data: z.string().describe(
-      "Output only. Contains the public key, formatted according to the PublicKey.PublicKeyFormat specified in the KeyManagementService.GetImportJob request.",
-    ).optional(),
     pem: z.string().describe(
-      "The public key, encoded in PEM format. For more information, see the [RFC 7468](https://tools.ietf.org/html/rfc7468) sections for [General Considerations](https://tools.ietf.org/html/rfc7468#section-2) and [Textual Encoding of Subject Public Key Info] (https://tools.ietf.org/html/rfc7468#section-13). This field gets populated by default for RSA-based import methods, if no public_key_format is specified in the request. If you want to retrieve the wrapping key of an ImportJob in some other format, use KeyManagementService.GetImportJob and set the public_key_format to the desired public key format.",
+      "The public key, encoded in PEM format. For more information, see the [RFC 7468](https://tools.ietf.org/html/rfc7468) sections for [General Considerations](https://tools.ietf.org/html/rfc7468#section-2) and [Textual Encoding of Subject Public Key Info] (https://tools.ietf.org/html/rfc7468#section-13).",
     ).optional(),
   }).describe(
     "The public key component of the wrapping key. For details of the type of key this public key corresponds to, see the ImportMethod.",
@@ -332,7 +315,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.ImportJobs. Registered at `@swamp/gcp/cloudkms/keyrings-importjobs`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-importjobs",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -436,6 +419,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -557,22 +545,29 @@ export const model = {
     },
     sync: {
       description: "Sync importJobs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific importJobs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

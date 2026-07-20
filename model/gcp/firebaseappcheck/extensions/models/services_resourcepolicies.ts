@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The baseline protection EnforcementMode for this resource. This will override the service-level baseline protection EnforcementMode.",
+    "Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The relative name of the resource policy object, in the format: ` projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `oauth2.googleapis.com` (Google Identity for iOS) `resource_policy_id` is a system-generated UID.",
@@ -188,7 +188,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   enforcementMode: z.enum(["OFF", "UNENFORCED", "ENFORCED"]).describe(
-    "Required. The baseline protection EnforcementMode for this resource. This will override the service-level baseline protection EnforcementMode.",
+    "Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The relative name of the resource policy object, in the format: ` projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id} ` Note that the `service_id` element must be a supported service ID. Currently, the following service IDs are supported: * `oauth2.googleapis.com` (Google Identity for iOS) `resource_policy_id` is a system-generated UID.",
@@ -227,7 +227,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Check Services.ResourcePolicies. Registered at `@swamp/gcp/firebaseappcheck/services-resourcepolicies`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/services-resourcepolicies",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -334,6 +334,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -432,22 +437,29 @@ export const model = {
     },
     update: {
       description: "Update resourcePolicies attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific resourcePolicies by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -531,22 +543,29 @@ export const model = {
     },
     sync: {
       description: "Sync resourcePolicies state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific resourcePolicies by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

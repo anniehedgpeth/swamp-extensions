@@ -340,7 +340,7 @@ const GlobalArgsSchema = z.object({
         "Optional, a map containing configuration variables defined for the configuration.",
       ).optional(),
       templateId: z.string().describe(
-        'The ID of the managed configurations template. This value must be a numeric string containing exactly one or more digits (for example, "123456").',
+        "The ID of the managed configurations template.",
       ).optional(),
     }).describe(
       "The managed configurations template for the app, saved from the managed configurations iframe.",
@@ -423,11 +423,6 @@ const GlobalArgsSchema = z.object({
   ]).describe(
     "Whether auto date, time, and time zone are enabled on a company-owned device. If this is set, then autoTimeRequired is ignored.",
   ).optional(),
-  autofillPolicy: z.enum([
-    "AUTOFILL_POLICY_UNSPECIFIED",
-    "AUTOFILL_USER_CHOICE",
-    "AUTOFILL_DISABLED",
-  ]).describe("Optional. The policy for the autofill service.").optional(),
   bluetoothConfigDisabled: z.boolean().describe(
     "Whether configuring bluetooth is disabled.",
   ).optional(),
@@ -553,7 +548,7 @@ const GlobalArgsSchema = z.object({
       "Required. The list of applications that can be set as the default app for a given type. This list must not be empty or contain duplicates. The first app in the list that is installed and qualified for the defaultApplicationType (e.g. SMS app for DEFAULT_SMS) is set as the default app. The signing key certificate fingerprint of the app on the device must also match one of the signing key certificate fingerprints obtained from Play Store or one of the entries in ApplicationPolicy.signingKeyCerts in order to be set as the default.If the defaultApplicationScopes contains SCOPE_FULLY_MANAGED or SCOPE_WORK_PROFILE, the app must have an entry in applications with installType set to a value other than BLOCKED.A NonComplianceDetail with APP_NOT_INSTALLED reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if none of the apps in the list are installed. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if at least one app is installed but the policy fails to apply due to other reasons (e.g. the app is not of the right type).When applying to SCOPE_PERSONAL_PROFILE on a company-owned device with a work profile, only pre-installed system apps can be set as the default. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if the policy fails to apply to the personal profile.",
     ).optional(),
   })).describe(
-    "Optional. The default application setting for supported types. If the default application is successfully set for at least one app type on a profile, users are prevented from changing any default applications on that profile.Only one DefaultApplicationSetting is allowed for each DefaultApplicationType.Warning: Do not configure this and persistent_preferred_activities for the same intent domain, such as web browsing. Setting both for the same intent domain can lead to unpredictable behavior.See Default application settings (https://developers.google.com/android/management/default-application-settings) guide for more details.",
+    "Optional. The default application setting for supported types. If the default application is successfully set for at least one app type on a profile, users are prevented from changing any default applications on that profile.Only one DefaultApplicationSetting is allowed for each DefaultApplicationType.See Default application settings (https://developers.google.com/android/management/default-application-settings) guide for more details.",
   ).optional(),
   defaultPermissionPolicy: z.enum([
     "PERMISSION_POLICY_UNSPECIFIED",
@@ -1193,9 +1188,7 @@ const GlobalArgsSchema = z.object({
     receiverActivity: z.string().describe(
       "The activity that should be the default intent handler. This should be an Android component name, e.g. com.android.enterprise.app/.MainActivity. Alternatively, the value may be the package name of an app, which causes Android Device Policy to choose an appropriate activity from the app to handle the intent.",
     ).optional(),
-  })).describe(
-    "Default intent handler activities.Warning: Do not configure this and default_application_settings for the same intent domain, such as web browsing. Setting both for the same intent domain can lead to unpredictable behavior.",
-  ).optional(),
+  })).describe("Default intent handler activities.").optional(),
   personalUsagePolicies: z.object({
     accountTypesWithManagementDisabled: z.array(z.string()).describe(
       "Account types that can't be managed by the user.",
@@ -1579,7 +1572,6 @@ const StateSchema = z.object({
   assistContentPolicy: z.string().optional(),
   autoDateAndTimeZone: z.string().optional(),
   autoTimeRequired: z.boolean().optional(),
-  autofillPolicy: z.string().optional(),
   blockApplicationsEnabled: z.boolean().optional(),
   bluetoothConfigDisabled: z.boolean().optional(),
   bluetoothContactSharingDisabled: z.boolean().optional(),
@@ -2118,7 +2110,7 @@ const InputsSchema = z.object({
         "Optional, a map containing configuration variables defined for the configuration.",
       ).optional(),
       templateId: z.string().describe(
-        'The ID of the managed configurations template. This value must be a numeric string containing exactly one or more digits (for example, "123456").',
+        "The ID of the managed configurations template.",
       ).optional(),
     }).describe(
       "The managed configurations template for the app, saved from the managed configurations iframe.",
@@ -2201,11 +2193,6 @@ const InputsSchema = z.object({
   ]).describe(
     "Whether auto date, time, and time zone are enabled on a company-owned device. If this is set, then autoTimeRequired is ignored.",
   ).optional(),
-  autofillPolicy: z.enum([
-    "AUTOFILL_POLICY_UNSPECIFIED",
-    "AUTOFILL_USER_CHOICE",
-    "AUTOFILL_DISABLED",
-  ]).describe("Optional. The policy for the autofill service.").optional(),
   bluetoothConfigDisabled: z.boolean().describe(
     "Whether configuring bluetooth is disabled.",
   ).optional(),
@@ -2331,7 +2318,7 @@ const InputsSchema = z.object({
       "Required. The list of applications that can be set as the default app for a given type. This list must not be empty or contain duplicates. The first app in the list that is installed and qualified for the defaultApplicationType (e.g. SMS app for DEFAULT_SMS) is set as the default app. The signing key certificate fingerprint of the app on the device must also match one of the signing key certificate fingerprints obtained from Play Store or one of the entries in ApplicationPolicy.signingKeyCerts in order to be set as the default.If the defaultApplicationScopes contains SCOPE_FULLY_MANAGED or SCOPE_WORK_PROFILE, the app must have an entry in applications with installType set to a value other than BLOCKED.A NonComplianceDetail with APP_NOT_INSTALLED reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if none of the apps in the list are installed. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if at least one app is installed but the policy fails to apply due to other reasons (e.g. the app is not of the right type).When applying to SCOPE_PERSONAL_PROFILE on a company-owned device with a work profile, only pre-installed system apps can be set as the default. A NonComplianceDetail with INVALID_VALUE reason and DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE specific reason is reported if the policy fails to apply to the personal profile.",
     ).optional(),
   })).describe(
-    "Optional. The default application setting for supported types. If the default application is successfully set for at least one app type on a profile, users are prevented from changing any default applications on that profile.Only one DefaultApplicationSetting is allowed for each DefaultApplicationType.Warning: Do not configure this and persistent_preferred_activities for the same intent domain, such as web browsing. Setting both for the same intent domain can lead to unpredictable behavior.See Default application settings (https://developers.google.com/android/management/default-application-settings) guide for more details.",
+    "Optional. The default application setting for supported types. If the default application is successfully set for at least one app type on a profile, users are prevented from changing any default applications on that profile.Only one DefaultApplicationSetting is allowed for each DefaultApplicationType.See Default application settings (https://developers.google.com/android/management/default-application-settings) guide for more details.",
   ).optional(),
   defaultPermissionPolicy: z.enum([
     "PERMISSION_POLICY_UNSPECIFIED",
@@ -2971,9 +2958,7 @@ const InputsSchema = z.object({
     receiverActivity: z.string().describe(
       "The activity that should be the default intent handler. This should be an Android component name, e.g. com.android.enterprise.app/.MainActivity. Alternatively, the value may be the package name of an app, which causes Android Device Policy to choose an appropriate activity from the app to handle the intent.",
     ).optional(),
-  })).describe(
-    "Default intent handler activities.Warning: Do not configure this and default_application_settings for the same intent domain, such as web browsing. Setting both for the same intent domain can lead to unpredictable behavior.",
-  ).optional(),
+  })).describe("Default intent handler activities.").optional(),
   personalUsagePolicies: z.object({
     accountTypesWithManagementDisabled: z.array(z.string()).describe(
       "Account types that can't be managed by the user.",
@@ -3312,7 +3297,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Policies. Registered at `@swamp/gcp/androidmanagement/enterprises-policies`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-policies",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3453,6 +3438,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: autofillPolicy",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { autofillPolicy: _autofillPolicy, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3501,22 +3494,29 @@ export const model = {
     },
     update: {
       description: "Update policies attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific policies by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -3560,9 +3560,6 @@ export const model = {
         }
         if (g["autoDateAndTimeZone"] !== undefined) {
           body["autoDateAndTimeZone"] = g["autoDateAndTimeZone"];
-        }
-        if (g["autofillPolicy"] !== undefined) {
-          body["autofillPolicy"] = g["autofillPolicy"];
         }
         if (g["bluetoothConfigDisabled"] !== undefined) {
           body["bluetoothConfigDisabled"] = g["bluetoothConfigDisabled"];
@@ -3848,22 +3845,29 @@ export const model = {
     },
     sync: {
       description: "Sync policies state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific policies by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -475,12 +475,6 @@ const GlobalArgsSchema = z.object({
         numNewerVersions: z.number().int().describe(
           "Relevant only for versioned objects. If the value is N, this condition is satisfied when there are at least N versions (including the live version) newer than this version of the object.",
         ).optional(),
-        sizeAboveBytes: z.string().describe(
-          "Objects having a size greater than this value in bytes will be matched.",
-        ).optional(),
-        sizeBelowBytes: z.string().describe(
-          "Objects having a size less than this value in bytes will be matched.",
-        ).optional(),
       }).describe("The condition(s) under which the action will be taken.")
         .optional(),
     })).describe(
@@ -927,8 +921,6 @@ const StateSchema = z.object({
         matchesSuffix: z.array(z.unknown()),
         noncurrentTimeBefore: z.string(),
         numNewerVersions: z.number(),
-        sizeAboveBytes: z.string(),
-        sizeBelowBytes: z.string(),
       }),
     })),
   }).optional(),
@@ -1241,12 +1233,6 @@ const InputsSchema = z.object({
         numNewerVersions: z.number().int().describe(
           "Relevant only for versioned objects. If the value is N, this condition is satisfied when there are at least N versions (including the live version) newer than this version of the object.",
         ).optional(),
-        sizeAboveBytes: z.string().describe(
-          "Objects having a size greater than this value in bytes will be matched.",
-        ).optional(),
-        sizeBelowBytes: z.string().describe(
-          "Objects having a size less than this value in bytes will be matched.",
-        ).optional(),
       }).describe("The condition(s) under which the action will be taken.")
         .optional(),
     })).describe(
@@ -1378,7 +1364,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON Buckets. Registered at `@swamp/gcp/storage/buckets`. */
 export const model = {
   type: "@swamp/gcp/storage/buckets",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1507,6 +1493,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1675,22 +1666,29 @@ export const model = {
     },
     update: {
       description: "Update buckets attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific buckets by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1822,22 +1820,29 @@ export const model = {
     },
     sync: {
       description: "Sync buckets state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific buckets by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

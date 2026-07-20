@@ -13,8 +13,8 @@ the live state in GCP. Available methods:
 - **delete** — remove the resource from GCP
 - **sync** — refresh all resource properties from the API
 
-Use `swamp model type describe @swamp/gcp/aiplatform/agents` to see the full
-list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/gcp/aiplatform/batchpredictionjobs` to see
+the full list of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -65,17 +65,17 @@ gcloud config set project my-project
 ## Usage
 
 ```bash
-# Create a new agents model
-swamp model create @swamp/gcp/aiplatform/agents my-agents
+# Create a new batchpredictionjobs model
+swamp model create @swamp/gcp/aiplatform/batchpredictionjobs my-batchpredictionjobs
 
 # Edit the model to configure its properties
-swamp model edit my-agents
+swamp model edit my-batchpredictionjobs
 
 # Create the resource in GCP
-swamp model method run my-agents create
+swamp model method run my-batchpredictionjobs create
 
 # Sync current state from GCP
-swamp model method run my-agents sync
+swamp model method run my-batchpredictionjobs sync
 ```
 
 ## License

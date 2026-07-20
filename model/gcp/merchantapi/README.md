@@ -13,8 +13,7 @@ the live state in GCP. Available methods:
 - **delete** — remove the resource from GCP
 - **sync** — refresh all resource properties from the API
 
-Use
-`swamp model type describe @swamp/gcp/merchantapi/accounts_aggregateproductstatuses`
+Use `swamp model type describe @swamp/gcp/merchantapi/accounts_merchantreviews`
 to see the full list of configurable properties and available methods for this
 model.
 
@@ -67,17 +66,17 @@ gcloud config set project my-project
 ## Usage
 
 ```bash
-# Create a new accounts_aggregateproductstatuses model
-swamp model create @swamp/gcp/merchantapi/accounts_aggregateproductstatuses my-accounts_aggregateproductstatuses
+# Create a new accounts_merchantreviews model
+swamp model create @swamp/gcp/merchantapi/accounts_merchantreviews my-accounts_merchantreviews
 
 # Edit the model to configure its properties
-swamp model edit my-accounts_aggregateproductstatuses
+swamp model edit my-accounts_merchantreviews
 
 # Create the resource in GCP
-swamp model method run my-accounts_aggregateproductstatuses create
+swamp model method run my-accounts_merchantreviews create
 
 # Sync current state from GCP
-swamp model method run my-accounts_aggregateproductstatuses sync
+swamp model method run my-accounts_merchantreviews sync
 ```
 
 ## License

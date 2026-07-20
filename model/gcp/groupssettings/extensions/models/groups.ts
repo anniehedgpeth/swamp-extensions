@@ -175,9 +175,6 @@ const GlobalArgsSchema = z.object({
   whoCanAdd: z.string().describe(
     "Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to add members. Possible values are: - ALL_MEMBERS_CAN_ADD: Managers and members can directly add new members. - ALL_MANAGERS_CAN_ADD: Only managers can directly add new members. this includes the group's owner. - ALL_OWNERS_CAN_ADD: Only owners can directly add new members. - NONE_CAN_ADD: No one can directly add new members.",
   ).optional(),
-  whoCanAddExternalMembers: z.string().describe(
-    "Specifies who can add external members. UPDATE and PATCH requests ignore this field if allowExternalMembers is false. Possible values are: - ONLY_ADMINS_CAN_ADD_EXTERNAL_MEMBERS - END_USERS_CAN_ADD_EXTERNAL_MEMBERS",
-  ).optional(),
   whoCanAddReferences: z.string().describe(
     'Deprecated. This functionality is no longer supported in the Google Groups UI. The value is always "NONE".',
   ).optional(),
@@ -218,7 +215,7 @@ const GlobalArgsSchema = z.object({
     "Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to invite new members. Possible values are: - ALL_MEMBERS_CAN_INVITE: Managers and members can invite a new member candidate. - ALL_MANAGERS_CAN_INVITE: Only managers can invite a new member. This includes the group's owner. - ALL_OWNERS_CAN_INVITE: Only owners can invite a new member. - NONE_CAN_INVITE: No one can invite a new member candidate.",
   ).optional(),
   whoCanJoin: z.string().describe(
-    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
+    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. If you later disable this option, any external addresses already added to users' groups remain in those groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
   ).optional(),
   whoCanLeaveGroup: z.string().describe(
     "Permission to leave the group. Possible values are: - ALL_MANAGERS_CAN_LEAVE - ALL_MEMBERS_CAN_LEAVE - NONE_CAN_LEAVE",
@@ -311,7 +308,6 @@ const StateSchema = z.object({
   showInGroupDirectory: z.string().optional(),
   spamModerationLevel: z.string().optional(),
   whoCanAdd: z.string().optional(),
-  whoCanAddExternalMembers: z.string().optional(),
   whoCanAddReferences: z.string().optional(),
   whoCanApproveMembers: z.string().optional(),
   whoCanApproveMessages: z.string().optional(),
@@ -439,9 +435,6 @@ const InputsSchema = z.object({
   whoCanAdd: z.string().describe(
     "Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to add members. Possible values are: - ALL_MEMBERS_CAN_ADD: Managers and members can directly add new members. - ALL_MANAGERS_CAN_ADD: Only managers can directly add new members. this includes the group's owner. - ALL_OWNERS_CAN_ADD: Only owners can directly add new members. - NONE_CAN_ADD: No one can directly add new members.",
   ).optional(),
-  whoCanAddExternalMembers: z.string().describe(
-    "Specifies who can add external members. UPDATE and PATCH requests ignore this field if allowExternalMembers is false. Possible values are: - ONLY_ADMINS_CAN_ADD_EXTERNAL_MEMBERS - END_USERS_CAN_ADD_EXTERNAL_MEMBERS",
-  ).optional(),
   whoCanAddReferences: z.string().describe(
     'Deprecated. This functionality is no longer supported in the Google Groups UI. The value is always "NONE".',
   ).optional(),
@@ -482,7 +475,7 @@ const InputsSchema = z.object({
     "Deprecated. This is merged into the new whoCanModerateMembers setting. Permissions to invite new members. Possible values are: - ALL_MEMBERS_CAN_INVITE: Managers and members can invite a new member candidate. - ALL_MANAGERS_CAN_INVITE: Only managers can invite a new member. This includes the group's owner. - ALL_OWNERS_CAN_INVITE: Only owners can invite a new member. - NONE_CAN_INVITE: No one can invite a new member candidate.",
   ).optional(),
   whoCanJoin: z.string().describe(
-    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
+    "Permission to join group. Possible values are: - ANYONE_CAN_JOIN: Any Internet user who is outside your domain can access your Google Groups service and view the list of groups in your Groups directory. Warning: Group owners can add external addresses, outside of the domain to their groups. They can also allow people outside your domain to join their groups. If you later disable this option, any external addresses already added to users' groups remain in those groups. - ALL_IN_DOMAIN_CAN_JOIN: Anyone in the account domain can join. This includes accounts with multiple domains. - INVITED_CAN_JOIN: Candidates for membership can be invited to join. - CAN_REQUEST_TO_JOIN: Non members can request an invitation to join.",
   ).optional(),
   whoCanLeaveGroup: z.string().describe(
     "Permission to leave the group. Possible values are: - ALL_MANAGERS_CAN_LEAVE - ALL_MEMBERS_CAN_LEAVE - NONE_CAN_LEAVE",
@@ -569,7 +562,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Groups Settings Groups. Registered at `@swamp/gcp/groupssettings/groups`. */
 export const model = {
   type: "@swamp/gcp/groupssettings/groups",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -698,6 +691,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: whoCanAddExternalMembers",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { whoCanAddExternalMembers: _whoCanAddExternalMembers, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -742,22 +744,29 @@ export const model = {
     },
     update: {
       description: "Update groups attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific groups by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -838,9 +847,6 @@ export const model = {
           body["spamModerationLevel"] = g["spamModerationLevel"];
         }
         if (g["whoCanAdd"] !== undefined) body["whoCanAdd"] = g["whoCanAdd"];
-        if (g["whoCanAddExternalMembers"] !== undefined) {
-          body["whoCanAddExternalMembers"] = g["whoCanAddExternalMembers"];
-        }
         if (g["whoCanAddReferences"] !== undefined) {
           body["whoCanAddReferences"] = g["whoCanAddReferences"];
         }
@@ -972,22 +978,29 @@ export const model = {
     },
     sync: {
       description: "Sync groups state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific groups by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

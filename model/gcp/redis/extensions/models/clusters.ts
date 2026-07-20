@@ -171,7 +171,6 @@ const GlobalArgsSchema = z.object({
     "AUTH_MODE_UNSPECIFIED",
     "AUTH_MODE_IAM_AUTH",
     "AUTH_MODE_DISABLED",
-    "AUTH_MODE_TOKEN_AUTH",
   ]).describe(
     "Optional. The authorization mode of the Redis cluster. If not provided, auth feature is disabled for the cluster.",
   ).optional(),
@@ -437,9 +436,6 @@ const GlobalArgsSchema = z.object({
     "REDIS_HIGHMEM_MEDIUM",
     "REDIS_HIGHMEM_XLARGE",
     "REDIS_STANDARD_SMALL",
-    "REDIS_HIGHCPU_MEDIUM",
-    "REDIS_STANDARD_LARGE",
-    "REDIS_HIGHMEM_2XLARGE",
   ]).describe(
     "Optional. The type of a redis node in the cluster. NodeType determines the underlying machine-type of a redis node.",
   ).optional(),
@@ -506,9 +502,6 @@ const GlobalArgsSchema = z.object({
         "REDIS_HIGHMEM_MEDIUM",
         "REDIS_HIGHMEM_XLARGE",
         "REDIS_STANDARD_SMALL",
-        "REDIS_HIGHCPU_MEDIUM",
-        "REDIS_STANDARD_LARGE",
-        "REDIS_HIGHMEM_2XLARGE",
       ]).describe("Target node type for redis cluster.").optional(),
       targetReplicaCount: z.number().int().describe(
         "Target number of replica nodes per shard.",
@@ -537,9 +530,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     zone: z.string().describe(
       "Optional. When SINGLE ZONE distribution is selected, zone field would be used to allocate all resources in that zone. This is not applicable to MULTI_ZONE, and would be ignored for MULTI_ZONE clusters.",
-    ).optional(),
-    zones: z.array(z.string()).describe(
-      "Optional. Specify the zones of a multi-zone cluster where Redis Cluster allocates resources. This flag isn't applicable for single-zone clusters.",
     ).optional(),
   }).describe("Zone distribution config for allocation of cluster resources.")
     .optional(),
@@ -717,7 +707,6 @@ const StateSchema = z.object({
   zoneDistributionConfig: z.object({
     mode: z.string(),
     zone: z.string(),
-    zones: z.array(z.string()),
   }).optional(),
 }).passthrough();
 
@@ -738,7 +727,6 @@ const InputsSchema = z.object({
     "AUTH_MODE_UNSPECIFIED",
     "AUTH_MODE_IAM_AUTH",
     "AUTH_MODE_DISABLED",
-    "AUTH_MODE_TOKEN_AUTH",
   ]).describe(
     "Optional. The authorization mode of the Redis cluster. If not provided, auth feature is disabled for the cluster.",
   ).optional(),
@@ -1004,9 +992,6 @@ const InputsSchema = z.object({
     "REDIS_HIGHMEM_MEDIUM",
     "REDIS_HIGHMEM_XLARGE",
     "REDIS_STANDARD_SMALL",
-    "REDIS_HIGHCPU_MEDIUM",
-    "REDIS_STANDARD_LARGE",
-    "REDIS_HIGHMEM_2XLARGE",
   ]).describe(
     "Optional. The type of a redis node in the cluster. NodeType determines the underlying machine-type of a redis node.",
   ).optional(),
@@ -1073,9 +1058,6 @@ const InputsSchema = z.object({
         "REDIS_HIGHMEM_MEDIUM",
         "REDIS_HIGHMEM_XLARGE",
         "REDIS_STANDARD_SMALL",
-        "REDIS_HIGHCPU_MEDIUM",
-        "REDIS_STANDARD_LARGE",
-        "REDIS_HIGHMEM_2XLARGE",
       ]).describe("Target node type for redis cluster.").optional(),
       targetReplicaCount: z.number().int().describe(
         "Target number of replica nodes per shard.",
@@ -1104,9 +1086,6 @@ const InputsSchema = z.object({
     ).optional(),
     zone: z.string().describe(
       "Optional. When SINGLE ZONE distribution is selected, zone field would be used to allocate all resources in that zone. This is not applicable to MULTI_ZONE, and would be ignored for MULTI_ZONE clusters.",
-    ).optional(),
-    zones: z.array(z.string()).describe(
-      "Optional. Specify the zones of a multi-zone cluster where Redis Cluster allocates resources. This flag isn't applicable for single-zone clusters.",
     ).optional(),
   }).describe("Zone distribution config for allocation of cluster resources.")
     .optional(),
@@ -1143,7 +1122,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Memorystore for Redis Clusters. Registered at `@swamp/gcp/redis/clusters`. */
 export const model = {
   type: "@swamp/gcp/redis/clusters",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1272,6 +1251,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1457,25 +1441,34 @@ export const model = {
     update: {
       description: "Update clusters attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific clusters by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1629,22 +1622,29 @@ export const model = {
     },
     sync: {
       description: "Sync clusters state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific clusters by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1728,55 +1728,6 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
-      },
-    },
-    add_token_auth_user: {
-      description: "add token auth user",
-      arguments: z.object({
-        tokenAuthUser: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
-            /\.\./g,
-            "_",
-          ).replace(/\0/g, ""),
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        params["cluster"] = existing["name"]?.toString() ??
-          g["name"]?.toString() ?? "";
-        const body: Record<string, unknown> = {};
-        if (args["tokenAuthUser"] !== undefined) {
-          body["tokenAuthUser"] = args["tokenAuthUser"];
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "redis.projects.locations.clusters.addTokenAuthUser",
-            "path": "v1/{+cluster}:addTokenAuthUser",
-            "httpMethod": "POST",
-            "parameterOrder": ["cluster"],
-            "parameters": {
-              "cluster": { "location": "path", "required": true },
-            },
-          },
-          params,
-          body,
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
       },
     },
     backup: {

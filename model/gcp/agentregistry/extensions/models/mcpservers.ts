@@ -35,7 +35,6 @@
 
 import { z } from "npm:zod@4.3.6";
 import {
-  createResource,
   type ExplicitGcpCredentials,
   getProjectId,
   isResourceNotFoundError,
@@ -52,7 +51,7 @@ const BASE_URL = "https://agentregistry.googleapis.com/";
 
 const GET_CONFIG = {
   "id": "agentregistry.projects.locations.mcpServers.get",
-  "path": "v1/{+name}",
+  "path": "v1alpha/{+name}",
   "httpMethod": "GET",
   "parameterOrder": [
     "name",
@@ -67,7 +66,7 @@ const GET_CONFIG = {
 
 const LIST_CONFIG = {
   "id": "agentregistry.projects.locations.mcpServers.list",
-  "path": "v1/{+parent}/mcpServers",
+  "path": "v1alpha/{+parent}/mcpServers",
   "httpMethod": "GET",
   "parameterOrder": [
     "parent",
@@ -174,7 +173,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Registry McpServers. Registered at `@swamp/gcp/agentregistry/mcpservers`. */
 export const model = {
   type: "@swamp/gcp/agentregistry/mcpservers",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -296,6 +295,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -342,22 +346,29 @@ export const model = {
     },
     sync: {
       description: "Sync mcpServers state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific mcpServers by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -451,50 +462,6 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
-      },
-    },
-    search: {
-      description: "search",
-      arguments: z.object({
-        pageSize: z.any().optional(),
-        pageToken: z.any().optional(),
-        searchString: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
-        const body: Record<string, unknown> = {};
-        if (args["pageSize"] !== undefined) body["pageSize"] = args["pageSize"];
-        if (args["pageToken"] !== undefined) {
-          body["pageToken"] = args["pageToken"];
-        }
-        if (args["searchString"] !== undefined) {
-          body["searchString"] = args["searchString"];
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "agentregistry.projects.locations.mcpServers.search",
-            "path": "v1/{+parent}/mcpServers:search",
-            "httpMethod": "POST",
-            "parameterOrder": ["parent"],
-            "parameters": {
-              "parent": { "location": "path", "required": true },
-            },
-          },
-          params,
-          body,
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
       },
     },
   },

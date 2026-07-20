@@ -146,18 +146,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  action: z.object({
-    conversationFilter: z.string().describe("The conversation filter string.")
-      .optional(),
-    redirectAction: z.object({
-      queryParams: z.record(z.string(), z.string()).describe(
-        "The query params to be added to the redirect path.",
-      ).optional(),
-      relativePath: z.string().describe("The relative path to redirect to.")
-        .optional(),
-    }).describe("The redirect action to be taken when the chart is clicked.")
-      .optional(),
-  }).describe("The action to be taken when the chart is clicked.").optional(),
   chartVisualizationType: z.enum([
     "CHART_VISUALIZATION_TYPE_UNSPECIFIED",
     "BAR",
@@ -256,13 +244,6 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
-  action: z.object({
-    conversationFilter: z.string(),
-    redirectAction: z.object({
-      queryParams: z.record(z.string(), z.unknown()),
-      relativePath: z.string(),
-    }),
-  }).optional(),
   chartType: z.string().optional(),
   chartVisualizationType: z.string().optional(),
   createTime: z.string().optional(),
@@ -313,18 +294,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  action: z.object({
-    conversationFilter: z.string().describe("The conversation filter string.")
-      .optional(),
-    redirectAction: z.object({
-      queryParams: z.record(z.string(), z.string()).describe(
-        "The query params to be added to the redirect path.",
-      ).optional(),
-      relativePath: z.string().describe("The relative path to redirect to.")
-        .optional(),
-    }).describe("The redirect action to be taken when the chart is clicked.")
-      .optional(),
-  }).describe("The action to be taken when the chart is clicked.").optional(),
   chartVisualizationType: z.enum([
     "CHART_VISUALIZATION_TYPE_UNSPECIFIED",
     "BAR",
@@ -445,7 +414,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Dashboards.Charts. Registered at `@swamp/gcp/contactcenterinsights/dashboards-charts`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/dashboards-charts",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -596,6 +565,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: action",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { action: _action, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -619,7 +596,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["action"] !== undefined) body["action"] = g["action"];
         if (g["chartVisualizationType"] !== undefined) {
           body["chartVisualizationType"] = g["chartVisualizationType"];
         }
@@ -708,22 +684,29 @@ export const model = {
     },
     update: {
       description: "Update charts attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific charts by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -737,7 +720,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["action"] !== undefined) body["action"] = g["action"];
         if (g["chartVisualizationType"] !== undefined) {
           body["chartVisualizationType"] = g["chartVisualizationType"];
         }
@@ -818,22 +800,29 @@ export const model = {
     },
     sync: {
       description: "Sync charts state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific charts by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

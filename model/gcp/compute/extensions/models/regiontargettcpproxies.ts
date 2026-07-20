@@ -175,14 +175,6 @@ const GlobalArgsSchema = z.object({
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
-  loadBalancingScheme: z.enum([
-    "EXTERNAL",
-    "EXTERNAL_MANAGED",
-    "INTERNAL_MANAGED",
-    "LOAD_BALANCING_SCHEME_UNSPECIFIED",
-  ]).describe(
-    "Specifies the type of load balancing scheme used by this target proxy.",
-  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
@@ -208,7 +200,6 @@ const StateSchema = z.object({
   description: z.string().optional(),
   id: z.string().optional(),
   kind: z.string().optional(),
-  loadBalancingScheme: z.string().optional(),
   name: z.string(),
   proxyBind: z.boolean().optional(),
   proxyHeader: z.string().optional(),
@@ -226,14 +217,6 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
-  ).optional(),
-  loadBalancingScheme: z.enum([
-    "EXTERNAL",
-    "EXTERNAL_MANAGED",
-    "INTERNAL_MANAGED",
-    "LOAD_BALANCING_SCHEME_UNSPECIFIED",
-  ]).describe(
-    "Specifies the type of load balancing scheme used by this target proxy.",
   ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
@@ -278,7 +261,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionTargetTcpProxies. Registered at `@swamp/gcp/compute/regiontargettcpproxies`. */
 export const model = {
   type: "@swamp/gcp/compute/regiontargettcpproxies",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -380,6 +363,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: loadBalancingScheme",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { loadBalancingScheme: _loadBalancingScheme, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -405,9 +396,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
-        }
-        if (g["loadBalancingScheme"] !== undefined) {
-          body["loadBalancingScheme"] = g["loadBalancingScheme"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["proxyBind"] !== undefined) body["proxyBind"] = g["proxyBind"];
@@ -517,22 +505,29 @@ export const model = {
     },
     sync: {
       description: "Sync regionTargetTcpProxies state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific regionTargetTcpProxies by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -156,10 +156,6 @@ const StateSchema = z.object({
         encoding: z.string(),
         typeInferenceDisabled: z.boolean(),
       }),
-      unstructuredDataOptions: z.object({
-        globalEndpointEnabled: z.boolean(),
-        semanticInferenceEnabled: z.boolean(),
-      }),
     }),
   }).optional(),
   dataDocumentationResult: z.object({
@@ -180,6 +176,14 @@ const StateSchema = z.object({
         }),
         sources: z.array(z.unknown()),
         type: z.string(),
+      })),
+      tableResults: z.array(z.object({
+        name: z.string(),
+        overview: z.string(),
+        queries: z.array(z.unknown()),
+        schema: z.object({
+          fields: z.unknown(),
+        }),
       })),
     }),
     tableResult: z.object({
@@ -244,7 +248,6 @@ const StateSchema = z.object({
     includeFields: z.object({
       fieldNames: z.array(z.string()),
     }),
-    mode: z.string(),
     postScanActions: z.object({
       bigqueryExport: z.object({
         resultsTable: z.string(),
@@ -300,7 +303,6 @@ const StateSchema = z.object({
       passed: z.boolean(),
       passedCount: z.string(),
       rule: z.object({
-        attributes: z.record(z.string(), z.unknown()),
         column: z.string(),
         debugQueries: z.array(z.unknown()),
         description: z.string(),
@@ -320,9 +322,6 @@ const StateSchema = z.object({
         rowConditionExpectation: z.object({
           sqlExpression: z.unknown(),
         }),
-        ruleSource: z.object({
-          rulePathElements: z.unknown(),
-        }),
         setExpectation: z.object({
           values: z.unknown(),
         }),
@@ -340,12 +339,6 @@ const StateSchema = z.object({
         tableConditionExpectation: z.object({
           sqlExpression: z.unknown(),
         }),
-        templateReference: z.object({
-          name: z.unknown(),
-          resolvedSql: z.unknown(),
-          ruleTemplate: z.unknown(),
-          values: z.unknown(),
-        }),
         threshold: z.number(),
         uniquenessExpectation: z.object({}),
       }),
@@ -361,8 +354,6 @@ const StateSchema = z.object({
   }).optional(),
   dataQualitySpec: z.object({
     catalogPublishingEnabled: z.boolean(),
-    enableCatalogBasedRules: z.boolean(),
-    filter: z.string(),
     postScanActions: z.object({
       bigqueryExport: z.object({
         resultsTable: z.string(),
@@ -380,7 +371,6 @@ const StateSchema = z.object({
     }),
     rowFilter: z.string(),
     rules: z.array(z.object({
-      attributes: z.record(z.string(), z.unknown()),
       column: z.string(),
       debugQueries: z.array(z.object({
         description: z.unknown(),
@@ -403,9 +393,6 @@ const StateSchema = z.object({
       rowConditionExpectation: z.object({
         sqlExpression: z.string(),
       }),
-      ruleSource: z.object({
-        rulePathElements: z.array(z.unknown()),
-      }),
       setExpectation: z.object({
         values: z.array(z.unknown()),
       }),
@@ -423,18 +410,6 @@ const StateSchema = z.object({
       tableConditionExpectation: z.object({
         sqlExpression: z.string(),
       }),
-      templateReference: z.object({
-        name: z.string(),
-        resolvedSql: z.string(),
-        ruleTemplate: z.object({
-          capabilities: z.unknown(),
-          dimension: z.unknown(),
-          inputParameters: z.unknown(),
-          name: z.unknown(),
-          sqlCollection: z.unknown(),
-        }),
-        values: z.record(z.string(), z.unknown()),
-      }),
       threshold: z.number(),
       uniquenessExpectation: z.object({}),
     })),
@@ -443,42 +418,10 @@ const StateSchema = z.object({
   endTime: z.string().optional(),
   message: z.string().optional(),
   name: z.string(),
-  partialFailureMessage: z.string().optional(),
   startTime: z.string().optional(),
   state: z.string().optional(),
   type: z.string().optional(),
   uid: z.string().optional(),
-  unstructuredDataProfileResult: z.object({
-    description: z.string(),
-    graphProfile: z.object({
-      edgeTypes: z.array(z.object({
-        description: z.string(),
-        extractionHints: z.object({
-          cardinality: z.unknown(),
-        }),
-        fields: z.array(z.unknown()),
-        foreignKeys: z.array(z.unknown()),
-        name: z.string(),
-        sourceNodeType: z.string(),
-        targetNodeType: z.string(),
-      })),
-      nodeTypes: z.array(z.object({
-        description: z.string(),
-        extractionHints: z.object({
-          cardinality: z.unknown(),
-        }),
-        fields: z.array(z.unknown()),
-        name: z.string(),
-        primaryKeys: z.array(z.unknown()),
-      })),
-    }),
-    partialFailureMessage: z.string(),
-  }).optional(),
-  unstructuredDataProfileSpec: z.object({
-    customizedPrompt: z.string(),
-    globalEndpointEnabled: z.boolean(),
-    graphProfilePublishingEnabled: z.boolean(),
-  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -520,7 +463,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataScans.Jobs. Registered at `@swamp/gcp/dataplex/datascans-jobs`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datascans-jobs",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -667,6 +610,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -714,22 +662,29 @@ export const model = {
     },
     sync: {
       description: "Sync jobs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific jobs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -817,39 +772,6 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
-      },
-    },
-    cancel: {
-      description: "cancel",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
-        if (g["parent"] !== undefined && g["name"] !== undefined) {
-          params["name"] = buildResourceName(
-            String(g["parent"]),
-            String(g["name"]),
-          );
-        }
-        const result = await createResource(
-          BASE_URL,
-          {
-            "id": "dataplex.projects.locations.dataScans.jobs.cancel",
-            "path": "v1/{+name}:cancel",
-            "httpMethod": "POST",
-            "parameterOrder": ["name"],
-            "parameters": { "name": { "location": "path", "required": true } },
-          },
-          params,
-          {},
-          undefined,
-          undefined,
-          undefined,
-          credentials,
-        );
-        return { result };
       },
     },
     generate_data_quality_rules: {

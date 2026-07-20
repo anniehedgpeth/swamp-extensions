@@ -237,16 +237,6 @@ const GlobalArgsSchema = z.object({
   ttl: z.string().describe(
     "Input only. The TTL for the SingleTenantHsmInstanceProposal. Proposals will expire after this duration.",
   ).optional(),
-  upgradeKeyTrust: z.object({
-    name: z.string().describe(
-      "Required. The name of the CryptoKeyVersion to promote.",
-    ).optional(),
-    twoFactorPublicKeyPem: z.string().describe(
-      "Required. The public key associated with the 2FA key that will sign the login nonce for this operation.",
-    ).optional(),
-  }).describe(
-    "Promotes a key with the AES_WRAPPING purpose to a trusted wrapping key. The key must be in the ACTIVE state to perform this operation.",
-  ).optional(),
   singleTenantHsmInstanceProposalId: z.string().describe(
     "Optional. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`.",
   ).optional(),
@@ -301,10 +291,6 @@ const StateSchema = z.object({
   }).optional(),
   state: z.string().optional(),
   ttl: z.string().optional(),
-  upgradeKeyTrust: z.object({
-    name: z.string(),
-    twoFactorPublicKeyPem: z.string(),
-  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -409,16 +395,6 @@ const InputsSchema = z.object({
   ttl: z.string().describe(
     "Input only. The TTL for the SingleTenantHsmInstanceProposal. Proposals will expire after this duration.",
   ).optional(),
-  upgradeKeyTrust: z.object({
-    name: z.string().describe(
-      "Required. The name of the CryptoKeyVersion to promote.",
-    ).optional(),
-    twoFactorPublicKeyPem: z.string().describe(
-      "Required. The public key associated with the 2FA key that will sign the login nonce for this operation.",
-    ).optional(),
-  }).describe(
-    "Promotes a key with the AES_WRAPPING purpose to a trusted wrapping key. The key must be in the ACTIVE state to perform this operation.",
-  ).optional(),
   singleTenantHsmInstanceProposalId: z.string().describe(
     "Optional. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`.",
   ).optional(),
@@ -453,7 +429,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) SingleTenantHsmInstances.Proposals. Registered at `@swamp/gcp/cloudkms/singletenanthsminstances-proposals`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/singletenanthsminstances-proposals",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -560,6 +536,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: upgradeKeyTrust",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { upgradeKeyTrust: _upgradeKeyTrust, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -622,9 +606,6 @@ export const model = {
             g["requiredActionQuorumParameters"];
         }
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];
-        if (g["upgradeKeyTrust"] !== undefined) {
-          body["upgradeKeyTrust"] = g["upgradeKeyTrust"];
-        }
         if (g["singleTenantHsmInstanceProposalId"] !== undefined) {
           params["singleTenantHsmInstanceProposalId"] = String(
             g["singleTenantHsmInstanceProposalId"],
@@ -737,22 +718,29 @@ export const model = {
     },
     sync: {
       description: "Sync proposals state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific proposals by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

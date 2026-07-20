@@ -233,18 +233,27 @@ const GlobalArgsSchema = z.object({
     "CONVERSION_CATEGORY_SIGNUP",
     "CONVERSION_CATEGORY_PAGE_VIEW",
     "CONVERSION_CATEGORY_DOWNLOAD",
+    "CONVERSION_CATEGORY_BOOM_EVENT",
     "CONVERSION_CATEGORY_ADD_TO_CART",
     "CONVERSION_CATEGORY_BEGIN_CHECKOUT",
     "CONVERSION_CATEGORY_SUBSCRIBE_PAID",
+    "CONVERSION_CATEGORY_SUBSCRIBE_FREE",
+    "CONVERSION_CATEGORY_PHONE_CALL_LEAD",
+    "CONVERSION_CATEGORY_IMPORTED_LEAD",
     "CONVERSION_CATEGORY_SUBMIT_LEAD_FORM",
     "CONVERSION_CATEGORY_BOOK_APPOINTMENT",
     "CONVERSION_CATEGORY_REQUEST_QUOTE",
     "CONVERSION_CATEGORY_GET_DIRECTIONS",
     "CONVERSION_CATEGORY_OUTBOUND_CLICK",
     "CONVERSION_CATEGORY_CONTACT",
+    "CONVERSION_CATEGORY_VIEW_KEY_PAGE",
+    "CONVERSION_CATEGORY_ENGAGEMENT",
+    "CONVERSION_CATEGORY_STORE_VISIT",
+    "CONVERSION_CATEGORY_STORE_SALE",
     "CONVERSION_CATEGORY_QUALIFIED_LEAD",
     "CONVERSION_CATEGORY_CONVERTED_LEAD",
     "CONVERSION_CATEGORY_IN_APP_AD_REVENUE",
+    "CONVERSION_CATEGORY_MESSAGE_LEAD",
   ]).describe("Required. The conversion category of the activity.").optional(),
   countingMethod: z.enum([
     "STANDARD_COUNTING",
@@ -631,18 +640,27 @@ const InputsSchema = z.object({
     "CONVERSION_CATEGORY_SIGNUP",
     "CONVERSION_CATEGORY_PAGE_VIEW",
     "CONVERSION_CATEGORY_DOWNLOAD",
+    "CONVERSION_CATEGORY_BOOM_EVENT",
     "CONVERSION_CATEGORY_ADD_TO_CART",
     "CONVERSION_CATEGORY_BEGIN_CHECKOUT",
     "CONVERSION_CATEGORY_SUBSCRIBE_PAID",
+    "CONVERSION_CATEGORY_SUBSCRIBE_FREE",
+    "CONVERSION_CATEGORY_PHONE_CALL_LEAD",
+    "CONVERSION_CATEGORY_IMPORTED_LEAD",
     "CONVERSION_CATEGORY_SUBMIT_LEAD_FORM",
     "CONVERSION_CATEGORY_BOOK_APPOINTMENT",
     "CONVERSION_CATEGORY_REQUEST_QUOTE",
     "CONVERSION_CATEGORY_GET_DIRECTIONS",
     "CONVERSION_CATEGORY_OUTBOUND_CLICK",
     "CONVERSION_CATEGORY_CONTACT",
+    "CONVERSION_CATEGORY_VIEW_KEY_PAGE",
+    "CONVERSION_CATEGORY_ENGAGEMENT",
+    "CONVERSION_CATEGORY_STORE_VISIT",
+    "CONVERSION_CATEGORY_STORE_SALE",
     "CONVERSION_CATEGORY_QUALIFIED_LEAD",
     "CONVERSION_CATEGORY_CONVERTED_LEAD",
     "CONVERSION_CATEGORY_IN_APP_AD_REVENUE",
+    "CONVERSION_CATEGORY_MESSAGE_LEAD",
   ]).describe("Required. The conversion category of the activity.").optional(),
   countingMethod: z.enum([
     "STANDARD_COUNTING",
@@ -926,7 +944,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 FloodlightActivities. Registered at `@swamp/gcp/dfareporting/floodlightactivities`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/floodlightactivities",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1015,6 +1033,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1189,25 +1212,31 @@ export const model = {
     update: {
       description: "Update floodlightActivities attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific floodlightActivities by id (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.id?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = (g.id?.toString() ?? args.identifier ?? "current")
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1354,22 +1383,26 @@ export const model = {
     },
     sync: {
       description: "Sync floodlightActivities state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific floodlightActivities by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.id?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = (g.id?.toString() ?? args.identifier ?? "current")
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/monitoring"
-version: "2026.07.19.3"
+version: "2026.07.20.1"
 description: "Google Cloud monitoring infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,15 +11,12 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: timeseries, groups_members, monitoredresourcedescriptors, notificationchanneldescriptors, location_prometheus_api_v1_metadata
+  - Updated: timeseries, alertpolicies, alerts, groups, groups_members, metricdescriptors, monitoredresourcedescriptors, notificationchanneldescriptors, notificationchannels, snoozes, uptimecheckconfigs, services, services_servicelevelobjectives, uptimecheckips
 models:
   - alertpolicies.ts
   - alerts.ts
-  - dashboards.ts
-  - global_metricsscopes.ts
   - groups.ts
   - groups_members.ts
-  - location_prometheus_api_v1_metadata.ts
   - metricdescriptors.ts
   - monitoredresourcedescriptors.ts
   - notificationchanneldescriptors.ts

@@ -167,9 +167,6 @@ const GlobalArgsSchema = z.object({
       networkUri: z.string().describe(
         "Optional. Network URI to connect workload to.",
       ).optional(),
-      resourceManagerTags: z.record(z.string(), z.string()).describe(
-        "Optional. Associates Resource Manager tags with the workload nodes. There is a max limit of 30 tags. Keys and values can be either in numeric format, such as tagKeys/{tag_key_id} and tagValues/{tag_value_id}, or in namespaced format, such as {org_id|project_id}/{tag_key_short_name} and {tag_value_short_name}.",
-      ).optional(),
       serviceAccount: z.string().describe(
         "Optional. Service account that used to execute workload.",
       ).optional(),
@@ -244,19 +241,10 @@ const GlobalArgsSchema = z.object({
   runtimeInfo: z.object({
     approximateUsage: z.object({
       acceleratorType: z.string().describe(
-        "Optional. Accelerator type being used, if any Deprecated: This field is only used in runtime versions below 3.0.",
+        "Optional. DEPRECATED Accelerator type being used, if any",
       ).optional(),
       milliAcceleratorSeconds: z.string().describe(
-        "Optional. Accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)). Deprecated: This field is only used in runtime versions below 3.0.",
-      ).optional(),
-      milliAcceleratorSecondsA10040: z.string().describe(
-        "Optional. A100-40 accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
-      ).optional(),
-      milliAcceleratorSecondsA10080: z.string().describe(
-        "Optional. A100-80 accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
-      ).optional(),
-      milliAcceleratorSecondsL4: z.string().describe(
-        "Optional. L4 accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
+        "Optional. DEPRECATED Accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
       ).optional(),
       milliDcuSeconds: z.string().describe(
         "Optional. DCU (Dataproc Compute Units) usage in (milliDCU x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
@@ -283,19 +271,10 @@ const GlobalArgsSchema = z.object({
       .optional(),
     currentUsage: z.object({
       acceleratorType: z.string().describe(
-        "Optional. Accelerator type being used, if any Deprecated: This field is only used in runtime versions below 3.0.",
+        "Optional. Accelerator type being used, if any",
       ).optional(),
       milliAccelerator: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)) Deprecated: This field is only used in runtime versions below 3.0.",
-      ).optional(),
-      milliAcceleratorA10040: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator for A100-40 accelerators. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
-      ).optional(),
-      milliAcceleratorA10080: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator for A100-80 accelerators. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
-      ).optional(),
-      milliAcceleratorL4: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator for L4 accelerators. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
+        "Optional. Milli (one-thousandth) accelerator. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
       ).optional(),
       milliDcu: z.string().describe(
         "Optional. Milli (one-thousandth) Dataproc Compute Units (DCUs) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
@@ -372,7 +351,6 @@ const StateSchema = z.object({
       kmsKey: z.string(),
       networkTags: z.array(z.string()),
       networkUri: z.string(),
-      resourceManagerTags: z.record(z.string(), z.unknown()),
       serviceAccount: z.string(),
       stagingBucket: z.string(),
       subnetworkUri: z.string(),
@@ -409,9 +387,6 @@ const StateSchema = z.object({
     approximateUsage: z.object({
       acceleratorType: z.string(),
       milliAcceleratorSeconds: z.string(),
-      milliAcceleratorSecondsA10040: z.string(),
-      milliAcceleratorSecondsA10080: z.string(),
-      milliAcceleratorSecondsL4: z.string(),
       milliDcuSeconds: z.string(),
       shuffleStorageGbSeconds: z.string(),
       updateTime: z.string(),
@@ -423,9 +398,6 @@ const StateSchema = z.object({
     currentUsage: z.object({
       acceleratorType: z.string(),
       milliAccelerator: z.string(),
-      milliAcceleratorA10040: z.string(),
-      milliAcceleratorA10080: z.string(),
-      milliAcceleratorL4: z.string(),
       milliDcu: z.string(),
       milliDcuPremium: z.string(),
       shuffleStorageGb: z.string(),
@@ -484,9 +456,6 @@ const InputsSchema = z.object({
       ).optional(),
       networkUri: z.string().describe(
         "Optional. Network URI to connect workload to.",
-      ).optional(),
-      resourceManagerTags: z.record(z.string(), z.string()).describe(
-        "Optional. Associates Resource Manager tags with the workload nodes. There is a max limit of 30 tags. Keys and values can be either in numeric format, such as tagKeys/{tag_key_id} and tagValues/{tag_value_id}, or in namespaced format, such as {org_id|project_id}/{tag_key_short_name} and {tag_value_short_name}.",
       ).optional(),
       serviceAccount: z.string().describe(
         "Optional. Service account that used to execute workload.",
@@ -562,19 +531,10 @@ const InputsSchema = z.object({
   runtimeInfo: z.object({
     approximateUsage: z.object({
       acceleratorType: z.string().describe(
-        "Optional. Accelerator type being used, if any Deprecated: This field is only used in runtime versions below 3.0.",
+        "Optional. DEPRECATED Accelerator type being used, if any",
       ).optional(),
       milliAcceleratorSeconds: z.string().describe(
-        "Optional. Accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)). Deprecated: This field is only used in runtime versions below 3.0.",
-      ).optional(),
-      milliAcceleratorSecondsA10040: z.string().describe(
-        "Optional. A100-40 accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
-      ).optional(),
-      milliAcceleratorSecondsA10080: z.string().describe(
-        "Optional. A100-80 accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
-      ).optional(),
-      milliAcceleratorSecondsL4: z.string().describe(
-        "Optional. L4 accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
+        "Optional. DEPRECATED Accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
       ).optional(),
       milliDcuSeconds: z.string().describe(
         "Optional. DCU (Dataproc Compute Units) usage in (milliDCU x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
@@ -601,19 +561,10 @@ const InputsSchema = z.object({
       .optional(),
     currentUsage: z.object({
       acceleratorType: z.string().describe(
-        "Optional. Accelerator type being used, if any Deprecated: This field is only used in runtime versions below 3.0.",
+        "Optional. Accelerator type being used, if any",
       ).optional(),
       milliAccelerator: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)) Deprecated: This field is only used in runtime versions below 3.0.",
-      ).optional(),
-      milliAcceleratorA10040: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator for A100-40 accelerators. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
-      ).optional(),
-      milliAcceleratorA10080: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator for A100-80 accelerators. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
-      ).optional(),
-      milliAcceleratorL4: z.string().describe(
-        "Optional. Milli (one-thousandth) accelerator for L4 accelerators. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
+        "Optional. Milli (one-thousandth) accelerator. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))",
       ).optional(),
       milliDcu: z.string().describe(
         "Optional. Milli (one-thousandth) Dataproc Compute Units (DCUs) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).",
@@ -701,7 +652,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Sessions. Registered at `@swamp/gcp/dataproc/sessions`. */
 export const model = {
   type: "@swamp/gcp/dataproc/sessions",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -835,6 +786,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1002,22 +958,29 @@ export const model = {
     },
     sync: {
       description: "Sync sessions state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific sessions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

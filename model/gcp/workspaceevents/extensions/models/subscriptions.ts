@@ -152,10 +152,6 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/chat.messages.readonly",
   "https://www.googleapis.com/auth/chat.spaces",
   "https://www.googleapis.com/auth/chat.spaces.readonly",
-  "https://www.googleapis.com/auth/chat.users.availability",
-  "https://www.googleapis.com/auth/chat.users.availability.readonly",
-  "https://www.googleapis.com/auth/chat.users.readstate",
-  "https://www.googleapis.com/auth/chat.users.readstate.readonly",
   "https://www.googleapis.com/auth/drive",
   "https://www.googleapis.com/auth/drive.file",
   "https://www.googleapis.com/auth/drive.metadata",
@@ -178,12 +174,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  driveOptions: z.object({
-    includeDescendants: z.boolean().describe(
-      "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
-    ).optional(),
-  }).describe("Additional supported options for serving Drive events.")
-    .optional(),
   expireTime: z.string().describe(
     "Non-empty default. The timestamp in UTC when the subscription expires. Always displayed on output, regardless of what was used on input.",
   ).optional(),
@@ -217,9 +207,6 @@ const GlobalArgsSchema = z.object({
 const StateSchema = z.object({
   authority: z.string().optional(),
   createTime: z.string().optional(),
-  driveOptions: z.object({
-    includeDescendants: z.boolean(),
-  }).optional(),
   etag: z.string().optional(),
   eventTypes: z.array(z.string()).optional(),
   expireTime: z.string().optional(),
@@ -249,12 +236,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  driveOptions: z.object({
-    includeDescendants: z.boolean().describe(
-      "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
-    ).optional(),
-  }).describe("Additional supported options for serving Drive events.")
-    .optional(),
   expireTime: z.string().describe(
     "Non-empty default. The timestamp in UTC when the subscription expires. Always displayed on output, regardless of what was used on input.",
   ).optional(),
@@ -308,7 +289,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Events Subscriptions. Registered at `@swamp/gcp/workspaceevents/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/workspaceevents/subscriptions",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -444,6 +425,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.1",
+      description: "Removed: driveOptions",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { driveOptions: _driveOptions, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -470,9 +459,6 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["driveOptions"] !== undefined) {
-          body["driveOptions"] = g["driveOptions"];
-        }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["notificationEndpoint"] !== undefined) {
@@ -550,33 +536,39 @@ export const model = {
     update: {
       description: "Update subscriptions attributes",
       arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific subscriptions by name (e.g. one discovered by list)",
+        ).optional(),
         waitForReady: z.boolean().describe(
           "Wait for the resource to reach a ready state after update (default: true)",
         ).optional(),
       }),
-      execute: async (args: { waitForReady?: boolean }, context: any) => {
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
         params["name"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (g["driveOptions"] !== undefined) {
-          body["driveOptions"] = g["driveOptions"];
-        }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["notificationEndpoint"] !== undefined) {
           body["notificationEndpoint"] = g["notificationEndpoint"];
@@ -652,22 +644,29 @@ export const model = {
     },
     sync: {
       description: "Sync subscriptions state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific subscriptions by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

@@ -675,7 +675,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.ServingConfigs. Registered at `@swamp/gcp/discoveryengine/collections-engines-servingconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-servingconfigs",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -794,6 +794,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -941,22 +946,29 @@ export const model = {
     },
     update: {
       description: "Update servingConfigs attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific servingConfigs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
@@ -1080,22 +1092,29 @@ export const model = {
     },
     sync: {
       description: "Sync servingConfigs state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific servingConfigs by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
@@ -1341,10 +1360,8 @@ export const model = {
         canonicalFilter: z.any().optional(),
         contentSearchSpec: z.any().optional(),
         crowdingSpecs: z.any().optional(),
-        customRankingParams: z.any().optional(),
         dataStoreSpecs: z.any().optional(),
         displaySpec: z.any().optional(),
-        entity: z.any().optional(),
         facetSpecs: z.any().optional(),
         filter: z.any().optional(),
         imageQuery: z.any().optional(),
@@ -1406,16 +1423,12 @@ export const model = {
         if (args["crowdingSpecs"] !== undefined) {
           body["crowdingSpecs"] = args["crowdingSpecs"];
         }
-        if (args["customRankingParams"] !== undefined) {
-          body["customRankingParams"] = args["customRankingParams"];
-        }
         if (args["dataStoreSpecs"] !== undefined) {
           body["dataStoreSpecs"] = args["dataStoreSpecs"];
         }
         if (args["displaySpec"] !== undefined) {
           body["displaySpec"] = args["displaySpec"];
         }
-        if (args["entity"] !== undefined) body["entity"] = args["entity"];
         if (args["facetSpecs"] !== undefined) {
           body["facetSpecs"] = args["facetSpecs"];
         }
@@ -1512,10 +1525,8 @@ export const model = {
         canonicalFilter: z.any().optional(),
         contentSearchSpec: z.any().optional(),
         crowdingSpecs: z.any().optional(),
-        customRankingParams: z.any().optional(),
         dataStoreSpecs: z.any().optional(),
         displaySpec: z.any().optional(),
-        entity: z.any().optional(),
         facetSpecs: z.any().optional(),
         filter: z.any().optional(),
         imageQuery: z.any().optional(),
@@ -1577,16 +1588,12 @@ export const model = {
         if (args["crowdingSpecs"] !== undefined) {
           body["crowdingSpecs"] = args["crowdingSpecs"];
         }
-        if (args["customRankingParams"] !== undefined) {
-          body["customRankingParams"] = args["customRankingParams"];
-        }
         if (args["dataStoreSpecs"] !== undefined) {
           body["dataStoreSpecs"] = args["dataStoreSpecs"];
         }
         if (args["displaySpec"] !== undefined) {
           body["displaySpec"] = args["displaySpec"];
         }
-        if (args["entity"] !== undefined) body["entity"] = args["entity"];
         if (args["facetSpecs"] !== undefined) {
           body["facetSpecs"] = args["facetSpecs"];
         }
