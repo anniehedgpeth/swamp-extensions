@@ -167,6 +167,9 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. A user-defined name of the Certificate Map. Certificate Map names must be unique globally and match pattern `projects/*/locations/*/certificateMaps/*`.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   certificateMapId: z.string().describe(
     "Required. A user-provided name of the certificate map.",
   ).optional(),
@@ -188,6 +191,7 @@ const StateSchema = z.object({
   })).optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  tags: z.record(z.string(), z.unknown()).optional(),
   updateTime: z.string().optional(),
 }).passthrough();
 
@@ -206,6 +210,9 @@ const InputsSchema = z.object({
   ).optional(),
   name: z.string().describe(
     "Identifier. A user-defined name of the Certificate Map. Certificate Map names must be unique globally and match pattern `projects/*/locations/*/certificateMaps/*`.",
+  ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
   certificateMapId: z.string().describe(
     "Required. A user-provided name of the certificate map.",
@@ -238,7 +245,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager CertificateMaps. Registered at `@swamp/gcp/certificatemanager/certificatemaps`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/certificatemaps",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -358,6 +365,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -387,6 +399,7 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["certificateMapId"] !== undefined) {
           params["certificateMapId"] = String(g["certificateMapId"]);
         }

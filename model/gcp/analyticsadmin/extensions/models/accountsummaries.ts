@@ -87,6 +87,7 @@ const StateSchema = z.object({
   displayName: z.string().optional(),
   name: z.string(),
   propertySummaries: z.array(z.object({
+    canEdit: z.boolean(),
     displayName: z.string(),
     parent: z.string(),
     property: z.string(),
@@ -127,7 +128,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Admin AccountSummaries. Registered at `@swamp/gcp/analyticsadmin/accountsummaries`. */
 export const model = {
   type: "@swamp/gcp/analyticsadmin/accountsummaries",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -226,6 +227,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -337,7 +343,7 @@ export const model = {
       description: "List accountSummaries resources",
       arguments: z.object({
         pageSize: z.number().describe(
-          "The maximum number of AccountSummary resources to return. The service may return fewer than this value, even if there are additional pages. If unspecified, at most 50 resources will be returned. The maximum value is 200; (higher values will be coerced to the maximum)",
+          "Optional. The maximum number of AccountSummary resources to return. The service may return fewer than this value, even if there are additional pages. If unspecified, at most 50 resources will be returned. The maximum value is 200; (higher values will be coerced to the maximum)",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

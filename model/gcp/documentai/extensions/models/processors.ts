@@ -134,7 +134,7 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   activeSchemaVersion: z.string().describe(
-    "Optional. SchemaVersion used by the Processor. It is the same as Processor's DatasetSchema.schema_version Format is `projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}",
+    "Optional. SchemaVersion used by the Processor. It is the same as Processor's DatasetSchema.schema_version Format is `projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}.",
   ).optional(),
   defaultProcessorVersion: z.string().describe("The default processor version.")
     .optional(),
@@ -178,7 +178,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   activeSchemaVersion: z.string().describe(
-    "Optional. SchemaVersion used by the Processor. It is the same as Processor's DatasetSchema.schema_version Format is `projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}",
+    "Optional. SchemaVersion used by the Processor. It is the same as Processor's DatasetSchema.schema_version Format is `projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}.",
   ).optional(),
   defaultProcessorVersion: z.string().describe("The default processor version.")
     .optional(),
@@ -218,7 +218,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Document AI Processors. Registered at `@swamp/gcp/documentai/processors`. */
 export const model = {
   type: "@swamp/gcp/documentai/processors",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -322,6 +322,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

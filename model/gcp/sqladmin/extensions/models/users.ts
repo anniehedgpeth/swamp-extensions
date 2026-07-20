@@ -246,6 +246,7 @@ const GlobalArgsSchema = z.object({
     "CLOUD_IAM_GROUP",
     "CLOUD_IAM_GROUP_USER",
     "CLOUD_IAM_GROUP_SERVICE_ACCOUNT",
+    "CLOUD_IAM_WORKFORCE_IDENTITY",
     "ENTRAID_USER",
   ]).describe(
     "The user type. It determines the method to authenticate the user during login. The default is the database's built-in user type.",
@@ -350,6 +351,7 @@ const InputsSchema = z.object({
     "CLOUD_IAM_GROUP",
     "CLOUD_IAM_GROUP_USER",
     "CLOUD_IAM_GROUP_SERVICE_ACCOUNT",
+    "CLOUD_IAM_WORKFORCE_IDENTITY",
     "ENTRAID_USER",
   ]).describe(
     "The user type. It determines the method to authenticate the user during login. The default is the database's built-in user type.",
@@ -374,7 +376,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Users. Registered at `@swamp/gcp/sqladmin/users`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/users",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -483,6 +485,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

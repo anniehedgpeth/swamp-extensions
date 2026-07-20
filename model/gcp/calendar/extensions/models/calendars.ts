@@ -151,6 +151,21 @@ const GlobalArgsSchema = z.object({
   id: z.string().describe(
     "Identifier of the calendar. To retrieve IDs call the calendarList.list() method.",
   ).optional(),
+  labelProperties: z.object({
+    eventLabels: z.array(z.object({
+      backgroundColor: z.string().describe(
+        'Background color of the label in hexadecimal format, such as "#039be5". Events with this label are displayed in this color. Required.',
+      ).optional(),
+      id: z.string().describe(
+        "The ID of the label. Optional when inserting a new label. If not provided, a unique ID will be generated. Required when updating a label. If provided, the ID must be unique within the calendar and follow UUID format.",
+      ).optional(),
+      name: z.string().describe(
+        "Name of the label. Optional. If provided this must have at most 50 characters.",
+      ).optional(),
+    })).describe(
+      "Event labels defined on this calendar. If this is present when updating the calendar, it will replace the existing event labels. Extend the list to add a new event label, and remove entities from the list to delete a label from calendar. Each calendar can have a maximum of 200 labels.",
+    ).optional(),
+  }).optional(),
   location: z.string().describe(
     "Geographic location of the calendar as free-form text. Optional.",
   ).optional(),
@@ -170,6 +185,13 @@ const StateSchema = z.object({
   etag: z.string().optional(),
   id: z.string().optional(),
   kind: z.string().optional(),
+  labelProperties: z.object({
+    eventLabels: z.array(z.object({
+      backgroundColor: z.string(),
+      id: z.string(),
+      name: z.string(),
+    })),
+  }).optional(),
   location: z.string().optional(),
   summary: z.string().optional(),
   timeZone: z.string().optional(),
@@ -199,6 +221,21 @@ const InputsSchema = z.object({
   id: z.string().describe(
     "Identifier of the calendar. To retrieve IDs call the calendarList.list() method.",
   ).optional(),
+  labelProperties: z.object({
+    eventLabels: z.array(z.object({
+      backgroundColor: z.string().describe(
+        'Background color of the label in hexadecimal format, such as "#039be5". Events with this label are displayed in this color. Required.',
+      ).optional(),
+      id: z.string().describe(
+        "The ID of the label. Optional when inserting a new label. If not provided, a unique ID will be generated. Required when updating a label. If provided, the ID must be unique within the calendar and follow UUID format.",
+      ).optional(),
+      name: z.string().describe(
+        "Name of the label. Optional. If provided this must have at most 50 characters.",
+      ).optional(),
+    })).describe(
+      "Event labels defined on this calendar. If this is present when updating the calendar, it will replace the existing event labels. Extend the list to add a new event label, and remove entities from the list to delete a label from calendar. Each calendar can have a maximum of 200 labels.",
+    ).optional(),
+  }).optional(),
   location: z.string().describe(
     "Geographic location of the calendar as free-form text. Optional.",
   ).optional(),
@@ -231,7 +268,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar Calendars. Registered at `@swamp/gcp/calendar/calendars`. */
 export const model = {
   type: "@swamp/gcp/calendar/calendars",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -336,6 +373,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: labelProperties",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -368,6 +410,9 @@ export const model = {
           body["description"] = g["description"];
         }
         if (g["id"] !== undefined) body["id"] = g["id"];
+        if (g["labelProperties"] !== undefined) {
+          body["labelProperties"] = g["labelProperties"];
+        }
         if (g["location"] !== undefined) body["location"] = g["location"];
         if (g["summary"] !== undefined) body["summary"] = g["summary"];
         if (g["timeZone"] !== undefined) body["timeZone"] = g["timeZone"];
@@ -464,6 +509,9 @@ export const model = {
           body["description"] = g["description"];
         }
         if (g["id"] !== undefined) body["id"] = g["id"];
+        if (g["labelProperties"] !== undefined) {
+          body["labelProperties"] = g["labelProperties"];
+        }
         if (g["location"] !== undefined) body["location"] = g["location"];
         if (g["summary"] !== undefined) body["summary"] = g["summary"];
         if (g["timeZone"] !== undefined) body["timeZone"] = g["timeZone"];
@@ -613,6 +661,55 @@ export const model = {
             "parameterOrder": ["calendarId"],
             "parameters": {
               "calendarId": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    transfer_ownership: {
+      description: "transfer ownership",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["calendarId"] = existing["calendarId"]?.toString() ??
+          g["calendarId"]?.toString() ?? "";
+        params["newDataOwner"] = existing["newDataOwner"]?.toString() ??
+          g["newDataOwner"]?.toString() ?? "";
+        params["useAdminAccess"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "calendar.calendars.transferOwnership",
+            "path": "calendars/{calendarId}/transferOwnership",
+            "httpMethod": "POST",
+            "parameterOrder": ["calendarId", "newDataOwner", "useAdminAccess"],
+            "parameters": {
+              "calendarId": { "location": "path", "required": true },
+              "newDataOwner": { "location": "query", "required": true },
+              "useAdminAccess": { "location": "query", "required": true },
             },
           },
           params,

@@ -252,6 +252,7 @@ const GlobalArgsSchema = z.object({
     "EXCHANGE_TUBI",
     "EXCHANGE_SNAP",
     "EXCHANGE_CADENT",
+    "EXCHANGE_EXTE",
   ]).describe(
     "Required. Immutable. The exchange where the guaranteed order originated.",
   ).optional(),
@@ -425,6 +426,7 @@ const InputsSchema = z.object({
     "EXCHANGE_TUBI",
     "EXCHANGE_SNAP",
     "EXCHANGE_CADENT",
+    "EXCHANGE_EXTE",
   ]).describe(
     "Required. Immutable. The exchange where the guaranteed order originated.",
   ).optional(),
@@ -496,7 +498,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 GuaranteedOrders. Registered at `@swamp/gcp/displayvideo/guaranteedorders`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/guaranteedorders",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -600,6 +602,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

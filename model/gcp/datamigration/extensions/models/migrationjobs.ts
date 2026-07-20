@@ -234,6 +234,11 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     'The resource labels for migration job to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: `{ "name": "wrench", "mass": "1.3kg", "count": "3" }`.',
   ).optional(),
+  mysqlHomogeneousConfig: z.object({
+    isPrimaryDestination: z.boolean().describe(
+      "Optional. Whether the destination for the migration job is a primary instance.",
+    ).optional(),
+  }).describe("Configuration for MySQL to MySQL migrations.").optional(),
   name: z.string().describe(
     "The name (URI) of this migration job resource, in the form of: projects/{project}/locations/{location}/migrationJobs/{migrationJob}.",
   ).optional(),
@@ -323,6 +328,15 @@ const GlobalArgsSchema = z.object({
       "MAX",
     ]).describe("Initial dump parallelism level.").optional(),
   }).describe("Performance configuration definition.").optional(),
+  postgresHomogeneousConfig: z.object({
+    isNativeLogical: z.boolean().describe(
+      "Required. Whether the migration is native logical.",
+    ).optional(),
+    maxAdditionalSubscriptions: z.number().int().describe(
+      "Optional. Maximum number of additional subscriptions to use for the migration job.",
+    ).optional(),
+  }).describe("Configuration for PostgreSQL to PostgreSQL migrations.")
+    .optional(),
   postgresToSqlserverConfig: z.object({
     postgresSourceConfig: z.object({
       skipFullDump: z.boolean().describe(
@@ -520,6 +534,9 @@ const StateSchema = z.object({
   }).optional(),
   filter: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
+  mysqlHomogeneousConfig: z.object({
+    isPrimaryDestination: z.boolean(),
+  }).optional(),
   name: z.string(),
   objectsConfig: z.object({
     sourceObjectsConfig: z.object({
@@ -559,6 +576,10 @@ const StateSchema = z.object({
     dumpParallelLevel: z.string(),
   }).optional(),
   phase: z.string().optional(),
+  postgresHomogeneousConfig: z.object({
+    isNativeLogical: z.boolean(),
+    maxAdditionalSubscriptions: z.number(),
+  }).optional(),
   postgresToSqlserverConfig: z.object({
     postgresSourceConfig: z.object({
       skipFullDump: z.boolean(),
@@ -691,6 +712,11 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     'The resource labels for migration job to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: `{ "name": "wrench", "mass": "1.3kg", "count": "3" }`.',
   ).optional(),
+  mysqlHomogeneousConfig: z.object({
+    isPrimaryDestination: z.boolean().describe(
+      "Optional. Whether the destination for the migration job is a primary instance.",
+    ).optional(),
+  }).describe("Configuration for MySQL to MySQL migrations.").optional(),
   name: z.string().describe(
     "The name (URI) of this migration job resource, in the form of: projects/{project}/locations/{location}/migrationJobs/{migrationJob}.",
   ).optional(),
@@ -780,6 +806,15 @@ const InputsSchema = z.object({
       "MAX",
     ]).describe("Initial dump parallelism level.").optional(),
   }).describe("Performance configuration definition.").optional(),
+  postgresHomogeneousConfig: z.object({
+    isNativeLogical: z.boolean().describe(
+      "Required. Whether the migration is native logical.",
+    ).optional(),
+    maxAdditionalSubscriptions: z.number().int().describe(
+      "Optional. Maximum number of additional subscriptions to use for the migration job.",
+    ).optional(),
+  }).describe("Configuration for PostgreSQL to PostgreSQL migrations.")
+    .optional(),
   postgresToSqlserverConfig: z.object({
     postgresSourceConfig: z.object({
       skipFullDump: z.boolean().describe(
@@ -970,7 +1005,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration MigrationJobs. Registered at `@swamp/gcp/datamigration/migrationjobs`. */
 export const model = {
   type: "@swamp/gcp/datamigration/migrationjobs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1132,6 +1167,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: mysqlHomogeneousConfig, postgresHomogeneousConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1182,6 +1222,9 @@ export const model = {
         if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["filter"] !== undefined) body["filter"] = g["filter"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["mysqlHomogeneousConfig"] !== undefined) {
+          body["mysqlHomogeneousConfig"] = g["mysqlHomogeneousConfig"];
+        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["objectsConfig"] !== undefined) {
           body["objectsConfig"] = g["objectsConfig"];
@@ -1194,6 +1237,9 @@ export const model = {
         }
         if (g["performanceConfig"] !== undefined) {
           body["performanceConfig"] = g["performanceConfig"];
+        }
+        if (g["postgresHomogeneousConfig"] !== undefined) {
+          body["postgresHomogeneousConfig"] = g["postgresHomogeneousConfig"];
         }
         if (g["postgresToSqlserverConfig"] !== undefined) {
           body["postgresToSqlserverConfig"] = g["postgresToSqlserverConfig"];
@@ -1365,6 +1411,9 @@ export const model = {
         if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["filter"] !== undefined) body["filter"] = g["filter"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["mysqlHomogeneousConfig"] !== undefined) {
+          body["mysqlHomogeneousConfig"] = g["mysqlHomogeneousConfig"];
+        }
         if (g["objectsConfig"] !== undefined) {
           body["objectsConfig"] = g["objectsConfig"];
         }
@@ -1376,6 +1425,9 @@ export const model = {
         }
         if (g["performanceConfig"] !== undefined) {
           body["performanceConfig"] = g["performanceConfig"];
+        }
+        if (g["postgresHomogeneousConfig"] !== undefined) {
+          body["postgresHomogeneousConfig"] = g["postgresHomogeneousConfig"];
         }
         if (g["postgresToSqlserverConfig"] !== undefined) {
           body["postgresToSqlserverConfig"] = g["postgresToSqlserverConfig"];

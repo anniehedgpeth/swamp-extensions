@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Security Command Center ValuedResources.
  *
- * A resource that is determined to have value to a user's system
+ * GCP securitycenter ValuedResources resource
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -140,7 +140,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center ValuedResources. Registered at `@swamp/gcp/securitycenter/valuedresources`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/valuedresources",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -237,13 +237,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description:
-        "A resource that is determined to have value to a user's system",
+      description: "GCP securitycenter ValuedResources resource",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -349,15 +353,9 @@ export const model = {
     list: {
       description: "List valuedResources resources",
       arguments: z.object({
-        filter: z.string().describe(
-          "The filter expression that filters the valued resources in the response. Supported fields: * `resource_value` supports = * `resource_type` supports =",
-        ).optional(),
-        orderBy: z.string().describe(
-          "Optional. The fields by which to order the valued resources response. Supported fields: * `exposed_score` * `resource_value` * `resource_type` * `resource` * `display_name` Values should be a comma separated list of fields. For example: `exposed_score,resource_value`. The default sorting order is descending. To specify ascending or descending order for a field, append a ` ASC` or a ` DESC` suffix, respectively; for example: `exposed_score DESC`.",
-        ).optional(),
-        pageSize: z.number().describe(
-          "The maximum number of results to return in a single response. Default is 10, minimum is 1, maximum is 1000.",
-        ).optional(),
+        filter: z.string().optional(),
+        orderBy: z.string().optional(),
+        pageSize: z.number().optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
         ).optional(),

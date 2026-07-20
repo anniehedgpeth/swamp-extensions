@@ -199,6 +199,16 @@ const GlobalArgsSchema = z.object({
     dbServerVersion: z.string().describe(
       "Output only. The software version of the database servers (dom0) in the Exadata Infrastructure.",
     ).optional(),
+    exascaleConfig: z.object({
+      availableStorageSizeGb: z.number().int().describe(
+        "Output only. Available storage size for Exascale in GBs.",
+      ).optional(),
+      totalStorageSizeGb: z.number().int().describe(
+        "Output only. Total storage size needed for Exascale in GBs.",
+      ).optional(),
+    }).describe(
+      "Details of the Exascale configuration for the Exadata Infrastructure.",
+    ).optional(),
     maintenanceWindow: z.object({
       customActionTimeoutMins: z.number().int().describe(
         "Optional. Determines the amount of time the system will wait before the start of each database server patching operation. Custom action timeout is in minutes and valid value is between 15 to 120 (inclusive).",
@@ -360,6 +370,10 @@ const StateSchema = z.object({
     databaseServerType: z.string(),
     dbNodeStorageSizeGb: z.number(),
     dbServerVersion: z.string(),
+    exascaleConfig: z.object({
+      availableStorageSizeGb: z.number(),
+      totalStorageSizeGb: z.number(),
+    }),
     maintenanceWindow: z.object({
       customActionTimeoutMins: z.number(),
       daysOfWeek: z.array(z.string()),
@@ -449,6 +463,16 @@ const InputsSchema = z.object({
     ).optional(),
     dbServerVersion: z.string().describe(
       "Output only. The software version of the database servers (dom0) in the Exadata Infrastructure.",
+    ).optional(),
+    exascaleConfig: z.object({
+      availableStorageSizeGb: z.number().int().describe(
+        "Output only. Available storage size for Exascale in GBs.",
+      ).optional(),
+      totalStorageSizeGb: z.number().int().describe(
+        "Output only. Total storage size needed for Exascale in GBs.",
+      ).optional(),
+    }).describe(
+      "Details of the Exascale configuration for the Exadata Infrastructure.",
     ).optional(),
     maintenanceWindow: z.object({
       customActionTimeoutMins: z.number().int().describe(
@@ -613,7 +637,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud CloudExadataInfrastructures. Registered at `@swamp/gcp/oracledatabase/cloudexadatainfrastructures`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/cloudexadatainfrastructures",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -722,6 +746,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -992,6 +1021,50 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
+      },
+    },
+    configure_exascale: {
+      description: "configure exascale",
+      arguments: z.object({
+        requestId: z.any().optional(),
+        totalStorageSizeGb: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["name"]),
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (args["requestId"] !== undefined) {
+          body["requestId"] = args["requestId"];
+        }
+        if (args["totalStorageSizeGb"] !== undefined) {
+          body["totalStorageSizeGb"] = args["totalStorageSizeGb"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "oracledatabase.projects.locations.cloudExadataInfrastructures.configureExascale",
+            "path": "v1/{+name}:configureExascale",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
       },
     },
   },

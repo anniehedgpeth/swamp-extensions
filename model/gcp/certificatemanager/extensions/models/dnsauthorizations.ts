@@ -182,6 +182,9 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. A user-defined name of the dns authorization. DnsAuthorization names must be unique globally and match pattern `projects/*/locations/*/dnsAuthorizations/*`.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "FIXED_RECORD", "PER_PROJECT_RECORD"])
     .describe(
       "Optional. Immutable. Type of DnsAuthorization. If unset during resource creation the following default will be used: - in location `global`: FIXED_RECORD, - in other locations: PER_PROJECT_RECORD.",
@@ -205,6 +208,7 @@ const StateSchema = z.object({
   domain: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  tags: z.record(z.string(), z.unknown()).optional(),
   type: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
@@ -239,6 +243,9 @@ const InputsSchema = z.object({
   ).optional(),
   name: z.string().describe(
     "Identifier. A user-defined name of the dns authorization. DnsAuthorization names must be unique globally and match pattern `projects/*/locations/*/dnsAuthorizations/*`.",
+  ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "FIXED_RECORD", "PER_PROJECT_RECORD"])
     .describe(
@@ -275,7 +282,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager DnsAuthorizations. Registered at `@swamp/gcp/certificatemanager/dnsauthorizations`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/dnsauthorizations",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -390,6 +397,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -424,6 +436,7 @@ export const model = {
         if (g["domain"] !== undefined) body["domain"] = g["domain"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["type"] !== undefined) body["type"] = g["type"];
         if (g["dnsAuthorizationId"] !== undefined) {
           params["dnsAuthorizationId"] = String(g["dnsAuthorizationId"]);

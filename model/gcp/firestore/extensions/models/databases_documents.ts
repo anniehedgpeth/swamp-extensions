@@ -151,6 +151,9 @@ const LIST_CONFIG = {
     "readTime": {
       "location": "query",
     },
+    "recursive": {
+      "location": "query",
+    },
     "showMissing": {
       "location": "query",
     },
@@ -410,7 +413,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.Documents. Registered at `@swamp/gcp/firestore/databases-documents`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-documents",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -554,6 +557,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -762,6 +770,9 @@ export const model = {
         readTime: z.string().describe(
           "Perform the read at the provided time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.",
         ).optional(),
+        recursive: z.boolean().describe(
+          "Optional. If the list should recursively include all documents nested under the parent at any level. If the request specifies a `collection_id`, then the list will include all nested documents in the collection under the parent. This is optional, and when not provided, Firestore will only list documents nested immediately under the parent. Requests with `recursive` may not specify `show_missing`.",
+        ).optional(),
         showMissing: z.boolean().describe(
           "If the list should show missing documents. A document is missing if it does not exist, but there are sub-documents nested underneath it. When true, such missing documents will be returned with a key but will not have fields, `create_time`, or `update_time` set. Requests with `show_missing` may not specify `where` or `order_by`.",
         ).optional(),
@@ -792,6 +803,9 @@ export const model = {
         }
         if (args["readTime"] !== undefined) {
           params["readTime"] = String(args["readTime"]);
+        }
+        if (args["recursive"] !== undefined) {
+          params["recursive"] = String(args["recursive"]);
         }
         if (args["showMissing"] !== undefined) {
           params["showMissing"] = String(args["showMissing"]);
@@ -1085,6 +1099,7 @@ export const model = {
     execute_pipeline: {
       description: "execute pipeline",
       arguments: z.object({
+        autoCommitTransaction: z.any().optional(),
         newTransaction: z.any().optional(),
         readTime: z.any().optional(),
         structuredPipeline: z.any().optional(),
@@ -1110,6 +1125,9 @@ export const model = {
         params["database"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
+        if (args["autoCommitTransaction"] !== undefined) {
+          body["autoCommitTransaction"] = args["autoCommitTransaction"];
+        }
         if (args["newTransaction"] !== undefined) {
           body["newTransaction"] = args["newTransaction"];
         }
@@ -1208,6 +1226,7 @@ export const model = {
               "pageToken": { "location": "query" },
               "parent": { "location": "path", "required": true },
               "readTime": { "location": "query" },
+              "recursive": { "location": "query" },
               "showMissing": { "location": "query" },
               "transaction": { "location": "query" },
             },

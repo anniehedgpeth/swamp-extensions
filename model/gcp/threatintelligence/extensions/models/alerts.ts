@@ -136,6 +136,42 @@ const StateSchema = z.object({
       discoveryDocumentIds: z.array(z.string()),
       severity: z.string(),
     }),
+    targetTechnology: z.object({
+      vulnerabilityMatch: z.object({
+        associations: z.array(z.object({
+          id: z.unknown(),
+          type: z.unknown(),
+        })),
+        collectionId: z.string(),
+        cveId: z.string(),
+        cvss3Score: z.number(),
+        description: z.string(),
+        disclosureTime: z.string(),
+        epssScore: z.number(),
+        exploitationConsequences: z.array(z.string()),
+        exploitationState: z.string(),
+        exploitationVectors: z.array(z.string()),
+        matchedTechnologies: z.array(z.string()),
+        priority: z.string(),
+        productFixes: z.array(z.object({
+          displayName: z.unknown(),
+          publishTime: z.unknown(),
+          sourceId: z.unknown(),
+          uri: z.unknown(),
+        })),
+        publicExploits: z.array(z.object({
+          exploitGrade: z.unknown(),
+          exploitName: z.unknown(),
+          exploitReliability: z.unknown(),
+          releaseTime: z.unknown(),
+          sizeBytes: z.unknown(),
+          uri: z.unknown(),
+        })),
+        publiclyAvailableExploit: z.boolean(),
+        riskRating: z.string(),
+        technologies: z.array(z.string()),
+      }),
+    }),
   }).optional(),
   displayName: z.string().optional(),
   duplicateOf: z.string().optional(),
@@ -204,7 +240,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Threat Intelligence Alerts. Registered at `@swamp/gcp/threatintelligence/alerts`. */
 export const model = {
   type: "@swamp/gcp/threatintelligence/alerts",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -313,6 +349,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -428,11 +469,15 @@ export const model = {
     list: {
       description: "List alerts resources",
       arguments: z.object({
-        filter: z.string().describe("Optional. Filter criteria.").optional(),
-        orderBy: z.string().describe(
-          'Optional. Order by criteria in the csv format: "field1,field2 desc" or "field1,field2" or "field1 asc, field2".',
+        filter: z.string().describe(
+          'Optional. Filter criteria. Supported fields for filtering include: * `audit.create_time` * `audit.creator` * `audit.update_time` * `audit.updater` * `detail.data_leak.discovery_document_ids` * `detail.data_leak.severity` * `detail.detail_type` * `detail.initial_access_broker.discovery_document_ids` * `detail.initial_access_broker.severity` * `detail.insider_threat.discovery_document_ids` * `detail.insider_threat.severity` * `finding_count` * `priority_analysis.priority_level` * `relevance_analysis.confidence` * `relevance_analysis.relevance_level` * `relevance_analysis.relevant` * `severity_analysis.severity_level` * `state` Examples: * `detail.detail_type = "initial_access_broker"` * `detail.detail_type != "data_leak"` * `detail.insider_threat.severity = "HIGH"` * `audit.create_time >= "2026-04-03T00:00:00Z" AND audit.create_time < "2026-04-06T00:00:00Z"` * `state = "NEW" OR state = "TRIAGED"` * `severity_analysis.severity_level = "SEVERITY_LEVEL_CRITICAL"`',
         ).optional(),
-        pageSize: z.number().describe("Optional. Page size.").optional(),
+        orderBy: z.string().describe(
+          'Optional. Order by criteria in the csv format: "field1, field2 desc" or "field1, field2" or "field1 asc, field2". If a field is specified without `asc` or `desc`, ascending order is used by default. Supported fields for ordering are identical to those supported for filtering. Examples: * `audit.create_time desc` * `audit.update_time asc` * `audit.create_time desc, severity_analysis.severity_level desc`',
+        ).optional(),
+        pageSize: z.number().describe(
+          "Optional. Page size. Default to 100 alerts per page. Maximum is 1000 alerts per page.",
+        ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
         ).optional(),

@@ -276,7 +276,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The timestamp of the last time this config was executed.",
     ).optional(),
     name: z.string().describe(
-      "Unique resource name for the DiscoveryConfig, assigned by the service when the DiscoveryConfig is created, for example `projects/dlp-test-project/locations/global/discoveryConfigs/53234423`.",
+      "Output only. Unique resource name for the DiscoveryConfig, assigned by the service when the DiscoveryConfig is created, for example `projects/dlp-test-project/locations/global/discoveryConfigs/53234423`.",
     ).optional(),
     orgConfig: z.object({
       location: z.object({
@@ -933,7 +933,7 @@ const InputsSchema = z.object({
       "Output only. The timestamp of the last time this config was executed.",
     ).optional(),
     name: z.string().describe(
-      "Unique resource name for the DiscoveryConfig, assigned by the service when the DiscoveryConfig is created, for example `projects/dlp-test-project/locations/global/discoveryConfigs/53234423`.",
+      "Output only. Unique resource name for the DiscoveryConfig, assigned by the service when the DiscoveryConfig is created, for example `projects/dlp-test-project/locations/global/discoveryConfigs/53234423`.",
     ).optional(),
     orgConfig: z.object({
       location: z.object({
@@ -1252,7 +1252,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) DiscoveryConfigs. Registered at `@swamp/gcp/dlp/discoveryconfigs`. */
 export const model = {
   type: "@swamp/gcp/dlp/discoveryconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1351,6 +1351,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

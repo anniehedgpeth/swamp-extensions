@@ -392,6 +392,9 @@ const GlobalArgsSchema = z.object({
     drainNatIps: z.array(z.string()).describe(
       "A list of URLs of the IP resources to be drained. These IPs must be valid static external IPs that have been assigned to the NAT. These IPs should be used for updating/patching a NAT only.",
     ).optional(),
+    effectiveTcpTimeWaitTimeoutSec: z.number().int().describe(
+      "Output only. Effective timeout (in seconds) for TCP connections that are in TIME_WAIT state. This value is equal to tcp_time_wait_timeout_sec. If tcp_time_wait_timeout_sec isn't set, the effective timeout is 30s or 120s. The field is output only.",
+    ).optional(),
     enableDynamicPortAllocation: z.boolean().describe(
       "Enable Dynamic Port Allocation. If not specified, it is disabled by default. If set to true, - Dynamic Port Allocation will be enabled on this NAT config. - enableEndpointIndependentMapping cannot be set to true. - If minPorts is set, minPortsPerVm must be set to a power of two greater than or equal to 32. If minPortsPerVm is not set, a minimum of 32 ports will be allocated to a VM from this NAT config.",
     ).optional(),
@@ -505,6 +508,9 @@ const GlobalArgsSchema = z.object({
       "Timeout (in seconds) for UDP connections. Defaults to 30s if not set.",
     ).optional(),
   })).describe("A list of NAT services created in this router.").optional(),
+  nccGateway: z.string().describe(
+    "URI of the ncc_gateway to which this router associated.",
+  ).optional(),
   network: z.string().describe(
     "URI of the network to which this router belongs.",
   ),
@@ -593,6 +599,7 @@ const StateSchema = z.object({
   nats: z.array(z.object({
     autoNetworkTier: z.string(),
     drainNatIps: z.array(z.string()),
+    effectiveTcpTimeWaitTimeoutSec: z.number(),
     enableDynamicPortAllocation: z.boolean(),
     enableEndpointIndependentMapping: z.boolean(),
     endpointTypes: z.array(z.string()),
@@ -633,6 +640,7 @@ const StateSchema = z.object({
     type: z.string(),
     udpIdleTimeoutSec: z.number(),
   })).optional(),
+  nccGateway: z.string().optional(),
   network: z.string().optional(),
   params: z.object({
     resourceManagerTags: z.record(z.string(), z.unknown()),
@@ -841,6 +849,9 @@ const InputsSchema = z.object({
     drainNatIps: z.array(z.string()).describe(
       "A list of URLs of the IP resources to be drained. These IPs must be valid static external IPs that have been assigned to the NAT. These IPs should be used for updating/patching a NAT only.",
     ).optional(),
+    effectiveTcpTimeWaitTimeoutSec: z.number().int().describe(
+      "Output only. Effective timeout (in seconds) for TCP connections that are in TIME_WAIT state. This value is equal to tcp_time_wait_timeout_sec. If tcp_time_wait_timeout_sec isn't set, the effective timeout is 30s or 120s. The field is output only.",
+    ).optional(),
     enableDynamicPortAllocation: z.boolean().describe(
       "Enable Dynamic Port Allocation. If not specified, it is disabled by default. If set to true, - Dynamic Port Allocation will be enabled on this NAT config. - enableEndpointIndependentMapping cannot be set to true. - If minPorts is set, minPortsPerVm must be set to a power of two greater than or equal to 32. If minPortsPerVm is not set, a minimum of 32 ports will be allocated to a VM from this NAT config.",
     ).optional(),
@@ -954,6 +965,9 @@ const InputsSchema = z.object({
       "Timeout (in seconds) for UDP connections. Defaults to 30s if not set.",
     ).optional(),
   })).describe("A list of NAT services created in this router.").optional(),
+  nccGateway: z.string().describe(
+    "URI of the ncc_gateway to which this router associated.",
+  ).optional(),
   network: z.string().describe(
     "URI of the network to which this router belongs.",
   ).optional(),
@@ -993,7 +1007,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Routers. Registered at `@swamp/gcp/compute/routers`. */
 export const model = {
   type: "@swamp/gcp/compute/routers",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1118,6 +1132,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: nccGateway",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1156,6 +1175,7 @@ export const model = {
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["nats"] !== undefined) body["nats"] = g["nats"];
+        if (g["nccGateway"] !== undefined) body["nccGateway"] = g["nccGateway"];
         if (g["network"] !== undefined) body["network"] = g["network"];
         if (g["params"] !== undefined) body["params"] = g["params"];
         if (g["requestId"] !== undefined) {
@@ -1270,6 +1290,7 @@ export const model = {
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["nats"] !== undefined) body["nats"] = g["nats"];
+        if (g["nccGateway"] !== undefined) body["nccGateway"] = g["nccGateway"];
         if (g["network"] !== undefined) body["network"] = g["network"];
         if (g["params"] !== undefined) body["params"] = g["params"];
         for (const key of Object.keys(existing)) {
@@ -1452,6 +1473,54 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
+      },
+    },
+    get_named_set: {
+      description: "get named set",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.getNamedSet",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/getNamedSet",
+            "httpMethod": "GET",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "namedSet": { "location": "query" },
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
       },
     },
     get_nat_ip_info: {
@@ -1707,6 +1776,58 @@ export const model = {
         return { result };
       },
     },
+    list_named_sets: {
+      description: "list named sets",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.listNamedSets",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/listNamedSets",
+            "httpMethod": "GET",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "filter": { "location": "query" },
+              "maxResults": { "location": "query" },
+              "orderBy": { "location": "query" },
+              "pageToken": { "location": "query" },
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "returnPartialSuccess": { "location": "query" },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     list_route_policies: {
       description: "list route policies",
       arguments: z.object({}),
@@ -1751,6 +1872,70 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    patch_named_set: {
+      description: "patch named set",
+      arguments: z.object({
+        description: z.any().optional(),
+        elements: z.any().optional(),
+        fingerprint: z.any().optional(),
+        name: z.any().optional(),
+        type: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["description"] !== undefined) {
+          body["description"] = args["description"];
+        }
+        if (args["elements"] !== undefined) body["elements"] = args["elements"];
+        if (args["fingerprint"] !== undefined) {
+          body["fingerprint"] = args["fingerprint"];
+        }
+        if (args["name"] !== undefined) body["name"] = args["name"];
+        if (args["type"] !== undefined) body["type"] = args["type"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.patchNamedSet",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/patchNamedSet",
+            "httpMethod": "POST",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "requestId": { "location": "query" },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,
@@ -1837,6 +2022,7 @@ export const model = {
         md5AuthenticationKeys: z.any().optional(),
         name: z.any().optional(),
         nats: z.any().optional(),
+        nccGateway: z.any().optional(),
         network: z.any().optional(),
         params: z.any().optional(),
         region: z.any().optional(),
@@ -1885,6 +2071,9 @@ export const model = {
         }
         if (args["name"] !== undefined) body["name"] = args["name"];
         if (args["nats"] !== undefined) body["nats"] = args["nats"];
+        if (args["nccGateway"] !== undefined) {
+          body["nccGateway"] = args["nccGateway"];
+        }
         if (args["network"] !== undefined) body["network"] = args["network"];
         if (args["params"] !== undefined) body["params"] = args["params"];
         if (args["region"] !== undefined) body["region"] = args["region"];
@@ -1900,6 +2089,70 @@ export const model = {
             "parameters": {
               "project": { "location": "path", "required": true },
               "region": { "location": "path", "required": true },
+              "router": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    update_named_set: {
+      description: "update named set",
+      arguments: z.object({
+        description: z.any().optional(),
+        elements: z.any().optional(),
+        fingerprint: z.any().optional(),
+        name: z.any().optional(),
+        type: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["region"] !== undefined) params["region"] = String(g["region"]);
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["router"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["description"] !== undefined) {
+          body["description"] = args["description"];
+        }
+        if (args["elements"] !== undefined) body["elements"] = args["elements"];
+        if (args["fingerprint"] !== undefined) {
+          body["fingerprint"] = args["fingerprint"];
+        }
+        if (args["name"] !== undefined) body["name"] = args["name"];
+        if (args["type"] !== undefined) body["type"] = args["type"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.routers.updateNamedSet",
+            "path":
+              "projects/{project}/regions/{region}/routers/{router}/updateNamedSet",
+            "httpMethod": "POST",
+            "parameterOrder": ["project", "region", "router"],
+            "parameters": {
+              "project": { "location": "path", "required": true },
+              "region": { "location": "path", "required": true },
+              "requestId": { "location": "query" },
               "router": { "location": "path", "required": true },
             },
           },

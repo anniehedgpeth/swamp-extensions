@@ -346,6 +346,9 @@ const GlobalArgsSchema = z.object({
         }).describe(
           "ResourceRequirements describes the compute resource requirements.",
         ).optional(),
+        sandboxLauncher: z.boolean().describe(
+          "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
+        ).optional(),
         sourceCode: z.object({
           cloudStorageSource: z.unknown().describe("Cloud Storage source.")
             .optional(),
@@ -512,6 +515,13 @@ const GlobalArgsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -587,6 +597,7 @@ const StateSchema = z.object({
   clientVersion: z.string().optional(),
   conditions: z.array(z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -662,6 +673,7 @@ const StateSchema = z.object({
           limits: z.unknown(),
           startupCpuBoost: z.unknown(),
         }),
+        sandboxLauncher: z.boolean(),
         sourceCode: z.object({
           cloudStorageSource: z.unknown(),
           inlinedSource: z.unknown(),
@@ -725,6 +737,7 @@ const StateSchema = z.object({
   }).optional(),
   terminalCondition: z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -923,6 +936,9 @@ const InputsSchema = z.object({
         }).describe(
           "ResourceRequirements describes the compute resource requirements.",
         ).optional(),
+        sandboxLauncher: z.boolean().describe(
+          "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
+        ).optional(),
         sourceCode: z.object({
           cloudStorageSource: z.unknown().describe("Cloud Storage source.")
             .optional(),
@@ -1089,6 +1105,13 @@ const InputsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -1176,7 +1199,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Jobs. Registered at `@swamp/gcp/run/jobs`. */
 export const model = {
   type: "@swamp/gcp/run/jobs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1295,6 +1318,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

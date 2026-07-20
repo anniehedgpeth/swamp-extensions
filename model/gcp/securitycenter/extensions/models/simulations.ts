@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Security Command Center Simulations.
  *
- * Attack path simulation
+ * GCP securitycenter Simulations resource
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -118,7 +118,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center Simulations. Registered at `@swamp/gcp/securitycenter/simulations`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/simulations",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -215,12 +215,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Attack path simulation",
+      description: "GCP securitycenter Simulations resource",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,

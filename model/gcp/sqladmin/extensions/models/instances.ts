@@ -223,6 +223,8 @@ const GlobalArgsSchema = z.object({
     "POSTGRES_16",
     "POSTGRES_17",
     "POSTGRES_18",
+    "POSTGRES_19",
+    "POSTGRES_20",
     "SQLSERVER_2019_STANDARD",
     "SQLSERVER_2019_ENTERPRISE",
     "SQLSERVER_2019_EXPRESS",
@@ -583,7 +585,7 @@ const GlobalArgsSchema = z.object({
         "Whether point in time recovery is enabled.",
       ).optional(),
       replicationLogArchivingEnabled: z.boolean().describe(
-        "Reserved for future use.",
+        "Optional. Deprecated: replication_log_archiving_enabled is deprecated and will be removed from a future version of the API. Use point_in_time_recovery_enabled instead.",
       ).optional(),
       startTime: z.string().describe(
         "Start time for the daily backup configuration in UTC timezone in the 24 hour format - `HH:MM`.",
@@ -684,8 +686,13 @@ const GlobalArgsSchema = z.object({
         'Time in UTC when the "deny maintenance period" starts on start_date and ends on end_date. The time is in format: HH:mm:SS, i.e., 00:00:00',
       ).optional(),
     })).describe("Deny maintenance periods").optional(),
-    edition: z.enum(["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"])
-      .describe("Optional. The edition of the instance.").optional(),
+    edition: z.enum([
+      "EDITION_UNSPECIFIED",
+      "ENTERPRISE",
+      "ENTERPRISE_PLUS",
+      "DEVELOPER",
+    ]).describe("Optional. The edition type of the Cloud SQL instance.")
+      .optional(),
     enableDataplexIntegration: z.boolean().describe(
       "Optional. By default, Cloud SQL instances have schema extraction disabled for Dataplex. When this parameter is set to true, schema extraction for Dataplex on Cloud SQL instances is activated.",
     ).optional(),
@@ -771,6 +778,9 @@ const GlobalArgsSchema = z.object({
         networkAttachmentUri: z.string().describe(
           "Optional. The network attachment of the consumer network that the Private Service Connect enabled Cloud SQL instance is authorized to connect via PSC interface. format: projects/PROJECT/regions/REGION/networkAttachments/ID",
         ).optional(),
+        pscAutoConnectionPolicyEnabled: z.boolean().describe(
+          "Optional. Whether to set up the PSC service connection policy automatically.",
+        ).optional(),
         pscAutoConnections: z.array(z.object({
           consumerNetwork: z.unknown().describe(
             "Optional. The consumer network of this consumer endpoint. This must be a resource path that includes both the host project and the network name. For example, `projects/project1/global/networks/network1`. The consumer host project of this network might be different from the consumer service project.",
@@ -781,23 +791,35 @@ const GlobalArgsSchema = z.object({
           consumerProject: z.unknown().describe(
             "Optional. This is the project ID of consumer service project of this consumer endpoint. This is only applicable if `consumer_network` is a shared VPC network.",
           ).optional(),
+          instanceAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning.",
+          ).optional(),
           ipAddress: z.unknown().describe(
             "The IP address of the consumer endpoint.",
           ).optional(),
+          serviceConnectionPolicy: z.unknown().describe(
+            "Output only. The service connection policy created automatically for the consumer network when `psc_auto_connection_policy_enabled` is true. It is in the format of: `projects/{project}/regions/{region}/serviceConnectionPolicies/{policy_id}` The `policy_id` is in format of `$NETWORK-$RANDOM`.",
+          ).optional(),
+          serviceConnectionPolicyCreationResult: z.unknown().describe(
+            "Output only. The status of service connection policy creation.",
+          ).optional(),
           status: z.unknown().describe(
             "The connection status of the consumer endpoint.",
+          ).optional(),
+          writeEndpointAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning for the write endpoint.",
           ).optional(),
         })).describe(
           "Optional. The list of settings for requested Private Service Connect consumer endpoints that can be used to connect to this Cloud SQL instance.",
         ).optional(),
         pscAutoDnsEnabled: z.boolean().describe(
-          "Optional. Indicates whether PSC DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal DNS record across all networks configured with Private Service Connect (PSC) auto-connections. This will default to true for new instances when Private Service Connect is enabled.",
+          "Optional. Indicates whether Private Service Connect DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal DNS record across all networks configured with Private Service Connect auto-connections. This will default to true for new instances when Private Service Connect is enabled.",
         ).optional(),
         pscEnabled: z.boolean().describe(
           "Whether PSC connectivity is enabled for this instance.",
         ).optional(),
         pscWriteEndpointDnsEnabled: z.boolean().describe(
-          "Optional. Indicates whether PSC write endpoint DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal global DNS record across all networks configured with Private Service Connect (PSC) auto-connections that always points to the cluster primary instance. This feature is only supported for Enterprise Plus edition. This will default to true for new Enterprise Plus instances when `psc_auto_dns_enabled` is enabled.",
+          "Optional. Indicates whether Private Service Connect write endpoint DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal global DNS record across all networks configured with Private Service Connect auto-connections that points to the cluster primary instance. This feature is only supported for Enterprise Plus edition. This will default to true for new Enterprise Plus instances when `psc_auto_dns_enabled` is enabled.",
         ).optional(),
       }).describe("PSC settings for a Cloud SQL instance.").optional(),
       requireSsl: z.boolean().describe(
@@ -890,25 +912,53 @@ const GlobalArgsSchema = z.object({
       "Database instance local user password validation policy. This message defines the password policy for local database users. When enabled, it enforces constraints on password complexity, length, and reuse. Keep this policy enabled to help prevent unauthorized access.",
     ).optional(),
     performanceCaptureConfig: z.object({
+      cpuUtilizationThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of CPU utilization to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
+      ).optional(),
       enabled: z.boolean().describe(
-        "Optional. Enable or disable the Performance Capture feature.",
+        "Optional. Enables or disables the performance capture feature.",
+      ).optional(),
+      historyListLengthThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum number of undo log entries in the history list length to trigger the performance capture. Valid integers range from `10000` to `10000000`. Enter `0` to disable the check.",
+      ).optional(),
+      memoryUsageThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of memory usage to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
       ).optional(),
       probeThreshold: z.number().int().describe(
-        "Optional. The minimum number of consecutive readings above threshold that triggers instance state capture.",
+        "Optional. Specifies the minimum number of consecutive probe threshold that triggers performance capture.",
       ).optional(),
       probingIntervalSeconds: z.number().int().describe(
-        "Optional. The time interval in seconds between any two probes.",
+        "Optional. Specifies the interval in seconds between consecutive probes that check if any trigger condition thresholds have been reached.",
       ).optional(),
       runningThreadsThreshold: z.number().int().describe(
-        "Optional. The minimum number of server threads running to trigger the capture on primary.",
+        "Optional. Specifies the minimum number of MySQL `Threads_running` to trigger the performance capture on the primary instance.",
       ).optional(),
       secondsBehindSourceThreshold: z.number().int().describe(
-        "Optional. The minimum number of seconds replica must be lagging behind primary to trigger capture on replica.",
+        "Optional. Specifies the minimum number of seconds replica must be lagging behind primary instance to trigger the performance capture on replica.",
+      ).optional(),
+      semaphoreWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of semaphore waits to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
       ).optional(),
       transactionDurationThreshold: z.number().int().describe(
-        "Optional. The amount of time in seconds that a transaction needs to have been open before the watcher starts recording it.",
+        "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts recording it.",
       ).optional(),
-    }).describe("Performance Capture configuration.").optional(),
+      transactionKillExcludedUserHosts: z.array(z.string()).describe(
+        "Optional. Specifies a customer-defined list of users to exclude from transaction termination. Entries can be in the format 'user@host' or just 'user'. A standalone 'user' implies 'user@%', excluding the user from any host. Wildcard '%' is allowed in the host part of the 'user@host' format. Example: `[\"app_user\", \"db_admin@10.1.2.3\", \"report_user@%\"]`",
+      ).optional(),
+      transactionKillThresholdSeconds: z.number().int().describe(
+        "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts terminating it. Valid integers range from `60` to `604800` (7 days). Enter `0` to disable. If enabled (i.e., > 0), this value must be greater than or equal to `transaction_duration_threshold`. Configurations where `0 < transaction_kill_threshold_seconds < transaction_duration_threshold` will be rejected.",
+      ).optional(),
+      transactionKillType: z.enum([
+        "TRANSACTION_KILL_TYPE_UNSPECIFIED",
+        "READ_ONLY_TRANSACTIONS",
+        "ALL_TRANSACTIONS",
+      ]).describe(
+        "Optional. Determines which transactions are allowed to be terminated when they exceed `transaction_kill_threshold_seconds`. This allows protecting write-heavy transactions from auto-termination if desired. Defaults to `READ_ONLY_TRANSACTIONS` if unspecified.",
+      ).optional(),
+      transactionLockWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of transactions in lock wait state to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
+      ).optional(),
+    }).describe("Performance capture configuration.").optional(),
     pricingPlan: z.enum(["SQL_PRICING_PLAN_UNSPECIFIED", "PACKAGE", "PER_USE"])
       .describe(
         "The pricing plan for this instance. This can be either `PER_USE` or `PACKAGE`. Only `PER_USE` is supported for Second Generation instances.",
@@ -1010,6 +1060,7 @@ const GlobalArgsSchema = z.object({
       "LEGAL_ISSUE",
       "OPERATIONAL_ISSUE",
       "KMS_KEY_ISSUE",
+      "PROJECT_ABUSE",
     ]),
   ).describe(
     "If the instance state is SUSPENDED, the reason for the suspension.",
@@ -1092,8 +1143,12 @@ const StateSchema = z.object({
       consumerNetwork: z.string(),
       consumerNetworkStatus: z.string(),
       consumerProject: z.string(),
+      instanceAutoDnsStatus: z.string(),
       ipAddress: z.string(),
+      serviceConnectionPolicy: z.string(),
+      serviceConnectionPolicyCreationResult: z.string(),
       status: z.string(),
+      writeEndpointAutoDnsStatus: z.string(),
     })),
     pscServiceAttachmentLink: z.string(),
     state: z.string(),
@@ -1270,12 +1325,17 @@ const StateSchema = z.object({
       pscConfig: z.object({
         allowedConsumerProjects: z.array(z.string()),
         networkAttachmentUri: z.string(),
+        pscAutoConnectionPolicyEnabled: z.boolean(),
         pscAutoConnections: z.array(z.object({
           consumerNetwork: z.unknown(),
           consumerNetworkStatus: z.unknown(),
           consumerProject: z.unknown(),
+          instanceAutoDnsStatus: z.unknown(),
           ipAddress: z.unknown(),
+          serviceConnectionPolicy: z.unknown(),
+          serviceConnectionPolicyCreationResult: z.unknown(),
           status: z.unknown(),
+          writeEndpointAutoDnsStatus: z.unknown(),
         })),
         pscAutoDnsEnabled: z.boolean(),
         pscEnabled: z.boolean(),
@@ -1310,12 +1370,20 @@ const StateSchema = z.object({
       reuseInterval: z.number(),
     }),
     performanceCaptureConfig: z.object({
+      cpuUtilizationThresholdPercent: z.number(),
       enabled: z.boolean(),
+      historyListLengthThresholdCount: z.number(),
+      memoryUsageThresholdPercent: z.number(),
       probeThreshold: z.number(),
       probingIntervalSeconds: z.number(),
       runningThreadsThreshold: z.number(),
       secondsBehindSourceThreshold: z.number(),
+      semaphoreWaitThresholdCount: z.number(),
       transactionDurationThreshold: z.number(),
+      transactionKillExcludedUserHosts: z.array(z.string()),
+      transactionKillThresholdSeconds: z.number(),
+      transactionKillType: z.string(),
+      transactionLockWaitThresholdCount: z.number(),
     }),
     pricingPlan: z.string(),
     readPoolAutoScaleConfig: z.object({
@@ -1420,6 +1488,8 @@ const InputsSchema = z.object({
     "POSTGRES_16",
     "POSTGRES_17",
     "POSTGRES_18",
+    "POSTGRES_19",
+    "POSTGRES_20",
     "SQLSERVER_2019_STANDARD",
     "SQLSERVER_2019_ENTERPRISE",
     "SQLSERVER_2019_EXPRESS",
@@ -1780,7 +1850,7 @@ const InputsSchema = z.object({
         "Whether point in time recovery is enabled.",
       ).optional(),
       replicationLogArchivingEnabled: z.boolean().describe(
-        "Reserved for future use.",
+        "Optional. Deprecated: replication_log_archiving_enabled is deprecated and will be removed from a future version of the API. Use point_in_time_recovery_enabled instead.",
       ).optional(),
       startTime: z.string().describe(
         "Start time for the daily backup configuration in UTC timezone in the 24 hour format - `HH:MM`.",
@@ -1881,8 +1951,13 @@ const InputsSchema = z.object({
         'Time in UTC when the "deny maintenance period" starts on start_date and ends on end_date. The time is in format: HH:mm:SS, i.e., 00:00:00',
       ).optional(),
     })).describe("Deny maintenance periods").optional(),
-    edition: z.enum(["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"])
-      .describe("Optional. The edition of the instance.").optional(),
+    edition: z.enum([
+      "EDITION_UNSPECIFIED",
+      "ENTERPRISE",
+      "ENTERPRISE_PLUS",
+      "DEVELOPER",
+    ]).describe("Optional. The edition type of the Cloud SQL instance.")
+      .optional(),
     enableDataplexIntegration: z.boolean().describe(
       "Optional. By default, Cloud SQL instances have schema extraction disabled for Dataplex. When this parameter is set to true, schema extraction for Dataplex on Cloud SQL instances is activated.",
     ).optional(),
@@ -1968,6 +2043,9 @@ const InputsSchema = z.object({
         networkAttachmentUri: z.string().describe(
           "Optional. The network attachment of the consumer network that the Private Service Connect enabled Cloud SQL instance is authorized to connect via PSC interface. format: projects/PROJECT/regions/REGION/networkAttachments/ID",
         ).optional(),
+        pscAutoConnectionPolicyEnabled: z.boolean().describe(
+          "Optional. Whether to set up the PSC service connection policy automatically.",
+        ).optional(),
         pscAutoConnections: z.array(z.object({
           consumerNetwork: z.unknown().describe(
             "Optional. The consumer network of this consumer endpoint. This must be a resource path that includes both the host project and the network name. For example, `projects/project1/global/networks/network1`. The consumer host project of this network might be different from the consumer service project.",
@@ -1978,23 +2056,35 @@ const InputsSchema = z.object({
           consumerProject: z.unknown().describe(
             "Optional. This is the project ID of consumer service project of this consumer endpoint. This is only applicable if `consumer_network` is a shared VPC network.",
           ).optional(),
+          instanceAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning.",
+          ).optional(),
           ipAddress: z.unknown().describe(
             "The IP address of the consumer endpoint.",
           ).optional(),
+          serviceConnectionPolicy: z.unknown().describe(
+            "Output only. The service connection policy created automatically for the consumer network when `psc_auto_connection_policy_enabled` is true. It is in the format of: `projects/{project}/regions/{region}/serviceConnectionPolicies/{policy_id}` The `policy_id` is in format of `$NETWORK-$RANDOM`.",
+          ).optional(),
+          serviceConnectionPolicyCreationResult: z.unknown().describe(
+            "Output only. The status of service connection policy creation.",
+          ).optional(),
           status: z.unknown().describe(
             "The connection status of the consumer endpoint.",
+          ).optional(),
+          writeEndpointAutoDnsStatus: z.unknown().describe(
+            "Output only. The status of automated DNS provisioning for the write endpoint.",
           ).optional(),
         })).describe(
           "Optional. The list of settings for requested Private Service Connect consumer endpoints that can be used to connect to this Cloud SQL instance.",
         ).optional(),
         pscAutoDnsEnabled: z.boolean().describe(
-          "Optional. Indicates whether PSC DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal DNS record across all networks configured with Private Service Connect (PSC) auto-connections. This will default to true for new instances when Private Service Connect is enabled.",
+          "Optional. Indicates whether Private Service Connect DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal DNS record across all networks configured with Private Service Connect auto-connections. This will default to true for new instances when Private Service Connect is enabled.",
         ).optional(),
         pscEnabled: z.boolean().describe(
           "Whether PSC connectivity is enabled for this instance.",
         ).optional(),
         pscWriteEndpointDnsEnabled: z.boolean().describe(
-          "Optional. Indicates whether PSC write endpoint DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal global DNS record across all networks configured with Private Service Connect (PSC) auto-connections that always points to the cluster primary instance. This feature is only supported for Enterprise Plus edition. This will default to true for new Enterprise Plus instances when `psc_auto_dns_enabled` is enabled.",
+          "Optional. Indicates whether Private Service Connect write endpoint DNS automation is enabled for this instance. When enabled, Cloud SQL provisions a universal global DNS record across all networks configured with Private Service Connect auto-connections that points to the cluster primary instance. This feature is only supported for Enterprise Plus edition. This will default to true for new Enterprise Plus instances when `psc_auto_dns_enabled` is enabled.",
         ).optional(),
       }).describe("PSC settings for a Cloud SQL instance.").optional(),
       requireSsl: z.boolean().describe(
@@ -2087,25 +2177,53 @@ const InputsSchema = z.object({
       "Database instance local user password validation policy. This message defines the password policy for local database users. When enabled, it enforces constraints on password complexity, length, and reuse. Keep this policy enabled to help prevent unauthorized access.",
     ).optional(),
     performanceCaptureConfig: z.object({
+      cpuUtilizationThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of CPU utilization to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
+      ).optional(),
       enabled: z.boolean().describe(
-        "Optional. Enable or disable the Performance Capture feature.",
+        "Optional. Enables or disables the performance capture feature.",
+      ).optional(),
+      historyListLengthThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum number of undo log entries in the history list length to trigger the performance capture. Valid integers range from `10000` to `10000000`. Enter `0` to disable the check.",
+      ).optional(),
+      memoryUsageThresholdPercent: z.number().int().describe(
+        "Optional. Specifies the minimum percentage of memory usage to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
       ).optional(),
       probeThreshold: z.number().int().describe(
-        "Optional. The minimum number of consecutive readings above threshold that triggers instance state capture.",
+        "Optional. Specifies the minimum number of consecutive probe threshold that triggers performance capture.",
       ).optional(),
       probingIntervalSeconds: z.number().int().describe(
-        "Optional. The time interval in seconds between any two probes.",
+        "Optional. Specifies the interval in seconds between consecutive probes that check if any trigger condition thresholds have been reached.",
       ).optional(),
       runningThreadsThreshold: z.number().int().describe(
-        "Optional. The minimum number of server threads running to trigger the capture on primary.",
+        "Optional. Specifies the minimum number of MySQL `Threads_running` to trigger the performance capture on the primary instance.",
       ).optional(),
       secondsBehindSourceThreshold: z.number().int().describe(
-        "Optional. The minimum number of seconds replica must be lagging behind primary to trigger capture on replica.",
+        "Optional. Specifies the minimum number of seconds replica must be lagging behind primary instance to trigger the performance capture on replica.",
+      ).optional(),
+      semaphoreWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of semaphore waits to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
       ).optional(),
       transactionDurationThreshold: z.number().int().describe(
-        "Optional. The amount of time in seconds that a transaction needs to have been open before the watcher starts recording it.",
+        "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts recording it.",
       ).optional(),
-    }).describe("Performance Capture configuration.").optional(),
+      transactionKillExcludedUserHosts: z.array(z.string()).describe(
+        "Optional. Specifies a customer-defined list of users to exclude from transaction termination. Entries can be in the format 'user@host' or just 'user'. A standalone 'user' implies 'user@%', excluding the user from any host. Wildcard '%' is allowed in the host part of the 'user@host' format. Example: `[\"app_user\", \"db_admin@10.1.2.3\", \"report_user@%\"]`",
+      ).optional(),
+      transactionKillThresholdSeconds: z.number().int().describe(
+        "Optional. Specifies the amount of time in seconds that a transaction needs to have been open before the watcher starts terminating it. Valid integers range from `60` to `604800` (7 days). Enter `0` to disable. If enabled (i.e., > 0), this value must be greater than or equal to `transaction_duration_threshold`. Configurations where `0 < transaction_kill_threshold_seconds < transaction_duration_threshold` will be rejected.",
+      ).optional(),
+      transactionKillType: z.enum([
+        "TRANSACTION_KILL_TYPE_UNSPECIFIED",
+        "READ_ONLY_TRANSACTIONS",
+        "ALL_TRANSACTIONS",
+      ]).describe(
+        "Optional. Determines which transactions are allowed to be terminated when they exceed `transaction_kill_threshold_seconds`. This allows protecting write-heavy transactions from auto-termination if desired. Defaults to `READ_ONLY_TRANSACTIONS` if unspecified.",
+      ).optional(),
+      transactionLockWaitThresholdCount: z.number().int().describe(
+        "Optional. Specifies the minimum allowed number of transactions in lock wait state to trigger the performance capture. Valid integers range from `10` to `10000`. Enter `0` to disable the check.",
+      ).optional(),
+    }).describe("Performance capture configuration.").optional(),
     pricingPlan: z.enum(["SQL_PRICING_PLAN_UNSPECIFIED", "PACKAGE", "PER_USE"])
       .describe(
         "The pricing plan for this instance. This can be either `PER_USE` or `PACKAGE`. Only `PER_USE` is supported for Second Generation instances.",
@@ -2207,6 +2325,7 @@ const InputsSchema = z.object({
       "LEGAL_ISSUE",
       "OPERATIONAL_ISSUE",
       "KMS_KEY_ISSUE",
+      "PROJECT_ABUSE",
     ]),
   ).describe(
     "If the instance state is SUSPENDED, the reason for the suspension.",
@@ -2237,7 +2356,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Instances. Registered at `@swamp/gcp/sqladmin/instances`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2416,6 +2535,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -3226,6 +3350,7 @@ export const model = {
         autoIamAuthn: z.any().optional(),
         database: z.any().optional(),
         partialResultMode: z.any().optional(),
+        passwordSecretVersion: z.any().optional(),
         rowLimit: z.any().optional(),
         sqlStatement: z.any().optional(),
         user: z.any().optional(),
@@ -3259,6 +3384,9 @@ export const model = {
         if (args["database"] !== undefined) body["database"] = args["database"];
         if (args["partialResultMode"] !== undefined) {
           body["partialResultMode"] = args["partialResultMode"];
+        }
+        if (args["passwordSecretVersion"] !== undefined) {
+          body["passwordSecretVersion"] = args["passwordSecretVersion"];
         }
         if (args["rowLimit"] !== undefined) body["rowLimit"] = args["rowLimit"];
         if (args["sqlStatement"] !== undefined) {

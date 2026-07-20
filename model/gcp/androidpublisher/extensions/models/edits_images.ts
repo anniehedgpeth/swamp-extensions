@@ -142,6 +142,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  aiGeneratedState: z.string().optional(),
   id: z.string().optional(),
   sha1: z.string().optional(),
   sha256: z.string().optional(),
@@ -187,7 +188,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Edits.Images. Registered at `@swamp/gcp/androidpublisher/edits-images`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/edits-images",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -286,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -540,6 +546,7 @@ export const model = {
               "imageType",
             ],
             "parameters": {
+              "aiGeneratedState": { "location": "query" },
               "editId": { "location": "path", "required": true },
               "imageType": { "location": "path", "required": true },
               "language": { "location": "path", "required": true },

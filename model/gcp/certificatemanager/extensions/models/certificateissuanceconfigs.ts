@@ -190,6 +190,9 @@ const GlobalArgsSchema = z.object({
   rotationWindowPercentage: z.number().int().describe(
     "Required. Specifies the percentage of elapsed time of the certificate lifetime to wait before renewing the certificate. Must be a number between 1-99, inclusive.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   certificateIssuanceConfigId: z.string().describe(
     "Required. A user-provided name of the certificate config.",
   ).optional(),
@@ -211,6 +214,7 @@ const StateSchema = z.object({
   lifetime: z.string().optional(),
   name: z.string(),
   rotationWindowPercentage: z.number().optional(),
+  tags: z.record(z.string(), z.unknown()).optional(),
   updateTime: z.string().optional(),
 }).passthrough();
 
@@ -250,6 +254,9 @@ const InputsSchema = z.object({
   rotationWindowPercentage: z.number().int().describe(
     "Required. Specifies the percentage of elapsed time of the certificate lifetime to wait before renewing the certificate. Must be a number between 1-99, inclusive.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   certificateIssuanceConfigId: z.string().describe(
     "Required. A user-provided name of the certificate config.",
   ).optional(),
@@ -281,7 +288,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager CertificateIssuanceConfigs. Registered at `@swamp/gcp/certificatemanager/certificateissuanceconfigs`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/certificateissuanceconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -396,6 +403,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -436,6 +448,7 @@ export const model = {
         if (g["rotationWindowPercentage"] !== undefined) {
           body["rotationWindowPercentage"] = g["rotationWindowPercentage"];
         }
+        if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["certificateIssuanceConfigId"] !== undefined) {
           params["certificateIssuanceConfigId"] = String(
             g["certificateIssuanceConfigId"],

@@ -151,7 +151,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Product Registry LogicalProducts.Variants. Registered at `@swamp/gcp/cloudproductregistry/logicalproducts-variants`. */
 export const model = {
   type: "@swamp/gcp/cloudproductregistry/logicalproducts-variants",
-  version: "2026.07.19.1",
+  version: "2026.07.20.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -170,6 +170,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -220,22 +225,29 @@ export const model = {
     },
     sync: {
       description: "Sync variants state from GCP",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific variants by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No existing state found - run create or get first");
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {

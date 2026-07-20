@@ -249,6 +249,9 @@ const GlobalArgsSchema = z.object({
     .describe(
       "Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
     ),
+  natIpsPerEndpoint: z.number().int().describe(
+    "The number of NAT IP addresses to be allocated per connected endpoint. If not specified, the default value is 1.",
+  ).optional(),
   natSubnets: z.array(z.string()).describe(
     "An array of URLs where each entry is the URL of a subnet provided by the service producer to use for NAT in this service attachment.",
   ).optional(),
@@ -300,6 +303,7 @@ const StateSchema = z.object({
   kind: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  natIpsPerEndpoint: z.number().optional(),
   natSubnets: z.array(z.string()).optional(),
   producerForwardingRule: z.string().optional(),
   propagatedConnectionLimit: z.number().optional(),
@@ -364,6 +368,9 @@ const InputsSchema = z.object({
     .describe(
       "Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
     ).optional(),
+  natIpsPerEndpoint: z.number().int().describe(
+    "The number of NAT IP addresses to be allocated per connected endpoint. If not specified, the default value is 1.",
+  ).optional(),
   natSubnets: z.array(z.string()).describe(
     "An array of URLs where each entry is the URL of a subnet provided by the service producer to use for NAT in this service attachment.",
   ).optional(),
@@ -411,7 +418,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine ServiceAttachments. Registered at `@swamp/gcp/compute/serviceattachments`. */
 export const model = {
   type: "@swamp/gcp/compute/serviceattachments",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -521,6 +528,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: natIpsPerEndpoint",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -567,6 +579,9 @@ export const model = {
         }
         if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["natIpsPerEndpoint"] !== undefined) {
+          body["natIpsPerEndpoint"] = g["natIpsPerEndpoint"];
+        }
         if (g["natSubnets"] !== undefined) body["natSubnets"] = g["natSubnets"];
         if (g["propagatedConnectionLimit"] !== undefined) {
           body["propagatedConnectionLimit"] = g["propagatedConnectionLimit"];
@@ -702,6 +717,9 @@ export const model = {
         }
         if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["natIpsPerEndpoint"] !== undefined) {
+          body["natIpsPerEndpoint"] = g["natIpsPerEndpoint"];
+        }
         if (g["natSubnets"] !== undefined) body["natSubnets"] = g["natSubnets"];
         if (g["propagatedConnectionLimit"] !== undefined) {
           body["propagatedConnectionLimit"] = g["propagatedConnectionLimit"];

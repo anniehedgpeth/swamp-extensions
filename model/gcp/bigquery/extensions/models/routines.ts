@@ -198,6 +198,8 @@ const GlobalArgsSchema = z.object({
       "ARGUMENT_KIND_UNSPECIFIED",
       "FIXED_TYPE",
       "ANY_TYPE",
+      "FIXED_TABLE",
+      "ANY_TABLE",
     ]).describe("Optional. Defaults to FIXED_TYPE.").optional(),
     dataType: z.object({
       arrayElementType: z.record(z.string(), z.unknown()).describe(
@@ -244,6 +246,16 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Optional. The name of this argument. Can be absent for function return argument.",
     ).optional(),
+    tableType: z.object({
+      columns: z.array(z.object({
+        name: z.unknown().describe(
+          "Optional. The name of this field. Can be absent for struct fields.",
+        ).optional(),
+        type: z.unknown().describe(
+          'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+        ).optional(),
+      })).describe("The columns in this table type").optional(),
+    }).describe("A table type").optional(),
   })).describe("Optional.").optional(),
   buildStatus: z.object({
     buildDuration: z.string().describe(
@@ -301,6 +313,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     containerMemory: z.string().describe(
       'Optional. Amount of memory provisioned for a Python UDF container instance. Format: {number}{unit} where unit is one of "M", "G", "Mi" and "Gi" (e.g. 1G, 512Mi). If not specified, the default value is 512Mi. For more information, see [Configure container limits for Python UDFs](https://cloud.google.com/bigquery/docs/user-defined-functions-python#configure-container-limits)',
+    ).optional(),
+    containerRequestConcurrency: z.string().describe(
+      "Optional. Maximum number of requests that a Python UDF instance can handle concurrently. If absent or if `0`, the default concurrency value is used. For more information, see [Configure container limits for Python UDFs](https://cloud.google.com/bigquery/docs/user-defined-functions-python#configure-container-limits).",
     ).optional(),
     maxBatchingRows: z.string().describe(
       "Optional. Maximum number of rows in each batch sent to the external runtime. If absent or if 0, BigQuery dynamically decides the number of rows in a batch.",
@@ -505,6 +520,12 @@ const StateSchema = z.object({
     isAggregate: z.boolean(),
     mode: z.string(),
     name: z.string(),
+    tableType: z.object({
+      columns: z.array(z.object({
+        name: z.unknown(),
+        type: z.unknown(),
+      })),
+    }),
   })).optional(),
   buildStatus: z.object({
     buildDuration: z.string(),
@@ -527,6 +548,7 @@ const StateSchema = z.object({
   externalRuntimeOptions: z.object({
     containerCpu: z.number(),
     containerMemory: z.string(),
+    containerRequestConcurrency: z.string(),
     maxBatchingRows: z.string(),
     runtimeConnection: z.string(),
     runtimeVersion: z.string(),
@@ -603,6 +625,8 @@ const InputsSchema = z.object({
       "ARGUMENT_KIND_UNSPECIFIED",
       "FIXED_TYPE",
       "ANY_TYPE",
+      "FIXED_TABLE",
+      "ANY_TABLE",
     ]).describe("Optional. Defaults to FIXED_TYPE.").optional(),
     dataType: z.object({
       arrayElementType: z.record(z.string(), z.unknown()).describe(
@@ -649,6 +673,16 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Optional. The name of this argument. Can be absent for function return argument.",
     ).optional(),
+    tableType: z.object({
+      columns: z.array(z.object({
+        name: z.unknown().describe(
+          "Optional. The name of this field. Can be absent for struct fields.",
+        ).optional(),
+        type: z.unknown().describe(
+          'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+        ).optional(),
+      })).describe("The columns in this table type").optional(),
+    }).describe("A table type").optional(),
   })).describe("Optional.").optional(),
   buildStatus: z.object({
     buildDuration: z.string().describe(
@@ -706,6 +740,9 @@ const InputsSchema = z.object({
     ).optional(),
     containerMemory: z.string().describe(
       'Optional. Amount of memory provisioned for a Python UDF container instance. Format: {number}{unit} where unit is one of "M", "G", "Mi" and "Gi" (e.g. 1G, 512Mi). If not specified, the default value is 512Mi. For more information, see [Configure container limits for Python UDFs](https://cloud.google.com/bigquery/docs/user-defined-functions-python#configure-container-limits)',
+    ).optional(),
+    containerRequestConcurrency: z.string().describe(
+      "Optional. Maximum number of requests that a Python UDF instance can handle concurrently. If absent or if `0`, the default concurrency value is used. For more information, see [Configure container limits for Python UDFs](https://cloud.google.com/bigquery/docs/user-defined-functions-python#configure-container-limits).",
     ).optional(),
     maxBatchingRows: z.string().describe(
       "Optional. Maximum number of rows in each batch sent to the external runtime. If absent or if 0, BigQuery dynamically decides the number of rows in a batch.",
@@ -920,7 +957,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Routines. Registered at `@swamp/gcp/bigquery/routines`. */
 export const model = {
   type: "@swamp/gcp/bigquery/routines",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1044,6 +1081,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

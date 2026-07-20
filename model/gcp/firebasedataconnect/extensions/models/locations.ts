@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Firebase Data Connect Locations.
+ * Swamp extension model for Google Cloud Firebase SQL Connect Locations.
  *
  * A resource that represents a Google Cloud location.
  *
@@ -144,10 +144,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Firebase Data Connect Locations. Registered at `@swamp/gcp/firebasedataconnect/locations`. */
+/** Swamp extension model for Google Cloud Firebase SQL Connect Locations. Registered at `@swamp/gcp/firebasedataconnect/locations`. */
 export const model = {
   type: "@swamp/gcp/firebasedataconnect/locations",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -251,6 +251,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -360,7 +365,7 @@ export const model = {
       description: "List locations resources",
       arguments: z.object({
         extraLocationTypes: z.string().describe(
-          "Optional. Do not use this field. It is unsupported and is ignored unless explicitly documented otherwise. This is primarily for internal usage.",
+          "Optional. Do not use this field unless explicitly documented otherwise. This is primarily for internal usage.",
         ).optional(),
         filter: z.string().describe(
           'A filter to narrow down results to a preferred subset. The filtering language accepts strings like `"displayName=tokyo"`, and is documented in more detail in [AIP-160](https://google.aip.dev/160).',

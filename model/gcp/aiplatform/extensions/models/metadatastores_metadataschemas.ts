@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI MetadataStores.MetadataSchemas.
+ * Swamp extension model for Google Cloud Agent Platform MetadataStores.MetadataSchemas.
  *
  * Instance of a general MetadataSchema.
  *
@@ -214,10 +214,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI MetadataStores.MetadataSchemas. Registered at `@swamp/gcp/aiplatform/metadatastores-metadataschemas`. */
+/** Swamp extension model for Google Cloud Agent Platform MetadataStores.MetadataSchemas. Registered at `@swamp/gcp/aiplatform/metadatastores-metadataschemas`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/metadatastores-metadataschemas",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -336,6 +336,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

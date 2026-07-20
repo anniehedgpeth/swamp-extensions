@@ -422,6 +422,7 @@ const GlobalArgsSchema = z.object({
         "logcatCollectionError",
         "detectedAppSplashScreen",
         "assetIssue",
+        "licensingProtectionTermination",
       ]).describe("Type of issue. Required.").optional(),
       warning_migration: z.object({
         typeUrl: z.string().describe(
@@ -997,6 +998,7 @@ const InputsSchema = z.object({
         "logcatCollectionError",
         "detectedAppSplashScreen",
         "assetIssue",
+        "licensingProtectionTermination",
       ]).describe("Type of issue. Required.").optional(),
       warning_migration: z.object({
         typeUrl: z.string().describe(
@@ -1193,7 +1195,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tool Results Histories.Executions.Steps. Registered at `@swamp/gcp/toolresults/histories-executions-steps`. */
 export const model = {
   type: "@swamp/gcp/toolresults/histories-executions-steps",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1302,6 +1304,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

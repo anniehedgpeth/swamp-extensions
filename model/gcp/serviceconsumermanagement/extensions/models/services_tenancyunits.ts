@@ -132,6 +132,7 @@ const StateSchema = z.object({
   tenantResources: z.array(z.object({
     migratedTenantProject: z.string(),
     resource: z.string(),
+    sourceTenantProject: z.string(),
     status: z.string(),
     tag: z.string(),
   })).optional(),
@@ -176,7 +177,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Consumer Management Services.TenancyUnits. Registered at `@swamp/gcp/serviceconsumermanagement/services-tenancyunits`. */
 export const model = {
   type: "@swamp/gcp/serviceconsumermanagement/services-tenancyunits",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -270,6 +271,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

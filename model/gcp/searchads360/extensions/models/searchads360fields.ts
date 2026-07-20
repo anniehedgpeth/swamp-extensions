@@ -46,7 +46,7 @@ const BASE_URL = "https://searchads360.googleapis.com/";
 
 const GET_CONFIG = {
   "id": "searchads360.searchAds360Fields.get",
-  "path": "v0/{+resourceName}",
+  "path": "v23/{+resourceName}",
   "httpMethod": "GET",
   "parameterOrder": [
     "resourceName",
@@ -131,7 +131,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Search Ads 360 Reporting SearchAds360Fields. Registered at `@swamp/gcp/searchads360/searchads360fields`. */
 export const model = {
   type: "@swamp/gcp/searchads360/searchads360fields",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -240,6 +240,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -367,7 +372,7 @@ export const model = {
           BASE_URL,
           {
             "id": "searchads360.searchAds360Fields.search",
-            "path": "v0/searchAds360Fields:search",
+            "path": "v23/searchAds360Fields:search",
             "httpMethod": "POST",
             "parameterOrder": [],
             "parameters": {},

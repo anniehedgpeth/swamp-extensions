@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Security Command Center EventThreatDetectionSettings.CustomModules.
  *
- * Represents an instance of an Event Threat Detection custom module, including its full module name, display name, enablement state, and last updated time. You can create a custom module at the organization, folder, or project level. Custom modules that you create at the organization or folder level are inherited by child folders and projects.
+ * GCP securitycenter EventThreatDetectionSettings.CustomModules resource
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -153,33 +153,26 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  ancestorModule: z.string().optional(),
   cloudProvider: z.enum([
     "CLOUD_PROVIDER_UNSPECIFIED",
     "GOOGLE_CLOUD_PLATFORM",
     "AMAZON_WEB_SERVICES",
     "MICROSOFT_AZURE",
-  ]).describe("The cloud provider of the custom module.").optional(),
-  config: z.record(z.string(), z.string()).describe(
-    "Config for the module. For the resident module, its config value is defined at this level. For the inherited module, its config value is inherited from the ancestor module.",
-  ).optional(),
-  description: z.string().describe("The description for the module.")
-    .optional(),
-  displayName: z.string().describe(
-    "The human readable name to be displayed for the module.",
-  ).optional(),
+  ]).optional(),
+  config: z.record(z.string(), z.string()).optional(),
+  description: z.string().optional(),
+  displayName: z.string().optional(),
   enablementState: z.enum([
     "ENABLEMENT_STATE_UNSPECIFIED",
     "ENABLED",
     "DISABLED",
     "INHERITED",
-  ]).describe(
-    "The state of enablement for the module at the given level of the hierarchy.",
-  ).optional(),
-  name: z.string().describe(
-    "Immutable. The resource name of the Event Threat Detection custom module. Its format is: * `organizations/{organization}/eventThreatDetectionSettings/customModules/{module}`. * `folders/{folder}/eventThreatDetectionSettings/customModules/{module}`. * `projects/{project}/eventThreatDetectionSettings/customModules/{module}`.",
-  ).optional(),
-  type: z.string().describe("Type for the module. e.g. CONFIGURABLE_BAD_IP.")
-    .optional(),
+  ]).optional(),
+  lastEditor: z.string().optional(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+  updateTime: z.string().optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -205,33 +198,26 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  ancestorModule: z.string().optional(),
   cloudProvider: z.enum([
     "CLOUD_PROVIDER_UNSPECIFIED",
     "GOOGLE_CLOUD_PLATFORM",
     "AMAZON_WEB_SERVICES",
     "MICROSOFT_AZURE",
-  ]).describe("The cloud provider of the custom module.").optional(),
-  config: z.record(z.string(), z.string()).describe(
-    "Config for the module. For the resident module, its config value is defined at this level. For the inherited module, its config value is inherited from the ancestor module.",
-  ).optional(),
-  description: z.string().describe("The description for the module.")
-    .optional(),
-  displayName: z.string().describe(
-    "The human readable name to be displayed for the module.",
-  ).optional(),
+  ]).optional(),
+  config: z.record(z.string(), z.string()).optional(),
+  description: z.string().optional(),
+  displayName: z.string().optional(),
   enablementState: z.enum([
     "ENABLEMENT_STATE_UNSPECIFIED",
     "ENABLED",
     "DISABLED",
     "INHERITED",
-  ]).describe(
-    "The state of enablement for the module at the given level of the hierarchy.",
-  ).optional(),
-  name: z.string().describe(
-    "Immutable. The resource name of the Event Threat Detection custom module. Its format is: * `organizations/{organization}/eventThreatDetectionSettings/customModules/{module}`. * `folders/{folder}/eventThreatDetectionSettings/customModules/{module}`. * `projects/{project}/eventThreatDetectionSettings/customModules/{module}`.",
-  ).optional(),
-  type: z.string().describe("Type for the module. e.g. CONFIGURABLE_BAD_IP.")
-    .optional(),
+  ]).optional(),
+  lastEditor: z.string().optional(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+  updateTime: z.string().optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -260,7 +246,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center EventThreatDetectionSettings.CustomModules. Registered at `@swamp/gcp/securitycenter/eventthreatdetectionsettings-custommodules`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/eventthreatdetectionsettings-custommodules",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -375,13 +361,18 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: ancestorModule, lastEditor, updateTime",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "Represents an instance of an Event Threat Detection custom module, including ...",
+        "GCP securitycenter EventThreatDetectionSettings.CustomModules resource",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -398,6 +389,9 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
+        if (g["ancestorModule"] !== undefined) {
+          body["ancestorModule"] = g["ancestorModule"];
+        }
         if (g["cloudProvider"] !== undefined) {
           body["cloudProvider"] = g["cloudProvider"];
         }
@@ -411,8 +405,10 @@ export const model = {
         if (g["enablementState"] !== undefined) {
           body["enablementState"] = g["enablementState"];
         }
+        if (g["lastEditor"] !== undefined) body["lastEditor"] = g["lastEditor"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["type"] !== undefined) body["type"] = g["type"];
+        if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
             String(g["parent"]),
@@ -517,6 +513,9 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (g["ancestorModule"] !== undefined) {
+          body["ancestorModule"] = g["ancestorModule"];
+        }
         if (g["cloudProvider"] !== undefined) {
           body["cloudProvider"] = g["cloudProvider"];
         }
@@ -530,7 +529,9 @@ export const model = {
         if (g["enablementState"] !== undefined) {
           body["enablementState"] = g["enablementState"];
         }
+        if (g["lastEditor"] !== undefined) body["lastEditor"] = g["lastEditor"];
         if (g["type"] !== undefined) body["type"] = g["type"];
+        if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");
@@ -660,9 +661,7 @@ export const model = {
     list: {
       description: "List customModules resources",
       arguments: z.object({
-        pageSize: z.number().describe(
-          "The maximum number of modules to return. The service may return fewer than this value. If unspecified, at most 10 configs will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.",
-        ).optional(),
+        pageSize: z.number().optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
         ).optional(),

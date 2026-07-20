@@ -265,8 +265,14 @@ const StateSchema = z.object({
       resources: z.array(z.string()),
       restrictedServices: z.array(z.string()),
       vpcAccessibleServices: z.object({
+        allowedServicePatterns: z.array(z.object({
+          modifiers: z.unknown(),
+          pattern: z.unknown(),
+          service: z.unknown(),
+        })),
         allowedServices: z.array(z.string()),
         enableRestriction: z.boolean(),
+        servicePatternsEnforcementScopes: z.array(z.string()),
       }),
     }),
     status: z.object({
@@ -302,8 +308,14 @@ const StateSchema = z.object({
       resources: z.array(z.string()),
       restrictedServices: z.array(z.string()),
       vpcAccessibleServices: z.object({
+        allowedServicePatterns: z.array(z.object({
+          modifiers: z.unknown(),
+          pattern: z.unknown(),
+          service: z.unknown(),
+        })),
         allowedServices: z.array(z.string()),
         enableRestriction: z.boolean(),
+        servicePatternsEnforcementScopes: z.array(z.string()),
       }),
     }),
     title: z.string(),
@@ -348,7 +360,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Asset Assets. Registered at `@swamp/gcp/cloudasset/assets`. */
 export const model = {
   type: "@swamp/gcp/cloudasset/assets",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -447,6 +459,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

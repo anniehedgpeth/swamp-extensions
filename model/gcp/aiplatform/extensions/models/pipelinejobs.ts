@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI PipelineJobs.
+ * Swamp extension model for Google Cloud Agent Platform PipelineJobs.
  *
  * An instance of a machine learning PipelineJob.
  *
@@ -934,10 +934,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI PipelineJobs. Registered at `@swamp/gcp/aiplatform/pipelinejobs`. */
+/** Swamp extension model for Google Cloud Agent Platform PipelineJobs. Registered at `@swamp/gcp/aiplatform/pipelinejobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/pipelinejobs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1061,6 +1061,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

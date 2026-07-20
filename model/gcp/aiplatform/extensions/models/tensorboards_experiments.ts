@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI Tensorboards.Experiments.
+ * Swamp extension model for Google Cloud Agent Platform Tensorboards.Experiments.
  *
  * A TensorboardExperiment is a group of TensorboardRuns, that are typically the results of a training job run, in a Tensorboard.
  *
@@ -241,10 +241,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI Tensorboards.Experiments. Registered at `@swamp/gcp/aiplatform/tensorboards-experiments`. */
+/** Swamp extension model for Google Cloud Agent Platform Tensorboards.Experiments. Registered at `@swamp/gcp/aiplatform/tensorboards-experiments`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/tensorboards-experiments",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -368,6 +368,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

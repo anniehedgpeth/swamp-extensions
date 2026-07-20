@@ -167,11 +167,22 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the backup. Format: `projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id}`.",
   ).optional(),
+  ontapSource: z.object({
+    snapshotUuid: z.string().describe(
+      "Optional. The UUID of the ONTAP source snapshot.",
+    ).optional(),
+    storagePool: z.string().describe(
+      "Required. Name of the storage pool. This must be specified for creating backups for ONTAP mode volumes. Format: `projects/{projects_id}/locations/{location}/storagePools/{storage_pool_id}`",
+    ).optional(),
+    volumeUuid: z.string().describe(
+      "Required. The UUID of the ONTAP source volume.",
+    ).optional(),
+  }).describe("Represents ONTAP source details.").optional(),
   sourceSnapshot: z.string().describe(
     "If specified, backup will be created from the given snapshot. If not specified, there will be a new snapshot taken to initiate the backup creation. Format: `projects/{project_id}/locations/{location}/volumes/{volume_id}/snapshots/{snapshot_id}`",
   ).optional(),
   sourceVolume: z.string().describe(
-    "Volume full name of this backup belongs to. Either source_volume or ontap_source should be provided. Format: `projects/{projects_id}/locations/{location}/volumes/{volume_id}`",
+    "The resource name of the volume that this backup belongs to. You must provide either `source_volume` or `ontap_source`. Format: `projects/{project_id}/locations/{location}/volumes/{volume_id}`",
   ).optional(),
   backupId: z.string().describe(
     "Required. The ID to use for the backup. The ID must be unique within the specified backupVault. Must contain only letters, numbers and hyphen, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
@@ -193,6 +204,11 @@ const StateSchema = z.object({
   enforcedRetentionEndTime: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  ontapSource: z.object({
+    snapshotUuid: z.string(),
+    storagePool: z.string(),
+    volumeUuid: z.string(),
+  }).optional(),
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
   sourceSnapshot: z.string().optional(),
@@ -218,11 +234,22 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the backup. Format: `projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id}`.",
   ).optional(),
+  ontapSource: z.object({
+    snapshotUuid: z.string().describe(
+      "Optional. The UUID of the ONTAP source snapshot.",
+    ).optional(),
+    storagePool: z.string().describe(
+      "Required. Name of the storage pool. This must be specified for creating backups for ONTAP mode volumes. Format: `projects/{projects_id}/locations/{location}/storagePools/{storage_pool_id}`",
+    ).optional(),
+    volumeUuid: z.string().describe(
+      "Required. The UUID of the ONTAP source volume.",
+    ).optional(),
+  }).describe("Represents ONTAP source details.").optional(),
   sourceSnapshot: z.string().describe(
     "If specified, backup will be created from the given snapshot. If not specified, there will be a new snapshot taken to initiate the backup creation. Format: `projects/{project_id}/locations/{location}/volumes/{volume_id}/snapshots/{snapshot_id}`",
   ).optional(),
   sourceVolume: z.string().describe(
-    "Volume full name of this backup belongs to. Either source_volume or ontap_source should be provided. Format: `projects/{projects_id}/locations/{location}/volumes/{volume_id}`",
+    "The resource name of the volume that this backup belongs to. You must provide either `source_volume` or `ontap_source`. Format: `projects/{project_id}/locations/{location}/volumes/{volume_id}`",
   ).optional(),
   backupId: z.string().describe(
     "Required. The ID to use for the backup. The ID must be unique within the specified backupVault. Must contain only letters, numbers and hyphen, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
@@ -258,7 +285,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud NetApp BackupVaults.Backups. Registered at `@swamp/gcp/netapp/backupvaults-backups`. */
 export const model = {
   type: "@swamp/gcp/netapp/backupvaults-backups",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -391,6 +418,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: ontapSource",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -422,6 +454,9 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["ontapSource"] !== undefined) {
+          body["ontapSource"] = g["ontapSource"];
+        }
         if (g["sourceSnapshot"] !== undefined) {
           body["sourceSnapshot"] = g["sourceSnapshot"];
         }
@@ -551,6 +586,9 @@ export const model = {
           body["description"] = g["description"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["ontapSource"] !== undefined) {
+          body["ontapSource"] = g["ontapSource"];
+        }
         if (g["sourceSnapshot"] !== undefined) {
           body["sourceSnapshot"] = g["sourceSnapshot"];
         }

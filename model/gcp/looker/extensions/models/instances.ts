@@ -139,6 +139,9 @@ const LIST_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "showDeleted": {
+      "location": "query",
+    },
   },
 } as const;
 
@@ -158,11 +161,17 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  acceleratedSecurityPatchEnabled: z.boolean().describe(
+    "Optional. Accelerated security patch enabled for the instance.",
+  ).optional(),
   adminSettings: z.object({
     allowedEmailDomains: z.array(z.string()).describe(
       "Email domain allowlist for the instance.",
     ).optional(),
   }).describe("Looker instance Admin settings fields.").optional(),
+  catalogIntegrationOptOut: z.boolean().describe(
+    "Optional. Indicates whether catalog integration is disabled for the Looker instance.",
+  ).optional(),
   classType: z.enum(["CLASS_TYPE_UNSPECIFIED", "R1", "P1"]).describe(
     "Optional. Storage class of the instance.",
   ).optional(),
@@ -255,6 +264,23 @@ const GlobalArgsSchema = z.object({
   geminiEnabled: z.boolean().describe(
     "Optional. Whether Gemini feature is enabled on the Looker instance or not.",
   ).optional(),
+  ingressIpAllowlistConfig: z.object({
+    allowlistRules: z.array(z.object({
+      description: z.string().describe(
+        "Optional. Description for the IP range.",
+      ).optional(),
+      ipRange: z.string().describe(
+        "Optional. The IP range to allow ingress traffic from.",
+      ).optional(),
+    })).describe("Optional. List of IP range rules to allow ingress traffic.")
+      .optional(),
+    enabled: z.boolean().describe(
+      "Optional. Whether ingress IP allowlist functionality is enabled on the Looker instance.",
+    ).optional(),
+    googleServicesEnabled: z.boolean().describe(
+      "Optional. Whether google service connections are enabled for the instance.",
+    ).optional(),
+  }).describe("Ingress IP allowlist configuration.").optional(),
   lastDenyMaintenancePeriod: z.object({
     endDate: z.object({
       day: z.number().int().describe(
@@ -430,6 +456,13 @@ const GlobalArgsSchema = z.object({
   publicIpEnabled: z.boolean().describe(
     "Whether public IP is enabled on the Looker instance.",
   ).optional(),
+  releaseChannel: z.enum([
+    "RELEASE_CHANNEL_UNSPECIFIED",
+    "RAPID",
+    "REGULAR",
+    "STABLE",
+  ]).describe("Optional. The selected release channel for the instance.")
+    .optional(),
   reservedRange: z.string().describe(
     "Name of a reserved IP address range within the Instance.consumer_network, to be used for private services access connection. May or may not be specified in a create request.",
   ).optional(),
@@ -453,9 +486,11 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  acceleratedSecurityPatchEnabled: z.boolean().optional(),
   adminSettings: z.object({
     allowedEmailDomains: z.array(z.string()),
   }).optional(),
+  catalogIntegrationOptOut: z.boolean().optional(),
   classType: z.string().optional(),
   consumerNetwork: z.string().optional(),
   controlledEgressConfig: z.object({
@@ -495,6 +530,14 @@ const StateSchema = z.object({
   }).optional(),
   fipsEnabled: z.boolean().optional(),
   geminiEnabled: z.boolean().optional(),
+  ingressIpAllowlistConfig: z.object({
+    allowlistRules: z.array(z.object({
+      description: z.string(),
+      ipRange: z.string(),
+    })),
+    enabled: z.boolean(),
+    googleServicesEnabled: z.boolean(),
+  }).optional(),
   ingressPrivateIp: z.string().optional(),
   ingressPublicIp: z.string().optional(),
   lastDenyMaintenancePeriod: z.object({
@@ -562,10 +605,13 @@ const StateSchema = z.object({
   }).optional(),
   pscEnabled: z.boolean().optional(),
   publicIpEnabled: z.boolean().optional(),
+  releaseChannel: z.string().optional(),
   reservedRange: z.string().optional(),
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
+  softDeleteReason: z.string().optional(),
   state: z.string().optional(),
+  suspendedTime: z.string().optional(),
   updateTime: z.string().optional(),
   userMetadata: z.object({
     additionalDeveloperUserCount: z.number(),
@@ -582,11 +628,17 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  acceleratedSecurityPatchEnabled: z.boolean().describe(
+    "Optional. Accelerated security patch enabled for the instance.",
+  ).optional(),
   adminSettings: z.object({
     allowedEmailDomains: z.array(z.string()).describe(
       "Email domain allowlist for the instance.",
     ).optional(),
   }).describe("Looker instance Admin settings fields.").optional(),
+  catalogIntegrationOptOut: z.boolean().describe(
+    "Optional. Indicates whether catalog integration is disabled for the Looker instance.",
+  ).optional(),
   classType: z.enum(["CLASS_TYPE_UNSPECIFIED", "R1", "P1"]).describe(
     "Optional. Storage class of the instance.",
   ).optional(),
@@ -679,6 +731,23 @@ const InputsSchema = z.object({
   geminiEnabled: z.boolean().describe(
     "Optional. Whether Gemini feature is enabled on the Looker instance or not.",
   ).optional(),
+  ingressIpAllowlistConfig: z.object({
+    allowlistRules: z.array(z.object({
+      description: z.string().describe(
+        "Optional. Description for the IP range.",
+      ).optional(),
+      ipRange: z.string().describe(
+        "Optional. The IP range to allow ingress traffic from.",
+      ).optional(),
+    })).describe("Optional. List of IP range rules to allow ingress traffic.")
+      .optional(),
+    enabled: z.boolean().describe(
+      "Optional. Whether ingress IP allowlist functionality is enabled on the Looker instance.",
+    ).optional(),
+    googleServicesEnabled: z.boolean().describe(
+      "Optional. Whether google service connections are enabled for the instance.",
+    ).optional(),
+  }).describe("Ingress IP allowlist configuration.").optional(),
   lastDenyMaintenancePeriod: z.object({
     endDate: z.object({
       day: z.number().int().describe(
@@ -854,6 +923,13 @@ const InputsSchema = z.object({
   publicIpEnabled: z.boolean().describe(
     "Whether public IP is enabled on the Looker instance.",
   ).optional(),
+  releaseChannel: z.enum([
+    "RELEASE_CHANNEL_UNSPECIFIED",
+    "RAPID",
+    "REGULAR",
+    "STABLE",
+  ]).describe("Optional. The selected release channel for the instance.")
+    .optional(),
   reservedRange: z.string().describe(
     "Name of a reserved IP address range within the Instance.consumer_network, to be used for private services access connection. May or may not be specified in a create request.",
   ).optional(),
@@ -899,7 +975,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Looker (Google Cloud core) Instances. Registered at `@swamp/gcp/looker/instances`. */
 export const model = {
   type: "@swamp/gcp/looker/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1060,6 +1136,12 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description:
+        "Added: acceleratedSecurityPatchEnabled, catalogIntegrationOptOut, ingressIpAllowlistConfig, releaseChannel",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1088,8 +1170,15 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
+        if (g["acceleratedSecurityPatchEnabled"] !== undefined) {
+          body["acceleratedSecurityPatchEnabled"] =
+            g["acceleratedSecurityPatchEnabled"];
+        }
         if (g["adminSettings"] !== undefined) {
           body["adminSettings"] = g["adminSettings"];
+        }
+        if (g["catalogIntegrationOptOut"] !== undefined) {
+          body["catalogIntegrationOptOut"] = g["catalogIntegrationOptOut"];
         }
         if (g["classType"] !== undefined) body["classType"] = g["classType"];
         if (g["consumerNetwork"] !== undefined) {
@@ -1115,6 +1204,9 @@ export const model = {
         }
         if (g["geminiEnabled"] !== undefined) {
           body["geminiEnabled"] = g["geminiEnabled"];
+        }
+        if (g["ingressIpAllowlistConfig"] !== undefined) {
+          body["ingressIpAllowlistConfig"] = g["ingressIpAllowlistConfig"];
         }
         if (g["lastDenyMaintenancePeriod"] !== undefined) {
           body["lastDenyMaintenancePeriod"] = g["lastDenyMaintenancePeriod"];
@@ -1144,6 +1236,9 @@ export const model = {
         if (g["pscEnabled"] !== undefined) body["pscEnabled"] = g["pscEnabled"];
         if (g["publicIpEnabled"] !== undefined) {
           body["publicIpEnabled"] = g["publicIpEnabled"];
+        }
+        if (g["releaseChannel"] !== undefined) {
+          body["releaseChannel"] = g["releaseChannel"];
         }
         if (g["reservedRange"] !== undefined) {
           body["reservedRange"] = g["reservedRange"];
@@ -1273,8 +1368,15 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (g["acceleratedSecurityPatchEnabled"] !== undefined) {
+          body["acceleratedSecurityPatchEnabled"] =
+            g["acceleratedSecurityPatchEnabled"];
+        }
         if (g["adminSettings"] !== undefined) {
           body["adminSettings"] = g["adminSettings"];
+        }
+        if (g["catalogIntegrationOptOut"] !== undefined) {
+          body["catalogIntegrationOptOut"] = g["catalogIntegrationOptOut"];
         }
         if (g["classType"] !== undefined) body["classType"] = g["classType"];
         if (g["consumerNetwork"] !== undefined) {
@@ -1300,6 +1402,9 @@ export const model = {
         }
         if (g["geminiEnabled"] !== undefined) {
           body["geminiEnabled"] = g["geminiEnabled"];
+        }
+        if (g["ingressIpAllowlistConfig"] !== undefined) {
+          body["ingressIpAllowlistConfig"] = g["ingressIpAllowlistConfig"];
         }
         if (g["lastDenyMaintenancePeriod"] !== undefined) {
           body["lastDenyMaintenancePeriod"] = g["lastDenyMaintenancePeriod"];
@@ -1329,6 +1434,9 @@ export const model = {
         if (g["pscEnabled"] !== undefined) body["pscEnabled"] = g["pscEnabled"];
         if (g["publicIpEnabled"] !== undefined) {
           body["publicIpEnabled"] = g["publicIpEnabled"];
+        }
+        if (g["releaseChannel"] !== undefined) {
+          body["releaseChannel"] = g["releaseChannel"];
         }
         if (g["reservedRange"] !== undefined) {
           body["reservedRange"] = g["reservedRange"];
@@ -1474,6 +1582,9 @@ export const model = {
         pageSize: z.number().describe(
           "The maximum number of instances to return. If unspecified at most 256 will be returned. The maximum possible value is 2048.",
         ).optional(),
+        showDeleted: z.boolean().describe(
+          "Optional. Whether to include deleted instances in the response.",
+        ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
         ).optional(),
@@ -1488,6 +1599,9 @@ export const model = {
         }`;
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
+        }
+        if (args["showDeleted"] !== undefined) {
+          params["showDeleted"] = String(args["showDeleted"]);
         }
         const { items, nextPageToken } = await listResources(
           BASE_URL,
@@ -1654,6 +1768,39 @@ export const model = {
           },
           params,
           body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    undelete: {
+      description: "undelete",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["name"]),
+          );
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "looker.projects.locations.instances.undelete",
+            "path": "v1/{+name}:undelete",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          {},
           undefined,
           undefined,
           undefined,

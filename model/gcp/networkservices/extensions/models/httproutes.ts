@@ -82,6 +82,9 @@ const INSERT_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "requestId": {
+      "location": "query",
+    },
   },
 } as const;
 
@@ -126,6 +129,9 @@ const LIST_CONFIG = {
     "parent",
   ],
   "parameters": {
+    "filter": {
+      "location": "query",
+    },
     "pageSize": {
       "location": "query",
     },
@@ -395,6 +401,8 @@ const GlobalArgsSchema = z.object({
   httpRouteId: z.string().describe(
     "Required. Short name of the HttpRoute resource to be created.",
   ).optional(),
+  requestId: z.string().describe("Optional. Idempotent request UUID.")
+    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -744,6 +752,8 @@ const InputsSchema = z.object({
   httpRouteId: z.string().describe(
     "Required. Short name of the HttpRoute resource to be created.",
   ).optional(),
+  requestId: z.string().describe("Optional. Idempotent request UUID.")
+    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -772,7 +782,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services HttpRoutes. Registered at `@swamp/gcp/networkservices/httproutes`. */
 export const model = {
   type: "@swamp/gcp/networkservices/httproutes",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -916,6 +926,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: requestId",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -952,6 +967,9 @@ export const model = {
         if (g["rules"] !== undefined) body["rules"] = g["rules"];
         if (g["httpRouteId"] !== undefined) {
           params["httpRouteId"] = String(g["httpRouteId"]);
+        }
+        if (g["requestId"] !== undefined) {
+          params["requestId"] = String(g["requestId"]);
         }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -1196,6 +1214,9 @@ export const model = {
     list: {
       description: "List httpRoutes resources",
       arguments: z.object({
+        filter: z.string().describe(
+          "Optional. Filter expression to restrict the list.",
+        ).optional(),
         pageSize: z.number().describe(
           "Maximum number of HttpRoutes to return per call.",
         ).optional(),
@@ -1214,6 +1235,9 @@ export const model = {
         params["parent"] = `projects/${projectId}/locations/${
           String(g["location"] ?? "")
         }`;
+        if (args["filter"] !== undefined) {
+          params["filter"] = String(args["filter"]);
+        }
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

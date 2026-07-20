@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI ReasoningEngines.
+ * Swamp extension model for Google Cloud Agent Platform ReasoningEngines.
  *
  * ReasoningEngine provides a customizable runtime for models to determine which actions to take and in which order.
  *
@@ -160,22 +160,25 @@ const GlobalArgsSchema = z.object({
       customizationConfigs: z.array(z.object({
         consolidationConfig: z.object({
           revisionsPerCandidateCount: z.unknown().describe(
-            "Optional. The maximum number of revisions to consider for each candidate memory. If not set, then the default value (1) will be used, which means that only the latest revision will be considered.",
+            "Optional. Represents the maximum number of revisions to consider for each candidate memory. If not set, then the default value (1) will be used, which means that only the latest revision will be considered.",
           ).optional(),
         }).describe(
           "Represents configuration for customizing how memories are consolidated.",
         ).optional(),
+        disableNaturalLanguageMemories: z.boolean().describe(
+          "Optional. Indicates whether natural language memory generation should be disabled for all requests. By default, natural language memory generation is enabled. Set this to `true` when you only want to generate structured memories.",
+        ).optional(),
         enableThirdPersonMemories: z.boolean().describe(
-          'Optional. If true, then the memories will be generated in the third person (i.e. "The user generates memories with Memory Bank."). By default, the memories will be generated in the first person (i.e. "I generate memories with Memory Bank.")',
+          'Optional. Indicates whether the memories will be generated in the third person (i.e. "The user generates memories with Memory Bank."). By default, the memories will be generated in the first person (i.e. "I generate memories with Memory Bank.")',
         ).optional(),
         generateMemoriesExamples: z.array(z.unknown()).describe(
-          "Optional. Examples of how to generate memories for a particular scope.",
+          "Optional. Provides examples of how to generate memories for a particular scope.",
         ).optional(),
         memoryTopics: z.array(z.unknown()).describe(
-          "Optional. Topics of information that should be extracted from conversations and stored as memories. If not set, then Memory Bank's default topics will be used.",
+          "Optional. Represents topics of information that should be extracted from conversations and stored as memories. If not set, then Memory Bank's default topics will be used.",
         ).optional(),
         scopeKeys: z.array(z.unknown()).describe(
-          "Optional. The scope keys (i.e. 'user_id') for which to use this config. A request's scope must include all of the provided keys for the config to be used (order does not matter). If empty, then the config will be used for all requests that do not have a more specific config. Only one default config is allowed per Memory Bank.",
+          "Optional. Represents the scope keys (i.e. 'user_id') for which to use this config. A request's scope must include all of the provided keys for the config to be used (order does not matter). If empty, then the config will be used for all requests that do not have a more specific config. Only one default config is allowed per Memory Bank.",
         ).optional(),
       })).describe(
         "Optional. Configuration for how to customize Memory Bank behavior for a particular scope.",
@@ -184,8 +187,27 @@ const GlobalArgsSchema = z.object({
         "If true, no memory revisions will be created for any requests to the Memory Bank.",
       ).optional(),
       generationConfig: z.object({
+        generationTriggerConfig: z.object({
+          generationRule: z.object({
+            eventCount: z.unknown().describe(
+              "Optional. Specifies to trigger generation when the event count reaches this limit.",
+            ).optional(),
+            fixedInterval: z.unknown().describe(
+              "Optional. Specifies to trigger generation at a fixed interval. The duration must have a minute-level granularity.",
+            ).optional(),
+            idleDuration: z.unknown().describe(
+              "Optional. Specifies to trigger generation if the stream is inactive for the specified duration after the most recent event. The duration must have a minute-level granularity.",
+            ).optional(),
+            overlapEventCount: z.unknown().describe(
+              "Optional. Re-include the last N already-processed events in the next window.",
+            ).optional(),
+          }).describe(
+            "Represents the active rule that determines when to flush the buffer.",
+          ).optional(),
+        }).describe("Represents configuration for triggering generation.")
+          .optional(),
         model: z.string().describe(
-          "Required. The model used to generate memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
+          "Optional. The model used to generate memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
         ).optional(),
       }).describe("Configuration for how to generate memories.").optional(),
       similaritySearchConfig: z.object({
@@ -245,6 +267,11 @@ const GlobalArgsSchema = z.object({
     agentFramework: z.string().describe(
       'Optional. The OSS agent framework used to develop the agent. Currently supported values: "google-adk", "langchain", "langgraph", "ag2", "llama-index", "custom".',
     ).optional(),
+    buildSpec: z.object({
+      workerPool: z.string().describe(
+        "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
+      ).optional(),
+    }).describe("Specification for building container image.").optional(),
     classMethods: z.array(z.record(z.string(), z.string())).describe(
       "Optional. Declarations for object class methods in OpenAPI specification format.",
     ).optional(),
@@ -255,6 +282,23 @@ const GlobalArgsSchema = z.object({
     }).describe("Specification for deploying from a container image.")
       .optional(),
     deploymentSpec: z.object({
+      agentGatewayConfig: z.object({
+        agentToAnywhereConfig: z.object({
+          agentGateway: z.string().describe(
+            "Required. The resource name of the Agent Gateway for outbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `AGENT_TO_ANYWHERE`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
+          ).optional(),
+        }).describe(
+          "Configuration for traffic originating from a Reasoning Engine.",
+        ).optional(),
+        clientToAgentConfig: z.object({
+          agentGateway: z.string().describe(
+            "Required. The resource name of the Agent Gateway to use for inbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `CLIENT_TO_AGENT`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
+          ).optional(),
+        }).describe("Configuration for traffic targeting a Reasoning Engine.")
+          .optional(),
+      }).describe(
+        "Agent Gateway configuration for a Reasoning Engine deployment.",
+      ).optional(),
       containerConcurrency: z.number().int().describe(
         "Optional. Concurrency for each container and agent server. Recommended value: 2 * cpu + 1. Defaults to 9.",
       ).optional(),
@@ -288,7 +332,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The maximum number of application instances that can be launched to handle increased traffic. Defaults to 100. Range: [1, 1000]. If VPC-SC or PSC-I is enabled, the acceptable range is [1, 100].",
       ).optional(),
       minInstances: z.number().int().describe(
-        "Optional. The minimum number of application instances that will be kept running at all times. Defaults to 1. Range: [0, 10].",
+        "Optional. The minimum number of application instances that will be kept running at all times. Defaults to 1. Range: [0, 75].",
       ).optional(),
       pscInterfaceConfig: z.object({
         dnsPeeringConfigs: z.array(z.object({
@@ -348,7 +392,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The Cloud Storage URI of the pickled python object.",
       ).optional(),
       pythonVersion: z.string().describe(
-        "Optional. The Python version. Supported values are 3.9, 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, the default value is 3.10.",
+        "Optional. The Python version. Supported values are 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, the default value is 3.10.",
       ).optional(),
       requirementsGcsUri: z.string().describe(
         "Optional. The Cloud Storage URI of the `requirements.txt` file",
@@ -416,7 +460,7 @@ const GlobalArgsSchema = z.object({
           'Optional. The path to the requirements file, relative to the source root. If not specified, defaults to "requirements.txt".',
         ).optional(),
         version: z.string().describe(
-          "Optional. The version of Python to use. Support version includes 3.9, 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.",
+          "Optional. The version of Python to use. Supported versions include 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.",
         ).optional(),
       }).describe("Specification for running a Python application from source.")
         .optional(),
@@ -434,6 +478,7 @@ const StateSchema = z.object({
         consolidationConfig: z.object({
           revisionsPerCandidateCount: z.unknown(),
         }),
+        disableNaturalLanguageMemories: z.boolean(),
         enableThirdPersonMemories: z.boolean(),
         generateMemoriesExamples: z.array(z.unknown()),
         memoryTopics: z.array(z.unknown()),
@@ -441,6 +486,14 @@ const StateSchema = z.object({
       })),
       disableMemoryRevisions: z.boolean(),
       generationConfig: z.object({
+        generationTriggerConfig: z.object({
+          generationRule: z.object({
+            eventCount: z.unknown(),
+            fixedInterval: z.unknown(),
+            idleDuration: z.unknown(),
+            overlapEventCount: z.unknown(),
+          }),
+        }),
         model: z.string(),
       }),
       similaritySearchConfig: z.object({
@@ -468,11 +521,22 @@ const StateSchema = z.object({
   name: z.string(),
   spec: z.object({
     agentFramework: z.string(),
+    buildSpec: z.object({
+      workerPool: z.string(),
+    }),
     classMethods: z.array(z.record(z.string(), z.unknown())),
     containerSpec: z.object({
       imageUri: z.string(),
     }),
     deploymentSpec: z.object({
+      agentGatewayConfig: z.object({
+        agentToAnywhereConfig: z.object({
+          agentGateway: z.string(),
+        }),
+        clientToAgentConfig: z.object({
+          agentGateway: z.string(),
+        }),
+      }),
       containerConcurrency: z.number(),
       env: z.array(z.object({
         name: z.string(),
@@ -558,22 +622,25 @@ const InputsSchema = z.object({
       customizationConfigs: z.array(z.object({
         consolidationConfig: z.object({
           revisionsPerCandidateCount: z.unknown().describe(
-            "Optional. The maximum number of revisions to consider for each candidate memory. If not set, then the default value (1) will be used, which means that only the latest revision will be considered.",
+            "Optional. Represents the maximum number of revisions to consider for each candidate memory. If not set, then the default value (1) will be used, which means that only the latest revision will be considered.",
           ).optional(),
         }).describe(
           "Represents configuration for customizing how memories are consolidated.",
         ).optional(),
+        disableNaturalLanguageMemories: z.boolean().describe(
+          "Optional. Indicates whether natural language memory generation should be disabled for all requests. By default, natural language memory generation is enabled. Set this to `true` when you only want to generate structured memories.",
+        ).optional(),
         enableThirdPersonMemories: z.boolean().describe(
-          'Optional. If true, then the memories will be generated in the third person (i.e. "The user generates memories with Memory Bank."). By default, the memories will be generated in the first person (i.e. "I generate memories with Memory Bank.")',
+          'Optional. Indicates whether the memories will be generated in the third person (i.e. "The user generates memories with Memory Bank."). By default, the memories will be generated in the first person (i.e. "I generate memories with Memory Bank.")',
         ).optional(),
         generateMemoriesExamples: z.array(z.unknown()).describe(
-          "Optional. Examples of how to generate memories for a particular scope.",
+          "Optional. Provides examples of how to generate memories for a particular scope.",
         ).optional(),
         memoryTopics: z.array(z.unknown()).describe(
-          "Optional. Topics of information that should be extracted from conversations and stored as memories. If not set, then Memory Bank's default topics will be used.",
+          "Optional. Represents topics of information that should be extracted from conversations and stored as memories. If not set, then Memory Bank's default topics will be used.",
         ).optional(),
         scopeKeys: z.array(z.unknown()).describe(
-          "Optional. The scope keys (i.e. 'user_id') for which to use this config. A request's scope must include all of the provided keys for the config to be used (order does not matter). If empty, then the config will be used for all requests that do not have a more specific config. Only one default config is allowed per Memory Bank.",
+          "Optional. Represents the scope keys (i.e. 'user_id') for which to use this config. A request's scope must include all of the provided keys for the config to be used (order does not matter). If empty, then the config will be used for all requests that do not have a more specific config. Only one default config is allowed per Memory Bank.",
         ).optional(),
       })).describe(
         "Optional. Configuration for how to customize Memory Bank behavior for a particular scope.",
@@ -582,8 +649,27 @@ const InputsSchema = z.object({
         "If true, no memory revisions will be created for any requests to the Memory Bank.",
       ).optional(),
       generationConfig: z.object({
+        generationTriggerConfig: z.object({
+          generationRule: z.object({
+            eventCount: z.unknown().describe(
+              "Optional. Specifies to trigger generation when the event count reaches this limit.",
+            ).optional(),
+            fixedInterval: z.unknown().describe(
+              "Optional. Specifies to trigger generation at a fixed interval. The duration must have a minute-level granularity.",
+            ).optional(),
+            idleDuration: z.unknown().describe(
+              "Optional. Specifies to trigger generation if the stream is inactive for the specified duration after the most recent event. The duration must have a minute-level granularity.",
+            ).optional(),
+            overlapEventCount: z.unknown().describe(
+              "Optional. Re-include the last N already-processed events in the next window.",
+            ).optional(),
+          }).describe(
+            "Represents the active rule that determines when to flush the buffer.",
+          ).optional(),
+        }).describe("Represents configuration for triggering generation.")
+          .optional(),
         model: z.string().describe(
-          "Required. The model used to generate memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
+          "Optional. The model used to generate memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
         ).optional(),
       }).describe("Configuration for how to generate memories.").optional(),
       similaritySearchConfig: z.object({
@@ -643,6 +729,11 @@ const InputsSchema = z.object({
     agentFramework: z.string().describe(
       'Optional. The OSS agent framework used to develop the agent. Currently supported values: "google-adk", "langchain", "langgraph", "ag2", "llama-index", "custom".',
     ).optional(),
+    buildSpec: z.object({
+      workerPool: z.string().describe(
+        "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
+      ).optional(),
+    }).describe("Specification for building container image.").optional(),
     classMethods: z.array(z.record(z.string(), z.string())).describe(
       "Optional. Declarations for object class methods in OpenAPI specification format.",
     ).optional(),
@@ -653,6 +744,23 @@ const InputsSchema = z.object({
     }).describe("Specification for deploying from a container image.")
       .optional(),
     deploymentSpec: z.object({
+      agentGatewayConfig: z.object({
+        agentToAnywhereConfig: z.object({
+          agentGateway: z.string().describe(
+            "Required. The resource name of the Agent Gateway for outbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `AGENT_TO_ANYWHERE`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
+          ).optional(),
+        }).describe(
+          "Configuration for traffic originating from a Reasoning Engine.",
+        ).optional(),
+        clientToAgentConfig: z.object({
+          agentGateway: z.string().describe(
+            "Required. The resource name of the Agent Gateway to use for inbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `CLIENT_TO_AGENT`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
+          ).optional(),
+        }).describe("Configuration for traffic targeting a Reasoning Engine.")
+          .optional(),
+      }).describe(
+        "Agent Gateway configuration for a Reasoning Engine deployment.",
+      ).optional(),
       containerConcurrency: z.number().int().describe(
         "Optional. Concurrency for each container and agent server. Recommended value: 2 * cpu + 1. Defaults to 9.",
       ).optional(),
@@ -686,7 +794,7 @@ const InputsSchema = z.object({
         "Optional. The maximum number of application instances that can be launched to handle increased traffic. Defaults to 100. Range: [1, 1000]. If VPC-SC or PSC-I is enabled, the acceptable range is [1, 100].",
       ).optional(),
       minInstances: z.number().int().describe(
-        "Optional. The minimum number of application instances that will be kept running at all times. Defaults to 1. Range: [0, 10].",
+        "Optional. The minimum number of application instances that will be kept running at all times. Defaults to 1. Range: [0, 75].",
       ).optional(),
       pscInterfaceConfig: z.object({
         dnsPeeringConfigs: z.array(z.object({
@@ -746,7 +854,7 @@ const InputsSchema = z.object({
         "Optional. The Cloud Storage URI of the pickled python object.",
       ).optional(),
       pythonVersion: z.string().describe(
-        "Optional. The Python version. Supported values are 3.9, 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, the default value is 3.10.",
+        "Optional. The Python version. Supported values are 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, the default value is 3.10.",
       ).optional(),
       requirementsGcsUri: z.string().describe(
         "Optional. The Cloud Storage URI of the `requirements.txt` file",
@@ -814,7 +922,7 @@ const InputsSchema = z.object({
           'Optional. The path to the requirements file, relative to the source root. If not specified, defaults to "requirements.txt".',
         ).optional(),
         version: z.string().describe(
-          "Optional. The version of Python to use. Support version includes 3.9, 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.",
+          "Optional. The version of Python to use. Supported versions include 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.",
         ).optional(),
       }).describe("Specification for running a Python application from source.")
         .optional(),
@@ -845,10 +953,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI ReasoningEngines. Registered at `@swamp/gcp/aiplatform/reasoningengines`. */
+/** Swamp extension model for Google Cloud Agent Platform ReasoningEngines. Registered at `@swamp/gcp/aiplatform/reasoningengines`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1007,6 +1115,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1345,6 +1458,89 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
+      },
+    },
+    async_query: {
+      description: "async query",
+      arguments: z.object({
+        inputGcsUri: z.any().optional(),
+        outputGcsUri: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["name"]),
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (args["inputGcsUri"] !== undefined) {
+          body["inputGcsUri"] = args["inputGcsUri"];
+        }
+        if (args["outputGcsUri"] !== undefined) {
+          body["outputGcsUri"] = args["outputGcsUri"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "aiplatform.projects.locations.reasoningEngines.asyncQuery",
+            "path": "v1/{+name}:asyncQuery",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    cancel_async_query: {
+      description: "cancel async query",
+      arguments: z.object({
+        operationName: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["name"]),
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (args["operationName"] !== undefined) {
+          body["operationName"] = args["operationName"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "aiplatform.projects.locations.reasoningEngines.cancelAsyncQuery",
+            "path": "v1/{+name}:cancelAsyncQuery",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
       },
     },
     execute_code: {

@@ -250,7 +250,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Orders. Registered at `@swamp/gcp/androidpublisher/orders`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/orders",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -349,6 +349,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -537,6 +542,77 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    reviewrefund: {
+      description: "reviewrefund",
+      arguments: z.object({
+        consumptionPercentageMilliunits: z.any().optional(),
+        consumptionUsageEvents: z.any().optional(),
+        pendingRefundToken: z.any().optional(),
+        refundPreference: z.any().optional(),
+        sampleContentProvided: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["packageName"] !== undefined) {
+          params["packageName"] = String(g["packageName"]);
+        }
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["orderId"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["consumptionPercentageMilliunits"] !== undefined) {
+          body["consumptionPercentageMilliunits"] =
+            args["consumptionPercentageMilliunits"];
+        }
+        if (args["consumptionUsageEvents"] !== undefined) {
+          body["consumptionUsageEvents"] = args["consumptionUsageEvents"];
+        }
+        if (args["pendingRefundToken"] !== undefined) {
+          body["pendingRefundToken"] = args["pendingRefundToken"];
+        }
+        if (args["refundPreference"] !== undefined) {
+          body["refundPreference"] = args["refundPreference"];
+        }
+        if (args["sampleContentProvided"] !== undefined) {
+          body["sampleContentProvided"] = args["sampleContentProvided"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "androidpublisher.orders.reviewrefund",
+            "path":
+              "androidpublisher/v3/applications/{packageName}/orders/{orderId}:reviewrefund",
+            "httpMethod": "POST",
+            "parameterOrder": ["packageName", "orderId"],
+            "parameters": {
+              "orderId": { "location": "path", "required": true },
+              "packageName": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,

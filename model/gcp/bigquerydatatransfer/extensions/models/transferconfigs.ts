@@ -215,6 +215,13 @@ const GlobalArgsSchema = z.object({
     "NATIVE",
     "BIGLAKE",
   ]).describe("The classification of the destination table.").optional(),
+  metadataDestination: z.object({
+    dataplexConfiguration: z.object({
+      entryGroup: z.string().describe(
+        "Required. The Dataplex Universal Catalog entry group for importing the metadata. entry_group has the format of `projects/{project_id}/locations/{region}/entryGroups/{entry_group_id}`.",
+      ).optional(),
+    }).describe("Configuration for Dataplex destination.").optional(),
+  }).describe("The metadata destination of the transfer config.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the transfer config. Transfer config names have the form either `projects/{project_id}/locations/{region}/transferConfigs/{config_id}` or `projects/{project_id}/transferConfigs/{config_id}`, where `config_id` is usually a UUID, even though it is not guaranteed or required. The name is ignored when creating a transfer config.",
   ).optional(),
@@ -300,6 +307,11 @@ const StateSchema = z.object({
     message: z.string(),
   }).optional(),
   managedTableType: z.string().optional(),
+  metadataDestination: z.object({
+    dataplexConfiguration: z.object({
+      entryGroup: z.string(),
+    }),
+  }).optional(),
   name: z.string(),
   nextRunTime: z.string().optional(),
   notificationPubsubTopic: z.string().optional(),
@@ -381,6 +393,13 @@ const InputsSchema = z.object({
     "NATIVE",
     "BIGLAKE",
   ]).describe("The classification of the destination table.").optional(),
+  metadataDestination: z.object({
+    dataplexConfiguration: z.object({
+      entryGroup: z.string().describe(
+        "Required. The Dataplex Universal Catalog entry group for importing the metadata. entry_group has the format of `projects/{project_id}/locations/{region}/entryGroups/{entry_group_id}`.",
+      ).optional(),
+    }).describe("Configuration for Dataplex destination.").optional(),
+  }).describe("The metadata destination of the transfer config.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the transfer config. Transfer config names have the form either `projects/{project_id}/locations/{region}/transferConfigs/{config_id}` or `projects/{project_id}/transferConfigs/{config_id}`, where `config_id` is usually a UUID, even though it is not guaranteed or required. The name is ignored when creating a transfer config.",
   ).optional(),
@@ -470,7 +489,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Data Transfer TransferConfigs. Registered at `@swamp/gcp/bigquerydatatransfer/transferconfigs`. */
 export const model = {
   type: "@swamp/gcp/bigquerydatatransfer/transferconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -581,6 +600,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: metadataDestination",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -632,6 +656,9 @@ export const model = {
         if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["managedTableType"] !== undefined) {
           body["managedTableType"] = g["managedTableType"];
+        }
+        if (g["metadataDestination"] !== undefined) {
+          body["metadataDestination"] = g["metadataDestination"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["notificationPubsubTopic"] !== undefined) {
@@ -790,6 +817,9 @@ export const model = {
         if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["managedTableType"] !== undefined) {
           body["managedTableType"] = g["managedTableType"];
+        }
+        if (g["metadataDestination"] !== undefined) {
+          body["metadataDestination"] = g["metadataDestination"];
         }
         if (g["notificationPubsubTopic"] !== undefined) {
           body["notificationPubsubTopic"] = g["notificationPubsubTopic"];

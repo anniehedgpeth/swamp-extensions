@@ -188,7 +188,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Device Provisioning Partner Customers.Devices. Registered at `@swamp/gcp/androiddeviceprovisioning/customers-devices`. */
 export const model = {
   type: "@swamp/gcp/androiddeviceprovisioning/customers-devices",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -287,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -433,7 +438,7 @@ export const model = {
       description: "List devices resources",
       arguments: z.object({
         pageSize: z.string().describe(
-          "Required. The maximum number of devices to show in a page of results. Must be between 1 and 100 inclusive.",
+          "Optional. The maximum number of devices to show in a page of results. If unset or 0, defaults to 1000. If a value greater than 1000 is specified, it will be coerced to 1000.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

@@ -170,7 +170,7 @@ const GlobalArgsSchema = z.object({
   ).describe("All the operations being applied for this constraint.")
     .optional(),
   name: z.string().describe(
-    "Immutable. Name of the constraint. This is unique within the organization. Format of the name should be * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
+    "Immutable. Name of the constraint. This is unique within the organization. The name must be of the form: * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
   ).optional(),
   resourceTypes: z.array(z.string()).describe(
     "Immutable. The resource instance type on which this policy applies. Format will be of the form: `/` Example: * `compute.googleapis.com/Instance`.",
@@ -222,7 +222,7 @@ const InputsSchema = z.object({
   ).describe("All the operations being applied for this constraint.")
     .optional(),
   name: z.string().describe(
-    "Immutable. Name of the constraint. This is unique within the organization. Format of the name should be * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
+    "Immutable. Name of the constraint. This is unique within the organization. The name must be of the form: * `organizations/{organization_id}/customConstraints/{custom_constraint_id}` Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms` The max length is 71 characters and the minimum length is 1. Note that the prefix `organizations/{organization_id}/customConstraints/custom.` is not counted.",
   ).optional(),
   resourceTypes: z.array(z.string()).describe(
     "Immutable. The resource instance type on which this policy applies. Format will be of the form: `/` Example: * `compute.googleapis.com/Instance`.",
@@ -255,7 +255,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Organization Policy CustomConstraints. Registered at `@swamp/gcp/orgpolicy/customconstraints`. */
 export const model = {
   type: "@swamp/gcp/orgpolicy/customconstraints",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -379,6 +379,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -661,7 +666,7 @@ export const model = {
       description: "List customConstraints resources",
       arguments: z.object({
         pageSize: z.number().describe(
-          "Size of the pages to be returned. This is currently unsupported and will be ignored. The server may at any point start using this field to limit page size.",
+          "Size of the pages to be returned. This is not used, but the server may at any point start using this field to limit page size.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

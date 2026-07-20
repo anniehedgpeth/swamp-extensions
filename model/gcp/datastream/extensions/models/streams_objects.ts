@@ -119,6 +119,9 @@ const StateSchema = z.object({
       message: z.string(),
       reason: z.string(),
     })),
+    eventFilter: z.object({
+      sqlWhereClause: z.string(),
+    }),
     lastEndTime: z.string(),
     lastStartTime: z.string(),
     state: z.string(),
@@ -226,7 +229,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream Streams.Objects. Registered at `@swamp/gcp/datastream/streams-objects`. */
 export const model = {
   type: "@swamp/gcp/datastream/streams-objects",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -345,6 +348,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -155,6 +155,9 @@ const GlobalArgsSchema = z.object({
   addresses: z.array(z.string()).describe(
     "Optional. Zero or one IPv4 or IPv6 address on which the Gateway will receive the traffic. When no address is provided, an IP from the subnetwork is allocated This field only applies to gateways of type 'SECURE_WEB_GATEWAY'. Gateways of type 'OPEN_MESH' listen on 0.0.0.0 for IPv4 and:: for IPv6.",
   ).optional(),
+  allPorts: z.boolean().describe(
+    "Optional. If true, the Gateway will listen on all ports. This is mutually exclusive with the `ports` field. This field only applies to gateways of type 'SECURE_WEB_GATEWAY'.",
+  ).optional(),
   allowGlobalAccess: z.boolean().describe(
     "Optional. If true, the gateway will allow traffic from clients outside of the region where the gateway is located. This field is configurable only for gateways of type SECURE_WEB_GATEWAY.",
   ).optional(),
@@ -213,6 +216,7 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   addresses: z.array(z.string()).optional(),
+  allPorts: z.boolean().optional(),
   allowGlobalAccess: z.boolean().optional(),
   certificateUrls: z.array(z.string()).optional(),
   createTime: z.string().optional(),
@@ -242,6 +246,9 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   addresses: z.array(z.string()).describe(
     "Optional. Zero or one IPv4 or IPv6 address on which the Gateway will receive the traffic. When no address is provided, an IP from the subnetwork is allocated This field only applies to gateways of type 'SECURE_WEB_GATEWAY'. Gateways of type 'OPEN_MESH' listen on 0.0.0.0 for IPv4 and:: for IPv6.",
+  ).optional(),
+  allPorts: z.boolean().describe(
+    "Optional. If true, the Gateway will listen on all ports. This is mutually exclusive with the `ports` field. This field only applies to gateways of type 'SECURE_WEB_GATEWAY'.",
   ).optional(),
   allowGlobalAccess: z.boolean().describe(
     "Optional. If true, the gateway will allow traffic from clients outside of the region where the gateway is located. This field is configurable only for gateways of type SECURE_WEB_GATEWAY.",
@@ -322,7 +329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services Gateways. Registered at `@swamp/gcp/networkservices/gateways`. */
 export const model = {
   type: "@swamp/gcp/networkservices/gateways",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -456,6 +463,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: allPorts",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -482,6 +494,7 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["addresses"] !== undefined) body["addresses"] = g["addresses"];
+        if (g["allPorts"] !== undefined) body["allPorts"] = g["allPorts"];
         if (g["allowGlobalAccess"] !== undefined) {
           body["allowGlobalAccess"] = g["allowGlobalAccess"];
         }
@@ -621,6 +634,7 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["addresses"] !== undefined) body["addresses"] = g["addresses"];
+        if (g["allPorts"] !== undefined) body["allPorts"] = g["allPorts"];
         if (g["allowGlobalAccess"] !== undefined) {
           body["allowGlobalAccess"] = g["allowGlobalAccess"];
         }

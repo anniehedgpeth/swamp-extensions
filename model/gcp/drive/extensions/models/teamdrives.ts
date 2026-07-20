@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Google Drive Teamdrives.
  *
- * Deprecated: use the drive collection instead.
+ * Deprecated: use the drive collection instead. Next ID: 33
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -173,9 +173,7 @@ const GlobalArgsSchema = z.object({
     yCoordinate: z.number().describe(
       "The Y coordinate of the upper left corner of the cropping area in the background image. This is a value in the closed range of 0 to 1. This value represents the vertical distance from the top side of the entire image to the top side of the cropping area divided by the height of the entire image.",
     ).optional(),
-  }).describe(
-    "An image file and cropping parameters from which a background image for this Team Drive is set. This is a write only field; it can only be set on `drive.teamdrives.update` requests that don't set `themeId`. When specified, all fields of the `backgroundImageFile` must be set.",
-  ).optional(),
+  }).describe("The background image file for a Team Drive.").optional(),
   backgroundImageLink: z.string().describe(
     "A short-lived link to this Team Drive's background image.",
   ).optional(),
@@ -190,7 +188,7 @@ const GlobalArgsSchema = z.object({
       "Whether the current user can change the `domainUsersOnly` restriction of this Team Drive.",
     ).optional(),
     canChangeDownloadRestriction: z.boolean().describe(
-      "Whether the current user can change organizer-applied download restrictions of this shared drive.",
+      "Output only. Whether the current user can change organizer-applied download restrictions of this shared drive.",
     ).optional(),
     canChangeSharingFoldersRequiresOrganizerPermissionRestriction: z.boolean()
       .describe(
@@ -277,7 +275,7 @@ const GlobalArgsSchema = z.object({
         "Whether download and copy is restricted for readers.",
       ).optional(),
       restrictedForWriters: z.boolean().describe(
-        "Whether download and copy is restricted for writers. If `true`, download is also restricted for readers.",
+        "Whether download and copy is restricted for writers. If true, download is also restricted for readers.",
       ).optional(),
     }).describe("A restriction for copy and download of the file.").optional(),
     sharingFoldersRequiresOrganizerPermission: z.boolean().describe(
@@ -369,9 +367,7 @@ const InputsSchema = z.object({
     yCoordinate: z.number().describe(
       "The Y coordinate of the upper left corner of the cropping area in the background image. This is a value in the closed range of 0 to 1. This value represents the vertical distance from the top side of the entire image to the top side of the cropping area divided by the height of the entire image.",
     ).optional(),
-  }).describe(
-    "An image file and cropping parameters from which a background image for this Team Drive is set. This is a write only field; it can only be set on `drive.teamdrives.update` requests that don't set `themeId`. When specified, all fields of the `backgroundImageFile` must be set.",
-  ).optional(),
+  }).describe("The background image file for a Team Drive.").optional(),
   backgroundImageLink: z.string().describe(
     "A short-lived link to this Team Drive's background image.",
   ).optional(),
@@ -386,7 +382,7 @@ const InputsSchema = z.object({
       "Whether the current user can change the `domainUsersOnly` restriction of this Team Drive.",
     ).optional(),
     canChangeDownloadRestriction: z.boolean().describe(
-      "Whether the current user can change organizer-applied download restrictions of this shared drive.",
+      "Output only. Whether the current user can change organizer-applied download restrictions of this shared drive.",
     ).optional(),
     canChangeSharingFoldersRequiresOrganizerPermissionRestriction: z.boolean()
       .describe(
@@ -473,7 +469,7 @@ const InputsSchema = z.object({
         "Whether download and copy is restricted for readers.",
       ).optional(),
       restrictedForWriters: z.boolean().describe(
-        "Whether download and copy is restricted for writers. If `true`, download is also restricted for readers.",
+        "Whether download and copy is restricted for writers. If true, download is also restricted for readers.",
       ).optional(),
     }).describe("A restriction for copy and download of the file.").optional(),
     sharingFoldersRequiresOrganizerPermission: z.boolean().describe(
@@ -516,7 +512,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Teamdrives. Registered at `@swamp/gcp/drive/teamdrives`. */
 export const model = {
   type: "@swamp/gcp/drive/teamdrives",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -638,12 +634,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Deprecated: use the drive collection instead.",
+      description: "Deprecated: use the drive collection instead. Next ID: 33",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,

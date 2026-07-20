@@ -177,6 +177,16 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "The labels assigned to this Secret. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `\\p{Ll}\\p{Lo}{0,62}` Label values must be between 0 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `[\\p{Ll}\\p{Lo}\\p{N}_-]{0,63}` No more than 64 labels can be assigned to a given resource.",
   ).optional(),
+  policyMember: z.object({
+    iamPolicyNamePrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: `principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter`",
+    ).optional(),
+    iamPolicyUidPrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resource Example: `principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5`",
+    ).optional(),
+  }).describe(
+    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
+  ).optional(),
   replication: z.object({
     automatic: z.object({
       customerManagedEncryption: z.object({
@@ -211,6 +221,26 @@ const GlobalArgsSchema = z.object({
     "A policy that defines the replication and encryption configuration of data.",
   ).optional(),
   rotation: z.object({
+    managedRotationStatus: z.object({
+      error: z.object({
+        code: z.number().int().describe(
+          "The status code, which should be an enum value of google.rpc.Code.",
+        ).optional(),
+        details: z.array(z.record(z.string(), z.unknown())).describe(
+          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
+        ).optional(),
+        message: z.string().describe(
+          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
+        ).optional(),
+      }).describe(
+        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      ).optional(),
+      state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]).describe(
+        "Output only. Indicates whether the Managed Rotation is active or not.",
+      ).optional(),
+    }).describe(
+      "Represents the status of a managed rotation. This is applicable only to Typed Secrets. It indicates whether the rotation is active and any errors that may have occurred during the asynchronous managed rotation.",
+    ).optional(),
     nextRotationTime: z.string().describe(
       "Optional. Timestamp in UTC at which the Secret is scheduled to rotate. Cannot be set to less than 300s (5 min) in the future and at most 3153600000s (100 years). next_rotation_time MUST be set if rotation_period is set.",
     ).optional(),
@@ -219,6 +249,16 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe(
     "The rotation time and period for a Secret. At next_rotation_time, Secret Manager will send a Pub/Sub notification to the topics configured on the Secret. Secret.topics must be set to configure rotation.",
+  ).optional(),
+  secretType: z.enum([
+    "SECRET_TYPE_UNSPECIFIED",
+    "CLOUD_SQL_DB_CREDENTIALS",
+    "ACCESS_KEY",
+    "CERTIFICATE",
+    "OTHER_DB_CREDENTIALS",
+    "OTHER",
+  ]).describe(
+    "Optional. Immutable. This defines the type of the secret. Enforces certain structural requirements on the SecretVersions. For secret of type UNSPECIFIED, the SecretVersions can be of any type.",
   ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Mapping of Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" Tags are used to organize and group resources. Tags can be used to control policy evaluation for the resource.',
@@ -255,6 +295,10 @@ const StateSchema = z.object({
   expireTime: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  policyMember: z.object({
+    iamPolicyNamePrincipal: z.string(),
+    iamPolicyUidPrincipal: z.string(),
+  }).optional(),
   replication: z.object({
     automatic: z.object({
       customerManagedEncryption: z.object({
@@ -271,9 +315,18 @@ const StateSchema = z.object({
     }),
   }).optional(),
   rotation: z.object({
+    managedRotationStatus: z.object({
+      error: z.object({
+        code: z.number(),
+        details: z.array(z.record(z.string(), z.unknown())),
+        message: z.string(),
+      }),
+      state: z.string(),
+    }),
     nextRotationTime: z.string(),
     rotationPeriod: z.string(),
   }).optional(),
+  secretType: z.string().optional(),
   tags: z.record(z.string(), z.unknown()).optional(),
   topics: z.array(z.object({
     name: z.string(),
@@ -306,6 +359,16 @@ const InputsSchema = z.object({
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels assigned to this Secret. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `\\p{Ll}\\p{Lo}{0,62}` Label values must be between 0 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `[\\p{Ll}\\p{Lo}\\p{N}_-]{0,63}` No more than 64 labels can be assigned to a given resource.",
+  ).optional(),
+  policyMember: z.object({
+    iamPolicyNamePrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: `principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter`",
+    ).optional(),
+    iamPolicyUidPrincipal: z.string().describe(
+      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resource Example: `principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5`",
+    ).optional(),
+  }).describe(
+    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
   ).optional(),
   replication: z.object({
     automatic: z.object({
@@ -341,6 +404,26 @@ const InputsSchema = z.object({
     "A policy that defines the replication and encryption configuration of data.",
   ).optional(),
   rotation: z.object({
+    managedRotationStatus: z.object({
+      error: z.object({
+        code: z.number().int().describe(
+          "The status code, which should be an enum value of google.rpc.Code.",
+        ).optional(),
+        details: z.array(z.record(z.string(), z.unknown())).describe(
+          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
+        ).optional(),
+        message: z.string().describe(
+          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
+        ).optional(),
+      }).describe(
+        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      ).optional(),
+      state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]).describe(
+        "Output only. Indicates whether the Managed Rotation is active or not.",
+      ).optional(),
+    }).describe(
+      "Represents the status of a managed rotation. This is applicable only to Typed Secrets. It indicates whether the rotation is active and any errors that may have occurred during the asynchronous managed rotation.",
+    ).optional(),
     nextRotationTime: z.string().describe(
       "Optional. Timestamp in UTC at which the Secret is scheduled to rotate. Cannot be set to less than 300s (5 min) in the future and at most 3153600000s (100 years). next_rotation_time MUST be set if rotation_period is set.",
     ).optional(),
@@ -349,6 +432,16 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe(
     "The rotation time and period for a Secret. At next_rotation_time, Secret Manager will send a Pub/Sub notification to the topics configured on the Secret. Secret.topics must be set to configure rotation.",
+  ).optional(),
+  secretType: z.enum([
+    "SECRET_TYPE_UNSPECIFIED",
+    "CLOUD_SQL_DB_CREDENTIALS",
+    "ACCESS_KEY",
+    "CERTIFICATE",
+    "OTHER_DB_CREDENTIALS",
+    "OTHER",
+  ]).describe(
+    "Optional. Immutable. This defines the type of the secret. Enforces certain structural requirements on the SecretVersions. For secret of type UNSPECIFIED, the SecretVersions can be of any type.",
   ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Mapping of Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" Tags are used to organize and group resources. Tags can be used to control policy evaluation for the resource.',
@@ -398,7 +491,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secret Manager Secrets. Registered at `@swamp/gcp/secretmanager/secrets`. */
 export const model = {
   type: "@swamp/gcp/secretmanager/secrets",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -522,6 +615,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: policyMember, secretType",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -555,10 +653,14 @@ export const model = {
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["policyMember"] !== undefined) {
+          body["policyMember"] = g["policyMember"];
+        }
         if (g["replication"] !== undefined) {
           body["replication"] = g["replication"];
         }
         if (g["rotation"] !== undefined) body["rotation"] = g["rotation"];
+        if (g["secretType"] !== undefined) body["secretType"] = g["secretType"];
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["topics"] !== undefined) body["topics"] = g["topics"];
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];
@@ -686,6 +788,9 @@ export const model = {
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["policyMember"] !== undefined) {
+          body["policyMember"] = g["policyMember"];
+        }
         if (g["replication"] !== undefined) {
           body["replication"] = g["replication"];
         }
@@ -912,6 +1017,46 @@ export const model = {
         return { result };
       },
     },
+    enable_managed_rotation: {
+      description: "enable managed rotation",
+      arguments: z.object({
+        cloudSqlSingleUserCredentials: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        params["parent"] = `projects/${projectId}/locations/${
+          String(g["location"] ?? "")
+        }`;
+        const body: Record<string, unknown> = {};
+        if (args["cloudSqlSingleUserCredentials"] !== undefined) {
+          body["cloudSqlSingleUserCredentials"] =
+            args["cloudSqlSingleUserCredentials"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "secretmanager.projects.locations.secrets.enableManagedRotation",
+            "path": "v1/{+parent}:enableManagedRotation",
+            "httpMethod": "POST",
+            "parameterOrder": ["parent"],
+            "parameters": {
+              "parent": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     get_iam_policy: {
       description: "get iam policy",
       arguments: z.object({}),
@@ -944,6 +1089,38 @@ export const model = {
             "parameters": {
               "options.requestedPolicyVersion": { "location": "query" },
               "resource": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    rotate_secret: {
+      description: "rotate secret",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        params["parent"] = `projects/${projectId}/locations/${
+          String(g["location"] ?? "")
+        }`;
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "secretmanager.projects.locations.secrets.rotateSecret",
+            "path": "v1/{+parent}:rotateSecret",
+            "httpMethod": "POST",
+            "parameterOrder": ["parent"],
+            "parameters": {
+              "parent": { "location": "path", "required": true },
             },
           },
           params,

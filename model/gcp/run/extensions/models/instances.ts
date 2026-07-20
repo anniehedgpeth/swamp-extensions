@@ -42,6 +42,7 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
+  updateResource,
 } from "./_lib/gcp.ts";
 
 /** Construct the fully-qualified resource name from parent and short name. */
@@ -80,6 +81,30 @@ const INSERT_CONFIG = {
     "parent": {
       "location": "path",
       "required": true,
+    },
+    "validateOnly": {
+      "location": "query",
+    },
+  },
+} as const;
+
+const PATCH_CONFIG = {
+  "id": "run.projects.locations.instances.patch",
+  "path": "v2/{+name}",
+  "httpMethod": "PATCH",
+  "parameterOrder": [
+    "name",
+  ],
+  "parameters": {
+    "allowMissing": {
+      "location": "query",
+    },
+    "name": {
+      "location": "path",
+      "required": true,
+    },
+    "updateMask": {
+      "location": "query",
     },
     "validateOnly": {
       "location": "query",
@@ -318,6 +343,9 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "ResourceRequirements describes the compute resource requirements.",
     ).optional(),
+    sandboxLauncher: z.boolean().describe(
+      "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
+    ).optional(),
     sourceCode: z.object({
       cloudStorageSource: z.object({
         bucket: z.string().describe("Required. The Cloud Storage bucket name.")
@@ -387,7 +415,7 @@ const GlobalArgsSchema = z.object({
         "Required. This must match the Name of a Volume.",
       ).optional(),
       subPath: z.string().describe(
-        "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently ignored for Secret volumes.",
+        "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently rejected in Secret volume mounts.",
       ).optional(),
     })).describe("Volume to mount into the container's filesystem.").optional(),
     workingDir: z.string().describe(
@@ -395,6 +423,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   })).describe(
     "Required. Holds the single container that defines the unit of execution for this Instance.",
+  ).optional(),
+  defaultUriDisabled: z.boolean().describe(
+    "Optional. Disables public resolution of the default URI of this Instance.",
   ).optional(),
   description: z.string().describe(
     "User-provided description of the Instance. This field currently has a 512-character limit.",
@@ -409,7 +440,7 @@ const GlobalArgsSchema = z.object({
   ]).describe("The action to take if the encryption key is revoked.")
     .optional(),
   encryptionKeyShutdownDuration: z.string().describe(
-    "If encryption_key_revocation_action is SHUTDOWN, the duration before shutting down all instances. The minimum increment is 1 hour.",
+    "If `encryption_key_revocation_action` is `SHUTDOWN`, the duration before shutting down all instances. The minimum increment is 1 hour.",
   ).optional(),
   gpuZonalRedundancyDisabled: z.boolean().describe(
     "Optional. True if GPU zonal redundancy is disabled on this instance.",
@@ -423,10 +454,10 @@ const GlobalArgsSchema = z.object({
     "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER",
     "INGRESS_TRAFFIC_NONE",
   ]).describe(
-    "Optional. Provides the ingress settings for this Instance. On output, returns the currently observed ingress settings, or INGRESS_TRAFFIC_UNSPECIFIED if no revision is active.",
+    "Optional. Provides the ingress settings for this Instance. On output, returns the currently observed ingress settings, or `INGRESS_TRAFFIC_UNSPECIFIED` if no revision is active.",
   ).optional(),
   invokerIamDisabled: z.boolean().describe(
-    "Optional. Disables IAM permission check for run.routes.invoke for callers of this Instance. For more information, visit https://cloud.google.com/run/docs/securing/managing-access#invoker_check.",
+    "Optional. Disables IAM permission check for `run.routes.invoke` for callers of this Instance. For more information, visit https://cloud.google.com/run/docs/securing/managing-access#invoker_check.",
   ).optional(),
   labels: z.record(z.string(), z.string()).optional(),
   launchStage: z.enum([
@@ -439,16 +470,22 @@ const GlobalArgsSchema = z.object({
     "GA",
     "DEPRECATED",
   ]).describe(
-    "The launch stage as defined by [Google Cloud Platform Launch Stages](https://cloud.google.com/terms/launch-stages). Cloud Run supports `ALPHA`, `BETA`, and `GA`. If no value is specified, GA is assumed. Set the launch stage to a preview stage on input to allow use of preview features in that stage. On read (or output), describes whether the resource uses preview features. For example, if ALPHA is provided as input, but only BETA and GA-level features are used, this field will be BETA on output.",
+    "The launch stage as defined by [Google Cloud Platform Launch Stages](https://cloud.google.com/terms/launch-stages). Cloud Run supports `ALPHA`, `BETA`, and `GA`. If no value is specified, `GA` is assumed. Set the launch stage to a preview stage on input to allow use of preview features in that stage. On read (or output), describes whether the resource uses preview features. For example, if `ALPHA` is provided as input, but only `BETA` and `GA`-level features are used, this field will be `BETA` on output.",
   ).optional(),
   name: z.string().describe(
-    "The fully qualified name of this Instance. In CreateInstanceRequest, this field is ignored, and instead composed from CreateInstanceRequest.parent and CreateInstanceRequest.instance_id. Format: projects/{project}/locations/{location}/instances/{instance_id}",
+    "The fully qualified name of this Instance. In `CreateInstanceRequest`, this field is ignored, and instead composed from `CreateInstanceRequest.parent` and `CreateInstanceRequest.instance_id`.",
   ).optional(),
   nodeSelector: z.object({
     accelerator: z.string().describe(
       "Required. GPU accelerator type to attach to an instance.",
     ).optional(),
   }).describe("Hardware constraints configuration.").optional(),
+  restartPolicy: z.enum([
+    "RESTART_POLICY_UNSPECIFIED",
+    "ALWAYS",
+    "ON_FAILURE",
+    "NEVER",
+  ]).describe("Optional. Restart policy for the Instance.").optional(),
   serviceAccount: z.string().optional(),
   terminalCondition: z.object({
     executionReason: z.enum([
@@ -461,6 +498,13 @@ const GlobalArgsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -517,9 +561,6 @@ const GlobalArgsSchema = z.object({
       'type is used to communicate the status of the reconciliation process. See also: https://github.com/knative/serving/blob/main/docs/spec/errors.md#error-conditions-and-reporting Types common to all resources include: * "Ready": True when the Resource is ready.',
     ).optional(),
   }).describe("Defines a status condition for a resource.").optional(),
-  timeout: z.string().describe(
-    "Optional. Duration the instance may be active before the system will shut it down.",
-  ).optional(),
   volumes: z.array(z.object({
     cloudSqlInstance: z.object({
       instances: z.array(z.string()).describe(
@@ -629,6 +670,7 @@ const StateSchema = z.object({
   clientVersion: z.string().optional(),
   conditions: z.array(z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -704,6 +746,7 @@ const StateSchema = z.object({
       limits: z.record(z.string(), z.unknown()),
       startupCpuBoost: z.boolean(),
     }),
+    sandboxLauncher: z.boolean(),
     sourceCode: z.object({
       cloudStorageSource: z.object({
         bucket: z.string(),
@@ -741,6 +784,7 @@ const StateSchema = z.object({
   })).optional(),
   createTime: z.string().optional(),
   creator: z.string().optional(),
+  defaultUriDisabled: z.boolean().optional(),
   deleteTime: z.string().optional(),
   description: z.string().optional(),
   encryptionKey: z.string().optional(),
@@ -763,10 +807,12 @@ const StateSchema = z.object({
   }).optional(),
   observedGeneration: z.string().optional(),
   reconciling: z.boolean().optional(),
+  restartPolicy: z.string().optional(),
   satisfiesPzs: z.boolean().optional(),
   serviceAccount: z.string().optional(),
   terminalCondition: z.object({
     executionReason: z.string(),
+    instanceReason: z.string(),
     lastTransitionTime: z.string(),
     message: z.string(),
     reason: z.string(),
@@ -775,7 +821,6 @@ const StateSchema = z.object({
     state: z.string(),
     type: z.string(),
   }).optional(),
-  timeout: z.string().optional(),
   uid: z.string().optional(),
   updateTime: z.string().optional(),
   urls: z.array(z.string()).optional(),
@@ -999,6 +1044,9 @@ const InputsSchema = z.object({
     }).describe(
       "ResourceRequirements describes the compute resource requirements.",
     ).optional(),
+    sandboxLauncher: z.boolean().describe(
+      "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
+    ).optional(),
     sourceCode: z.object({
       cloudStorageSource: z.object({
         bucket: z.string().describe("Required. The Cloud Storage bucket name.")
@@ -1068,7 +1116,7 @@ const InputsSchema = z.object({
         "Required. This must match the Name of a Volume.",
       ).optional(),
       subPath: z.string().describe(
-        "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently ignored for Secret volumes.",
+        "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root). This field is currently rejected in Secret volume mounts.",
       ).optional(),
     })).describe("Volume to mount into the container's filesystem.").optional(),
     workingDir: z.string().describe(
@@ -1076,6 +1124,9 @@ const InputsSchema = z.object({
     ).optional(),
   })).describe(
     "Required. Holds the single container that defines the unit of execution for this Instance.",
+  ).optional(),
+  defaultUriDisabled: z.boolean().describe(
+    "Optional. Disables public resolution of the default URI of this Instance.",
   ).optional(),
   description: z.string().describe(
     "User-provided description of the Instance. This field currently has a 512-character limit.",
@@ -1090,7 +1141,7 @@ const InputsSchema = z.object({
   ]).describe("The action to take if the encryption key is revoked.")
     .optional(),
   encryptionKeyShutdownDuration: z.string().describe(
-    "If encryption_key_revocation_action is SHUTDOWN, the duration before shutting down all instances. The minimum increment is 1 hour.",
+    "If `encryption_key_revocation_action` is `SHUTDOWN`, the duration before shutting down all instances. The minimum increment is 1 hour.",
   ).optional(),
   gpuZonalRedundancyDisabled: z.boolean().describe(
     "Optional. True if GPU zonal redundancy is disabled on this instance.",
@@ -1104,10 +1155,10 @@ const InputsSchema = z.object({
     "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER",
     "INGRESS_TRAFFIC_NONE",
   ]).describe(
-    "Optional. Provides the ingress settings for this Instance. On output, returns the currently observed ingress settings, or INGRESS_TRAFFIC_UNSPECIFIED if no revision is active.",
+    "Optional. Provides the ingress settings for this Instance. On output, returns the currently observed ingress settings, or `INGRESS_TRAFFIC_UNSPECIFIED` if no revision is active.",
   ).optional(),
   invokerIamDisabled: z.boolean().describe(
-    "Optional. Disables IAM permission check for run.routes.invoke for callers of this Instance. For more information, visit https://cloud.google.com/run/docs/securing/managing-access#invoker_check.",
+    "Optional. Disables IAM permission check for `run.routes.invoke` for callers of this Instance. For more information, visit https://cloud.google.com/run/docs/securing/managing-access#invoker_check.",
   ).optional(),
   labels: z.record(z.string(), z.string()).optional(),
   launchStage: z.enum([
@@ -1120,16 +1171,22 @@ const InputsSchema = z.object({
     "GA",
     "DEPRECATED",
   ]).describe(
-    "The launch stage as defined by [Google Cloud Platform Launch Stages](https://cloud.google.com/terms/launch-stages). Cloud Run supports `ALPHA`, `BETA`, and `GA`. If no value is specified, GA is assumed. Set the launch stage to a preview stage on input to allow use of preview features in that stage. On read (or output), describes whether the resource uses preview features. For example, if ALPHA is provided as input, but only BETA and GA-level features are used, this field will be BETA on output.",
+    "The launch stage as defined by [Google Cloud Platform Launch Stages](https://cloud.google.com/terms/launch-stages). Cloud Run supports `ALPHA`, `BETA`, and `GA`. If no value is specified, `GA` is assumed. Set the launch stage to a preview stage on input to allow use of preview features in that stage. On read (or output), describes whether the resource uses preview features. For example, if `ALPHA` is provided as input, but only `BETA` and `GA`-level features are used, this field will be `BETA` on output.",
   ).optional(),
   name: z.string().describe(
-    "The fully qualified name of this Instance. In CreateInstanceRequest, this field is ignored, and instead composed from CreateInstanceRequest.parent and CreateInstanceRequest.instance_id. Format: projects/{project}/locations/{location}/instances/{instance_id}",
+    "The fully qualified name of this Instance. In `CreateInstanceRequest`, this field is ignored, and instead composed from `CreateInstanceRequest.parent` and `CreateInstanceRequest.instance_id`.",
   ).optional(),
   nodeSelector: z.object({
     accelerator: z.string().describe(
       "Required. GPU accelerator type to attach to an instance.",
     ).optional(),
   }).describe("Hardware constraints configuration.").optional(),
+  restartPolicy: z.enum([
+    "RESTART_POLICY_UNSPECIFIED",
+    "ALWAYS",
+    "ON_FAILURE",
+    "NEVER",
+  ]).describe("Optional. Restart policy for the Instance.").optional(),
   serviceAccount: z.string().optional(),
   terminalCondition: z.object({
     executionReason: z.enum([
@@ -1142,6 +1199,13 @@ const InputsSchema = z.object({
       "DELAYED_START_PENDING",
     ]).describe("Output only. A reason for the execution condition.")
       .optional(),
+    instanceReason: z.enum([
+      "INSTANCE_REASON_UNSPECIFIED",
+      "INSTANCE_DELETED",
+      "INSTANCE_STOPPED",
+      "INSTANCE_STOPPING",
+      "INSTANCE_NON_ZERO_EXIT_CODE",
+    ]).describe("Output only. A reason for the instance condition.").optional(),
     lastTransitionTime: z.string().describe(
       "Last time the condition transitioned from one status to another.",
     ).optional(),
@@ -1198,9 +1262,6 @@ const InputsSchema = z.object({
       'type is used to communicate the status of the reconciliation process. See also: https://github.com/knative/serving/blob/main/docs/spec/errors.md#error-conditions-and-reporting Types common to all resources include: * "Ready": True when the Resource is ready.',
     ).optional(),
   }).describe("Defines a status condition for a resource.").optional(),
-  timeout: z.string().describe(
-    "Optional. Duration the instance may be active before the system will shut it down.",
-  ).optional(),
   volumes: z.array(z.object({
     cloudSqlInstance: z.object({
       instances: z.array(z.string()).describe(
@@ -1322,7 +1383,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Instances. Registered at `@swamp/gcp/run/instances`. */
 export const model = {
   type: "@swamp/gcp/run/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1503,6 +1564,14 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: defaultUriDisabled, restartPolicy. Removed: timeout",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { timeout: _timeout, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1539,6 +1608,9 @@ export const model = {
           body["clientVersion"] = g["clientVersion"];
         }
         if (g["containers"] !== undefined) body["containers"] = g["containers"];
+        if (g["defaultUriDisabled"] !== undefined) {
+          body["defaultUriDisabled"] = g["defaultUriDisabled"];
+        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -1569,13 +1641,15 @@ export const model = {
         if (g["nodeSelector"] !== undefined) {
           body["nodeSelector"] = g["nodeSelector"];
         }
+        if (g["restartPolicy"] !== undefined) {
+          body["restartPolicy"] = g["restartPolicy"];
+        }
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
         }
         if (g["terminalCondition"] !== undefined) {
           body["terminalCondition"] = g["terminalCondition"];
         }
-        if (g["timeout"] !== undefined) body["timeout"] = g["timeout"];
         if (g["volumes"] !== undefined) body["volumes"] = g["volumes"];
         if (g["vpcAccess"] !== undefined) body["vpcAccess"] = g["vpcAccess"];
         if (g["instanceId"] !== undefined) {
@@ -1641,6 +1715,127 @@ export const model = {
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update instances attributes",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific instances by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const params: Record<string, string> = { project: projectId };
+        const existingName = existing["name"]?.toString();
+        if (existingName && existingName.includes("/")) {
+          params["name"] = existingName;
+        } else {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            existingName ?? g["name"]?.toString() ?? "",
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (g["annotations"] !== undefined) {
+          body["annotations"] = g["annotations"];
+        }
+        if (g["binaryAuthorization"] !== undefined) {
+          body["binaryAuthorization"] = g["binaryAuthorization"];
+        }
+        if (g["client"] !== undefined) body["client"] = g["client"];
+        if (g["clientVersion"] !== undefined) {
+          body["clientVersion"] = g["clientVersion"];
+        }
+        if (g["containers"] !== undefined) body["containers"] = g["containers"];
+        if (g["defaultUriDisabled"] !== undefined) {
+          body["defaultUriDisabled"] = g["defaultUriDisabled"];
+        }
+        if (g["description"] !== undefined) {
+          body["description"] = g["description"];
+        }
+        if (g["encryptionKey"] !== undefined) {
+          body["encryptionKey"] = g["encryptionKey"];
+        }
+        if (g["encryptionKeyRevocationAction"] !== undefined) {
+          body["encryptionKeyRevocationAction"] =
+            g["encryptionKeyRevocationAction"];
+        }
+        if (g["encryptionKeyShutdownDuration"] !== undefined) {
+          body["encryptionKeyShutdownDuration"] =
+            g["encryptionKeyShutdownDuration"];
+        }
+        if (g["gpuZonalRedundancyDisabled"] !== undefined) {
+          body["gpuZonalRedundancyDisabled"] = g["gpuZonalRedundancyDisabled"];
+        }
+        if (g["iapEnabled"] !== undefined) body["iapEnabled"] = g["iapEnabled"];
+        if (g["ingress"] !== undefined) body["ingress"] = g["ingress"];
+        if (g["invokerIamDisabled"] !== undefined) {
+          body["invokerIamDisabled"] = g["invokerIamDisabled"];
+        }
+        if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["launchStage"] !== undefined) {
+          body["launchStage"] = g["launchStage"];
+        }
+        if (g["nodeSelector"] !== undefined) {
+          body["nodeSelector"] = g["nodeSelector"];
+        }
+        if (g["restartPolicy"] !== undefined) {
+          body["restartPolicy"] = g["restartPolicy"];
+        }
+        if (g["serviceAccount"] !== undefined) {
+          body["serviceAccount"] = g["serviceAccount"];
+        }
+        if (g["terminalCondition"] !== undefined) {
+          body["terminalCondition"] = g["terminalCondition"];
+        }
+        if (g["volumes"] !== undefined) body["volumes"] = g["volumes"];
+        if (g["vpcAccess"] !== undefined) body["vpcAccess"] = g["vpcAccess"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
+        for (const key of Object.keys(existing)) {
+          if (
+            key === "fingerprint" || key === "labelFingerprint" ||
+            key === "etag" || key.endsWith("Fingerprint")
+          ) {
+            body[key] = existing[key];
+          }
+        }
+        const result = await updateResource(
+          BASE_URL,
+          PATCH_CONFIG,
+          params,
+          body,
+          GET_CONFIG,
+          undefined,
+          credentials,
+        ) as StateData;
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -1798,6 +1993,101 @@ export const model = {
         return { dataHandles, result: { count: items.length, nextPageToken } };
       },
     },
+    get_iam_policy: {
+      description: "get iam policy",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["resource"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "run.projects.locations.instances.getIamPolicy",
+            "path": "v2/{+resource}:getIamPolicy",
+            "httpMethod": "GET",
+            "parameterOrder": ["resource"],
+            "parameters": {
+              "options.requestedPolicyVersion": { "location": "query" },
+              "resource": { "location": "path", "required": true },
+            },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    set_iam_policy: {
+      description: "set iam policy",
+      arguments: z.object({
+        policy: z.any().optional(),
+        updateMask: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["resource"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["policy"] !== undefined) body["policy"] = args["policy"];
+        if (args["updateMask"] !== undefined) {
+          body["updateMask"] = args["updateMask"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "run.projects.locations.instances.setIamPolicy",
+            "path": "v2/{+resource}:setIamPolicy",
+            "httpMethod": "POST",
+            "parameterOrder": ["resource"],
+            "parameters": {
+              "resource": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     start: {
       description: "start",
       arguments: z.object({
@@ -1869,6 +2159,55 @@ export const model = {
             "httpMethod": "POST",
             "parameterOrder": ["name"],
             "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    test_iam_permissions: {
+      description: "test iam permissions",
+      arguments: z.object({
+        permissions: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["resource"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["permissions"] !== undefined) {
+          body["permissions"] = args["permissions"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "run.projects.locations.instances.testIamPermissions",
+            "path": "v2/{+resource}:testIamPermissions",
+            "httpMethod": "POST",
+            "parameterOrder": ["resource"],
+            "parameters": {
+              "resource": { "location": "path", "required": true },
+            },
           },
           params,
           body,

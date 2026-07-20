@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI TrainingPipelines.
+ * Swamp extension model for Google Cloud Agent Platform TrainingPipelines.
  *
  * The TrainingPipeline orchestrates tasks associated with training a Model. It always executes the training task, and optionally may also export data from Vertex AI's Dataset which becomes the training input, upload the Model to Vertex AI, and evaluate the Model.
  *
@@ -1924,10 +1924,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI TrainingPipelines. Registered at `@swamp/gcp/aiplatform/trainingpipelines`. */
+/** Swamp extension model for Google Cloud Agent Platform TrainingPipelines. Registered at `@swamp/gcp/aiplatform/trainingpipelines`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/trainingpipelines",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2051,6 +2051,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

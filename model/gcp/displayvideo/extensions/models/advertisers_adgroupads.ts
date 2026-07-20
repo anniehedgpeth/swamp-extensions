@@ -330,7 +330,7 @@ const GlobalArgsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     }).describe("Details of a YouTube video.").optional(),
   }).describe("Details for an audio ad.").optional(),
@@ -378,20 +378,28 @@ const GlobalArgsSchema = z.object({
         ]).describe("The reason why the video data is not available.")
           .optional(),
         videoAssetId: z.string().describe(
-          "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+          "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
         ).optional(),
       }).describe("Details of a YouTube video.").optional(),
     }).describe(
       "Common attributes for in-stream, non-skippable and bumper ads.",
     ).optional(),
   }).describe("Details for a bumper ad.").optional(),
+  dcmTrackingInfo: z.object({
+    creativeId: z.string().describe("Required. The DCM creative id.")
+      .optional(),
+    placementId: z.string().describe("Required. The DCM placement id.")
+      .optional(),
+    trackingAdId: z.string().describe("Required. The DCM tracking ad id.")
+      .optional(),
+  }).describe("Details on the DCM tracking.").optional(),
   demandGenCarouselAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     cards: z.array(z.object({
       callToAction: z.string().describe(
-        "Required. The call-to-action button shown on the card. Must use 10 characters or less.",
+        "Required. The text on the call-to-action button shown on the card. Must use 10 characters or less.",
       ).optional(),
       finalMobileUrl: z.string().describe(
         "Optional. The URL address of the webpage that people reach after they click the card on a mobile device.",
@@ -448,7 +456,7 @@ const GlobalArgsSchema = z.object({
       }).describe("Meta data of an image asset.").optional(),
     })).describe("Required. The list of cards shown on the ad.").optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     description: z.string().describe("Required. The description of the ad.")
       .optional(),
@@ -485,13 +493,13 @@ const GlobalArgsSchema = z.object({
   }).describe("Details for a Demand Gen carousel ad.").optional(),
   demandGenImageAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.string().describe(
       "Required. The call-to-action button shown on the ad.",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     descriptions: z.array(z.string()).describe(
       "Required. The list of descriptions shown on the ad.",
@@ -523,7 +531,9 @@ const GlobalArgsSchema = z.object({
       mimeType: z.string().describe(
         "Output only. MIME type of the image asset.",
       ).optional(),
-    })).describe("The list of logo images shown on the ad.").optional(),
+    })).describe(
+      "The list of logo images shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
+    ).optional(),
     marketingImages: z.array(z.object({
       assetId: z.string().describe("Required. The unique ID of the asset.")
         .optional(),
@@ -583,7 +593,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Details for a Demand Gen image ad.").optional(),
   demandGenProductAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -609,7 +619,7 @@ const GlobalArgsSchema = z.object({
       "Required. The call-to-action button shown on the ad. The supported values are: * `AUTOMATED` * `APPLY_NOW` * `BOOK_NOW` * `CONTACT_US` * `DOWNLOAD` * `GET_QUOTE` * `LEARN_MORE` * `SHOP_NOW` * `SIGN_UP` * `SUBSCRIBE`",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     description: z.string().describe("Required. The description of the ad.")
       .optional(),
@@ -652,7 +662,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Details for a Demand Gen product ad.").optional(),
   demandGenVideoAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -694,7 +704,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Meta data of an image asset.").optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     descriptions: z.array(z.string()).describe(
       "Required. The list of descriptions shown on the ad.",
@@ -734,7 +744,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Meta data of an image asset.").optional(),
     longHeadlines: z.array(z.string()).describe(
-      "Required. The list of lone headlines shown on the ad.",
+      "Required. The list of long headlines shown on the ad.",
     ).optional(),
     trackingUrl: z.string().describe(
       "Output only. The URL address loaded in the background for tracking purposes.",
@@ -752,7 +762,7 @@ const GlobalArgsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     })).describe("Required. The list of YouTube video assets used by this ad.")
       .optional(),
@@ -816,14 +826,14 @@ const GlobalArgsSchema = z.object({
         ]).describe("The reason why the video data is not available.")
           .optional(),
         videoAssetId: z.string().describe(
-          "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+          "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
         ).optional(),
       }).describe("Details of a YouTube video.").optional(),
     }).describe(
       "Common attributes for in-stream, non-skippable and bumper ads.",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "The custom parameters to pass custom values to tracking URL template.",
+      "The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
   }).describe("Details for an in-stream ad.").optional(),
   mastheadAd: z.object({
@@ -852,7 +862,7 @@ const GlobalArgsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     })).describe(
       "The videos that appear next to the Masthead Ad on desktop. Can be no more than two.",
@@ -872,7 +882,7 @@ const GlobalArgsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     }).describe("Details of a YouTube video.").optional(),
     videoAspectRatio: z.enum([
@@ -927,14 +937,14 @@ const GlobalArgsSchema = z.object({
         ]).describe("The reason why the video data is not available.")
           .optional(),
         videoAssetId: z.string().describe(
-          "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+          "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
         ).optional(),
       }).describe("Details of a YouTube video.").optional(),
     }).describe(
       "Common attributes for in-stream, non-skippable and bumper ads.",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "The custom parameters to pass custom values to tracking URL template.",
+      "The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
   }).describe("Details for a non-skippable ad.").optional(),
   videoDiscoverAd: z.object({
@@ -959,7 +969,7 @@ const GlobalArgsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     }).describe("Details of a YouTube video.").optional(),
   }).describe("Details for a video discovery ad.").optional(),
@@ -984,7 +994,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("The list of companion banners used by this ad.").optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "The custom parameters to pass custom values to tracking URL template.",
+      "The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     descriptions: z.array(z.string()).describe(
       "The list of descriptions shown on the call-to-action banner.",
@@ -1003,7 +1013,7 @@ const GlobalArgsSchema = z.object({
       "The list of headlines shown on the call-to-action banner.",
     ).optional(),
     longHeadlines: z.array(z.string()).describe(
-      "The list of lone headlines shown on the call-to-action banner.",
+      "The list of long headlines shown on the call-to-action banner.",
     ).optional(),
     trackingUrl: z.string().describe(
       "The URL address loaded in the background for tracking purposes.",
@@ -1018,7 +1028,7 @@ const GlobalArgsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     })).describe("The list of YouTube video assets used by this ad.")
       .optional(),
@@ -1104,6 +1114,11 @@ const StateSchema = z.object({
         videoAssetId: z.string(),
       }),
     }),
+  }).optional(),
+  dcmTrackingInfo: z.object({
+    creativeId: z.string(),
+    placementId: z.string(),
+    trackingAdId: z.string(),
   }).optional(),
   demandGenCarouselAd: z.object({
     businessName: z.string(),
@@ -1542,7 +1557,7 @@ const InputsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     }).describe("Details of a YouTube video.").optional(),
   }).describe("Details for an audio ad.").optional(),
@@ -1590,20 +1605,28 @@ const InputsSchema = z.object({
         ]).describe("The reason why the video data is not available.")
           .optional(),
         videoAssetId: z.string().describe(
-          "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+          "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
         ).optional(),
       }).describe("Details of a YouTube video.").optional(),
     }).describe(
       "Common attributes for in-stream, non-skippable and bumper ads.",
     ).optional(),
   }).describe("Details for a bumper ad.").optional(),
+  dcmTrackingInfo: z.object({
+    creativeId: z.string().describe("Required. The DCM creative id.")
+      .optional(),
+    placementId: z.string().describe("Required. The DCM placement id.")
+      .optional(),
+    trackingAdId: z.string().describe("Required. The DCM tracking ad id.")
+      .optional(),
+  }).describe("Details on the DCM tracking.").optional(),
   demandGenCarouselAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     cards: z.array(z.object({
       callToAction: z.string().describe(
-        "Required. The call-to-action button shown on the card. Must use 10 characters or less.",
+        "Required. The text on the call-to-action button shown on the card. Must use 10 characters or less.",
       ).optional(),
       finalMobileUrl: z.string().describe(
         "Optional. The URL address of the webpage that people reach after they click the card on a mobile device.",
@@ -1660,7 +1683,7 @@ const InputsSchema = z.object({
       }).describe("Meta data of an image asset.").optional(),
     })).describe("Required. The list of cards shown on the ad.").optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     description: z.string().describe("Required. The description of the ad.")
       .optional(),
@@ -1697,13 +1720,13 @@ const InputsSchema = z.object({
   }).describe("Details for a Demand Gen carousel ad.").optional(),
   demandGenImageAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.string().describe(
       "Required. The call-to-action button shown on the ad.",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     descriptions: z.array(z.string()).describe(
       "Required. The list of descriptions shown on the ad.",
@@ -1735,7 +1758,9 @@ const InputsSchema = z.object({
       mimeType: z.string().describe(
         "Output only. MIME type of the image asset.",
       ).optional(),
-    })).describe("The list of logo images shown on the ad.").optional(),
+    })).describe(
+      "The list of logo images shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
+    ).optional(),
     marketingImages: z.array(z.object({
       assetId: z.string().describe("Required. The unique ID of the asset.")
         .optional(),
@@ -1795,7 +1820,7 @@ const InputsSchema = z.object({
   }).describe("Details for a Demand Gen image ad.").optional(),
   demandGenProductAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -1821,7 +1846,7 @@ const InputsSchema = z.object({
       "Required. The call-to-action button shown on the ad. The supported values are: * `AUTOMATED` * `APPLY_NOW` * `BOOK_NOW` * `CONTACT_US` * `DOWNLOAD` * `GET_QUOTE` * `LEARN_MORE` * `SHOP_NOW` * `SIGN_UP` * `SUBSCRIBE`",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     description: z.string().describe("Required. The description of the ad.")
       .optional(),
@@ -1864,7 +1889,7 @@ const InputsSchema = z.object({
   }).describe("Details for a Demand Gen product ad.").optional(),
   demandGenVideoAd: z.object({
     businessName: z.string().describe(
-      "Required. The business name shown on the ad.",
+      "Optional. The business name shown on the ad. This setting is required unless a default value is set at the advertiser level. If left unset, the default value will be applied.",
     ).optional(),
     callToAction: z.enum([
       "CALL_TO_ACTION_UNSPECIFIED",
@@ -1906,7 +1931,7 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Meta data of an image asset.").optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "Optional. The custom parameters to pass custom values to tracking URL template.",
+      "Optional. The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     descriptions: z.array(z.string()).describe(
       "Required. The list of descriptions shown on the ad.",
@@ -1946,7 +1971,7 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Meta data of an image asset.").optional(),
     longHeadlines: z.array(z.string()).describe(
-      "Required. The list of lone headlines shown on the ad.",
+      "Required. The list of long headlines shown on the ad.",
     ).optional(),
     trackingUrl: z.string().describe(
       "Output only. The URL address loaded in the background for tracking purposes.",
@@ -1964,7 +1989,7 @@ const InputsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     })).describe("Required. The list of YouTube video assets used by this ad.")
       .optional(),
@@ -2028,14 +2053,14 @@ const InputsSchema = z.object({
         ]).describe("The reason why the video data is not available.")
           .optional(),
         videoAssetId: z.string().describe(
-          "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+          "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
         ).optional(),
       }).describe("Details of a YouTube video.").optional(),
     }).describe(
       "Common attributes for in-stream, non-skippable and bumper ads.",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "The custom parameters to pass custom values to tracking URL template.",
+      "The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
   }).describe("Details for an in-stream ad.").optional(),
   mastheadAd: z.object({
@@ -2064,7 +2089,7 @@ const InputsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     })).describe(
       "The videos that appear next to the Masthead Ad on desktop. Can be no more than two.",
@@ -2084,7 +2109,7 @@ const InputsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     }).describe("Details of a YouTube video.").optional(),
     videoAspectRatio: z.enum([
@@ -2139,14 +2164,14 @@ const InputsSchema = z.object({
         ]).describe("The reason why the video data is not available.")
           .optional(),
         videoAssetId: z.string().describe(
-          "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+          "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
         ).optional(),
       }).describe("Details of a YouTube video.").optional(),
     }).describe(
       "Common attributes for in-stream, non-skippable and bumper ads.",
     ).optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "The custom parameters to pass custom values to tracking URL template.",
+      "The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
   }).describe("Details for a non-skippable ad.").optional(),
   videoDiscoverAd: z.object({
@@ -2171,7 +2196,7 @@ const InputsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     }).describe("Details of a YouTube video.").optional(),
   }).describe("Details for a video discovery ad.").optional(),
@@ -2196,7 +2221,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("The list of companion banners used by this ad.").optional(),
     customParameters: z.record(z.string(), z.string()).describe(
-      "The custom parameters to pass custom values to tracking URL template.",
+      "The custom parameters and accompanying values to add to the tracking URL.",
     ).optional(),
     descriptions: z.array(z.string()).describe(
       "The list of descriptions shown on the call-to-action banner.",
@@ -2215,7 +2240,7 @@ const InputsSchema = z.object({
       "The list of headlines shown on the call-to-action banner.",
     ).optional(),
     longHeadlines: z.array(z.string()).describe(
-      "The list of lone headlines shown on the call-to-action banner.",
+      "The list of long headlines shown on the call-to-action banner.",
     ).optional(),
     trackingUrl: z.string().describe(
       "The URL address loaded in the background for tracking purposes.",
@@ -2230,7 +2255,7 @@ const InputsSchema = z.object({
         "VIDEO_UNAVAILABLE_REASON_DELETED",
       ]).describe("The reason why the video data is not available.").optional(),
       videoAssetId: z.string().describe(
-        "Required. The YouTube video asset id. This is ad_asset.ad_asset_id.",
+        "Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.",
       ).optional(),
     })).describe("The list of YouTube video assets used by this ad.")
       .optional(),
@@ -2260,7 +2285,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.AdGroupAds. Registered at `@swamp/gcp/displayvideo/advertisers-adgroupads`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-adgroupads",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2409,6 +2434,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: dcmTrackingInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2437,6 +2467,9 @@ export const model = {
         if (g["adPolicy"] !== undefined) body["adPolicy"] = g["adPolicy"];
         if (g["audioAd"] !== undefined) body["audioAd"] = g["audioAd"];
         if (g["bumperAd"] !== undefined) body["bumperAd"] = g["bumperAd"];
+        if (g["dcmTrackingInfo"] !== undefined) {
+          body["dcmTrackingInfo"] = g["dcmTrackingInfo"];
+        }
         if (g["demandGenCarouselAd"] !== undefined) {
           body["demandGenCarouselAd"] = g["demandGenCarouselAd"];
         }
@@ -2567,6 +2600,9 @@ export const model = {
         if (g["adPolicy"] !== undefined) body["adPolicy"] = g["adPolicy"];
         if (g["audioAd"] !== undefined) body["audioAd"] = g["audioAd"];
         if (g["bumperAd"] !== undefined) body["bumperAd"] = g["bumperAd"];
+        if (g["dcmTrackingInfo"] !== undefined) {
+          body["dcmTrackingInfo"] = g["dcmTrackingInfo"];
+        }
         if (g["demandGenCarouselAd"] !== undefined) {
           body["demandGenCarouselAd"] = g["demandGenCarouselAd"];
         }

@@ -213,6 +213,15 @@ const GlobalArgsSchema = z.object({
         schema: z.string().describe("The schema name.").optional(),
       })).describe("PostgreSQL schemas in the database server.").optional(),
     }).describe("PostgreSQL database structure.").optional(),
+    saasExcludedObjects: z.object({
+      objects: z.array(z.object({
+        objectName: z.string().describe("Required. The object name.")
+          .optional(),
+        properties: z.array(z.unknown()).describe(
+          "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+        ).optional(),
+      })).describe("Optional. Source objects in the catalog.").optional(),
+    }).describe("Source catalog.").optional(),
     salesforceExcludedObjects: z.object({
       objects: z.array(z.object({
         fields: z.array(z.unknown()).describe(
@@ -389,6 +398,30 @@ const GlobalArgsSchema = z.object({
     }).describe("Object filter to apply the rules to.").optional(),
   })).describe("Optional. Rule sets to apply to the stream.").optional(),
   sourceConfig: z.object({
+    dataverseSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe("Configuration for syncing data from a Dataverse source.")
+      .optional(),
     mongodbSourceConfig: z.object({
       excludeObjects: z.object({
         databases: z.array(z.object({
@@ -515,6 +548,34 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Configuration for syncing data from a PostgreSQL source.")
       .optional(),
+    salesforceMarketingCloudSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      fullRefreshPollingInterval: z.string().describe(
+        "Required. Specifies the polling interval for a full refresh of objects that do not support incremental sync. If not set, a default value of 24 hours is used. The duration must be between 1 and 24 hours, inclusive.",
+      ).optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe(
+      "Configuration for syncing data from a Salesforce Marketing Cloud source.",
+    ).optional(),
     salesforceSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -536,6 +597,30 @@ const GlobalArgsSchema = z.object({
         "Required. Salesforce objects polling interval. The interval at which new changes will be polled for each object. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
     }).describe("Configuration for syncing data from a Salesforce source.")
+      .optional(),
+    serviceNowSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe("Configuration for syncing data from a ServiceNow source.")
       .optional(),
     sourceConnectionProfile: z.string().describe(
       "Required. Source connection profile resource. Format: `projects/{project}/locations/{location}/connectionProfiles/{name}`",
@@ -658,6 +743,12 @@ const StateSchema = z.object({
         schema: z.string(),
       })),
     }),
+    saasExcludedObjects: z.object({
+      objects: z.array(z.object({
+        objectName: z.string(),
+        properties: z.array(z.unknown()),
+      })),
+    }),
     salesforceExcludedObjects: z.object({
       objects: z.array(z.object({
         fields: z.array(z.unknown()),
@@ -774,6 +865,21 @@ const StateSchema = z.object({
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
   sourceConfig: z.object({
+    dataverseSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
+        })),
+      }),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
+        })),
+      }),
+      pollingInterval: z.string(),
+    }),
     mongodbSourceConfig: z.object({
       excludeObjects: z.object({
         databases: z.array(z.object({
@@ -851,6 +957,22 @@ const StateSchema = z.object({
       publication: z.string(),
       replicationSlot: z.string(),
     }),
+    salesforceMarketingCloudSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
+        })),
+      }),
+      fullRefreshPollingInterval: z.string(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
+        })),
+      }),
+      pollingInterval: z.string(),
+    }),
     salesforceSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -862,6 +984,21 @@ const StateSchema = z.object({
         objects: z.array(z.object({
           fields: z.unknown(),
           objectName: z.unknown(),
+        })),
+      }),
+      pollingInterval: z.string(),
+    }),
+    serviceNowSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
+        })),
+      }),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
         })),
       }),
       pollingInterval: z.string(),
@@ -949,6 +1086,15 @@ const InputsSchema = z.object({
         schema: z.string().describe("The schema name.").optional(),
       })).describe("PostgreSQL schemas in the database server.").optional(),
     }).describe("PostgreSQL database structure.").optional(),
+    saasExcludedObjects: z.object({
+      objects: z.array(z.object({
+        objectName: z.string().describe("Required. The object name.")
+          .optional(),
+        properties: z.array(z.unknown()).describe(
+          "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+        ).optional(),
+      })).describe("Optional. Source objects in the catalog.").optional(),
+    }).describe("Source catalog.").optional(),
     salesforceExcludedObjects: z.object({
       objects: z.array(z.object({
         fields: z.array(z.unknown()).describe(
@@ -1125,6 +1271,30 @@ const InputsSchema = z.object({
     }).describe("Object filter to apply the rules to.").optional(),
   })).describe("Optional. Rule sets to apply to the stream.").optional(),
   sourceConfig: z.object({
+    dataverseSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe("Configuration for syncing data from a Dataverse source.")
+      .optional(),
     mongodbSourceConfig: z.object({
       excludeObjects: z.object({
         databases: z.array(z.object({
@@ -1251,6 +1421,34 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Configuration for syncing data from a PostgreSQL source.")
       .optional(),
+    salesforceMarketingCloudSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      fullRefreshPollingInterval: z.string().describe(
+        "Required. Specifies the polling interval for a full refresh of objects that do not support incremental sync. If not set, a default value of 24 hours is used. The duration must be between 1 and 24 hours, inclusive.",
+      ).optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe(
+      "Configuration for syncing data from a Salesforce Marketing Cloud source.",
+    ).optional(),
     salesforceSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -1272,6 +1470,30 @@ const InputsSchema = z.object({
         "Required. Salesforce objects polling interval. The interval at which new changes will be polled for each object. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
     }).describe("Configuration for syncing data from a Salesforce source.")
+      .optional(),
+    serviceNowSourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Source catalog.").optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe("Configuration for syncing data from a ServiceNow source.")
       .optional(),
     sourceConnectionProfile: z.string().describe(
       "Required. Source connection profile resource. Format: `projects/{project}/locations/{location}/connectionProfiles/{name}`",
@@ -1391,7 +1613,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream Streams. Registered at `@swamp/gcp/datastream/streams`. */
 export const model = {
   type: "@swamp/gcp/datastream/streams",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1505,6 +1727,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

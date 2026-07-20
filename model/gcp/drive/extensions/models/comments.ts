@@ -346,7 +346,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Comments. Registered at `@swamp/gcp/drive/comments`. */
 export const model = {
   type: "@swamp/gcp/drive/comments",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -435,6 +435,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -704,7 +709,7 @@ export const model = {
           "Whether to include deleted comments. Deleted comments will not include their original content.",
         ).optional(),
         pageSize: z.number().describe(
-          "The maximum number of comments to return per page.",
+          "The maximum number of comments to return. The service may return fewer than this value. If unspecified, at most 20 comments will be returned. The maximum value is 100; values above 100 will be coerced to 100.",
         ).optional(),
         startModifiedTime: z.string().describe(
           "The minimum value of 'modifiedTime' for the result comments (RFC 3339 date-time).",

@@ -118,7 +118,7 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   data: z.string().describe(
-    "The body of the private key credentials file, in string format. This is only populated when the ServiceAccountKey is created, and is not stored by Google.",
+    'The body of the private key credentials file, in string format. This is only populated when the ServiceAccountKey is created, and is not stored by Google. When type is "pkcs12", the contents of the data field is base64 encoded and has the password "notasecret".',
   ).optional(),
   id: z.string().describe(
     "An opaque, unique identifier for this ServiceAccountKey. Assigned by the server.",
@@ -148,7 +148,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   data: z.string().describe(
-    "The body of the private key credentials file, in string format. This is only populated when the ServiceAccountKey is created, and is not stored by Google.",
+    'The body of the private key credentials file, in string format. This is only populated when the ServiceAccountKey is created, and is not stored by Google. When type is "pkcs12", the contents of the data field is base64 encoded and has the password "notasecret".',
   ).optional(),
   id: z.string().describe(
     "An opaque, unique identifier for this ServiceAccountKey. Assigned by the server.",
@@ -185,7 +185,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play EMM Serviceaccountkeys. Registered at `@swamp/gcp/androidenterprise/serviceaccountkeys`. */
 export const model = {
   type: "@swamp/gcp/androidenterprise/serviceaccountkeys",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -299,6 +299,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -286,6 +286,9 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Certificate data for a SelfManaged Certificate. SelfManaged Certificates are uploaded by the user. Updating such certificates before they expire remains the user's responsibility.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   certificateId: z.string().describe(
     "Required. A user-provided name of the certificate.",
   ).optional(),
@@ -345,6 +348,7 @@ const StateSchema = z.object({
     pemCertificate: z.string(),
     pemPrivateKey: z.string(),
   }).optional(),
+  tags: z.record(z.string(), z.unknown()).optional(),
   updateTime: z.string().optional(),
   usedBy: z.array(z.object({
     name: z.string(),
@@ -486,6 +490,9 @@ const InputsSchema = z.object({
   }).describe(
     "Certificate data for a SelfManaged Certificate. SelfManaged Certificates are uploaded by the user. Updating such certificates before they expire remains the user's responsibility.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   certificateId: z.string().describe(
     "Required. A user-provided name of the certificate.",
   ).optional(),
@@ -517,7 +524,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager Certificates. Registered at `@swamp/gcp/certificatemanager/certificates`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/certificates",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -637,6 +644,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -674,6 +686,7 @@ export const model = {
         if (g["selfManaged"] !== undefined) {
           body["selfManaged"] = g["selfManaged"];
         }
+        if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["certificateId"] !== undefined) {
           params["certificateId"] = String(g["certificateId"]);
         }

@@ -108,6 +108,9 @@ const DELETE_CONFIG = {
     "name",
   ],
   "parameters": {
+    "etag": {
+      "location": "query",
+    },
     "name": {
       "location": "path",
       "required": true,
@@ -156,7 +159,7 @@ const GlobalArgsSchema = z.object({
     "Required. The relative resource name of the debug token, in the format: ` projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} `",
   ).optional(),
   token: z.string().describe(
-    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during an UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
+    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during a UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -168,6 +171,7 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   displayName: z.string().optional(),
+  etag: z.string().optional(),
   name: z.string(),
   token: z.string().optional(),
   updateTime: z.string().optional(),
@@ -187,7 +191,7 @@ const InputsSchema = z.object({
     "Required. The relative resource name of the debug token, in the format: ` projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} `",
   ).optional(),
   token: z.string().describe(
-    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during an UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
+    "Required. Input only. Immutable. The secret token itself. Must be provided during creation, and must be a UUID4, case insensitive. This field is immutable once set, and cannot be provided during a UpdateDebugToken request. You can, however, delete this debug token using DeleteDebugToken to revoke it. For security reasons, this field will never be populated in any response.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -220,7 +224,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Check Apps.DebugTokens. Registered at `@swamp/gcp/firebaseappcheck/apps-debugtokens`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/apps-debugtokens",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -349,6 +353,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

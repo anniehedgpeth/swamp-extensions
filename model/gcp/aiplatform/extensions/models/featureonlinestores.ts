@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI FeatureOnlineStores.
+ * Swamp extension model for Google Cloud Agent Platform FeatureOnlineStores.
  *
  * Vertex AI Feature Online Store provides a centralized repository for serving ML features and embedding indexes at low latency. The Feature Online Store is a top-level container.
  *
@@ -426,10 +426,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI FeatureOnlineStores. Registered at `@swamp/gcp/aiplatform/featureonlinestores`. */
+/** Swamp extension model for Google Cloud Agent Platform FeatureOnlineStores. Registered at `@swamp/gcp/aiplatform/featureonlinestores`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/featureonlinestores",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -553,6 +553,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

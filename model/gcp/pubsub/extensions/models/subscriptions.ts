@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Pub/Sub Subscriptions.
  *
- * A subscription resource. If none of `push_config`, `bigquery_config`, or `cloud_storage_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.
+ * A subscription resource. If none of `push_config`, `bigquery_config`, `cloud_storage_config`, or `bigtable_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -211,7 +211,7 @@ const GlobalArgsSchema = z.object({
       "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
     ).optional(),
   }).describe(
-    'Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name and message ID delimited by #. - columns: message bytes written to a single column family "data" with an empty-string column qualifier. - cell timestamp: the message publish timestamp.',
+    "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
   ).optional(),
   cloudStorageConfig: z.object({
     avroConfig: z.object({
@@ -316,6 +316,22 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Configuration for making inference requests against Vertex AI models.",
     ).optional(),
+    compression: z.object({
+      compressionAlgorithm: z.enum([
+        "COMPRESSION_ALGORITHM_UNSPECIFIED",
+        "ZLIB",
+      ]).describe("Required. Specifies the compression algorithm to use.")
+        .optional(),
+      compressionMode: z.enum([
+        "COMPRESSION_MODE_UNSPECIFIED",
+        "COMPRESS",
+        "DECOMPRESS",
+      ]).describe(
+        "Required. Specifies whether to compress or decompress the message.",
+      ).optional(),
+    }).describe(
+      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
+    ).optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -379,7 +395,7 @@ const GlobalArgsSchema = z.object({
     "A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.",
   ).optional(),
   tags: z.record(z.string(), z.string()).describe(
-    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
   ).optional(),
   topic: z.string().describe(
     "Required. The name of the topic from which this subscription is receiving messages. Format is `projects/{project}/topics/{topic}`. The value of this field will be `_deleted-topic_` if the topic has been deleted.",
@@ -455,7 +471,7 @@ const GlobalArgsSchema = z.object({
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
       ).optional(),
     }).describe(
-      'Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name and message ID delimited by #. - columns: message bytes written to a single column family "data" with an empty-string column qualifier. - cell timestamp: the message publish timestamp.',
+      "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
     ).optional(),
     cloudStorageConfig: z.object({
       avroConfig: z.object({
@@ -560,6 +576,22 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "Configuration for making inference requests against Vertex AI models.",
       ).optional(),
+      compression: z.object({
+        compressionAlgorithm: z.enum([
+          "COMPRESSION_ALGORITHM_UNSPECIFIED",
+          "ZLIB",
+        ]).describe("Required. Specifies the compression algorithm to use.")
+          .optional(),
+        compressionMode: z.enum([
+          "COMPRESSION_MODE_UNSPECIFIED",
+          "COMPRESS",
+          "DECOMPRESS",
+        ]).describe(
+          "Required. Specifies whether to compress or decompress the message.",
+        ).optional(),
+      }).describe(
+        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
+      ).optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -626,7 +658,7 @@ const GlobalArgsSchema = z.object({
       "Output only. An output-only field indicating whether or not the subscription can receive messages.",
     ).optional(),
     tags: z.record(z.string(), z.string()).describe(
-      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
     ).optional(),
     topic: z.string().describe(
       "Required. The name of the topic from which this subscription is receiving messages. Format is `projects/{project}/topics/{topic}`. The value of this field will be `_deleted-topic_` if the topic has been deleted.",
@@ -635,7 +667,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Indicates the minimum duration for which a message is retained after it is published to the subscription's topic. If this field is set, messages published to the subscription's topic in the last `topic_message_retention_duration` are always available to subscribers. See the `message_retention_duration` field in `Topic`. This field is set only in responses from the server; it is ignored if it is set in any requests.",
     ).optional(),
   }).describe(
-    "A subscription resource. If none of `push_config`, `bigquery_config`, or `cloud_storage_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.",
+    "A subscription resource. If none of `push_config`, `bigquery_config`, `cloud_storage_config`, or `bigtable_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.",
   ).optional(),
   updateMask: z.string().describe(
     "Required. Indicates which fields in the provided subscription to update. Must be specified and non-empty.",
@@ -700,6 +732,10 @@ const StateSchema = z.object({
       unstructuredInference: z.object({
         parameters: z.record(z.string(), z.unknown()),
       }),
+    }),
+    compression: z.object({
+      compressionAlgorithm: z.string(),
+      compressionMode: z.string(),
     }),
     disabled: z.boolean(),
     enabled: z.boolean(),
@@ -809,7 +845,7 @@ const InputsSchema = z.object({
       "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
     ).optional(),
   }).describe(
-    'Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name and message ID delimited by #. - columns: message bytes written to a single column family "data" with an empty-string column qualifier. - cell timestamp: the message publish timestamp.',
+    "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
   ).optional(),
   cloudStorageConfig: z.object({
     avroConfig: z.object({
@@ -914,6 +950,22 @@ const InputsSchema = z.object({
     }).describe(
       "Configuration for making inference requests against Vertex AI models.",
     ).optional(),
+    compression: z.object({
+      compressionAlgorithm: z.enum([
+        "COMPRESSION_ALGORITHM_UNSPECIFIED",
+        "ZLIB",
+      ]).describe("Required. Specifies the compression algorithm to use.")
+        .optional(),
+      compressionMode: z.enum([
+        "COMPRESSION_MODE_UNSPECIFIED",
+        "COMPRESS",
+        "DECOMPRESS",
+      ]).describe(
+        "Required. Specifies whether to compress or decompress the message.",
+      ).optional(),
+    }).describe(
+      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
+    ).optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -977,7 +1029,7 @@ const InputsSchema = z.object({
     "A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.",
   ).optional(),
   tags: z.record(z.string(), z.string()).describe(
-    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
   ).optional(),
   topic: z.string().describe(
     "Required. The name of the topic from which this subscription is receiving messages. Format is `projects/{project}/topics/{topic}`. The value of this field will be `_deleted-topic_` if the topic has been deleted.",
@@ -1053,7 +1105,7 @@ const InputsSchema = z.object({
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
       ).optional(),
     }).describe(
-      'Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name and message ID delimited by #. - columns: message bytes written to a single column family "data" with an empty-string column qualifier. - cell timestamp: the message publish timestamp.',
+      "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
     ).optional(),
     cloudStorageConfig: z.object({
       avroConfig: z.object({
@@ -1158,6 +1210,22 @@ const InputsSchema = z.object({
       }).describe(
         "Configuration for making inference requests against Vertex AI models.",
       ).optional(),
+      compression: z.object({
+        compressionAlgorithm: z.enum([
+          "COMPRESSION_ALGORITHM_UNSPECIFIED",
+          "ZLIB",
+        ]).describe("Required. Specifies the compression algorithm to use.")
+          .optional(),
+        compressionMode: z.enum([
+          "COMPRESSION_MODE_UNSPECIFIED",
+          "COMPRESS",
+          "DECOMPRESS",
+        ]).describe(
+          "Required. Specifies whether to compress or decompress the message.",
+        ).optional(),
+      }).describe(
+        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
+      ).optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -1224,7 +1292,7 @@ const InputsSchema = z.object({
       "Output only. An output-only field indicating whether or not the subscription can receive messages.",
     ).optional(),
     tags: z.record(z.string(), z.string()).describe(
-      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+      'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
     ).optional(),
     topic: z.string().describe(
       "Required. The name of the topic from which this subscription is receiving messages. Format is `projects/{project}/topics/{topic}`. The value of this field will be `_deleted-topic_` if the topic has been deleted.",
@@ -1233,7 +1301,7 @@ const InputsSchema = z.object({
       "Output only. Indicates the minimum duration for which a message is retained after it is published to the subscription's topic. If this field is set, messages published to the subscription's topic in the last `topic_message_retention_duration` are always available to subscribers. See the `message_retention_duration` field in `Topic`. This field is set only in responses from the server; it is ignored if it is set in any requests.",
     ).optional(),
   }).describe(
-    "A subscription resource. If none of `push_config`, `bigquery_config`, or `cloud_storage_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.",
+    "A subscription resource. If none of `push_config`, `bigquery_config`, `cloud_storage_config`, or `bigtable_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.",
   ).optional(),
   updateMask: z.string().describe(
     "Required. Indicates which fields in the provided subscription to update. Must be specified and non-empty.",
@@ -1263,7 +1331,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Subscriptions. Registered at `@swamp/gcp/pubsub/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/pubsub/subscriptions",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1415,13 +1483,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "A subscription resource. If none of `push_config`, `bigquery_config`, or `clo...",
+        "A subscription resource. If none of `push_config`, `bigquery_config`, `cloud_...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,

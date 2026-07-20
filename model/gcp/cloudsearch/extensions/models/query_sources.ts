@@ -53,6 +53,9 @@ const LIST_CONFIG = {
     "pageToken": {
       "location": "query",
     },
+    "requestOptions.clientDisplayLanguageCode": {
+      "location": "query",
+    },
     "requestOptions.debugOptions.enableDebugging": {
       "location": "query",
     },
@@ -154,7 +157,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Search Query.Sources. Registered at `@swamp/gcp/cloudsearch/query-sources`. */
 export const model = {
   type: "@swamp/gcp/cloudsearch/query-sources",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -271,6 +274,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -378,6 +386,9 @@ export const model = {
     list: {
       description: "List sources resources",
       arguments: z.object({
+        requestOptions_clientDisplayLanguageCode: z.string().describe(
+          'The BCP-47 language code, such as "pt" or "en". It represents the user\'s preferred Display Language.',
+        ).optional(),
         requestOptions_debugOptions_enableDebugging: z.boolean().describe(
           "If you are asked by Google to help with debugging, set this field. Otherwise, ignore this field.",
         ).optional(),
@@ -399,6 +410,11 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
+        if (args["requestOptions_clientDisplayLanguageCode"] !== undefined) {
+          params["requestOptions.clientDisplayLanguageCode"] = String(
+            args["requestOptions_clientDisplayLanguageCode"],
+          );
+        }
         if (args["requestOptions_debugOptions_enableDebugging"] !== undefined) {
           params["requestOptions.debugOptions.enableDebugging"] = String(
             args["requestOptions_debugOptions_enableDebugging"],

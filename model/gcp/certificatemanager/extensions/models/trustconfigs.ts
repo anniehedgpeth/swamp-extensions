@@ -198,6 +198,9 @@ const GlobalArgsSchema = z.object({
   ).describe(
     "Optional. Defines a mapping from a trust domain to a TrustStore. This is used for SPIFFE certificate validation.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   trustStores: z.array(z.object({
     intermediateCas: z.array(z.object({
       pemCertificate: z.string().describe(
@@ -234,6 +237,7 @@ const StateSchema = z.object({
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
   spiffeTrustStores: z.record(z.string(), z.unknown()).optional(),
+  tags: z.record(z.string(), z.unknown()).optional(),
   trustStores: z.array(z.object({
     intermediateCas: z.array(z.object({
       pemCertificate: z.string(),
@@ -289,6 +293,9 @@ const InputsSchema = z.object({
   ).describe(
     "Optional. Defines a mapping from a trust domain to a TrustStore. This is used for SPIFFE certificate validation.",
   ).optional(),
+  tags: z.record(z.string(), z.string()).describe(
+    'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
+  ).optional(),
   trustStores: z.array(z.object({
     intermediateCas: z.array(z.object({
       pemCertificate: z.string().describe(
@@ -338,7 +345,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager TrustConfigs. Registered at `@swamp/gcp/certificatemanager/trustconfigs`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/trustconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -453,6 +460,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -488,6 +500,7 @@ export const model = {
         if (g["spiffeTrustStores"] !== undefined) {
           body["spiffeTrustStores"] = g["spiffeTrustStores"];
         }
+        if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["trustStores"] !== undefined) {
           body["trustStores"] = g["trustStores"];
         }

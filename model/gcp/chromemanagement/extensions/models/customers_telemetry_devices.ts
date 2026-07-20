@@ -94,6 +94,8 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/chrome.management.profiles",
   "https://www.googleapis.com/auth/chrome.management.profiles.readonly",
   "https://www.googleapis.com/auth/chrome.management.reports.readonly",
+  "https://www.googleapis.com/auth/chrome.management.securityinsights",
+  "https://www.googleapis.com/auth/chrome.management.securityinsights.readonly",
   "https://www.googleapis.com/auth/chrome.management.telemetry.readonly",
 ];
 
@@ -397,7 +399,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Chrome Management Customers.Telemetry.Devices. Registered at `@swamp/gcp/chromemanagement/customers-telemetry-devices`. */
 export const model = {
   type: "@swamp/gcp/chromemanagement/customers-telemetry-devices",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -486,6 +488,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

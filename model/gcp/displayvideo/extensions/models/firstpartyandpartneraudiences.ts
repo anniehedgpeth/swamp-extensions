@@ -182,25 +182,25 @@ const GlobalArgsSchema = z.object({
     }).describe("User consent status.").optional(),
     contactInfos: z.array(z.object({
       countryCode: z.string().describe(
-        "Country code of the member. Must also be set with the following fields: * hashed_first_name * hashed_last_name * zip_codes",
+        "Optional. Country code of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name * zip_codes",
       ).optional(),
       hashedEmails: z.array(z.string()).describe(
-        "A list of SHA256 hashed email of the member. Before hashing, remove all whitespace and make sure the string is all lowercase.",
+        "Optional. A list of SHA256 hashed email of the member. Before hashing, remove all whitespace and make sure the string is all lowercase.",
       ).optional(),
       hashedFirstName: z.string().describe(
-        "SHA256 hashed first name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_last_name * zip_codes",
+        "Optional. SHA256 hashed first name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_last_name * zip_codes",
       ).optional(),
       hashedLastName: z.string().describe(
-        "SHA256 hashed last name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_first_name * zip_codes",
+        "Optional. SHA256 hashed last name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_first_name * zip_codes",
       ).optional(),
       hashedPhoneNumbers: z.array(z.string()).describe(
-        "A list of SHA256 hashed phone numbers of the member. Before hashing, all phone numbers must be formatted using the [E.164 format](//en.wikipedia.org/wiki/E.164) and include the country calling code.",
+        "Optional. A list of SHA256 hashed phone numbers of the member. Before hashing, all phone numbers must be formatted using the [E.164 format](https://en.wikipedia.org/wiki/E.164) and include the country calling code.",
       ).optional(),
       zipCodes: z.array(z.string()).describe(
-        "A list of zip codes of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name",
+        "Optional. A list of zip codes of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name",
       ).optional(),
     })).describe(
-      "A list of ContactInfo objects defining Customer Match audience members. The size of members after splitting the contact_infos mustn't be greater than 500,000.",
+      "Optional. A list of ContactInfo objects defining Customer Match audience members. The size of members after splitting the contact_infos mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
     "Wrapper message for a list of contact information defining Customer Match audience members.",
@@ -231,7 +231,7 @@ const GlobalArgsSchema = z.object({
       ]).describe("Represents consent for ad user data.").optional(),
     }).describe("User consent status.").optional(),
     mobileDeviceIds: z.array(z.string()).describe(
-      "A list of mobile device IDs defining Customer Match audience members. The size of mobile_device_ids mustn't be greater than 500,000.",
+      "Optional. A list of mobile device IDs defining Customer Match audience members. The size of mobile_device_ids mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
     "Wrapper message for a list of mobile device IDs defining Customer Match audience members.",
@@ -321,25 +321,25 @@ const InputsSchema = z.object({
     }).describe("User consent status.").optional(),
     contactInfos: z.array(z.object({
       countryCode: z.string().describe(
-        "Country code of the member. Must also be set with the following fields: * hashed_first_name * hashed_last_name * zip_codes",
+        "Optional. Country code of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name * zip_codes",
       ).optional(),
       hashedEmails: z.array(z.string()).describe(
-        "A list of SHA256 hashed email of the member. Before hashing, remove all whitespace and make sure the string is all lowercase.",
+        "Optional. A list of SHA256 hashed email of the member. Before hashing, remove all whitespace and make sure the string is all lowercase.",
       ).optional(),
       hashedFirstName: z.string().describe(
-        "SHA256 hashed first name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_last_name * zip_codes",
+        "Optional. SHA256 hashed first name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_last_name * zip_codes",
       ).optional(),
       hashedLastName: z.string().describe(
-        "SHA256 hashed last name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_first_name * zip_codes",
+        "Optional. SHA256 hashed last name of the member. Before hashing, remove all whitespace and make sure the string is all lowercase. Must also be set with the following fields: * country_code * hashed_first_name * zip_codes",
       ).optional(),
       hashedPhoneNumbers: z.array(z.string()).describe(
-        "A list of SHA256 hashed phone numbers of the member. Before hashing, all phone numbers must be formatted using the [E.164 format](//en.wikipedia.org/wiki/E.164) and include the country calling code.",
+        "Optional. A list of SHA256 hashed phone numbers of the member. Before hashing, all phone numbers must be formatted using the [E.164 format](https://en.wikipedia.org/wiki/E.164) and include the country calling code.",
       ).optional(),
       zipCodes: z.array(z.string()).describe(
-        "A list of zip codes of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name",
+        "Optional. A list of zip codes of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name",
       ).optional(),
     })).describe(
-      "A list of ContactInfo objects defining Customer Match audience members. The size of members after splitting the contact_infos mustn't be greater than 500,000.",
+      "Optional. A list of ContactInfo objects defining Customer Match audience members. The size of members after splitting the contact_infos mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
     "Wrapper message for a list of contact information defining Customer Match audience members.",
@@ -370,7 +370,7 @@ const InputsSchema = z.object({
       ]).describe("Represents consent for ad user data.").optional(),
     }).describe("User consent status.").optional(),
     mobileDeviceIds: z.array(z.string()).describe(
-      "A list of mobile device IDs defining Customer Match audience members. The size of mobile_device_ids mustn't be greater than 500,000.",
+      "Optional. A list of mobile device IDs defining Customer Match audience members. The size of mobile_device_ids mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
     "Wrapper message for a list of mobile device IDs defining Customer Match audience members.",
@@ -403,7 +403,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 FirstPartyAndPartnerAudiences. Registered at `@swamp/gcp/displayvideo/firstpartyandpartneraudiences`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/firstpartyandpartneraudiences",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -507,6 +507,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

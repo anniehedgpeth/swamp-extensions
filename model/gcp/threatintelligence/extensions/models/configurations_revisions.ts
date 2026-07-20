@@ -210,8 +210,19 @@ const StateSchema = z.object({
         })),
       }),
       detailType: z.string(),
+      technologyWatchlist: z.object({
+        alertThreshold: z.object({
+          cvssScoreMinimum: z.number(),
+          epssScoreMinimum: z.number(),
+          exploitationStates: z.array(z.unknown()),
+          priorityMinimum: z.string(),
+          riskRatingMinimum: z.string(),
+        }),
+        technologies: z.array(z.string()),
+      }),
     }),
     displayName: z.string(),
+    etag: z.string(),
     name: z.string(),
     provider: z.string(),
     state: z.string(),
@@ -258,7 +269,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Threat Intelligence Configurations.Revisions. Registered at `@swamp/gcp/threatintelligence/configurations-revisions`. */
 export const model = {
   type: "@swamp/gcp/threatintelligence/configurations-revisions",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -367,6 +378,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

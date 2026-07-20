@@ -221,6 +221,7 @@ const GlobalArgsSchema = z.object({
         "To include files in Team Drives in the hold, set to **true**.",
       ).optional(),
     }).describe("Options for Drive holds.").optional(),
+    geminiQuery: z.object({}).describe("Options for Gemini holds.").optional(),
     groupsQuery: z.object({
       endTime: z.string().describe(
         "The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
@@ -287,6 +288,7 @@ const StateSchema = z.object({
       includeSharedDriveFiles: z.boolean(),
       includeTeamDriveFiles: z.boolean(),
     }),
+    geminiQuery: z.object({}),
     groupsQuery: z.object({
       endTime: z.string(),
       startTime: z.string(),
@@ -368,6 +370,7 @@ const InputsSchema = z.object({
         "To include files in Team Drives in the hold, set to **true**.",
       ).optional(),
     }).describe("Options for Drive holds.").optional(),
+    geminiQuery: z.object({}).describe("Options for Gemini holds.").optional(),
     groupsQuery: z.object({
       endTime: z.string().describe(
         "The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
@@ -436,7 +439,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Vault Matters.Holds. Registered at `@swamp/gcp/vault/matters-holds`. */
 export const model = {
   type: "@swamp/gcp/vault/matters-holds",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -530,6 +533,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -148,7 +148,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex Locations. Registered at `@swamp/gcp/dataplex/locations`. */
 export const model = {
   type: "@swamp/gcp/dataplex/locations",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -280,6 +280,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -386,7 +391,7 @@ export const model = {
       description: "List locations resources",
       arguments: z.object({
         extraLocationTypes: z.string().describe(
-          "Optional. Do not use this field. It is unsupported and is ignored unless explicitly documented otherwise. This is primarily for internal usage.",
+          "Optional. Do not use this field unless explicitly documented otherwise. This is primarily for internal usage.",
         ).optional(),
         filter: z.string().describe(
           'A filter to narrow down results to a preferred subset. The filtering language accepts strings like "displayName=tokyo", and is documented in more detail in AIP-160 (https://google.aip.dev/160).',
@@ -535,6 +540,50 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    modify_entry: {
+      description: "modify entry",
+      arguments: z.object({
+        aspectKeys: z.any().optional(),
+        deleteMissingAspects: z.any().optional(),
+        entry: z.any().optional(),
+        updateMask: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) params["name"] = String(g["name"]);
+        const body: Record<string, unknown> = {};
+        if (args["aspectKeys"] !== undefined) {
+          body["aspectKeys"] = args["aspectKeys"];
+        }
+        if (args["deleteMissingAspects"] !== undefined) {
+          body["deleteMissingAspects"] = args["deleteMissingAspects"];
+        }
+        if (args["entry"] !== undefined) body["entry"] = args["entry"];
+        if (args["updateMask"] !== undefined) {
+          body["updateMask"] = args["updateMask"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "dataplex.projects.locations.modifyEntry",
+            "path": "v1/{+name}:modifyEntry",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,

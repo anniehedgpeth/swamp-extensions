@@ -303,7 +303,7 @@ const GlobalArgsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -956,7 +956,7 @@ const GlobalArgsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -1299,6 +1299,12 @@ const GlobalArgsSchema = z.object({
           "NON_STANDARD_BINARY_USAGE",
           "UNSUPPORTED_GATEWAY_CLASS",
           "MANAGED_CNI_NOT_ENABLED",
+          "MISSING_CONTROL_PLANE_CONFIG",
+          "SHARED_VPC_MISSING_PERMISSIONS",
+          "REQUIRED_ORG_POLICY_DISABLED",
+          "MODERNIZATION_INCOMPATIBLE_POD_ANNOTATION",
+          "MODERNIZATION_INCOMPATIBLE_CONFIG",
+          "MODERNIZATION_INCOMPATIBLE_GATEWAY_POD_SCALE",
           "MODERNIZATION_SCHEDULED",
           "MODERNIZATION_IN_PROGRESS",
           "MODERNIZATION_COMPLETED",
@@ -1315,6 +1321,10 @@ const GlobalArgsSchema = z.object({
           "MODERNIZATION_MODERNIZED_SOAKING",
           "MODERNIZATION_FINALIZED",
           "MODERNIZATION_ROLLING_BACK_FLEET",
+          "MODERNIZATION_COMPATIBLE",
+          "MODERNIZATION_INCOMPATIBLE",
+          "MODERNIZATION_INCOMPATIBLE_FLEET_SCALE",
+          "MODERNIZATION_INCOMPATIBLE_FLEET_QUOTA",
         ]).describe(
           "Unique identifier of the condition which describes the condition recognizable to the user.",
         ).optional(),
@@ -1978,7 +1988,7 @@ const InputsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -2631,7 +2641,7 @@ const InputsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: From version 1.21.0, automatic Feature management is unavailable, and Config Sync only supports manual upgrades.",
+          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -2974,6 +2984,12 @@ const InputsSchema = z.object({
           "NON_STANDARD_BINARY_USAGE",
           "UNSUPPORTED_GATEWAY_CLASS",
           "MANAGED_CNI_NOT_ENABLED",
+          "MISSING_CONTROL_PLANE_CONFIG",
+          "SHARED_VPC_MISSING_PERMISSIONS",
+          "REQUIRED_ORG_POLICY_DISABLED",
+          "MODERNIZATION_INCOMPATIBLE_POD_ANNOTATION",
+          "MODERNIZATION_INCOMPATIBLE_CONFIG",
+          "MODERNIZATION_INCOMPATIBLE_GATEWAY_POD_SCALE",
           "MODERNIZATION_SCHEDULED",
           "MODERNIZATION_IN_PROGRESS",
           "MODERNIZATION_COMPLETED",
@@ -2990,6 +3006,10 @@ const InputsSchema = z.object({
           "MODERNIZATION_MODERNIZED_SOAKING",
           "MODERNIZATION_FINALIZED",
           "MODERNIZATION_ROLLING_BACK_FLEET",
+          "MODERNIZATION_COMPATIBLE",
+          "MODERNIZATION_INCOMPATIBLE",
+          "MODERNIZATION_INCOMPATIBLE_FLEET_SCALE",
+          "MODERNIZATION_INCOMPATIBLE_FLEET_QUOTA",
         ]).describe(
           "Unique identifier of the condition which describes the condition recognizable to the user.",
         ).optional(),
@@ -3128,7 +3148,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Memberships.Features. Registered at `@swamp/gcp/gkehub/memberships-features`. */
 export const model = {
   type: "@swamp/gcp/gkehub/memberships-features",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3267,6 +3287,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

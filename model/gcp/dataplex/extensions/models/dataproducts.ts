@@ -170,6 +170,12 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  accessApprovalConfig: z.object({
+    approverEmails: z.array(z.string()).describe(
+      "Optional. Specifies the email addresses of users who are potential approvers and are notified when an access request is made for the data product. The maximum number of emails allowed is 10.",
+    ).optional(),
+  }).describe("Configuration for access approval for the data product.")
+    .optional(),
   accessGroups: z.record(
     z.string(),
     z.object({
@@ -185,6 +191,9 @@ const GlobalArgsSchema = z.object({
       principal: z.object({
         googleGroup: z.string().describe(
           "Optional. Email of the Google Group, as per https://cloud.google.com/iam/docs/principals-overview#google-group.",
+        ).optional(),
+        serviceAccount: z.string().describe(
+          "Optional. Specifies the email of the producer service account, as per https://cloud.google.com/iam/docs/principals-overview#service-account.",
         ).optional(),
       }).describe(
         "Represents the principal entity associated with an access group, as per https://cloud.google.com/iam/docs/principals-overview.",
@@ -219,6 +228,9 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  accessApprovalConfig: z.object({
+    approverEmails: z.array(z.string()),
+  }).optional(),
   accessGroups: z.record(z.string(), z.unknown()).optional(),
   assetCount: z.number().optional(),
   createTime: z.string().optional(),
@@ -240,6 +252,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  accessApprovalConfig: z.object({
+    approverEmails: z.array(z.string()).describe(
+      "Optional. Specifies the email addresses of users who are potential approvers and are notified when an access request is made for the data product. The maximum number of emails allowed is 10.",
+    ).optional(),
+  }).describe("Configuration for access approval for the data product.")
+    .optional(),
   accessGroups: z.record(
     z.string(),
     z.object({
@@ -255,6 +273,9 @@ const InputsSchema = z.object({
       principal: z.object({
         googleGroup: z.string().describe(
           "Optional. Email of the Google Group, as per https://cloud.google.com/iam/docs/principals-overview#google-group.",
+        ).optional(),
+        serviceAccount: z.string().describe(
+          "Optional. Specifies the email of the producer service account, as per https://cloud.google.com/iam/docs/principals-overview#service-account.",
         ).optional(),
       }).describe(
         "Represents the principal entity associated with an access group, as per https://cloud.google.com/iam/docs/principals-overview.",
@@ -311,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataProducts. Registered at `@swamp/gcp/dataplex/dataproducts`. */
 export const model = {
   type: "@swamp/gcp/dataplex/dataproducts",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -442,6 +463,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: accessApprovalConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -467,6 +493,9 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
+        if (g["accessApprovalConfig"] !== undefined) {
+          body["accessApprovalConfig"] = g["accessApprovalConfig"];
+        }
         if (g["accessGroups"] !== undefined) {
           body["accessGroups"] = g["accessGroups"];
         }
@@ -591,6 +620,9 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (g["accessApprovalConfig"] !== undefined) {
+          body["accessApprovalConfig"] = g["accessApprovalConfig"];
+        }
         if (g["accessGroups"] !== undefined) {
           body["accessGroups"] = g["accessGroups"];
         }
@@ -825,6 +857,48 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    request_access: {
+      description: "request access",
+      arguments: z.object({
+        changeRequest: z.any().optional(),
+        validateOnly: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        params["parent"] = `projects/${projectId}/locations/${
+          String(g["location"] ?? "")
+        }`;
+        const body: Record<string, unknown> = {};
+        if (args["changeRequest"] !== undefined) {
+          body["changeRequest"] = args["changeRequest"];
+        }
+        if (args["validateOnly"] !== undefined) {
+          body["validateOnly"] = args["validateOnly"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "dataplex.projects.locations.dataProducts.requestAccess",
+            "path": "v1/{+parent}:requestAccess",
+            "httpMethod": "POST",
+            "parameterOrder": ["parent"],
+            "parameters": {
+              "parent": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,

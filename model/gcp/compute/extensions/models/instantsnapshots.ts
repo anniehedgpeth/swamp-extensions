@@ -227,6 +227,8 @@ const StateSchema = z.object({
   selfLinkWithId: z.string().optional(),
   sourceDisk: z.string().optional(),
   sourceDiskId: z.string().optional(),
+  sourceInstantSnapshotGroup: z.string().optional(),
+  sourceInstantSnapshotGroupId: z.string().optional(),
   status: z.string().optional(),
   zone: z.string().optional(),
 }).passthrough();
@@ -295,7 +297,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InstantSnapshots. Registered at `@swamp/gcp/compute/instantsnapshots`. */
 export const model = {
   type: "@swamp/gcp/compute/instantsnapshots",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -429,6 +431,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

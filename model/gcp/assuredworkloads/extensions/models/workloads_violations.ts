@@ -82,6 +82,9 @@ const LIST_CONFIG = {
     "interval.startTime": {
       "location": "query",
     },
+    "orderBy": {
+      "location": "query",
+    },
     "pageSize": {
       "location": "query",
     },
@@ -194,7 +197,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Assured Workloads Workloads.Violations. Registered at `@swamp/gcp/assuredworkloads/workloads-violations`. */
 export const model = {
   type: "@swamp/gcp/assuredworkloads/workloads-violations",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -298,6 +301,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -419,6 +427,8 @@ export const model = {
           .optional(),
         interval_startTime: z.string().describe("The start of the time window.")
           .optional(),
+        orderBy: z.string().describe("Optional. Actionable sorting delegation.")
+          .optional(),
         pageSize: z.number().describe("Optional. Page size.").optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
@@ -438,6 +448,9 @@ export const model = {
         }
         if (args["interval_startTime"] !== undefined) {
           params["interval.startTime"] = String(args["interval_startTime"]);
+        }
+        if (args["orderBy"] !== undefined) {
+          params["orderBy"] = String(args["orderBy"]);
         }
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
@@ -502,6 +515,47 @@ export const model = {
             "httpMethod": "POST",
             "parameterOrder": ["name"],
             "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    batch_acknowledge_violations: {
+      description: "batch acknowledge violations",
+      arguments: z.object({
+        acknowledgeType: z.any().optional(),
+        comment: z.any().optional(),
+        names: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
+        const body: Record<string, unknown> = {};
+        if (args["acknowledgeType"] !== undefined) {
+          body["acknowledgeType"] = args["acknowledgeType"];
+        }
+        if (args["comment"] !== undefined) body["comment"] = args["comment"];
+        if (args["names"] !== undefined) body["names"] = args["names"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "assuredworkloads.organizations.locations.workloads.violations.batchAcknowledgeViolations",
+            "path": "v1/{+parent}/violations:batchAcknowledgeViolations",
+            "httpMethod": "POST",
+            "parameterOrder": ["parent"],
+            "parameters": {
+              "parent": { "location": "path", "required": true },
+            },
           },
           params,
           body,

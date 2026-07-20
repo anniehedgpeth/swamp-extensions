@@ -118,6 +118,8 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/chat.spaces",
   "https://www.googleapis.com/auth/chat.spaces.create",
   "https://www.googleapis.com/auth/chat.spaces.readonly",
+  "https://www.googleapis.com/auth/chat.users.availability",
+  "https://www.googleapis.com/auth/chat.users.availability.readonly",
   "https://www.googleapis.com/auth/chat.users.readstate",
   "https://www.googleapis.com/auth/chat.users.readstate.readonly",
   "https://www.googleapis.com/auth/chat.users.sections",
@@ -152,6 +154,7 @@ const StateSchema = z.object({
   membershipBatchCreatedEventData: z.object({
     memberships: z.array(z.object({
       membership: z.object({
+        affiliation: z.string(),
         createTime: z.string(),
         deleteTime: z.string(),
         groupMember: z.object({
@@ -173,6 +176,7 @@ const StateSchema = z.object({
   membershipBatchDeletedEventData: z.object({
     memberships: z.array(z.object({
       membership: z.object({
+        affiliation: z.string(),
         createTime: z.string(),
         deleteTime: z.string(),
         groupMember: z.object({
@@ -194,6 +198,7 @@ const StateSchema = z.object({
   membershipBatchUpdatedEventData: z.object({
     memberships: z.array(z.object({
       membership: z.object({
+        affiliation: z.string(),
         createTime: z.string(),
         deleteTime: z.string(),
         groupMember: z.object({
@@ -214,6 +219,7 @@ const StateSchema = z.object({
   }).optional(),
   membershipCreatedEventData: z.object({
     membership: z.object({
+      affiliation: z.string(),
       createTime: z.string(),
       deleteTime: z.string(),
       groupMember: z.object({
@@ -233,6 +239,7 @@ const StateSchema = z.object({
   }).optional(),
   membershipDeletedEventData: z.object({
     membership: z.object({
+      affiliation: z.string(),
       createTime: z.string(),
       deleteTime: z.string(),
       groupMember: z.object({
@@ -252,6 +259,7 @@ const StateSchema = z.object({
   }).optional(),
   membershipUpdatedEventData: z.object({
     membership: z.object({
+      affiliation: z.string(),
       createTime: z.string(),
       deleteTime: z.string(),
       groupMember: z.object({
@@ -320,6 +328,7 @@ const StateSchema = z.object({
           name: z.unknown(),
           type: z.unknown(),
         }),
+        silent: z.boolean(),
         slashCommand: z.object({
           commandId: z.unknown(),
         }),
@@ -406,6 +415,7 @@ const StateSchema = z.object({
           name: z.unknown(),
           type: z.unknown(),
         }),
+        silent: z.boolean(),
         slashCommand: z.object({
           commandId: z.unknown(),
         }),
@@ -492,6 +502,7 @@ const StateSchema = z.object({
           name: z.unknown(),
           type: z.unknown(),
         }),
+        silent: z.boolean(),
         slashCommand: z.object({
           commandId: z.unknown(),
         }),
@@ -674,11 +685,16 @@ const StateSchema = z.object({
         name: z.string(),
         type: z.string(),
       }),
+      silent: z.boolean(),
       slashCommand: z.object({
         commandId: z.string(),
       }),
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.object({
+            discoverSpaceSetting: z.unknown(),
+            joinSpaceSetting: z.unknown(),
+          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -905,11 +921,16 @@ const StateSchema = z.object({
         name: z.string(),
         type: z.string(),
       }),
+      silent: z.boolean(),
       slashCommand: z.object({
         commandId: z.string(),
       }),
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.object({
+            discoverSpaceSetting: z.unknown(),
+            joinSpaceSetting: z.unknown(),
+          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -1136,11 +1157,16 @@ const StateSchema = z.object({
         name: z.string(),
         type: z.string(),
       }),
+      silent: z.boolean(),
       slashCommand: z.object({
         commandId: z.string(),
       }),
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.object({
+            discoverSpaceSetting: z.unknown(),
+            joinSpaceSetting: z.unknown(),
+          }),
           accessState: z.string(),
           audience: z.string(),
         }),
@@ -1311,6 +1337,7 @@ const StateSchema = z.object({
     spaces: z.array(z.object({
       space: z.object({
         accessSettings: z.object({
+          accessPermissionSettings: z.unknown(),
           accessState: z.unknown(),
           audience: z.unknown(),
         }),
@@ -1355,6 +1382,14 @@ const StateSchema = z.object({
   spaceUpdatedEventData: z.object({
     space: z.object({
       accessSettings: z.object({
+        accessPermissionSettings: z.object({
+          discoverSpaceSetting: z.object({
+            principals: z.unknown(),
+          }),
+          joinSpaceSetting: z.object({
+            principals: z.unknown(),
+          }),
+        }),
         accessState: z.string(),
         audience: z.string(),
       }),
@@ -1465,7 +1500,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.SpaceEvents. Registered at `@swamp/gcp/chat/spaces-spaceevents`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-spaceevents",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -1594,6 +1629,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

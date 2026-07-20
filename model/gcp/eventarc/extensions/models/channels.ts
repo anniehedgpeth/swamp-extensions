@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Eventarc Channels.
  *
- * A representation of the Channel resource. A Channel is a resource on which event providers publish their events. The published events are delivered through the transport associated with the channel. Note that a channel is associated with exactly one event provider.
+ * Represents a subscriber's intent to receive events from an event provider. Published events are delivered using the transport associated with the Channel resource. A channel is associated with exactly one event provider.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -248,7 +248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Eventarc Channels. Registered at `@swamp/gcp/eventarc/channels`. */
 export const model = {
   type: "@swamp/gcp/eventarc/channels",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -360,13 +360,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "A representation of the Channel resource. A Channel is a resource on which ev...",
+        "Represents a subscriber's intent to receive events from an event provider. Pu...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,

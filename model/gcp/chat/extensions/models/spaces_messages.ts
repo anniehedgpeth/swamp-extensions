@@ -75,6 +75,9 @@ const INSERT_CONFIG = {
     "parent",
   ],
   "parameters": {
+    "createMessageNotificationOptions.notificationType": {
+      "location": "query",
+    },
     "messageId": {
       "location": "query",
     },
@@ -193,6 +196,8 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/chat.spaces",
   "https://www.googleapis.com/auth/chat.spaces.create",
   "https://www.googleapis.com/auth/chat.spaces.readonly",
+  "https://www.googleapis.com/auth/chat.users.availability",
+  "https://www.googleapis.com/auth/chat.users.availability.readonly",
   "https://www.googleapis.com/auth/chat.users.readstate",
   "https://www.googleapis.com/auth/chat.users.readstate.readonly",
   "https://www.googleapis.com/auth/chat.users.sections",
@@ -645,7 +650,7 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Required. Resource name of the message that is quoted. Format: `spaces/{space}/messages/{message}`",
     ).optional(),
-    quoteType: z.enum(["QUOTE_TYPE_UNSPECIFIED", "REPLY"]).describe(
+    quoteType: z.enum(["QUOTE_TYPE_UNSPECIFIED", "REPLY", "FORWARD"]).describe(
       "Optional. Specifies the quote type. If not set, defaults to REPLY in the message read/write path for backward compatibility.",
     ).optional(),
     quotedMessageSnapshot: z.object({
@@ -755,7 +760,7 @@ const GlobalArgsSchema = z.object({
       "Provides a snapshot of the content of the quoted message at the time of quoting or forwarding",
     ).optional(),
   }).describe(
-    "Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can't quote a message reply from a different thread. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
+    "Information about a message that another message quotes. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
   ).optional(),
   sender: z.object({
     displayName: z.string().describe("Output only. The user's display name.")
@@ -781,6 +786,18 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   space: z.object({
     accessSettings: z.object({
+      accessPermissionSettings: z.object({
+        discoverSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+        joinSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+      }).describe("Access permission settings for a space.").optional(),
       accessState: z.enum([
         "ACCESS_STATE_UNSPECIFIED",
         "PRIVATE",
@@ -987,6 +1004,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe(
     "A thread in a Google Chat space. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread). If you specify a thread when creating a message, you can set the [`messageReplyOption`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#messagereplyoption) field to determine what happens if no matching thread is found.",
+  ).optional(),
+  createMessageNotificationOptions_notificationType: z.string().describe(
+    "The notification type for the message.",
   ).optional(),
   messageId: z.string().describe(
     "Optional. A custom ID for a message. Lets Chat apps get, update, or delete a message without needing to store the system-assigned ID in the message's resource name (represented in the message `name` field). The value for this field must meet the following requirements: * Begins with `client-`. For example, `client-custom-name` is a valid custom ID, but `custom-name` is not. * Contains up to 63 characters and only lowercase letters, numbers, and hyphens. * Is unique within a space. A Chat app can't use the same custom ID for different messages. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
@@ -1328,11 +1348,20 @@ const StateSchema = z.object({
     name: z.string(),
     type: z.string(),
   }).optional(),
+  silent: z.boolean().optional(),
   slashCommand: z.object({
     commandId: z.string(),
   }).optional(),
   space: z.object({
     accessSettings: z.object({
+      accessPermissionSettings: z.object({
+        discoverSpaceSetting: z.object({
+          principals: z.array(z.unknown()),
+        }),
+        joinSpaceSetting: z.object({
+          principals: z.array(z.unknown()),
+        }),
+      }),
       accessState: z.string(),
       audience: z.string(),
     }),
@@ -1851,7 +1880,7 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Required. Resource name of the message that is quoted. Format: `spaces/{space}/messages/{message}`",
     ).optional(),
-    quoteType: z.enum(["QUOTE_TYPE_UNSPECIFIED", "REPLY"]).describe(
+    quoteType: z.enum(["QUOTE_TYPE_UNSPECIFIED", "REPLY", "FORWARD"]).describe(
       "Optional. Specifies the quote type. If not set, defaults to REPLY in the message read/write path for backward compatibility.",
     ).optional(),
     quotedMessageSnapshot: z.object({
@@ -1961,7 +1990,7 @@ const InputsSchema = z.object({
       "Provides a snapshot of the content of the quoted message at the time of quoting or forwarding",
     ).optional(),
   }).describe(
-    "Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can't quote a message reply from a different thread. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
+    "Information about a message that another message quotes. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
   ).optional(),
   sender: z.object({
     displayName: z.string().describe("Output only. The user's display name.")
@@ -1987,6 +2016,18 @@ const InputsSchema = z.object({
   ).optional(),
   space: z.object({
     accessSettings: z.object({
+      accessPermissionSettings: z.object({
+        discoverSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+        joinSpaceSetting: z.object({
+          principals: z.array(z.unknown()).describe(
+            "Optional. Unordered list. Allowed principals for this permission.",
+          ).optional(),
+        }).describe("An access permission setting.").optional(),
+      }).describe("Access permission settings for a space.").optional(),
       accessState: z.enum([
         "ACCESS_STATE_UNSPECIFIED",
         "PRIVATE",
@@ -2194,6 +2235,9 @@ const InputsSchema = z.object({
   }).describe(
     "A thread in a Google Chat space. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread). If you specify a thread when creating a message, you can set the [`messageReplyOption`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#messagereplyoption) field to determine what happens if no matching thread is found.",
   ).optional(),
+  createMessageNotificationOptions_notificationType: z.string().describe(
+    "The notification type for the message.",
+  ).optional(),
   messageId: z.string().describe(
     "Optional. A custom ID for a message. Lets Chat apps get, update, or delete a message without needing to store the system-assigned ID in the message's resource name (represented in the message `name` field). The value for this field must meet the following requirements: * Begins with `client-`. For example, `client-custom-name` is a valid custom ID, but `custom-name` is not. * Contains up to 63 characters and only lowercase letters, numbers, and hyphens. * Is unique within a space. A Chat app can't use the same custom ID for different messages. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
   ).optional(),
@@ -2231,7 +2275,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages. Registered at `@swamp/gcp/chat/spaces-messages`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2406,6 +2450,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: createMessageNotificationOptions_notificationType",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2460,6 +2509,12 @@ export const model = {
         if (g["space"] !== undefined) body["space"] = g["space"];
         if (g["text"] !== undefined) body["text"] = g["text"];
         if (g["thread"] !== undefined) body["thread"] = g["thread"];
+        if (
+          g["createMessageNotificationOptions_notificationType"] !== undefined
+        ) {
+          body["createMessageNotificationOptions_notificationType"] =
+            g["createMessageNotificationOptions_notificationType"];
+        }
         if (g["messageId"] !== undefined) {
           params["messageId"] = String(g["messageId"]);
         }

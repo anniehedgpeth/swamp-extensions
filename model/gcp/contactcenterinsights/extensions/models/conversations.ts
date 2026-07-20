@@ -479,7 +479,7 @@ const GlobalArgsSchema = z.object({
     "Immutable. The conversation medium.",
   ).optional(),
   metadataJson: z.string().describe(
-    "Input only. JSON metadata encoded as a string. This field is primarily used by Insights integrations with various telephony systems and must be in one of Insight's supported formats.",
+    "Optional. JSON metadata encoded as a string. This field is primarily used by Insights integrations with various telephony systems and must be in one of Insight's supported formats.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the conversation. Format: projects/{project}/locations/{location}/conversations/{conversation}",
@@ -509,6 +509,11 @@ const GlobalArgsSchema = z.object({
       dispositionCode: z.string().describe(
         "A user-provided string indicating the outcome of the agent's segment of the call.",
       ).optional(),
+      entrySubagentDisplayName: z.string().describe(
+        "The entry subagent's display name.",
+      ).optional(),
+      entrySubagentId: z.string().describe("The entry subagent's ID.")
+        .optional(),
       location: z.string().describe("The agent's location.").optional(),
       team: z.string().describe(
         "A user-specified string representing the agent's team. Deprecated in favor of the `teams` field.",
@@ -797,6 +802,8 @@ const StateSchema = z.object({
       deploymentId: z.string(),
       displayName: z.string(),
       dispositionCode: z.string(),
+      entrySubagentDisplayName: z.string(),
+      entrySubagentId: z.string(),
       location: z.string(),
       team: z.string(),
       teams: z.array(z.string()),
@@ -839,6 +846,26 @@ const StateSchema = z.object({
       source: z.string(),
       title: z.string(),
       uri: z.string(),
+    }),
+    cesEndSessionAnnotation: z.object({
+      endSession: z.object({
+        metadata: z.record(z.string(), z.unknown()),
+      }),
+    }),
+    cesTurnAnnotation: z.object({
+      messages: z.array(z.object({
+        chunks: z.unknown(),
+        eventTime: z.unknown(),
+        role: z.unknown(),
+      })),
+      rootSpan: z.object({
+        attributes: z.record(z.string(), z.unknown()),
+        childSpans: z.array(z.unknown()),
+        duration: z.string(),
+        endTime: z.string(),
+        name: z.string(),
+        startTime: z.string(),
+      }),
     }),
     conversationSummarizationSuggestion: z.object({
       answerRecord: z.string(),
@@ -1240,7 +1267,7 @@ const InputsSchema = z.object({
     "Immutable. The conversation medium.",
   ).optional(),
   metadataJson: z.string().describe(
-    "Input only. JSON metadata encoded as a string. This field is primarily used by Insights integrations with various telephony systems and must be in one of Insight's supported formats.",
+    "Optional. JSON metadata encoded as a string. This field is primarily used by Insights integrations with various telephony systems and must be in one of Insight's supported formats.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the conversation. Format: projects/{project}/locations/{location}/conversations/{conversation}",
@@ -1270,6 +1297,11 @@ const InputsSchema = z.object({
       dispositionCode: z.string().describe(
         "A user-provided string indicating the outcome of the agent's segment of the call.",
       ).optional(),
+      entrySubagentDisplayName: z.string().describe(
+        "The entry subagent's display name.",
+      ).optional(),
+      entrySubagentId: z.string().describe("The entry subagent's ID.")
+        .optional(),
       location: z.string().describe("The agent's location.").optional(),
       team: z.string().describe(
         "A user-specified string representing the agent's team. Deprecated in favor of the `teams` field.",
@@ -1453,7 +1485,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Conversations. Registered at `@swamp/gcp/contactcenterinsights/conversations`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/conversations",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1592,6 +1624,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

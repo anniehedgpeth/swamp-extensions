@@ -158,9 +158,6 @@ const GlobalArgsSchema = z.object({
   authorizationPolicy: z.string().describe(
     "Optional. This field specifies the URL of AuthorizationPolicy resource that applies authorization policies to the inbound traffic at the matched endpoints. Refer to Authorization. If this field is not specified, authorization is disabled(no authz checks) for this endpoint.",
   ).optional(),
-  clientTlsPolicy: z.string().describe(
-    "Optional. A URL referring to a ClientTlsPolicy resource. ClientTlsPolicy can be set to specify the authentication for traffic from the proxy to the actual endpoints. More specifically, it is applied to the outgoing traffic from the proxy to the endpoint. This is typically used for sidecar model where the proxy identifies itself as endpoint to the control plane, with the connection between sidecar and endpoint requiring authentication. If this field is not set, authentication is disabled(open). Applicable only when EndpointPolicyType is SIDECAR_PROXY.",
-  ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
   ).optional(),
@@ -252,9 +249,6 @@ const InputsSchema = z.object({
   authorizationPolicy: z.string().describe(
     "Optional. This field specifies the URL of AuthorizationPolicy resource that applies authorization policies to the inbound traffic at the matched endpoints. Refer to Authorization. If this field is not specified, authorization is disabled(no authz checks) for this endpoint.",
   ).optional(),
-  clientTlsPolicy: z.string().describe(
-    "Optional. A URL referring to a ClientTlsPolicy resource. ClientTlsPolicy can be set to specify the authentication for traffic from the proxy to the actual endpoints. More specifically, it is applied to the outgoing traffic from the proxy to the endpoint. This is typically used for sidecar model where the proxy identifies itself as endpoint to the control plane, with the connection between sidecar and endpoint requiring authentication. If this field is not set, authentication is disabled(open). Applicable only when EndpointPolicyType is SIDECAR_PROXY.",
-  ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
   ).optional(),
@@ -335,7 +329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services EndpointPolicies. Registered at `@swamp/gcp/networkservices/endpointpolicies`. */
 export const model = {
   type: "@swamp/gcp/networkservices/endpointpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -445,6 +439,14 @@ export const model = {
       description: "Added: clientTlsPolicy",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Removed: clientTlsPolicy",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { clientTlsPolicy: _clientTlsPolicy, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -472,9 +474,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["authorizationPolicy"] !== undefined) {
           body["authorizationPolicy"] = g["authorizationPolicy"];
-        }
-        if (g["clientTlsPolicy"] !== undefined) {
-          body["clientTlsPolicy"] = g["clientTlsPolicy"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
@@ -602,9 +601,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["authorizationPolicy"] !== undefined) {
           body["authorizationPolicy"] = g["authorizationPolicy"];
-        }
-        if (g["clientTlsPolicy"] !== undefined) {
-          body["clientTlsPolicy"] = g["clientTlsPolicy"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];

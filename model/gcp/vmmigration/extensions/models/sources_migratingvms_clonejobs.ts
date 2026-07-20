@@ -131,10 +131,11 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   computeEngineDisksTargetDetails: z.object({
     disks: z.array(z.object({
-      diskUri: z.string().describe("The URI of the Persistent Disk.")
-        .optional(),
+      diskUri: z.string().describe(
+        "Output only. The URI of the Persistent Disk.",
+      ).optional(),
       sourceDiskNumber: z.number().int().describe(
-        "The ordinal number of the source VM disk.",
+        "Output only. The ordinal number of the source VM disk.",
       ).optional(),
     })).describe("The details of each created Persistent Disk.").optional(),
     disksTargetDetails: z.object({}).describe(
@@ -415,10 +416,11 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   computeEngineDisksTargetDetails: z.object({
     disks: z.array(z.object({
-      diskUri: z.string().describe("The URI of the Persistent Disk.")
-        .optional(),
+      diskUri: z.string().describe(
+        "Output only. The URI of the Persistent Disk.",
+      ).optional(),
       sourceDiskNumber: z.number().int().describe(
-        "The ordinal number of the source VM disk.",
+        "Output only. The ordinal number of the source VM disk.",
       ).optional(),
     })).describe("The details of each created Persistent Disk.").optional(),
     disksTargetDetails: z.object({}).describe(
@@ -632,7 +634,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration Sources.MigratingVms.CloneJobs. Registered at `@swamp/gcp/vmmigration/sources-migratingvms-clonejobs`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/sources-migratingvms-clonejobs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -741,6 +743,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

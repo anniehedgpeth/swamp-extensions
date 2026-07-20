@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud SaaS Runtime Units.
+ * Swamp extension model for Google Cloud App Lifecycle Manager Units.
  *
  * A unit of deployment that has its lifecycle via a CRUD API using an actuation engine under the hood (e.g. based on Terraform, Helm or a custom implementation provided by a service producer). A building block of a SaaS Tenant.
  *
@@ -237,6 +237,7 @@ const StateSchema = z.object({
     unit: z.string(),
   })).optional(),
   etag: z.string().optional(),
+  flagRevisions: z.array(z.string()).optional(),
   inputVariables: z.array(z.object({
     type: z.string(),
     value: z.string(),
@@ -334,10 +335,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud SaaS Runtime Units. Registered at `@swamp/gcp/saasservicemgmt/units`. */
+/** Swamp extension model for Google Cloud App Lifecycle Manager Units. Registered at `@swamp/gcp/saasservicemgmt/units`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/units",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -471,6 +472,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

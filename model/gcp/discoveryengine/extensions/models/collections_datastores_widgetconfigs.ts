@@ -59,6 +59,9 @@ const GET_CONFIG = {
     "getWidgetConfigRequestOption.turnOffCollectionComponents": {
       "location": "query",
     },
+    "languageCode": {
+      "location": "query",
+    },
     "name": {
       "location": "path",
       "required": true,
@@ -131,7 +134,51 @@ const GlobalArgsSchema = z.object({
       "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
     ]).describe("Optional. The type of web grounding to use.").optional(),
   }).describe("Describes the assistant settings of the widget.").optional(),
+  batchAuthStatuses: z.array(z.object({
+    batchAuthorizationGroup: z.string().describe(
+      "Output only. The batch authorization group the placeholder belongs to.",
+    ).optional(),
+    connectorAuthState: z.object({
+      authState: z.enum([
+        "AUTH_STATE_UNSPECIFIED",
+        "AUTHORIZED",
+        "EXPIRED",
+        "ACTIONS_DISABLED",
+        "NO_AUTH",
+      ]).describe("Output only. The authorization state of the data connector.")
+        .optional(),
+      authorizationUri: z.string().describe(
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. The authorization state update timestamp.",
+      ).optional(),
+    }).describe("Read-only connector in CollectionComponent auth state.")
+      .optional(),
+    placeholder: z.string().describe(
+      "Output only. It is the batch authorization group placeholder full resource name. This is not a real data connector (not existed in DataConnector table in spanner). It's a resource name existing only in the connector_authorization in the user table. E.g. projects/{project}/locations/{location}/collections/oauth_placeholder_google_workspace/dataStores/dataConnector.",
+    ).optional(),
+  })).describe(
+    "Output only. The batch authorization statuses for the widget's connectors.",
+  ).optional(),
   collectionComponents: z.array(z.object({
+    connectorAuthState: z.object({
+      authState: z.enum([
+        "AUTH_STATE_UNSPECIFIED",
+        "AUTHORIZED",
+        "EXPIRED",
+        "ACTIONS_DISABLED",
+        "NO_AUTH",
+      ]).describe("Output only. The authorization state of the data connector.")
+        .optional(),
+      authorizationUri: z.string().describe(
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. The authorization state update timestamp.",
+      ).optional(),
+    }).describe("Read-only connector in CollectionComponent auth state.")
+      .optional(),
     connectorIconLink: z.string().describe(
       "Output only. The icon link of the connector source.",
     ).optional(),
@@ -165,13 +212,13 @@ const GlobalArgsSchema = z.object({
     displayName: z.string().describe("The display name of the collection.")
       .optional(),
     id: z.string().describe(
-      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID.",
+      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
     ).optional(),
     name: z.string().describe(
-      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field.",
+      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field. For synthetic placeholder entries (see message-level comment) this carries a synthetic placeholder collection id that does not correspond to a real collection. Callers must not attempt to resolve / GET this resource until the user authorizes the connector.",
     ).optional(),
   })).describe(
-    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources.",
+    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources. For SaaS / Business engines, when `LookupWidgetConfig` is called with `view = WITH_AVAILABLE_CONNECTORS`, this list is additionally augmented with synthetic placeholder entries for connectors the caller may attach but has not yet attached (see `CollectionComponent` for the placeholder contract). The frontend can therefore render a unified list of already-attached and available-to-attach sources by iterating this single field. For Enterprise engines and for the default `view`, only already-attached connectors are returned (today's behavior).",
   ).optional(),
   configId: z.string().describe(
     "Output only. Unique obfuscated identifier of a WidgetConfig.",
@@ -429,7 +476,7 @@ const GlobalArgsSchema = z.object({
         "FEATURE_STATE_OFF",
       ]),
     ).describe(
-      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails`",
+      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `disable-projects` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `deep-research`",
     ).optional(),
     generativeAnswerConfig: z.object({
       disableRelatedQuestions: z.boolean().describe(
@@ -467,17 +514,62 @@ const GlobalArgsSchema = z.object({
         "The number of top results to generate the answer from. Up to 10.",
       ).optional(),
     }).describe("Describes configuration for generative answer.").optional(),
+    googleDrivePickerEnabled: z.boolean().describe(
+      "Output only. Whether the Google Drive file picker is available to end-users. Declared `optional` for the same field-presence reason as `onedrive_picker_enabled` above.",
+    ).optional(),
     interactionType: z.enum([
       "INTERACTION_TYPE_UNSPECIFIED",
       "SEARCH_ONLY",
       "SEARCH_WITH_ANSWER",
       "SEARCH_WITH_FOLLOW_UPS",
     ]).describe("Describes widget (or web app) interaction type").optional(),
+    modelConfigInfo: z.object({
+      defaultModelId: z.string().describe(
+        "Output only. The `model_id` of the model that should be selected by default in the model selector when the end-user has not made an explicit choice. The value is always one of the `model_id`s present in `resolved_models`.",
+      ).optional(),
+      resolvedModels: z.array(z.object({
+        adminView: z.object({
+          adminOverridable: z.unknown().describe(
+            'Output only. Whether the admin can toggle this model\'s enabled/disabled state via `UiSettings.model_configs`. Derived from `MODEL_TAG_ADMIN_OVERRIDABLE`. When false, the model is "forced" and its state is governed by `enabled_by_default`.',
+          ).optional(),
+          enabledByDefault: z.unknown().describe(
+            "Output only. Whether the model is enabled when the admin has set no explicit override in `UiSettings.model_configs`. Derived from `MODEL_TAG_ENABLED_BY_DEFAULT`.",
+          ).optional(),
+          regions: z.unknown().describe(
+            "Output only. Regions where this model is launched.",
+          ).optional(),
+        }).describe(
+          'Admin-surface metadata. Populated only when the request originates from the Cloud Console admin "Feature Control" page; left unset for end-user surfaces (Web, Mobile). Lets the admin page render its toggle table directly from the backend instead of a hardcoded client-side registry.',
+        ).optional(),
+        description: z.string().describe(
+          "Output only. Localized description text (e.g. `State-of-the-art reasoning`). Localized using the same locale as `display_name`.",
+        ).optional(),
+        displayName: z.string().describe(
+          "Output only. Localized display name of the model (e.g. `Gemini 3.1 Pro`). Localized server-side based on the LookupWidgetConfigRequest.language_code and LookupWidgetConfigRequest.region_code of the request.",
+        ).optional(),
+        icon: z.string().describe(
+          "Output only. GM3-compatible icon token associated with the model (e.g. `rocket_launch`, `bolt`, `graph_5`).",
+        ).optional(),
+        isPreview: z.boolean().describe(
+          'Output only. Whether the model is currently in preview. Clients should surface this via a "Preview" badge in the selector UI.',
+        ).optional(),
+        modelId: z.string().describe(
+          'Output only. Unique identifier of the model (e.g. `gemini-2.5-flash`, `gemini-3.1-pro-preview`). This is the same identifier that clients pass back to the assistant service to select this model. Virtual / "pseudo" models (e.g. `gemini-fast`) are also valid values here; they are resolved to the underlying concrete model on the backend.',
+        ).optional(),
+      })).describe(
+        "Output only. The list of models that are available to the end-user in the model selector, in the order in which they should be displayed.",
+      ).optional(),
+    }).describe(
+      "The resolved, server-side view of model selector configuration for the end-user. The backend computes this per-request by applying, in order: Mendel flag evaluation, regional availability rules based on the engine's location, and admin-panel overrides from `model_configs`. The backend is the single source of truth for this configuration; clients should render `resolved_models` directly in the model selector dropdown, in the order provided, without applying their own filtering, ordering, or localization.",
+    ).optional(),
     modelConfigs: z.record(
       z.string(),
       z.enum(["MODEL_STATE_UNSPECIFIED", "MODEL_ENABLED", "MODEL_DISABLED"]),
     ).describe(
       "Output only. Maps a model name to its specific configuration for this engine. This allows admin users to turn on/off individual models. This only stores models whose states are overridden by the admin. When the state is unspecified, or model_configs is empty for this model, the system will decide if this model should be available or not based on the default configuration. For example, a preview model should be disabled by default if the admin has not chosen to enable it.",
+    ).optional(),
+    onedrivePickerEnabled: z.boolean().describe(
+      'Output only. Whether the OneDrive file picker is available to end-users. Computed by the backend from admin connector enablement (Business edition) or attached OneDrive connectors (Enterprise edition), combined with the existing `disable-onedrive-upload` admin feature. Declared `optional` so an explicitly-computed `false` is serialized with field presence. A plain proto3 `bool` drops a default `false` on the wire, which prevented clients from distinguishing "picker disabled" (`false`) from "field not populated" (unset).',
     ).optional(),
     resultDescriptionType: z.enum([
       "RESULT_DISPLAY_TYPE_UNSPECIFIED",
@@ -510,7 +602,21 @@ const StateSchema = z.object({
     googleSearchGroundingEnabled: z.boolean(),
     webGroundingType: z.string(),
   }).optional(),
+  batchAuthStatuses: z.array(z.object({
+    batchAuthorizationGroup: z.string(),
+    connectorAuthState: z.object({
+      authState: z.string(),
+      authorizationUri: z.string(),
+      updateTime: z.string(),
+    }),
+    placeholder: z.string(),
+  })).optional(),
   collectionComponents: z.array(z.object({
+    connectorAuthState: z.object({
+      authState: z.string(),
+      authorizationUri: z.string(),
+      updateTime: z.string(),
+    }),
     connectorIconLink: z.string(),
     dataSource: z.string(),
     dataSourceDisplayName: z.string(),
@@ -653,8 +759,25 @@ const StateSchema = z.object({
       modelVersion: z.string(),
       resultCount: z.number(),
     }),
+    googleDrivePickerEnabled: z.boolean(),
     interactionType: z.string(),
+    modelConfigInfo: z.object({
+      defaultModelId: z.string(),
+      resolvedModels: z.array(z.object({
+        adminView: z.object({
+          adminOverridable: z.unknown(),
+          enabledByDefault: z.unknown(),
+          regions: z.unknown(),
+        }),
+        description: z.string(),
+        displayName: z.string(),
+        icon: z.string(),
+        isPreview: z.boolean(),
+        modelId: z.string(),
+      })),
+    }),
     modelConfigs: z.record(z.string(), z.unknown()),
+    onedrivePickerEnabled: z.boolean(),
     resultDescriptionType: z.string(),
   }).optional(),
   updateTime: z.string().optional(),
@@ -700,7 +823,51 @@ const InputsSchema = z.object({
       "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
     ]).describe("Optional. The type of web grounding to use.").optional(),
   }).describe("Describes the assistant settings of the widget.").optional(),
+  batchAuthStatuses: z.array(z.object({
+    batchAuthorizationGroup: z.string().describe(
+      "Output only. The batch authorization group the placeholder belongs to.",
+    ).optional(),
+    connectorAuthState: z.object({
+      authState: z.enum([
+        "AUTH_STATE_UNSPECIFIED",
+        "AUTHORIZED",
+        "EXPIRED",
+        "ACTIONS_DISABLED",
+        "NO_AUTH",
+      ]).describe("Output only. The authorization state of the data connector.")
+        .optional(),
+      authorizationUri: z.string().describe(
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. The authorization state update timestamp.",
+      ).optional(),
+    }).describe("Read-only connector in CollectionComponent auth state.")
+      .optional(),
+    placeholder: z.string().describe(
+      "Output only. It is the batch authorization group placeholder full resource name. This is not a real data connector (not existed in DataConnector table in spanner). It's a resource name existing only in the connector_authorization in the user table. E.g. projects/{project}/locations/{location}/collections/oauth_placeholder_google_workspace/dataStores/dataConnector.",
+    ).optional(),
+  })).describe(
+    "Output only. The batch authorization statuses for the widget's connectors.",
+  ).optional(),
   collectionComponents: z.array(z.object({
+    connectorAuthState: z.object({
+      authState: z.enum([
+        "AUTH_STATE_UNSPECIFIED",
+        "AUTHORIZED",
+        "EXPIRED",
+        "ACTIONS_DISABLED",
+        "NO_AUTH",
+      ]).describe("Output only. The authorization state of the data connector.")
+        .optional(),
+      authorizationUri: z.string().describe(
+        'Output only. The authorization uri for the data connector. For synthetic placeholder `CollectionComponent` entries (returned by `LookupWidgetConfig` with `view = WITH_AVAILABLE_CONNECTORS` on SaaS / Business engines), this field is left empty. The widget should call `WidgetService.WidgetBuildAuthorizationUrl` on the user\'s "Connect" click to obtain a freshly-built authorization URL.',
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. The authorization state update timestamp.",
+      ).optional(),
+    }).describe("Read-only connector in CollectionComponent auth state.")
+      .optional(),
     connectorIconLink: z.string().describe(
       "Output only. The icon link of the connector source.",
     ).optional(),
@@ -734,13 +901,13 @@ const InputsSchema = z.object({
     displayName: z.string().describe("The display name of the collection.")
       .optional(),
     id: z.string().describe(
-      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID.",
+      "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
     ).optional(),
     name: z.string().describe(
-      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field.",
+      "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field. For synthetic placeholder entries (see message-level comment) this carries a synthetic placeholder collection id that does not correspond to a real collection. Callers must not attempt to resolve / GET this resource until the user authorizes the connector.",
     ).optional(),
   })).describe(
-    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources.",
+    "Output only. Collection components that lists all collections and child data stores associated with the widget config, those data sources can be used for filtering in widget service APIs, users can return results that from selected data sources. For SaaS / Business engines, when `LookupWidgetConfig` is called with `view = WITH_AVAILABLE_CONNECTORS`, this list is additionally augmented with synthetic placeholder entries for connectors the caller may attach but has not yet attached (see `CollectionComponent` for the placeholder contract). The frontend can therefore render a unified list of already-attached and available-to-attach sources by iterating this single field. For Enterprise engines and for the default `view`, only already-attached connectors are returned (today's behavior).",
   ).optional(),
   configId: z.string().describe(
     "Output only. Unique obfuscated identifier of a WidgetConfig.",
@@ -998,7 +1165,7 @@ const InputsSchema = z.object({
         "FEATURE_STATE_OFF",
       ]),
     ).describe(
-      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails`",
+      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `disable-projects` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `deep-research`",
     ).optional(),
     generativeAnswerConfig: z.object({
       disableRelatedQuestions: z.boolean().describe(
@@ -1036,17 +1203,62 @@ const InputsSchema = z.object({
         "The number of top results to generate the answer from. Up to 10.",
       ).optional(),
     }).describe("Describes configuration for generative answer.").optional(),
+    googleDrivePickerEnabled: z.boolean().describe(
+      "Output only. Whether the Google Drive file picker is available to end-users. Declared `optional` for the same field-presence reason as `onedrive_picker_enabled` above.",
+    ).optional(),
     interactionType: z.enum([
       "INTERACTION_TYPE_UNSPECIFIED",
       "SEARCH_ONLY",
       "SEARCH_WITH_ANSWER",
       "SEARCH_WITH_FOLLOW_UPS",
     ]).describe("Describes widget (or web app) interaction type").optional(),
+    modelConfigInfo: z.object({
+      defaultModelId: z.string().describe(
+        "Output only. The `model_id` of the model that should be selected by default in the model selector when the end-user has not made an explicit choice. The value is always one of the `model_id`s present in `resolved_models`.",
+      ).optional(),
+      resolvedModels: z.array(z.object({
+        adminView: z.object({
+          adminOverridable: z.unknown().describe(
+            'Output only. Whether the admin can toggle this model\'s enabled/disabled state via `UiSettings.model_configs`. Derived from `MODEL_TAG_ADMIN_OVERRIDABLE`. When false, the model is "forced" and its state is governed by `enabled_by_default`.',
+          ).optional(),
+          enabledByDefault: z.unknown().describe(
+            "Output only. Whether the model is enabled when the admin has set no explicit override in `UiSettings.model_configs`. Derived from `MODEL_TAG_ENABLED_BY_DEFAULT`.",
+          ).optional(),
+          regions: z.unknown().describe(
+            "Output only. Regions where this model is launched.",
+          ).optional(),
+        }).describe(
+          'Admin-surface metadata. Populated only when the request originates from the Cloud Console admin "Feature Control" page; left unset for end-user surfaces (Web, Mobile). Lets the admin page render its toggle table directly from the backend instead of a hardcoded client-side registry.',
+        ).optional(),
+        description: z.string().describe(
+          "Output only. Localized description text (e.g. `State-of-the-art reasoning`). Localized using the same locale as `display_name`.",
+        ).optional(),
+        displayName: z.string().describe(
+          "Output only. Localized display name of the model (e.g. `Gemini 3.1 Pro`). Localized server-side based on the LookupWidgetConfigRequest.language_code and LookupWidgetConfigRequest.region_code of the request.",
+        ).optional(),
+        icon: z.string().describe(
+          "Output only. GM3-compatible icon token associated with the model (e.g. `rocket_launch`, `bolt`, `graph_5`).",
+        ).optional(),
+        isPreview: z.boolean().describe(
+          'Output only. Whether the model is currently in preview. Clients should surface this via a "Preview" badge in the selector UI.',
+        ).optional(),
+        modelId: z.string().describe(
+          'Output only. Unique identifier of the model (e.g. `gemini-2.5-flash`, `gemini-3.1-pro-preview`). This is the same identifier that clients pass back to the assistant service to select this model. Virtual / "pseudo" models (e.g. `gemini-fast`) are also valid values here; they are resolved to the underlying concrete model on the backend.',
+        ).optional(),
+      })).describe(
+        "Output only. The list of models that are available to the end-user in the model selector, in the order in which they should be displayed.",
+      ).optional(),
+    }).describe(
+      "The resolved, server-side view of model selector configuration for the end-user. The backend computes this per-request by applying, in order: Mendel flag evaluation, regional availability rules based on the engine's location, and admin-panel overrides from `model_configs`. The backend is the single source of truth for this configuration; clients should render `resolved_models` directly in the model selector dropdown, in the order provided, without applying their own filtering, ordering, or localization.",
+    ).optional(),
     modelConfigs: z.record(
       z.string(),
       z.enum(["MODEL_STATE_UNSPECIFIED", "MODEL_ENABLED", "MODEL_DISABLED"]),
     ).describe(
       "Output only. Maps a model name to its specific configuration for this engine. This allows admin users to turn on/off individual models. This only stores models whose states are overridden by the admin. When the state is unspecified, or model_configs is empty for this model, the system will decide if this model should be available or not based on the default configuration. For example, a preview model should be disabled by default if the admin has not chosen to enable it.",
+    ).optional(),
+    onedrivePickerEnabled: z.boolean().describe(
+      'Output only. Whether the OneDrive file picker is available to end-users. Computed by the backend from admin connector enablement (Business edition) or attached OneDrive connectors (Enterprise edition), combined with the existing `disable-onedrive-upload` admin feature. Declared `optional` so an explicitly-computed `false` is serialized with field presence. A plain proto3 `bool` drops a default `false` on the wire, which prevented clients from distinguishing "picker disabled" (`false`) from "field not populated" (unset).',
     ).optional(),
     resultDescriptionType: z.enum([
       "RESULT_DISPLAY_TYPE_UNSPECIFIED",
@@ -1086,7 +1298,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.DataStores.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/collections-datastores-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-datastores-widgetconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1266,6 +1478,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: batchAuthStatuses",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1343,6 +1560,9 @@ export const model = {
         }
         if (g["assistantSettings"] !== undefined) {
           body["assistantSettings"] = g["assistantSettings"];
+        }
+        if (g["batchAuthStatuses"] !== undefined) {
+          body["batchAuthStatuses"] = g["batchAuthStatuses"];
         }
         if (g["collectionComponents"] !== undefined) {
           body["collectionComponents"] = g["collectionComponents"];

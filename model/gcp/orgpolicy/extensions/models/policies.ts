@@ -154,7 +154,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   alternate: z.object({
     launch: z.string().describe(
-      "Reference to the launch that will be used while audit logging and to control the launch. Should be set only in the alternate policy.",
+      "Reference to the launch that will be used while audit logging and to control the launch. Set only in the alternate policy.",
     ).optional(),
     spec: z.object({
       etag: z.string().describe(
@@ -424,7 +424,7 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   alternate: z.object({
     launch: z.string().describe(
-      "Reference to the launch that will be used while audit logging and to control the launch. Should be set only in the alternate policy.",
+      "Reference to the launch that will be used while audit logging and to control the launch. Set only in the alternate policy.",
     ).optional(),
     spec: z.object({
       etag: z.string().describe(
@@ -634,7 +634,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Organization Policy Policies. Registered at `@swamp/gcp/orgpolicy/policies`. */
 export const model = {
   type: "@swamp/gcp/orgpolicy/policies",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -763,6 +763,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1030,7 +1035,7 @@ export const model = {
       description: "List policies resources",
       arguments: z.object({
         pageSize: z.number().describe(
-          "Size of the pages to be returned. This is currently unsupported and will be ignored. The server may at any point start using this field to limit page size.",
+          "Size of the pages to be returned. This is not used, but the server may at any point start using this field to limit page size.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

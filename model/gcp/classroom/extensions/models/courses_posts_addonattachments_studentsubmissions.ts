@@ -158,6 +158,12 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  courseWorkSubmissionId: z.string().describe(
+    "Output only. Identifier of the course work submission under which this attachment submission was made.",
+  ).optional(),
+  id: z.string().describe(
+    "Output only. Classroom-assigned identifier for this student submission. This is unique among submissions for the relevant course work and add-on attachment combination.",
+  ).optional(),
   pointsEarned: z.number().describe(
     "Student grade on this attachment. If unset, no grade was set.",
   ).optional(),
@@ -172,7 +178,7 @@ const GlobalArgsSchema = z.object({
     "Submission state of add-on attachment's parent post (i.e. assignment).",
   ).optional(),
   userId: z.string().describe(
-    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. Read-only.",
+    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. See [`courseWork.studentSubmissions.get`](/workspace/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/get#authorization-scopes) for the list of acceptable OAuth scopes for this field. Read-only.",
   ).optional(),
   courseId: z.string().describe("Required. Identifier of the course."),
   postId: z.string().describe("Optional. Deprecated, use `item_id` instead."),
@@ -180,6 +186,8 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  courseWorkSubmissionId: z.string().optional(),
+  id: z.string().optional(),
   pointsEarned: z.number().optional(),
   postSubmissionState: z.string().optional(),
   userId: z.string().optional(),
@@ -193,6 +201,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  courseWorkSubmissionId: z.string().describe(
+    "Output only. Identifier of the course work submission under which this attachment submission was made.",
+  ).optional(),
+  id: z.string().describe(
+    "Output only. Classroom-assigned identifier for this student submission. This is unique among submissions for the relevant course work and add-on attachment combination.",
+  ).optional(),
   pointsEarned: z.number().describe(
     "Student grade on this attachment. If unset, no grade was set.",
   ).optional(),
@@ -207,7 +221,7 @@ const InputsSchema = z.object({
     "Submission state of add-on attachment's parent post (i.e. assignment).",
   ).optional(),
   userId: z.string().describe(
-    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. Read-only.",
+    "Identifier for the student that owns this submission. Requires the user to be a teacher in the course and have permission to read student submissions. See [`courseWork.studentSubmissions.get`](/workspace/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/get#authorization-scopes) for the list of acceptable OAuth scopes for this field. Read-only.",
   ).optional(),
   courseId: z.string().describe("Required. Identifier of the course.")
     .optional(),
@@ -241,7 +255,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/classroom/courses-posts-addonattachments-studentsubmissions",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -396,6 +410,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: courseWorkSubmissionId, id",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -488,6 +507,10 @@ export const model = {
         }
         params["submissionId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
+        if (g["courseWorkSubmissionId"] !== undefined) {
+          body["courseWorkSubmissionId"] = g["courseWorkSubmissionId"];
+        }
+        if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["pointsEarned"] !== undefined) {
           body["pointsEarned"] = g["pointsEarned"];
         }

@@ -386,7 +386,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Networks. Registered at `@swamp/gcp/compute/networks`. */
 export const model = {
   type: "@swamp/gcp/compute/networks",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -525,6 +525,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -905,6 +910,56 @@ export const model = {
           {
             "id": "compute.networks.addPeering",
             "path": "projects/{project}/global/networks/{network}/addPeering",
+            "httpMethod": "POST",
+            "parameterOrder": ["project", "network"],
+            "parameters": {
+              "network": { "location": "path", "required": true },
+              "project": { "location": "path", "required": true },
+              "requestId": { "location": "query" },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    cancel_request_remove_peering: {
+      description: "cancel request remove peering",
+      arguments: z.object({
+        name: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["network"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["name"] !== undefined) body["name"] = args["name"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "compute.networks.cancelRequestRemovePeering",
+            "path":
+              "projects/{project}/global/networks/{network}/cancelRequestRemovePeering",
             "httpMethod": "POST",
             "parameterOrder": ["project", "network"],
             "parameters": {

@@ -78,6 +78,9 @@ const INSERT_CONFIG = {
     "parent",
   ],
   "parameters": {
+    "ignoreWarnings": {
+      "location": "query",
+    },
     "materializedViewId": {
       "location": "query",
     },
@@ -170,6 +173,9 @@ const GlobalArgsSchema = z.object({
   query: z.string().describe(
     "Required. Immutable. The materialized view's select query. Views: `SCHEMA_VIEW`, `FULL`.",
   ).optional(),
+  ignoreWarnings: z.string().describe(
+    "Optional. If true, ignore optional safety checks when creating the materialized view.",
+  ).optional(),
   materializedViewId: z.string().describe(
     "Required. The ID to use for the materialized view, which will become the final component of the materialized view's resource name.",
   ).optional(),
@@ -205,6 +211,9 @@ const InputsSchema = z.object({
   query: z.string().describe(
     "Required. Immutable. The materialized view's select query. Views: `SCHEMA_VIEW`, `FULL`.",
   ).optional(),
+  ignoreWarnings: z.string().describe(
+    "Optional. If true, ignore optional safety checks when creating the materialized view.",
+  ).optional(),
   materializedViewId: z.string().describe(
     "Required. The ID to use for the materialized view, which will become the final component of the materialized view's resource name.",
   ).optional(),
@@ -239,7 +248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.MaterializedViews. Registered at `@swamp/gcp/bigtableadmin/instances-materializedviews`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-materializedviews",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -346,6 +355,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: ignoreWarnings",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -374,6 +388,9 @@ export const model = {
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["query"] !== undefined) body["query"] = g["query"];
+        if (g["ignoreWarnings"] !== undefined) {
+          params["ignoreWarnings"] = String(g["ignoreWarnings"]);
+        }
         if (g["materializedViewId"] !== undefined) {
           params["materializedViewId"] = String(g["materializedViewId"]);
         }

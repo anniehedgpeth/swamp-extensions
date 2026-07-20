@@ -70,6 +70,9 @@ const GET_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "view": {
+      "location": "query",
+    },
   },
 } as const;
 
@@ -352,6 +355,9 @@ const StateSchema = z.object({
   allPorts: z.boolean().optional(),
   allowGlobalAccess: z.boolean().optional(),
   allowPscGlobalAccess: z.boolean().optional(),
+  attachedExtensions: z.array(z.object({
+    reference: z.string(),
+  })).optional(),
   backendService: z.string().optional(),
   baseForwardingRule: z.string().optional(),
   creationTimestamp: z.string().optional(),
@@ -571,7 +577,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine ForwardingRules. Registered at `@swamp/gcp/compute/forwardingrules`. */
 export const model = {
   type: "@swamp/gcp/compute/forwardingrules",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -675,6 +681,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

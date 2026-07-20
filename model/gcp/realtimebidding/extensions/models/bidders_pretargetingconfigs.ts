@@ -156,15 +156,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  allowedUserTargetingModes: z.array(
-    z.enum([
-      "USER_TARGETING_MODE_UNSPECIFIED",
-      "REMARKETING_ADS",
-      "INTEREST_BASED_TARGETING",
-    ]),
-  ).describe(
-    "Targeting modes included by this config. A bid request must allow all the specified targeting modes. An unset value allows all bid requests to be sent, regardless of which targeting modes they allow.",
-  ).optional(),
   appTargeting: z.object({
     mobileAppCategoryTargeting: z.object({
       excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -363,15 +354,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  allowedUserTargetingModes: z.array(
-    z.enum([
-      "USER_TARGETING_MODE_UNSPECIFIED",
-      "REMARKETING_ADS",
-      "INTEREST_BASED_TARGETING",
-    ]),
-  ).describe(
-    "Targeting modes included by this config. A bid request must allow all the specified targeting modes. An unset value allows all bid requests to be sent, regardless of which targeting modes they allow.",
-  ).optional(),
   appTargeting: z.object({
     mobileAppCategoryTargeting: z.object({
       excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -532,7 +514,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Real-time Bidding Bidders.PretargetingConfigs. Registered at `@swamp/gcp/realtimebidding/bidders-pretargetingconfigs`. */
 export const model = {
   type: "@swamp/gcp/realtimebidding/bidders-pretargetingconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -635,6 +617,17 @@ export const model = {
       description: "Added: allowedUserTargetingModes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Removed: allowedUserTargetingModes",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          allowedUserTargetingModes: _allowedUserTargetingModes,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -662,9 +655,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["allowedUserTargetingModes"] !== undefined) {
-          body["allowedUserTargetingModes"] = g["allowedUserTargetingModes"];
-        }
         if (g["appTargeting"] !== undefined) {
           body["appTargeting"] = g["appTargeting"];
         }
@@ -835,9 +825,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["allowedUserTargetingModes"] !== undefined) {
-          body["allowedUserTargetingModes"] = g["allowedUserTargetingModes"];
-        }
         if (g["appTargeting"] !== undefined) {
           body["appTargeting"] = g["appTargeting"];
         }

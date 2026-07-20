@@ -125,6 +125,7 @@ const LIST_CONFIG = {
 
 const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/datamanager",
+  "https://www.googleapis.com/auth/datamanager.partnerlink",
 ];
 
 const GlobalArgsSchema = z.object({
@@ -375,7 +376,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Manager AccountTypes.Accounts.UserListDirectLicenses. Registered at `@swamp/gcp/datamanager/accounttypes-accounts-userlistdirectlicenses`. */
 export const model = {
   type: "@swamp/gcp/datamanager/accounttypes-accounts-userlistdirectlicenses",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -474,6 +475,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -717,7 +723,7 @@ export const model = {
       description: "List userListDirectLicenses resources",
       arguments: z.object({
         filter: z.string().describe(
-          "Optional. A [filter string](https://google.aip.dev/160) to apply to the list request. All fields need to be on the left hand side of each condition (for example: `user_list_id = 123`). Fields must be specified using either all [camel case](https://en.wikipedia.org/wiki/Camel_case) or all [snake case](https://en.wikipedia.org/wiki/Snake_case). Don't use a combination of camel case and snake case. **Supported Operations:** - `AND` - `=` - `!=` - `>` - `>=` - `<` - `<=` **Unsupported Fields:** - `name` (use get method instead) - `historical_pricings` and all its subfields - `pricing.start_time` - `pricing.end_time`",
+          "Optional. A [filter string](https://google.aip.dev/160) to apply to the list request. All fields need to be on the left hand side of each condition (for example: `user_list_id = 123`). Fields must be specified using either all [camel case](https://en.wikipedia.org/wiki/Camel_case) or all [snake case](https://en.wikipedia.org/wiki/Snake_case). Don't use a combination of camel case and snake case. **Supported Operations:** - `AND` - `=` - `!=` - `>` - `>=` - `<` - `<=` **Supported Functions:** - `IN(field, value1, value2, ...)`: returns true if the field matches any of the values. Example: `IN(user_list_id, 123, 456)` **Unsupported Fields:** - `name` (use get method instead) - `historical_pricings` and all its subfields - `pricing.start_time` - `pricing.end_time`",
         ).optional(),
         pageSize: z.number().describe(
           "Optional. The maximum number of licenses to return per page. The service may return fewer than this value. If unspecified, at most 50 licenses will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.",

@@ -17,15 +17,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/gcp/firebaseappcheck/apps-safetynetconfig
+// Auto-generated extension model for @swamp/gcp/osconfig/instances-ospolicyassignments-reports
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Firebase App Check Apps.SafetyNetConfig.
+ * Swamp extension model for Google Cloud OS Config Instances.OsPolicyAssignments.Reports.
  *
- * An app's SafetyNet configuration object. This configuration controls certain properties of the `AppCheckToken` returned by ExchangeSafetyNetToken, such as its ttl. Note that your registered SHA-256 certificate fingerprints are used to validate tokens issued by SafetyNet; please register them via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.androidApps.sha/create).
+ * A report of the OS policy assignment status for a given instance.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -35,18 +35,22 @@
 
 import { z } from "npm:zod@4.3.6";
 import {
-  createResource,
   type ExplicitGcpCredentials,
   getProjectId,
   isResourceNotFoundError,
+  listResources,
   readResource,
-  updateResource,
 } from "./_lib/gcp.ts";
 
-const BASE_URL = "https://firebaseappcheck.googleapis.com/";
+/** Construct the fully-qualified resource name from parent and short name. */
+function buildResourceName(parent: string, shortName: string): string {
+  return `${parent}/reports/${shortName}`;
+}
+
+const BASE_URL = "https://osconfig.googleapis.com/";
 
 const GET_CONFIG = {
-  "id": "firebaseappcheck.projects.apps.safetyNetConfig.get",
+  "id": "osconfig.projects.locations.instances.osPolicyAssignments.reports.get",
   "path": "v1/{+name}",
   "httpMethod": "GET",
   "parameterOrder": [
@@ -60,25 +64,35 @@ const GET_CONFIG = {
   },
 } as const;
 
-const PATCH_CONFIG = {
-  "id": "firebaseappcheck.projects.apps.safetyNetConfig.patch",
-  "path": "v1/{+name}",
-  "httpMethod": "PATCH",
+const LIST_CONFIG = {
+  "id":
+    "osconfig.projects.locations.instances.osPolicyAssignments.reports.list",
+  "path": "v1/{+parent}/reports",
+  "httpMethod": "GET",
   "parameterOrder": [
-    "name",
+    "parent",
   ],
   "parameters": {
-    "name": {
+    "filter": {
+      "location": "query",
+    },
+    "pageSize": {
+      "location": "query",
+    },
+    "pageToken": {
+      "location": "query",
+    },
+    "parent": {
       "location": "path",
       "required": true,
-    },
-    "updateMask": {
-      "location": "query",
     },
   },
 } as const;
 
 const GlobalArgsSchema = z.object({
+  name: z.string().describe(
+    "Instance name for this resource (used as the unique identifier in the factory pattern)",
+  ),
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -91,31 +105,49 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  name: z.string().describe(
-    "Required. The relative resource name of the SafetyNet configuration object, in the format: ` projects/{project_number}/apps/{app_id}/safetyNetConfig `",
+  parent: z.string().describe(
+    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
-  tokenTtl: z.string().describe(
-    "Specifies the duration for which App Check tokens exchanged from SafetyNet tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.",
+  location: z.string().describe(
+    "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
 });
 
 const StateSchema = z.object({
+  instance: z.string().optional(),
+  lastRunId: z.string().optional(),
   name: z.string(),
-  tokenTtl: z.string().optional(),
+  osPolicyAssignment: z.string().optional(),
+  osPolicyCompliances: z.array(z.object({
+    complianceState: z.string(),
+    complianceStateReason: z.string(),
+    osPolicyId: z.string(),
+    osPolicyResourceCompliances: z.array(z.object({
+      complianceState: z.string(),
+      complianceStateReason: z.string(),
+      configSteps: z.array(z.unknown()),
+      execResourceOutput: z.object({
+        enforcementOutput: z.unknown(),
+      }),
+      osPolicyResourceId: z.string(),
+    })),
+  })).optional(),
+  updateTime: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  name: z.string().optional(),
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  name: z.string().describe(
-    "Required. The relative resource name of the SafetyNet configuration object, in the format: ` projects/{project_number}/apps/{app_id}/safetyNetConfig `",
+  parent: z.string().describe(
+    "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
-  tokenTtl: z.string().describe(
-    "Specifies the duration for which App Check tokens exchanged from SafetyNet tokens will be valid. If unset, a default value of 1 hour is assumed. Must be between 30 minutes and 7 days, inclusive.",
+  location: z.string().describe(
+    "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
 });
 
@@ -139,16 +171,16 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Firebase App Check Apps.SafetyNetConfig. Registered at `@swamp/gcp/firebaseappcheck/apps-safetynetconfig`. */
+/** Swamp extension model for Google Cloud OS Config Instances.OsPolicyAssignments.Reports. Registered at `@swamp/gcp/osconfig/instances-ospolicyassignments-reports`. */
 export const model = {
-  type: "@swamp/gcp/firebaseappcheck/apps-safetynetconfig",
+  type: "@swamp/gcp/osconfig/instances-ospolicyassignments-reports",
   version: "2026.07.20.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "An app's SafetyNet configuration object. This configuration controls certain ...",
+        "A report of the OS policy assignment status for a given instance.",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -156,87 +188,29 @@ export const model = {
   },
   methods: {
     get: {
-      description: "Get a safetyNetConfig",
+      description: "Get a reports",
       arguments: z.object({
-        identifier: z.string().describe("The name of the safetyNetConfig"),
+        identifier: z.string().describe("The name of the reports"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["name"] = args.identifier;
+        params["name"] = buildResourceName(
+          String(g["parent"] ?? ""),
+          args.identifier,
+        );
         const result = await readResource(
           BASE_URL,
           GET_CONFIG,
           params,
           credentials,
         ) as StateData;
-        const instanceName =
-          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const handle = await context.writeResource(
-          "state",
-          instanceName,
-          result,
-        );
-        return { dataHandles: [handle] };
-      },
-    },
-    update: {
-      description: "Update safetyNetConfig attributes",
-      arguments: z.object({
-        identifier: z.string().describe(
-          "Target a specific safetyNetConfig by name (e.g. one discovered by list)",
-        ).optional(),
-      }),
-      execute: async (args: { identifier?: string }, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const instanceName =
-          (g.name?.toString() ?? args.identifier ?? "current").replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          instanceName,
-        );
-        if (!content) {
-          throw new Error(
-            "No existing state found - run create, get, or list first",
-          );
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        const params: Record<string, string> = { project: projectId };
-        params["name"] = existing["name"]?.toString() ?? "";
-        const body: Record<string, unknown> = {};
-        if (g["tokenTtl"] !== undefined) body["tokenTtl"] = g["tokenTtl"];
-        const updateMaskKeys = Object.keys(body);
-        if (updateMaskKeys.length > 0) {
-          params["updateMask"] = updateMaskKeys.join(",");
-        }
-        for (const key of Object.keys(existing)) {
-          if (
-            key === "fingerprint" || key === "labelFingerprint" ||
-            key === "etag" || key.endsWith("Fingerprint")
-          ) {
-            body[key] = existing[key];
-          }
-        }
-        const result = await updateResource(
-          BASE_URL,
-          PATCH_CONFIG,
-          params,
-          body,
-          GET_CONFIG,
-          undefined,
-          credentials,
-        ) as StateData;
+        const instanceName = (g.name?.toString() ?? args.identifier).replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -246,10 +220,10 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync safetyNetConfig state from GCP",
+      description: "Sync reports state from GCP",
       arguments: z.object({
         identifier: z.string().describe(
-          "Target a specific safetyNetConfig by name (e.g. one discovered by list)",
+          "Target a specific reports by name (e.g. one discovered by list)",
         ).optional(),
       }),
       execute: async (args: { identifier?: string }, context: any) => {
@@ -274,13 +248,17 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
           const params: Record<string, string> = { project: projectId };
-          const identifier = existing.name?.toString() ?? g["name"]?.toString();
-          if (!identifier) {
-            throw new Error(
-              "No identifier found in existing state or globalArgs",
+          const existingName = existing.name?.toString();
+          if (existingName && existingName.includes("/")) {
+            params["name"] = existingName;
+          } else {
+            const shortName = existingName ?? g["name"]?.toString();
+            if (!shortName) throw new Error("No identifier found");
+            params["name"] = buildResourceName(
+              String(g["parent"] ?? ""),
+              shortName,
             );
           }
-          params["name"] = identifier;
           const result = await readResource(
             BASE_URL,
             GET_CONFIG,
@@ -305,37 +283,54 @@ export const model = {
         }
       },
     },
-    batch_get: {
-      description: "batch get",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
+    list: {
+      description: "List reports resources",
+      arguments: z.object({
+        filter: z.string().describe(
+          "If provided, this field specifies the criteria that must be met by the `OSPolicyAssignmentReport` API resource that is included in the response.",
+        ).optional(),
+        pageSize: z.number().describe(
+          "The maximum number of results to return.",
+        ).optional(),
+        maxPages: z.number().describe(
+          "Maximum number of pages to fetch (default: 10)",
+        ).optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
-        const result = await createResource(
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
+        if (args["filter"] !== undefined) {
+          params["filter"] = String(args["filter"]);
+        }
+        if (args["pageSize"] !== undefined) {
+          params["pageSize"] = String(args["pageSize"]);
+        }
+        const { items, nextPageToken } = await listResources(
           BASE_URL,
-          {
-            "id": "firebaseappcheck.projects.apps.safetyNetConfig.batchGet",
-            "path": "v1/{+parent}/apps/-/safetyNetConfig:batchGet",
-            "httpMethod": "GET",
-            "parameterOrder": ["parent"],
-            "parameters": {
-              "names": { "location": "query" },
-              "parent": { "location": "path", "required": true },
-            },
-          },
+          LIST_CONFIG,
           params,
-          {},
-          undefined,
-          undefined,
-          undefined,
+          "osPolicyAssignmentReports",
+          (args.maxPages as number | undefined) ?? 10,
           credentials,
         );
-        return { result };
+        const dataHandles = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i] as StateData;
+          const instanceName = (item.name?.toString() ?? String(i)).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+          const handle = await context.writeResource(
+            "state",
+            instanceName,
+            item,
+          );
+          dataHandles.push(handle);
+        }
+        return { dataHandles, result: { count: items.length, nextPageToken } };
       },
     },
   },

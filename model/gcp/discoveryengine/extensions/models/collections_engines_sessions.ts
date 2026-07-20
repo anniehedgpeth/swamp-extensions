@@ -83,6 +83,9 @@ const INSERT_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "sessionId": {
+      "location": "query",
+    },
   },
 } as const;
 
@@ -309,6 +312,8 @@ const GlobalArgsSchema = z.object({
         "Immutable. Identifier. Resource name of the `AssistAnswer`. Format: `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/sessions/{session}/assistAnswers/{assist_answer}` This field must be a UTF-8 encoded string with a length limit of 1024 characters.",
       ).optional(),
       replies: z.array(z.object({
+        createTime: z.unknown().describe("The time when the reply was created.")
+          .optional(),
         groundedContent: z.unknown().describe(
           'A piece of content and possibly its grounding information. Not all content needs grounding. Phrases like "Of course, I will gladly search it for you." do not need grounding.',
         ).optional(),
@@ -319,9 +324,13 @@ const GlobalArgsSchema = z.object({
         "FAILED",
         "SUCCEEDED",
         "SKIPPED",
+        "CANCELLED",
       ]).describe("State of the answer generation.").optional(),
     }).describe("AssistAnswer resource, main part of AssistResponse.")
       .optional(),
+    live: z.boolean().describe(
+      "Optional. Indicates whether this turn is a live turn.",
+    ).optional(),
     query: z.object({
       queryId: z.string().describe("Output only. Unique Id for the query.")
         .optional(),
@@ -333,6 +342,9 @@ const GlobalArgsSchema = z.object({
   })).describe("Turns.").optional(),
   userPseudoId: z.string().describe("A unique identifier for tracking users.")
     .optional(),
+  sessionId: z.string().describe(
+    "Optional. The ID to use for the session, which will become the final component of the session's resource name. This value should be 1-63 characters, and valid characters are /a-z0-9{0,61}[a-z0-9]/. If not specified, a unique ID will be generated.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -347,6 +359,7 @@ const StateSchema = z.object({
   isPinned: z.boolean().optional(),
   labels: z.array(z.string()).optional(),
   name: z.string(),
+  pendingAsyncAssistOperationId: z.string().optional(),
   startTime: z.string().optional(),
   state: z.string().optional(),
   turns: z.array(z.object({
@@ -403,10 +416,12 @@ const StateSchema = z.object({
       }),
       name: z.string(),
       replies: z.array(z.object({
+        createTime: z.unknown(),
         groundedContent: z.unknown(),
       })),
       state: z.string(),
     }),
+    live: z.boolean(),
     query: z.object({
       queryId: z.string(),
       text: z.string(),
@@ -572,6 +587,8 @@ const InputsSchema = z.object({
         "Immutable. Identifier. Resource name of the `AssistAnswer`. Format: `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/sessions/{session}/assistAnswers/{assist_answer}` This field must be a UTF-8 encoded string with a length limit of 1024 characters.",
       ).optional(),
       replies: z.array(z.object({
+        createTime: z.unknown().describe("The time when the reply was created.")
+          .optional(),
         groundedContent: z.unknown().describe(
           'A piece of content and possibly its grounding information. Not all content needs grounding. Phrases like "Of course, I will gladly search it for you." do not need grounding.',
         ).optional(),
@@ -582,9 +599,13 @@ const InputsSchema = z.object({
         "FAILED",
         "SUCCEEDED",
         "SKIPPED",
+        "CANCELLED",
       ]).describe("State of the answer generation.").optional(),
     }).describe("AssistAnswer resource, main part of AssistResponse.")
       .optional(),
+    live: z.boolean().describe(
+      "Optional. Indicates whether this turn is a live turn.",
+    ).optional(),
     query: z.object({
       queryId: z.string().describe("Output only. Unique Id for the query.")
         .optional(),
@@ -596,6 +617,9 @@ const InputsSchema = z.object({
   })).describe("Turns.").optional(),
   userPseudoId: z.string().describe("A unique identifier for tracking users.")
     .optional(),
+  sessionId: z.string().describe(
+    "Optional. The ID to use for the session, which will become the final component of the session's resource name. This value should be 1-63 characters, and valid characters are /a-z0-9{0,61}[a-z0-9]/. If not specified, a unique ID will be generated.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -627,7 +651,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.Sessions. Registered at `@swamp/gcp/discoveryengine/collections-engines-sessions`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-sessions",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -786,6 +810,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: sessionId",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -818,6 +847,9 @@ export const model = {
         if (g["turns"] !== undefined) body["turns"] = g["turns"];
         if (g["userPseudoId"] !== undefined) {
           body["userPseudoId"] = g["userPseudoId"];
+        }
+        if (g["sessionId"] !== undefined) {
+          params["sessionId"] = String(g["sessionId"]);
         }
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -1066,7 +1098,7 @@ export const model = {
           'A comma-separated list of fields to filter by, in EBNF grammar. The supported fields are: * `user_pseudo_id` * `state` * `display_name` * `starred` * `is_pinned` * `labels` * `create_time` * `update_time` * `collaborative_project` Examples: * `user_pseudo_id = some_id` * `display_name = "some_name"` * `starred = true` * `is_pinned=true AND (NOT labels:hidden)` * `create_time > "1970-01-01T12:00:00Z"` * `collaborative_project = "projects/123/locations/global/collections/default_collection/engines/" "default_engine/collaborative_projects/cp1"`',
         ).optional(),
         orderBy: z.string().describe(
-          'A comma-separated list of fields to order by, sorted in ascending order. Use "desc" after a field name for descending. Supported fields: * `update_time` * `create_time` * `session_name` * `is_pinned` Example: * `update_time desc` * `create_time` * `is_pinned desc,update_time desc`: list sessions by is_pinned first, then by update_time.',
+          'A comma-separated list of fields to order by, sorted in ascending order. Use "desc" after a field name for descending. Supported fields: * `update_time` * `create_time` * `session_name` * `is_pinned` * `display_name` Example: * `update_time desc` * `create_time` * `is_pinned desc,update_time desc`: list sessions by is_pinned first, then by update_time.',
         ).optional(),
         pageSize: z.number().describe(
           "Maximum number of results to return. If unspecified, defaults to 50. Max allowed value is 1000.",

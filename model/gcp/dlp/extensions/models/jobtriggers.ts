@@ -257,6 +257,9 @@ const GlobalArgsSchema = z.object({
           exclusionType: z.unknown().describe(
             "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
+          fileLabelInfoType: z.unknown().describe(
+            "Configuration for a custom infoType that detects file labels.",
+          ).optional(),
           infoType: z.unknown().describe(
             "Type of information detected by the API.",
           ).optional(),
@@ -473,7 +476,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The timestamp of the last time this trigger executed.",
     ).optional(),
     name: z.string().describe(
-      "Unique resource name for the triggeredJob, assigned by the service when the triggeredJob is created, for example `projects/dlp-test-project/jobTriggers/53234423`.",
+      "Output only. Unique resource name for the triggeredJob, assigned by the service when the triggeredJob is created, for example `projects/dlp-test-project/jobTriggers/53234423`.",
     ).optional(),
     status: z.enum(["STATUS_UNSPECIFIED", "HEALTHY", "PAUSED", "CANCELLED"])
       .describe("Required. A status for this trigger.").optional(),
@@ -559,6 +562,10 @@ const StateSchema = z.object({
           wordList: z.unknown(),
         }),
         exclusionType: z.string(),
+        fileLabelInfoType: z.object({
+          googleDriveLabel: z.unknown(),
+          sensitivityLabel: z.unknown(),
+        }),
         infoType: z.object({
           name: z.unknown(),
           sensitivityScore: z.unknown(),
@@ -792,6 +799,9 @@ const InputsSchema = z.object({
           exclusionType: z.unknown().describe(
             "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
+          fileLabelInfoType: z.unknown().describe(
+            "Configuration for a custom infoType that detects file labels.",
+          ).optional(),
           infoType: z.unknown().describe(
             "Type of information detected by the API.",
           ).optional(),
@@ -1008,7 +1018,7 @@ const InputsSchema = z.object({
       "Output only. The timestamp of the last time this trigger executed.",
     ).optional(),
     name: z.string().describe(
-      "Unique resource name for the triggeredJob, assigned by the service when the triggeredJob is created, for example `projects/dlp-test-project/jobTriggers/53234423`.",
+      "Output only. Unique resource name for the triggeredJob, assigned by the service when the triggeredJob is created, for example `projects/dlp-test-project/jobTriggers/53234423`.",
     ).optional(),
     status: z.enum(["STATUS_UNSPECIFIED", "HEALTHY", "PAUSED", "CANCELLED"])
       .describe("Required. A status for this trigger.").optional(),
@@ -1065,7 +1075,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) JobTriggers. Registered at `@swamp/gcp/dlp/jobtriggers`. */
 export const model = {
   type: "@swamp/gcp/dlp/jobtriggers",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1169,6 +1179,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

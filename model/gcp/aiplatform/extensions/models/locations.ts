@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI Locations.
+ * Swamp extension model for Google Cloud Agent Platform Locations.
  *
  * A resource that represents a Google Cloud location.
  *
@@ -145,10 +145,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI Locations. Registered at `@swamp/gcp/aiplatform/locations`. */
+/** Swamp extension model for Google Cloud Agent Platform Locations. Registered at `@swamp/gcp/aiplatform/locations`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/locations",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -280,6 +280,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -386,7 +391,7 @@ export const model = {
       description: "List locations resources",
       arguments: z.object({
         extraLocationTypes: z.string().describe(
-          "Optional. Do not use this field. It is unsupported and is ignored unless explicitly documented otherwise. This is primarily for internal usage.",
+          "Optional. Do not use this field unless explicitly documented otherwise. This is primarily for internal usage.",
         ).optional(),
         filter: z.string().describe(
           'A filter to narrow down results to a preferred subset. The filtering language accepts strings like `"displayName=tokyo"`, and is documented in more detail in [AIP-160](https://google.aip.dev/160).',
@@ -988,6 +993,61 @@ export const model = {
         return { result };
       },
     },
+    generate_loss_clusters: {
+      description: "generate loss clusters",
+      arguments: z.object({
+        configs: z.any().optional(),
+        evaluationSet: z.any().optional(),
+        inlineResults: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["location"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["configs"] !== undefined) body["configs"] = args["configs"];
+        if (args["evaluationSet"] !== undefined) {
+          body["evaluationSet"] = args["evaluationSet"];
+        }
+        if (args["inlineResults"] !== undefined) {
+          body["inlineResults"] = args["inlineResults"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "aiplatform.projects.locations.generateLossClusters",
+            "path": "v1/{+location}:generateLossClusters",
+            "httpMethod": "POST",
+            "parameterOrder": ["location"],
+            "parameters": {
+              "location": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     generate_synthetic_data: {
       description: "generate synthetic data",
       arguments: z.object({
@@ -1045,6 +1105,66 @@ export const model = {
         return { result };
       },
     },
+    generate_user_scenarios: {
+      description: "generate user scenarios",
+      arguments: z.object({
+        agents: z.any().optional(),
+        allowCrossRegionModel: z.any().optional(),
+        rootAgentId: z.any().optional(),
+        userScenarioGenerationConfig: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          (g.name?.toString() ?? "current").replace(/[\/\\]/g, "_").replace(
+            /\.\./g,
+            "_",
+          ).replace(/\0/g, ""),
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        params["location"] = existing["name"]?.toString() ??
+          g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["agents"] !== undefined) body["agents"] = args["agents"];
+        if (args["allowCrossRegionModel"] !== undefined) {
+          body["allowCrossRegionModel"] = args["allowCrossRegionModel"];
+        }
+        if (args["rootAgentId"] !== undefined) {
+          body["rootAgentId"] = args["rootAgentId"];
+        }
+        if (args["userScenarioGenerationConfig"] !== undefined) {
+          body["userScenarioGenerationConfig"] =
+            args["userScenarioGenerationConfig"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "aiplatform.projects.locations.generateUserScenarios",
+            "path": "v1/{+location}:generateUserScenarios",
+            "httpMethod": "POST",
+            "parameterOrder": ["location"],
+            "parameters": {
+              "location": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
     get_rag_engine_config: {
       description: "get rag engine config",
       arguments: z.object({}),
@@ -1058,6 +1178,35 @@ export const model = {
           BASE_URL,
           {
             "id": "aiplatform.projects.locations.getRagEngineConfig",
+            "path": "v1/{+name}",
+            "httpMethod": "GET",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    get_semantic_governance_policy_engine: {
+      description: "get semantic governance policy engine",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) params["name"] = String(g["name"]);
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "aiplatform.projects.locations.getSemanticGovernancePolicyEngine",
             "path": "v1/{+name}",
             "httpMethod": "GET",
             "parameterOrder": ["name"],
@@ -1138,6 +1287,68 @@ export const model = {
             "httpMethod": "PATCH",
             "parameterOrder": ["name"],
             "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    update_semantic_governance_policy_engine: {
+      description: "update semantic governance policy engine",
+      arguments: z.object({
+        createTime: z.any().optional(),
+        gatewayConfigs: z.any().optional(),
+        ipAddress: z.any().optional(),
+        name: z.any().optional(),
+        pscForwardingRule: z.any().optional(),
+        pscServiceAttachment: z.any().optional(),
+        state: z.any().optional(),
+        updateTime: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) params["name"] = String(g["name"]);
+        const body: Record<string, unknown> = {};
+        if (args["createTime"] !== undefined) {
+          body["createTime"] = args["createTime"];
+        }
+        if (args["gatewayConfigs"] !== undefined) {
+          body["gatewayConfigs"] = args["gatewayConfigs"];
+        }
+        if (args["ipAddress"] !== undefined) {
+          body["ipAddress"] = args["ipAddress"];
+        }
+        if (args["name"] !== undefined) body["name"] = args["name"];
+        if (args["pscForwardingRule"] !== undefined) {
+          body["pscForwardingRule"] = args["pscForwardingRule"];
+        }
+        if (args["pscServiceAttachment"] !== undefined) {
+          body["pscServiceAttachment"] = args["pscServiceAttachment"];
+        }
+        if (args["state"] !== undefined) body["state"] = args["state"];
+        if (args["updateTime"] !== undefined) {
+          body["updateTime"] = args["updateTime"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "aiplatform.projects.locations.updateSemanticGovernancePolicyEngine",
+            "path": "v1/{+name}",
+            "httpMethod": "PATCH",
+            "parameterOrder": ["name"],
+            "parameters": {
+              "name": { "location": "path", "required": true },
+              "updateMask": { "location": "query" },
+            },
           },
           params,
           body,

@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/networkservices"
-version: "2026.07.20.1"
+version: "2026.07.20.2"
 description: "Google Cloud networkservices infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,8 +11,10 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: locations, authzextensions, endpointpolicies, gateways, gateways_routeviews, grpcroutes, httproutes, lbedgeextensions, lbrouteextensions, lbtrafficextensions, meshes, meshes_routeviews, servicebindings, servicelbpolicies, tcproutes, tlsroutes, wasmplugins, wasmplugins_versions
+  - Added: agentgateways, multicastconsumerassociations, multicastgroupconsumeractivations
+  - Updated: locations, authzextensions, endpointpolicies, gateways, httproutes
 models:
+  - agentgateways.ts
   - authzextensions.ts
   - endpointpolicies.ts
   - gateways.ts
@@ -25,6 +27,8 @@ models:
   - locations.ts
   - meshes.ts
   - meshes_routeviews.ts
+  - multicastconsumerassociations.ts
+  - multicastgroupconsumeractivations.ts
   - servicebindings.ts
   - servicelbpolicies.ts
   - tcproutes.ts

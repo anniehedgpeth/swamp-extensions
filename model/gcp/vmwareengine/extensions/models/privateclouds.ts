@@ -185,6 +185,14 @@ const GlobalArgsSchema = z.object({
   description: z.string().describe(
     "User-provided description for this private cloud.",
   ).optional(),
+  encryptionConfig: z.object({
+    cryptoKeyName: z.string().describe(
+      "Optional. The resource name of the Cloud KMS key to be used for CMEK encryption. The format of this field is `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`. The key must be in the same region as the private cloud. This key is used for wrapping the key-encrypting key of vSAN clusters. This field must be provided when `type` is `CMEK` or `LEGACY_CMEK`, and must not be set when `type` is `OTHER`.",
+    ).optional(),
+    type: z.enum(["TYPE_UNSPECIFIED", "CMEK", "LEGACY_CMEK", "OTHER"]).describe(
+      "Required. The encryption type of the private cloud.",
+    ).optional(),
+  }).describe("Encryption configuration for a private cloud.").optional(),
   hcx: z.object({
     fqdn: z.string().describe("Fully qualified domain name of the appliance.")
       .optional(),
@@ -278,6 +286,10 @@ const StateSchema = z.object({
   createTime: z.string().optional(),
   deleteTime: z.string().optional(),
   description: z.string().optional(),
+  encryptionConfig: z.object({
+    cryptoKeyName: z.string(),
+    type: z.string(),
+  }).optional(),
   expireTime: z.string().optional(),
   hcx: z.object({
     fqdn: z.string(),
@@ -330,6 +342,14 @@ const InputsSchema = z.object({
   description: z.string().describe(
     "User-provided description for this private cloud.",
   ).optional(),
+  encryptionConfig: z.object({
+    cryptoKeyName: z.string().describe(
+      "Optional. The resource name of the Cloud KMS key to be used for CMEK encryption. The format of this field is `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`. The key must be in the same region as the private cloud. This key is used for wrapping the key-encrypting key of vSAN clusters. This field must be provided when `type` is `CMEK` or `LEGACY_CMEK`, and must not be set when `type` is `OTHER`.",
+    ).optional(),
+    type: z.enum(["TYPE_UNSPECIFIED", "CMEK", "LEGACY_CMEK", "OTHER"]).describe(
+      "Required. The encryption type of the private cloud.",
+    ).optional(),
+  }).describe("Encryption configuration for a private cloud.").optional(),
   hcx: z.object({
     fqdn: z.string().describe("Fully qualified domain name of the appliance.")
       .optional(),
@@ -442,7 +462,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VMware Engine PrivateClouds. Registered at `@swamp/gcp/vmwareengine/privateclouds`. */
 export const model = {
   type: "@swamp/gcp/vmwareengine/privateclouds",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -572,6 +592,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "Added: encryptionConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -603,6 +628,9 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
+        }
+        if (g["encryptionConfig"] !== undefined) {
+          body["encryptionConfig"] = g["encryptionConfig"];
         }
         if (g["hcx"] !== undefined) body["hcx"] = g["hcx"];
         if (g["managementCluster"] !== undefined) {
@@ -741,6 +769,9 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
+        }
+        if (g["encryptionConfig"] !== undefined) {
+          body["encryptionConfig"] = g["encryptionConfig"];
         }
         if (g["hcx"] !== undefined) body["hcx"] = g["hcx"];
         if (g["managementCluster"] !== undefined) {
@@ -1012,6 +1043,52 @@ export const model = {
           },
           params,
           {},
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    migrate_management_vms: {
+      description: "migrate management vms",
+      arguments: z.object({
+        clusterId: z.any().optional(),
+        etag: z.any().optional(),
+        requestId: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["name"]),
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (args["clusterId"] !== undefined) {
+          body["clusterId"] = args["clusterId"];
+        }
+        if (args["etag"] !== undefined) body["etag"] = args["etag"];
+        if (args["requestId"] !== undefined) {
+          body["requestId"] = args["requestId"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "vmwareengine.projects.locations.privateClouds.migrateManagementVms",
+            "path": "v1/{+name}:migrateManagementVms",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
           undefined,
           undefined,
           undefined,

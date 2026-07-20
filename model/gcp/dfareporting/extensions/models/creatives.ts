@@ -237,6 +237,7 @@ const GlobalArgsSchema = z.object({
     "CREATIVE_AUTHORING_SOURCE_REMBRAND",
     "CREATIVE_AUTHORING_SOURCE_TRACKTO_STUDIO",
     "CREATIVE_AUTHORING_SOURCE_BORNLOGIC",
+    "CREATIVE_AUTHORING_SOURCE_BEGEN_AI",
   ]).describe(
     "Source application where creative was authored. Presently, only DBM authored creatives will have this field set. Applicable to all creative types.",
   ).optional(),
@@ -1870,6 +1871,7 @@ const InputsSchema = z.object({
     "CREATIVE_AUTHORING_SOURCE_REMBRAND",
     "CREATIVE_AUTHORING_SOURCE_TRACKTO_STUDIO",
     "CREATIVE_AUTHORING_SOURCE_BORNLOGIC",
+    "CREATIVE_AUTHORING_SOURCE_BEGEN_AI",
   ]).describe(
     "Source application where creative was authored. Presently, only DBM authored creatives will have this field set. Applicable to all creative types.",
   ).optional(),
@@ -3088,7 +3090,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Creatives. Registered at `@swamp/gcp/dfareporting/creatives`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/creatives",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3207,6 +3209,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.20.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -122,9 +122,6 @@ const _defaultOAuthScopes: string[] = [
 ];
 
 const GlobalArgsSchema = z.object({
-  name: z.string().describe(
-    "Instance name for this resource (used as the unique identifier in the factory pattern)",
-  ),
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -142,6 +139,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   customerId: z.string().describe("Immutable. Google Ads customer ID.")
     .optional(),
+  name: z.string().describe(
+    "Identifier. Format: properties/{propertyId}/googleAdsLinks/{googleAdsLinkId} Note: googleAdsLinkId is not the Google Ads customer ID.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -160,7 +160,6 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
-  name: z.string().optional(),
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
@@ -170,6 +169,9 @@ const InputsSchema = z.object({
   ).optional(),
   customerId: z.string().describe("Immutable. Google Ads customer ID.")
     .optional(),
+  name: z.string().describe(
+    "Identifier. Format: properties/{propertyId}/googleAdsLinks/{googleAdsLinkId} Note: googleAdsLinkId is not the Google Ads customer ID.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -198,7 +200,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Admin Properties.GoogleAdsLinks. Registered at `@swamp/gcp/analyticsadmin/properties-googleadslinks`. */
 export const model = {
   type: "@swamp/gcp/analyticsadmin/properties-googleadslinks",
-  version: "2026.07.20.1",
+  version: "2026.07.20.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -310,6 +312,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -337,6 +344,7 @@ export const model = {
           body["adsPersonalizationEnabled"] = g["adsPersonalizationEnabled"];
         }
         if (g["customerId"] !== undefined) body["customerId"] = g["customerId"];
+        if (g["name"] !== undefined) body["name"] = g["name"];
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,
@@ -354,10 +362,8 @@ export const model = {
           },
           credentials,
         ) as StateData;
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = ((g.name ?? result.name)?.toString() ?? "current")
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -385,10 +391,11 @@ export const model = {
           args.identifier,
           credentials,
         ) as StateData;
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -555,7 +562,7 @@ export const model = {
       description: "List googleAdsLinks resources",
       arguments: z.object({
         pageSize: z.number().describe(
-          "The maximum number of resources to return. If unspecified, at most 50 resources will be returned. The maximum value is 200 (higher values will be coerced to the maximum).",
+          "Optional. The maximum number of resources to return. If unspecified, at most 50 resources will be returned. The maximum value is 200 (higher values will be coerced to the maximum).",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
