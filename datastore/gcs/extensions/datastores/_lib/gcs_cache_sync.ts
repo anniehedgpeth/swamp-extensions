@@ -123,11 +123,15 @@ export function isInsideNamespaceDir(
  * `.namespace.json` marker file. Returns a Set of directory names to
  * exclude from the push walk.
  */
-async function detectNamespaceDirs(cachePath: string): Promise<Set<string>> {
+async function detectNamespaceDirs(
+  cachePath: string,
+  boundNamespace?: string,
+): Promise<Set<string>> {
   const namespaceDirs = new Set<string>();
   try {
     for await (const entry of Deno.readDir(cachePath)) {
       if (!entry.isDirectory) continue;
+      if (entry.name === boundNamespace) continue;
       try {
         await Deno.stat(join(cachePath, entry.name, ".namespace.json"));
         namespaceDirs.add(entry.name);
@@ -1561,9 +1565,26 @@ export class GcsCacheSyncService implements DatastoreSyncService {
    * `localDirty: true` and do the full walk. The flag is cleared only
    * by `pushChanged` after a successful index writeback.
    */
-  async pushFile(relativePath: string, signal?: AbortSignal): Promise<void> {
+  async pushFile(
+    relativePath: string,
+    signal?: AbortSignal,
+    overrideLocalPath?: string,
+  ): Promise<void> {
     await this.markDirty();
-    const localPath = assertSafePath(this.cachePath, relativePath);
+    let localPath: string;
+    if (overrideLocalPath) {
+      const resolved = normalize(overrideLocalPath);
+      const normalizedCache = normalize(this.cachePath);
+      if (
+        !resolved.startsWith(normalizedCache + "/") &&
+        resolved !== normalizedCache
+      ) {
+        throw new Error(`Path traversal detected: ${overrideLocalPath}`);
+      }
+      localPath = resolved;
+    } else {
+      localPath = assertSafePath(this.cachePath, relativePath);
+    }
     const data = await Deno.readFile(localPath);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     const sha256 = Array.from(new Uint8Array(hashBuffer))
@@ -1672,21 +1693,25 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     }
 
     const walkStart = Date.now();
-    const toPush: string[] = [];
+    const nsPrefix = this.namespace ? `${this.namespace}/` : "";
+    const toPush: Array<{ rel: string; path: string }> = [];
     const toDelete: string[] = [];
     const useScopedWalk = !this.bulkInvalidated && this.dirtyPaths.size > 0;
 
     if (useScopedWalk) {
       for (const dirtyPath of this.dirtyPaths) {
         const absPath = join(this.cachePath, dirtyPath);
+        const bareDirtyPath = nsPrefix && dirtyPath.startsWith(nsPrefix)
+          ? dirtyPath.substring(nsPrefix.length)
+          : dirtyPath;
         try {
           const stat = await Deno.stat(absPath);
           if (stat.isFile) {
             if (
               !isInternalCacheFile(dirtyPath) &&
-              await this.fileNeedsPush(absPath, dirtyPath)
+              await this.fileNeedsPush(absPath, bareDirtyPath)
             ) {
-              toPush.push(dirtyPath);
+              toPush.push({ rel: bareDirtyPath, path: absPath });
             }
           } else if (stat.isDirectory) {
             const localFilesInDir = new Set<string>();
@@ -1695,15 +1720,18 @@ export class GcsCacheSyncService implements DatastoreSyncService {
             ) {
               const rel = relative(this.cachePath, entry.path);
               if (isInternalCacheFile(rel)) continue;
-              localFilesInDir.add(rel);
-              if (await this.fileNeedsPush(entry.path, rel)) {
-                toPush.push(rel);
+              const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+                ? rel.substring(nsPrefix.length)
+                : rel;
+              localFilesInDir.add(bareRel);
+              if (await this.fileNeedsPush(entry.path, bareRel)) {
+                toPush.push({ rel: bareRel, path: entry.path });
               }
             }
             if (!this.lazyPullActive && this.index) {
-              const prefix = dirtyPath.endsWith("/")
-                ? dirtyPath
-                : dirtyPath + "/";
+              const prefix = bareDirtyPath.endsWith("/")
+                ? bareDirtyPath
+                : bareDirtyPath + "/";
               for (const key of Object.keys(this.index.entries)) {
                 if (isInternalCacheFile(key)) continue;
                 if (key.startsWith(prefix) && !localFilesInDir.has(key)) {
@@ -1726,7 +1754,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           if (!this.lazyPullActive && this.index) {
             for (const key of Object.keys(this.index.entries)) {
               if (isInternalCacheFile(key)) continue;
-              if (key === dirtyPath || key.startsWith(dirtyPath + "/")) {
+              if (
+                key === bareDirtyPath ||
+                key.startsWith(bareDirtyPath + "/")
+              ) {
                 toDelete.push(key);
               }
             }
@@ -1734,8 +1765,12 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       }
     } else {
+      // Detect foreign namespace directories to exclude from the walk.
+      // The bound namespace is exempt — its files are pushed with the
+      // namespace prefix stripped from rel so dataKey() produces the
+      // correct remote key (swamp-club#1280).
       const namespaceDirs = this.namespace
-        ? await detectNamespaceDirs(this.cachePath)
+        ? await detectNamespaceDirs(this.cachePath, this.namespace)
         : new Set<string>();
       let namespaceDirSkips = 0;
       const localFiles = new Set<string>();
@@ -1749,9 +1784,12 @@ export class GcsCacheSyncService implements DatastoreSyncService {
             namespaceDirSkips++;
             continue;
           }
-          localFiles.add(rel);
-          if (await this.fileNeedsPush(entry.path, rel)) {
-            toPush.push(rel);
+          const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+            ? rel.substring(nsPrefix.length)
+            : rel;
+          localFiles.add(bareRel);
+          if (await this.fileNeedsPush(entry.path, bareRel)) {
+            toPush.push({ rel: bareRel, path: entry.path });
           }
         }
       } catch {
@@ -1793,14 +1831,14 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       throwIfAborted(signal);
       const batch = toPush.slice(i, i + this.pushConcurrency);
       const results = await Promise.allSettled(
-        batch.map((rel) => this.pushFile(rel, signal)),
+        batch.map(({ rel, path }) => this.pushFile(rel, signal, path)),
       );
       for (let j = 0; j < results.length; j++) {
         const result = results[j];
         if (result.status === "fulfilled") {
           pushed++;
         } else {
-          failures.push({ file: batch[j], error: result.reason });
+          failures.push({ file: batch[j].rel, error: result.reason });
         }
       }
     }
@@ -1820,7 +1858,12 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       const results = await Promise.allSettled(
         batch.map((key) =>
           retryWithBackoff(
-            () => this.gcs.deleteObject(key, undefined, signal),
+            () =>
+              this.gcs.deleteObject(
+                this.dataKey(key),
+                undefined,
+                signal,
+              ),
             { signal },
           )
         ),
@@ -1853,7 +1896,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       }
 
       const dirtyPartitionKeys = new Set<string>();
-      for (const rel of toPush) {
+      for (const { rel } of toPush) {
         const key = GcsCacheSyncService.partitionKeyFromPath(rel);
         if (key) dirtyPartitionKeys.add(key);
       }
@@ -2046,21 +2089,25 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       if (total > 0) return emptyManifest as unknown as PushManifest;
     }
 
-    const toPush: string[] = [];
+    const nsPrefix = this.namespace ? `${this.namespace}/` : "";
+    const toPush: Array<{ rel: string; path: string }> = [];
     const toDelete: string[] = [];
     const useScopedWalk = !this.bulkInvalidated && this.dirtyPaths.size > 0;
 
     if (useScopedWalk) {
       for (const dirtyPath of this.dirtyPaths) {
         const absPath = join(this.cachePath, dirtyPath);
+        const bareDirtyPath = nsPrefix && dirtyPath.startsWith(nsPrefix)
+          ? dirtyPath.substring(nsPrefix.length)
+          : dirtyPath;
         try {
           const stat = await Deno.stat(absPath);
           if (stat.isFile) {
             if (
               !isInternalCacheFile(dirtyPath) &&
-              await this.fileNeedsPush(absPath, dirtyPath)
+              await this.fileNeedsPush(absPath, bareDirtyPath)
             ) {
-              toPush.push(dirtyPath);
+              toPush.push({ rel: bareDirtyPath, path: absPath });
             }
           } else if (stat.isDirectory) {
             const localFilesInDir = new Set<string>();
@@ -2069,15 +2116,18 @@ export class GcsCacheSyncService implements DatastoreSyncService {
             ) {
               const rel = relative(this.cachePath, entry.path);
               if (isInternalCacheFile(rel)) continue;
-              localFilesInDir.add(rel);
-              if (await this.fileNeedsPush(entry.path, rel)) {
-                toPush.push(rel);
+              const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+                ? rel.substring(nsPrefix.length)
+                : rel;
+              localFilesInDir.add(bareRel);
+              if (await this.fileNeedsPush(entry.path, bareRel)) {
+                toPush.push({ rel: bareRel, path: entry.path });
               }
             }
             if (!this.lazyPullActive && this.index) {
-              const prefix = dirtyPath.endsWith("/")
-                ? dirtyPath
-                : dirtyPath + "/";
+              const prefix = bareDirtyPath.endsWith("/")
+                ? bareDirtyPath
+                : bareDirtyPath + "/";
               for (const key of Object.keys(this.index.entries)) {
                 if (isInternalCacheFile(key)) continue;
                 if (key.startsWith(prefix) && !localFilesInDir.has(key)) {
@@ -2093,7 +2143,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           if (!this.lazyPullActive && this.index) {
             for (const key of Object.keys(this.index.entries)) {
               if (isInternalCacheFile(key)) continue;
-              if (key === dirtyPath || key.startsWith(dirtyPath + "/")) {
+              if (
+                key === bareDirtyPath ||
+                key.startsWith(bareDirtyPath + "/")
+              ) {
                 toDelete.push(key);
               }
             }
@@ -2101,8 +2154,12 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       }
     } else {
+      // Detect foreign namespace directories to exclude from the walk.
+      // The bound namespace is exempt — its files are pushed with the
+      // namespace prefix stripped from rel so dataKey() produces the
+      // correct remote key (swamp-club#1280).
       const namespaceDirs = this.namespace
-        ? await detectNamespaceDirs(this.cachePath)
+        ? await detectNamespaceDirs(this.cachePath, this.namespace)
         : new Set<string>();
       const localFiles = new Set<string>();
       try {
@@ -2112,9 +2169,12 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
           if (isInsideNamespaceDir(rel, namespaceDirs)) continue;
-          localFiles.add(rel);
-          if (await this.fileNeedsPush(entry.path, rel)) {
-            toPush.push(rel);
+          const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+            ? rel.substring(nsPrefix.length)
+            : rel;
+          localFiles.add(bareRel);
+          if (await this.fileNeedsPush(entry.path, bareRel)) {
+            toPush.push({ rel: bareRel, path: entry.path });
           }
         }
       } catch {
@@ -2144,8 +2204,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       throwIfAborted(signal);
       const batch = toPush.slice(i, i + this.pushConcurrency);
       const results = await Promise.allSettled(
-        batch.map(async (rel) => {
-          const localPath = assertSafePath(this.cachePath, rel);
+        batch.map(async ({ rel, path: localPath }) => {
           const data = await Deno.readFile(localPath);
           const hashBuffer = await crypto.subtle.digest("SHA-256", data);
           const sha256 = Array.from(new Uint8Array(hashBuffer))
@@ -2170,7 +2229,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           pushed++;
         } else {
           failures.push({
-            file: batch[j],
+            file: batch[j].rel,
             error: (results[j] as PromiseRejectedResult).reason,
           });
         }
@@ -2193,7 +2252,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       const results = await Promise.allSettled(
         batch.map((key) =>
           retryWithBackoff(
-            () => this.gcs.deleteObject(key, undefined, signal),
+            () => this.gcs.deleteObject(this.dataKey(key), undefined, signal),
             { signal },
           )
         ),
@@ -2217,7 +2276,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     }
 
     const dirtyPartitionKeys: string[] = [];
-    for (const rel of toPush) {
+    for (const { rel } of toPush) {
       const key = GcsCacheSyncService.partitionKeyFromPath(rel);
       if (key && !dirtyPartitionKeys.includes(key)) {
         dirtyPartitionKeys.push(key);

@@ -265,11 +265,15 @@ export function isInsideNamespaceDir(
  * The cost is one readDir on the cache root plus one stat per child
  * directory, which is negligible compared to the full walk that follows.
  */
-async function detectNamespaceDirs(cachePath: string): Promise<Set<string>> {
+async function detectNamespaceDirs(
+  cachePath: string,
+  boundNamespace?: string,
+): Promise<Set<string>> {
   const namespaceDirs = new Set<string>();
   try {
     for await (const entry of Deno.readDir(cachePath)) {
       if (!entry.isDirectory) continue;
+      if (entry.name === boundNamespace) continue;
       try {
         await Deno.stat(join(cachePath, entry.name, ".namespace.json"));
         namespaceDirs.add(entry.name);
@@ -1689,9 +1693,23 @@ export class S3CacheSyncService implements DatastoreSyncService {
   async pushFile(
     relativePath: string,
     signal?: AbortSignal,
+    overrideLocalPath?: string,
   ): Promise<void> {
     await this.markDirty();
-    const localPath = assertSafePath(this.cachePath, relativePath);
+    let localPath: string;
+    if (overrideLocalPath) {
+      const resolved = normalize(overrideLocalPath);
+      const normalizedCache = normalize(this.cachePath);
+      if (
+        !resolved.startsWith(normalizedCache + "/") &&
+        resolved !== normalizedCache
+      ) {
+        throw new Error(`Path traversal detected: ${overrideLocalPath}`);
+      }
+      localPath = resolved;
+    } else {
+      localPath = assertSafePath(this.cachePath, relativePath);
+    }
     const data = await Deno.readFile(localPath);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     const sha256 = Array.from(new Uint8Array(hashBuffer))
@@ -1790,21 +1808,25 @@ export class S3CacheSyncService implements DatastoreSyncService {
     }
 
     const walkStart = Date.now();
-    const toPush: string[] = [];
+    const nsPrefix = this.namespace ? `${this.namespace}/` : "";
+    const toPush: Array<{ rel: string; path: string }> = [];
     const toDelete: string[] = [];
     const useScopedWalk = !this.bulkInvalidated && this.dirtyPaths.size > 0;
 
     if (useScopedWalk) {
       for (const dirtyPath of this.dirtyPaths) {
         const absPath = join(this.cachePath, dirtyPath);
+        const bareDirtyPath = nsPrefix && dirtyPath.startsWith(nsPrefix)
+          ? dirtyPath.substring(nsPrefix.length)
+          : dirtyPath;
         try {
           const stat = await Deno.stat(absPath);
           if (stat.isFile) {
             if (
               !isInternalCacheFile(dirtyPath) &&
-              await this.fileNeedsPush(absPath, dirtyPath)
+              await this.fileNeedsPush(absPath, bareDirtyPath)
             ) {
-              toPush.push(dirtyPath);
+              toPush.push({ rel: bareDirtyPath, path: absPath });
             }
           } else if (stat.isDirectory) {
             const localFilesInDir = new Set<string>();
@@ -1813,17 +1835,20 @@ export class S3CacheSyncService implements DatastoreSyncService {
             ) {
               const rel = relative(this.cachePath, entry.path);
               if (isInternalCacheFile(rel)) continue;
-              localFilesInDir.add(rel);
-              if (await this.fileNeedsPush(entry.path, rel)) {
-                toPush.push(rel);
+              const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+                ? rel.substring(nsPrefix.length)
+                : rel;
+              localFilesInDir.add(bareRel);
+              if (await this.fileNeedsPush(entry.path, bareRel)) {
+                toPush.push({ rel: bareRel, path: entry.path });
               }
             }
             // Check for index entries under this directory that no
             // longer have local files (file deleted but dir remains).
             if (!this.lazyPullActive && this.index) {
-              const prefix = dirtyPath.endsWith("/")
-                ? dirtyPath
-                : dirtyPath + "/";
+              const prefix = bareDirtyPath.endsWith("/")
+                ? bareDirtyPath
+                : bareDirtyPath + "/";
               for (const rel of Object.keys(this.index.entries)) {
                 if (isInternalCacheFile(rel)) continue;
                 if (rel.startsWith(prefix) && !localFilesInDir.has(rel)) {
@@ -1844,12 +1869,12 @@ export class S3CacheSyncService implements DatastoreSyncService {
           // lazy pull is active: absent files are un-hydrated, not
           // deleted.
           if (!this.lazyPullActive && this.index) {
-            const prefix = dirtyPath.endsWith("/")
-              ? dirtyPath
-              : dirtyPath + "/";
+            const prefix = bareDirtyPath.endsWith("/")
+              ? bareDirtyPath
+              : bareDirtyPath + "/";
             for (const rel of Object.keys(this.index.entries)) {
               if (isInternalCacheFile(rel)) continue;
-              if (rel === dirtyPath || rel.startsWith(prefix)) {
+              if (rel === bareDirtyPath || rel.startsWith(prefix)) {
                 toDelete.push(rel);
               }
             }
@@ -1857,12 +1882,12 @@ export class S3CacheSyncService implements DatastoreSyncService {
         }
       }
     } else {
-      // Detect namespace directories to exclude from the walk.
-      // Without this, nested copies of the bound namespace or foreign
-      // namespace directories under the cache root would be walked and
-      // uploaded as doubled/foreign index keys (swamp-club#1033).
+      // Detect foreign namespace directories to exclude from the walk.
+      // The bound namespace is exempt — its files are pushed with the
+      // namespace prefix stripped from rel so dataKey() produces the
+      // correct remote key (swamp-club#1280).
       const namespaceDirs = this.namespace
-        ? await detectNamespaceDirs(this.cachePath)
+        ? await detectNamespaceDirs(this.cachePath, this.namespace)
         : new Set<string>();
       let namespaceDirSkips = 0;
       const localFiles = new Set<string>();
@@ -1876,9 +1901,12 @@ export class S3CacheSyncService implements DatastoreSyncService {
             namespaceDirSkips++;
             continue;
           }
-          localFiles.add(rel);
-          if (await this.fileNeedsPush(entry.path, rel)) {
-            toPush.push(rel);
+          const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+            ? rel.substring(nsPrefix.length)
+            : rel;
+          localFiles.add(bareRel);
+          if (await this.fileNeedsPush(entry.path, bareRel)) {
+            toPush.push({ rel: bareRel, path: entry.path });
           }
         }
       } catch {
@@ -1920,14 +1948,14 @@ export class S3CacheSyncService implements DatastoreSyncService {
       throwIfAborted(signal);
       const batch = toPush.slice(i, i + this.pushConcurrency);
       const results = await Promise.allSettled(
-        batch.map((rel) => this.pushFile(rel, signal)),
+        batch.map(({ rel, path }) => this.pushFile(rel, signal, path)),
       );
       for (let j = 0; j < results.length; j++) {
         const result = results[j];
         if (result.status === "fulfilled") {
           pushed++;
         } else {
-          failures.push({ file: batch[j], error: result.reason });
+          failures.push({ file: batch[j].rel, error: result.reason });
         }
       }
     }
@@ -1947,7 +1975,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       const results = await Promise.allSettled(
         batch.map((rel) =>
           retryWithBackoff(
-            () => this.s3.deleteObject(rel, signal),
+            () => this.s3.deleteObject(this.dataKey(rel), signal),
             { signal },
           )
         ),
@@ -1981,7 +2009,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       }
 
       const dirtyPartitionKeys = new Set<string>();
-      for (const rel of toPush) {
+      for (const { rel } of toPush) {
         const key = S3CacheSyncService.partitionKeyFromPath(rel);
         if (key) dirtyPartitionKeys.add(key);
       }
@@ -2178,21 +2206,25 @@ export class S3CacheSyncService implements DatastoreSyncService {
       if (total > 0) return emptyManifest as unknown as PushManifest;
     }
 
-    const toPush: string[] = [];
+    const nsPrefix = this.namespace ? `${this.namespace}/` : "";
+    const toPush: Array<{ rel: string; path: string }> = [];
     const toDelete: string[] = [];
     const useScopedWalk = !this.bulkInvalidated && this.dirtyPaths.size > 0;
 
     if (useScopedWalk) {
       for (const dirtyPath of this.dirtyPaths) {
         const absPath = join(this.cachePath, dirtyPath);
+        const bareDirtyPath = nsPrefix && dirtyPath.startsWith(nsPrefix)
+          ? dirtyPath.substring(nsPrefix.length)
+          : dirtyPath;
         try {
           const stat = await Deno.stat(absPath);
           if (stat.isFile) {
             if (
               !isInternalCacheFile(dirtyPath) &&
-              await this.fileNeedsPush(absPath, dirtyPath)
+              await this.fileNeedsPush(absPath, bareDirtyPath)
             ) {
-              toPush.push(dirtyPath);
+              toPush.push({ rel: bareDirtyPath, path: absPath });
             }
           } else if (stat.isDirectory) {
             const localFilesInDir = new Set<string>();
@@ -2201,15 +2233,18 @@ export class S3CacheSyncService implements DatastoreSyncService {
             ) {
               const rel = relative(this.cachePath, entry.path);
               if (isInternalCacheFile(rel)) continue;
-              localFilesInDir.add(rel);
-              if (await this.fileNeedsPush(entry.path, rel)) {
-                toPush.push(rel);
+              const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+                ? rel.substring(nsPrefix.length)
+                : rel;
+              localFilesInDir.add(bareRel);
+              if (await this.fileNeedsPush(entry.path, bareRel)) {
+                toPush.push({ rel: bareRel, path: entry.path });
               }
             }
             if (!this.lazyPullActive && this.index) {
-              const prefix = dirtyPath.endsWith("/")
-                ? dirtyPath
-                : dirtyPath + "/";
+              const prefix = bareDirtyPath.endsWith("/")
+                ? bareDirtyPath
+                : bareDirtyPath + "/";
               for (const rel of Object.keys(this.index.entries)) {
                 if (isInternalCacheFile(rel)) continue;
                 if (rel.startsWith(prefix) && !localFilesInDir.has(rel)) {
@@ -2223,12 +2258,12 @@ export class S3CacheSyncService implements DatastoreSyncService {
             continue;
           }
           if (!this.lazyPullActive && this.index) {
-            const prefix = dirtyPath.endsWith("/")
-              ? dirtyPath
-              : dirtyPath + "/";
+            const prefix = bareDirtyPath.endsWith("/")
+              ? bareDirtyPath
+              : bareDirtyPath + "/";
             for (const rel of Object.keys(this.index.entries)) {
               if (isInternalCacheFile(rel)) continue;
-              if (rel === dirtyPath || rel.startsWith(prefix)) {
+              if (rel === bareDirtyPath || rel.startsWith(prefix)) {
                 toDelete.push(rel);
               }
             }
@@ -2237,7 +2272,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       }
     } else {
       const namespaceDirs = this.namespace
-        ? await detectNamespaceDirs(this.cachePath)
+        ? await detectNamespaceDirs(this.cachePath, this.namespace)
         : new Set<string>();
       const localFiles = new Set<string>();
       try {
@@ -2247,9 +2282,12 @@ export class S3CacheSyncService implements DatastoreSyncService {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
           if (isInsideNamespaceDir(rel, namespaceDirs)) continue;
-          localFiles.add(rel);
-          if (await this.fileNeedsPush(entry.path, rel)) {
-            toPush.push(rel);
+          const bareRel = nsPrefix && rel.startsWith(nsPrefix)
+            ? rel.substring(nsPrefix.length)
+            : rel;
+          localFiles.add(bareRel);
+          if (await this.fileNeedsPush(entry.path, bareRel)) {
+            toPush.push({ rel: bareRel, path: entry.path });
           }
         }
       } catch {
@@ -2279,8 +2317,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       throwIfAborted(signal);
       const batch = toPush.slice(i, i + this.pushConcurrency);
       const results = await Promise.allSettled(
-        batch.map(async (rel) => {
-          const localPath = assertSafePath(this.cachePath, rel);
+        batch.map(async ({ rel, path: localPath }) => {
           const data = await Deno.readFile(localPath);
           const hashBuffer = await crypto.subtle.digest("SHA-256", data);
           const sha256 = Array.from(new Uint8Array(hashBuffer))
@@ -2305,7 +2342,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
           pushed++;
         } else {
           failures.push({
-            file: batch[j],
+            file: batch[j].rel,
             error: (results[j] as PromiseRejectedResult).reason,
           });
         }
@@ -2328,7 +2365,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       const results = await Promise.allSettled(
         batch.map((rel) =>
           retryWithBackoff(
-            () => this.s3.deleteObject(rel, signal),
+            () => this.s3.deleteObject(this.dataKey(rel), signal),
             { signal },
           )
         ),
@@ -2352,7 +2389,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
     }
 
     const dirtyPartitionKeys: string[] = [];
-    for (const rel of toPush) {
+    for (const { rel } of toPush) {
       const key = S3CacheSyncService.partitionKeyFromPath(rel);
       if (key && !dirtyPartitionKeys.includes(key)) {
         dirtyPartitionKeys.push(key);
