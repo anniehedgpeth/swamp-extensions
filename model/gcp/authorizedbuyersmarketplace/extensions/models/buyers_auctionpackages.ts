@@ -177,7 +177,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Authorized Buyers Marketplace Buyers.AuctionPackages. Registered at `@swamp/gcp/authorizedbuyersmarketplace/buyers-auctionpackages`. */
 export const model = {
   type: "@swamp/gcp/authorizedbuyersmarketplace/buyers-auctionpackages",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -266,6 +266,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

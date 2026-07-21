@@ -300,10 +300,10 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Registry Bindings. Registered at `@swamp/gcp/agentregistry/bindings`. */
 export const model = {
   type: "@swamp/gcp/agentregistry/bindings",
-  version: "2026.07.21.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
-      toVersion: "2026.07.21.1",
+      toVersion: "2026.07.21.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -677,7 +677,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

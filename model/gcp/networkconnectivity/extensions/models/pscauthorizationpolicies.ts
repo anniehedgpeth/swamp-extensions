@@ -251,7 +251,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity PscAuthorizationPolicies. Registered at `@swamp/gcp/networkconnectivity/pscauthorizationpolicies`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/pscauthorizationpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

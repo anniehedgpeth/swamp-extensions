@@ -140,7 +140,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center ValuedResources. Registered at `@swamp/gcp/securitycenter/valuedresources`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/valuedresources",
-  version: "2026.07.20.2",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -239,6 +239,21 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

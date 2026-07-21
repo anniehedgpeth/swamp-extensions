@@ -144,7 +144,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Customer.Devices.Chromeos.Commands. Registered at `@swamp/gcp/admin/customer-devices-chromeos-commands`. */
 export const model = {
   type: "@swamp/gcp/admin/customer-devices-chromeos-commands",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

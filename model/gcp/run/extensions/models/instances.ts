@@ -1229,7 +1229,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Instances. Registered at `@swamp/gcp/run/instances`. */
 export const model = {
   type: "@swamp/gcp/run/instances",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1423,6 +1423,31 @@ export const model = {
       description: "Removed: terminalCondition",
       upgradeAttributes: (old: Record<string, unknown>) => {
         const { terminalCondition: _terminalCondition, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Added: timeout. Removed: defaultUriDisabled, restartPolicy",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          defaultUriDisabled: _defaultUriDisabled,
+          restartPolicy: _restartPolicy,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
+      description: "Added: defaultUriDisabled, restartPolicy. Removed: timeout",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { timeout: _timeout, ...rest } = old;
         return rest;
       },
     },
@@ -1876,7 +1901,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

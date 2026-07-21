@@ -137,7 +137,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Safe Browsing EncodedFullHashes. Registered at `@swamp/gcp/safebrowsing/encodedfullhashes`. */
 export const model = {
   type: "@swamp/gcp/safebrowsing/encodedfullhashes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

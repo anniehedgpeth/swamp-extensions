@@ -972,13 +972,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/run/namespaces-services",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Added: status",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

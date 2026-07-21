@@ -168,7 +168,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Tokens. Registered at `@swamp/gcp/admin/tokens`. */
 export const model = {
   type: "@swamp/gcp/admin/tokens",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

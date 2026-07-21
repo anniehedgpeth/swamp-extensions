@@ -148,7 +148,7 @@ const GlobalArgsSchema = z.object({
         "CSV file for the instruction. Only gcs path is allowed.",
       ).optional(),
     }).describe(
-      "Deprecated: this instruction format is not supported any more. Instruction from a CSV file.",
+      "Deprecated: this instruction format is not supported any more. Instruction from a CSV file, such as for classification task. The CSV file should have exact two columns, in the following format: * The first column is labeled data, such as an image reference, text. * The second column is comma separated labels associated with data.",
     ).optional(),
     dataType: z.enum([
       "DATA_TYPE_UNSPECIFIED",
@@ -170,13 +170,14 @@ const GlobalArgsSchema = z.object({
       gcsFileUri: z.string().describe(
         "PDF file for the instruction. Only gcs path is allowed.",
       ).optional(),
-    }).describe("Instruction from a PDF file.").optional(),
+    }).describe(
+      "Instruction from a PDF document. The PDF should be in a Cloud Storage bucket.",
+    ).optional(),
     updateTime: z.string().describe(
       "Output only. Last update time of instruction.",
     ).optional(),
-  }).describe(
-    "Instruction of how to perform the labeling task for human operators. Currently only PDF instruction is supported.",
-  ).optional(),
+  }).describe("Required. Instruction of how to perform the labeling task.")
+    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -218,7 +219,7 @@ const InputsSchema = z.object({
         "CSV file for the instruction. Only gcs path is allowed.",
       ).optional(),
     }).describe(
-      "Deprecated: this instruction format is not supported any more. Instruction from a CSV file.",
+      "Deprecated: this instruction format is not supported any more. Instruction from a CSV file, such as for classification task. The CSV file should have exact two columns, in the following format: * The first column is labeled data, such as an image reference, text. * The second column is comma separated labels associated with data.",
     ).optional(),
     dataType: z.enum([
       "DATA_TYPE_UNSPECIFIED",
@@ -240,13 +241,14 @@ const InputsSchema = z.object({
       gcsFileUri: z.string().describe(
         "PDF file for the instruction. Only gcs path is allowed.",
       ).optional(),
-    }).describe("Instruction from a PDF file.").optional(),
+    }).describe(
+      "Instruction from a PDF document. The PDF should be in a Cloud Storage bucket.",
+    ).optional(),
     updateTime: z.string().describe(
       "Output only. Last update time of instruction.",
     ).optional(),
-  }).describe(
-    "Instruction of how to perform the labeling task for human operators. Currently only PDF instruction is supported.",
-  ).optional(),
+  }).describe("Required. Instruction of how to perform the labeling task.")
+    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -275,7 +277,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Labeling Instructions. Registered at `@swamp/gcp/datalabeling/instructions`. */
 export const model = {
   type: "@swamp/gcp/datalabeling/instructions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -357,6 +359,16 @@ export const model = {
       description: "Added: scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -398,16 +410,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

@@ -224,7 +224,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Conversations.Participants. Registered at `@swamp/gcp/dialogflow/conversations-participants`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/conversations-participants",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -262,7 +262,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Number Registry RegistryBooks. Registered at `@swamp/gcp/cloudnumberregistry/registrybooks`. */
 export const model = {
   type: "@swamp/gcp/cloudnumberregistry/registrybooks",
-  version: "2026.07.21.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.05.19.1",
@@ -346,6 +346,11 @@ export const model = {
         const { aggregatedData: _aggregatedData, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

@@ -191,7 +191,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Size, in terabytes, of the DATA disk group.",
     ).optional(),
     databaseServerType: z.string().describe(
-      "Output only. The database server type of the Exadata Infrastructure.",
+      "Optional. The database server type of the Exadata Infrastructure.",
     ).optional(),
     dbNodeStorageSizeGb: z.number().int().describe(
       "Output only. The local node storage allocated in GBs.",
@@ -327,7 +327,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The number of Cloud Exadata storage servers for the Exadata Infrastructure.",
     ).optional(),
     storageServerType: z.string().describe(
-      "Output only. The storage server type of the Exadata Infrastructure.",
+      "Optional. The storage server type of the Exadata Infrastructure.",
     ).optional(),
     storageServerVersion: z.string().describe(
       "Output only. The software version of the storage servers (cells) in the Exadata Infrastructure.",
@@ -454,7 +454,7 @@ const InputsSchema = z.object({
       "Output only. Size, in terabytes, of the DATA disk group.",
     ).optional(),
     databaseServerType: z.string().describe(
-      "Output only. The database server type of the Exadata Infrastructure.",
+      "Optional. The database server type of the Exadata Infrastructure.",
     ).optional(),
     dbNodeStorageSizeGb: z.number().int().describe(
       "Output only. The local node storage allocated in GBs.",
@@ -590,7 +590,7 @@ const InputsSchema = z.object({
       "Optional. The number of Cloud Exadata storage servers for the Exadata Infrastructure.",
     ).optional(),
     storageServerType: z.string().describe(
-      "Output only. The storage server type of the Exadata Infrastructure.",
+      "Optional. The storage server type of the Exadata Infrastructure.",
     ).optional(),
     storageServerVersion: z.string().describe(
       "Output only. The software version of the storage servers (cells) in the Exadata Infrastructure.",
@@ -633,7 +633,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud CloudExadataInfrastructures. Registered at `@swamp/gcp/oracledatabase/cloudexadatainfrastructures`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/cloudexadatainfrastructures",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -752,6 +752,21 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

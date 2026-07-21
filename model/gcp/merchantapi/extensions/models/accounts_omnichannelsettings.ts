@@ -393,16 +393,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-omnichannelsettings",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: lfpLink",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { lfpLink: _lfpLink, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

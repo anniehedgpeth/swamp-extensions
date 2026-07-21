@@ -133,7 +133,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.TermsOfServiceAgreementStates. Registered at `@swamp/gcp/merchantapi/accounts-termsofserviceagreementstates`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-termsofserviceagreementstates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -260,7 +260,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

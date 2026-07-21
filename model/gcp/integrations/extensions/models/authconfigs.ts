@@ -199,9 +199,7 @@ const GlobalArgsSchema = z.object({
       type: z.string().describe(
         'Authentication type, e.g. "Basic", "Bearer", etc.',
       ).optional(),
-    }).describe(
-      "The credentials to authenticate a user agent with a server that is put in HTTP Authorization request header.",
-    ).optional(),
+    }).describe("Auth token credential").optional(),
     credentialType: z.enum([
       "CREDENTIAL_TYPE_UNSPECIFIED",
       "USERNAME_AND_PASSWORD",
@@ -228,9 +226,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       secret: z.string().describe("User's pre-shared secret to sign the token.")
         .optional(),
-    }).describe(
-      "Represents JSON web token(JWT), which is a compact, URL-safe means of representing claims to be transferred between two parties, enabling the claims to be digitally signed or integrity protected.",
-    ).optional(),
+    }).describe("JWT credential").optional(),
     oauth2AuthorizationCode: z.object({
       accessToken: z.object({
         accessToken: z.string().describe(
@@ -248,9 +244,8 @@ const GlobalArgsSchema = z.object({
         tokenType: z.string().describe(
           'Only support "bearer" token in v1 as bearer token is the predominant type used with OAuth 2.0.',
         ).optional(),
-      }).describe(
-        "The access token represents the authorization of a specific application to access specific parts of a user’s data.",
-      ).optional(),
+      }).describe("The access token received from the token endpoint.")
+        .optional(),
       applyReauthPolicy: z.boolean().describe(
         "Indicates if the user has opted in Google Reauth Policy. If opted in, the refresh token will be valid for 20 hours, after which time users must re-authenticate in order to obtain a new one.",
       ).optional(),
@@ -262,12 +257,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       authParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -313,9 +304,8 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
+      }).describe("The auth parameters sent along with the auth code request.")
+        .optional(),
       clientId: z.string().describe("The client's id.").optional(),
       clientSecret: z.string().describe("The client's secret.").optional(),
       requestType: z.enum([
@@ -333,12 +323,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       tokenParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -384,11 +370,10 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
+      }).describe("The token parameters sent along with the token request.")
+        .optional(),
     }).describe(
-      "The OAuth Type where the client sends request with the client id and requested scopes to auth endpoint. User sees a consent screen and auth code is received at specified redirect url afterwards. The auth code is then combined with the client id and secret and sent to the token endpoint in exchange for the access and refresh token. The refresh token can be used to fetch new access tokens.",
+      "The api_key and oauth2_implicit are not covered in v1 and will be picked up once v1 is implemented. ApiKey api_key = 3; OAuth2 authorization code credential",
     ).optional(),
     oauth2ClientCredentials: z.object({
       accessToken: z.object({
@@ -407,9 +392,8 @@ const GlobalArgsSchema = z.object({
         tokenType: z.string().describe(
           'Only support "bearer" token in v1 as bearer token is the predominant type used with OAuth 2.0.',
         ).optional(),
-      }).describe(
-        "The access token represents the authorization of a specific application to access specific parts of a user’s data.",
-      ).optional(),
+      }).describe("Access token fetched from the authorization server.")
+        .optional(),
       clientId: z.string().describe("The client's ID.").optional(),
       clientSecret: z.string().describe("The client's secret.").optional(),
       requestType: z.enum([
@@ -427,12 +411,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       tokenParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -478,12 +458,9 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
-    }).describe(
-      "For client credentials grant, the client sends a POST request with grant_type as 'client_credentials' to the authorization server. The authorization server will respond with a JSON object containing the access token.",
-    ).optional(),
+      }).describe("Token parameters for the auth request.").optional(),
+    }).describe("OAuth2Implicit oauth2_implicit = 5; OAuth2 client credentials")
+      .optional(),
     oauth2ResourceOwnerCredentials: z.object({
       accessToken: z.object({
         accessToken: z.string().describe(
@@ -501,9 +478,8 @@ const GlobalArgsSchema = z.object({
         tokenType: z.string().describe(
           'Only support "bearer" token in v1 as bearer token is the predominant type used with OAuth 2.0.',
         ).optional(),
-      }).describe(
-        "The access token represents the authorization of a specific application to access specific parts of a user’s data.",
-      ).optional(),
+      }).describe("Access token fetched from the authorization server.")
+        .optional(),
       clientId: z.string().describe("The client's ID.").optional(),
       clientSecret: z.string().describe("The client's secret.").optional(),
       password: z.string().describe("The user's password.").optional(),
@@ -522,12 +498,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       tokenParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -573,13 +545,9 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
+      }).describe("Token parameters for the auth request.").optional(),
       username: z.string().describe("The user's username.").optional(),
-    }).describe(
-      "For resource owner credentials grant, the client will ask the user for their authorization credentials (ususally a username and password) and send a POST request to the authorization server. The authorization server will respond with a JSON object containing the access token.",
-    ).optional(),
+    }).describe("OAuth2 resource owner credentials").optional(),
     oidcToken: z.object({
       audience: z.string().describe(
         "Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for.",
@@ -592,7 +560,7 @@ const GlobalArgsSchema = z.object({
       tokenExpireTime: z.string().describe(
         "The approximate time until the token retrieved is valid.",
       ).optional(),
-    }).describe("OIDC Token").optional(),
+    }).describe("Google OIDC ID Token").optional(),
     serviceAccountCredentials: z.object({
       scope: z.string().describe(
         "A space-delimited list of requested scope permissions.",
@@ -600,15 +568,12 @@ const GlobalArgsSchema = z.object({
       serviceAccount: z.string().describe(
         "Name of the service account that has the permission to make the request.",
       ).optional(),
-    }).describe(
-      "Represents the service account which can be used to generate access token for authenticating the service call.",
-    ).optional(),
+    }).describe("Service account credential").optional(),
     usernameAndPassword: z.object({
       password: z.string().describe("Password to be used").optional(),
       username: z.string().describe("Username to be used").optional(),
-    }).describe("Username and password pair.").optional(),
-  }).describe("Defines parameters for a single, canonical credential.")
-    .optional(),
+    }).describe("Username and password credential").optional(),
+  }).describe("Raw auth credentials.").optional(),
   description: z.string().describe(
     "Optional. A description of the auth config.",
   ).optional(),
@@ -809,9 +774,7 @@ const InputsSchema = z.object({
       type: z.string().describe(
         'Authentication type, e.g. "Basic", "Bearer", etc.',
       ).optional(),
-    }).describe(
-      "The credentials to authenticate a user agent with a server that is put in HTTP Authorization request header.",
-    ).optional(),
+    }).describe("Auth token credential").optional(),
     credentialType: z.enum([
       "CREDENTIAL_TYPE_UNSPECIFIED",
       "USERNAME_AND_PASSWORD",
@@ -838,9 +801,7 @@ const InputsSchema = z.object({
       ).optional(),
       secret: z.string().describe("User's pre-shared secret to sign the token.")
         .optional(),
-    }).describe(
-      "Represents JSON web token(JWT), which is a compact, URL-safe means of representing claims to be transferred between two parties, enabling the claims to be digitally signed or integrity protected.",
-    ).optional(),
+    }).describe("JWT credential").optional(),
     oauth2AuthorizationCode: z.object({
       accessToken: z.object({
         accessToken: z.string().describe(
@@ -858,9 +819,8 @@ const InputsSchema = z.object({
         tokenType: z.string().describe(
           'Only support "bearer" token in v1 as bearer token is the predominant type used with OAuth 2.0.',
         ).optional(),
-      }).describe(
-        "The access token represents the authorization of a specific application to access specific parts of a user’s data.",
-      ).optional(),
+      }).describe("The access token received from the token endpoint.")
+        .optional(),
       applyReauthPolicy: z.boolean().describe(
         "Indicates if the user has opted in Google Reauth Policy. If opted in, the refresh token will be valid for 20 hours, after which time users must re-authenticate in order to obtain a new one.",
       ).optional(),
@@ -872,12 +832,8 @@ const InputsSchema = z.object({
       ).optional(),
       authParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -923,9 +879,8 @@ const InputsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
+      }).describe("The auth parameters sent along with the auth code request.")
+        .optional(),
       clientId: z.string().describe("The client's id.").optional(),
       clientSecret: z.string().describe("The client's secret.").optional(),
       requestType: z.enum([
@@ -943,12 +898,8 @@ const InputsSchema = z.object({
       ).optional(),
       tokenParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -994,11 +945,10 @@ const InputsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
+      }).describe("The token parameters sent along with the token request.")
+        .optional(),
     }).describe(
-      "The OAuth Type where the client sends request with the client id and requested scopes to auth endpoint. User sees a consent screen and auth code is received at specified redirect url afterwards. The auth code is then combined with the client id and secret and sent to the token endpoint in exchange for the access and refresh token. The refresh token can be used to fetch new access tokens.",
+      "The api_key and oauth2_implicit are not covered in v1 and will be picked up once v1 is implemented. ApiKey api_key = 3; OAuth2 authorization code credential",
     ).optional(),
     oauth2ClientCredentials: z.object({
       accessToken: z.object({
@@ -1017,9 +967,8 @@ const InputsSchema = z.object({
         tokenType: z.string().describe(
           'Only support "bearer" token in v1 as bearer token is the predominant type used with OAuth 2.0.',
         ).optional(),
-      }).describe(
-        "The access token represents the authorization of a specific application to access specific parts of a user’s data.",
-      ).optional(),
+      }).describe("Access token fetched from the authorization server.")
+        .optional(),
       clientId: z.string().describe("The client's ID.").optional(),
       clientSecret: z.string().describe("The client's secret.").optional(),
       requestType: z.enum([
@@ -1037,12 +986,8 @@ const InputsSchema = z.object({
       ).optional(),
       tokenParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -1088,12 +1033,9 @@ const InputsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
-    }).describe(
-      "For client credentials grant, the client sends a POST request with grant_type as 'client_credentials' to the authorization server. The authorization server will respond with a JSON object containing the access token.",
-    ).optional(),
+      }).describe("Token parameters for the auth request.").optional(),
+    }).describe("OAuth2Implicit oauth2_implicit = 5; OAuth2 client credentials")
+      .optional(),
     oauth2ResourceOwnerCredentials: z.object({
       accessToken: z.object({
         accessToken: z.string().describe(
@@ -1111,9 +1053,8 @@ const InputsSchema = z.object({
         tokenType: z.string().describe(
           'Only support "bearer" token in v1 as bearer token is the predominant type used with OAuth 2.0.',
         ).optional(),
-      }).describe(
-        "The access token represents the authorization of a specific application to access specific parts of a user’s data.",
-      ).optional(),
+      }).describe("Access token fetched from the authorization server.")
+        .optional(),
       clientId: z.string().describe("The client's ID.").optional(),
       clientSecret: z.string().describe("The client's secret.").optional(),
       password: z.string().describe("The user's password.").optional(),
@@ -1132,12 +1073,8 @@ const InputsSchema = z.object({
       ).optional(),
       tokenParams: z.object({
         entries: z.array(z.object({
-          key: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
-          value: z.unknown().describe(
-            "Field represents either the key or value in an entry.",
-          ).optional(),
+          key: z.unknown().describe("Key of the map entry.").optional(),
+          value: z.unknown().describe("Value of the map entry.").optional(),
         })).describe("A list of parameter map entries.").optional(),
         keyType: z.enum([
           "INTEGRATION_PARAMETER_DATA_TYPE_UNSPECIFIED",
@@ -1183,13 +1120,9 @@ const InputsSchema = z.object({
         ]).describe(
           "Option to specify value type for all entries of the map. If provided then field types for all entries must conform to this.",
         ).optional(),
-      }).describe(
-        "A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.",
-      ).optional(),
+      }).describe("Token parameters for the auth request.").optional(),
       username: z.string().describe("The user's username.").optional(),
-    }).describe(
-      "For resource owner credentials grant, the client will ask the user for their authorization credentials (ususally a username and password) and send a POST request to the authorization server. The authorization server will respond with a JSON object containing the access token.",
-    ).optional(),
+    }).describe("OAuth2 resource owner credentials").optional(),
     oidcToken: z.object({
       audience: z.string().describe(
         "Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for.",
@@ -1202,7 +1135,7 @@ const InputsSchema = z.object({
       tokenExpireTime: z.string().describe(
         "The approximate time until the token retrieved is valid.",
       ).optional(),
-    }).describe("OIDC Token").optional(),
+    }).describe("Google OIDC ID Token").optional(),
     serviceAccountCredentials: z.object({
       scope: z.string().describe(
         "A space-delimited list of requested scope permissions.",
@@ -1210,15 +1143,12 @@ const InputsSchema = z.object({
       serviceAccount: z.string().describe(
         "Name of the service account that has the permission to make the request.",
       ).optional(),
-    }).describe(
-      "Represents the service account which can be used to generate access token for authenticating the service call.",
-    ).optional(),
+    }).describe("Service account credential").optional(),
     usernameAndPassword: z.object({
       password: z.string().describe("Password to be used").optional(),
       username: z.string().describe("Username to be used").optional(),
-    }).describe("Username and password pair.").optional(),
-  }).describe("Defines parameters for a single, canonical credential.")
-    .optional(),
+    }).describe("Username and password credential").optional(),
+  }).describe("Raw auth credentials.").optional(),
   description: z.string().describe(
     "Optional. A description of the auth config.",
   ).optional(),
@@ -1284,7 +1214,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Application Integration AuthConfigs. Registered at `@swamp/gcp/integrations/authconfigs`. */
 export const model = {
   type: "@swamp/gcp/integrations/authconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1344,6 +1274,16 @@ export const model = {
     {
       toVersion: "2026.07.20.1",
       description: "Added: accessToken, credentialsJson, project, scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

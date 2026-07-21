@@ -252,7 +252,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build GitLabConfigs. Registered at `@swamp/gcp/cloudbuild/gitlabconfigs`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/gitlabconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

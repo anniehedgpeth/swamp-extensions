@@ -1480,22 +1480,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/cloudbuild/builds",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: approval, failureInfo, results, sourceProvenance",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          approval: _approval,
-          failureInfo: _failureInfo,
-          results: _results,
-          sourceProvenance: _sourceProvenance,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

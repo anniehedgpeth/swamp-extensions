@@ -190,17 +190,18 @@ const GlobalArgsSchema = z.object({
           "Optional. Instruction message showed on contributors UI.",
         ).optional(),
       }).describe(
-        "Config for image bounding poly (and bounding box) human labeling task.",
+        "Specify this field if your model version performs image object detection (bounding box detection). `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet.",
       ).optional(),
       evaluationConfig: z.object({
         boundingBoxEvaluationOptions: z.object({
           iouThreshold: z.number().describe(
             "Minimum [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) required for 2 bounding boxes to be considered a match. This must be a number between 0 and 1.",
           ).optional(),
-        }).describe("Options regarding evaluation between bounding boxes.")
-          .optional(),
+        }).describe(
+          "Only specify this field if the related model performs image object detection (`IMAGE_BOUNDING_BOX_ANNOTATION`). Describes how to evaluate bounding boxes.",
+        ).optional(),
       }).describe(
-        "Configuration details used for calculating evaluation metrics and creating an Evaluation.",
+        "Required. Details for calculating evaluation metrics and creating Evaulations. If your model version performs image object detection, you must specify the `boundingBoxEvaluationOptions` field within this configuration. Otherwise, provide an empty object for this configuration.",
       ).optional(),
       evaluationJobAlertConfig: z.object({
         email: z.string().describe(
@@ -210,7 +211,7 @@ const GlobalArgsSchema = z.object({
           "Required. A number between 0 and 1 that describes a minimum mean average precision threshold. When the evaluation job runs, if it calculates that your model version's predictions from the recent interval have meanAveragePrecision below this threshold, then it sends an alert to your specified email.",
         ).optional(),
       }).describe(
-        "Provides details for how an evaluation job sends email alerts based on the results of a run.",
+        "Optional. Configuration details for evaluation job alerts. Specify this field if you want to receive email alerts if the evaluation job finds that your predictions have low mean average precision during a run.",
       ).optional(),
       exampleCount: z.number().int().describe(
         "Required. The maximum number of predictions to sample and save to BigQuery during each evaluation interval. This limit overrides `example_sample_percentage`: even if the service has not sampled enough predictions to fulfill `example_sample_perecentage` during an interval, it stops sampling predictions when it meets this limit.",
@@ -245,8 +246,9 @@ const GlobalArgsSchema = z.object({
         userEmailAddress: z.string().describe(
           "Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.",
         ).optional(),
-      }).describe("Configuration for how human labeling task should be done.")
-        .optional(),
+      }).describe(
+        "Optional. Details for human annotation of your data. If you set labelMissingGroundTruth to `true` for this evaluation job, then you must specify this field. If you plan to provide your own ground truth labels, then omit this field. Note that you must create an Instruction resource before you can specify this field. Provide the name of the instruction resource in the `instruction` field within this configuration.",
+      ).optional(),
       imageClassificationConfig: z.object({
         allowMultiLabel: z.boolean().describe(
           "Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one image.",
@@ -261,8 +263,9 @@ const GlobalArgsSchema = z.object({
           "NO_AGGREGATION",
         ]).describe("Optional. The type of how to aggregate answers.")
           .optional(),
-      }).describe("Config for image classification human labeling task.")
-        .optional(),
+      }).describe(
+        "Specify this field if your model version performs image classification or general classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+      ).optional(),
       inputConfig: z.object({
         annotationType: z.enum([
           "ANNOTATION_TYPE_UNSPECIFIED",
@@ -287,13 +290,15 @@ const GlobalArgsSchema = z.object({
             'Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).',
           ).optional(),
         }).describe(
-          "The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.",
+          "Source located in BigQuery. You must specify this field if you are using this InputConfig in an EvaluationJob.",
         ).optional(),
         classificationMetadata: z.object({
           isMultiLabel: z.boolean().describe(
             "Whether the classification task is multi-label or not.",
           ).optional(),
-        }).describe("Metadata for classification annotations.").optional(),
+        }).describe(
+          "Optional. Metadata about annotations for the input. You must specify this field if you are using this InputConfig in an EvaluationJob for a model version that performs classification.",
+        ).optional(),
         dataType: z.enum([
           "DATA_TYPE_UNSPECIFIED",
           "IMAGE",
@@ -310,15 +315,16 @@ const GlobalArgsSchema = z.object({
           mimeType: z.string().describe(
             'Required. The format of the source file. Only "text/csv" is supported.',
           ).optional(),
-        }).describe("Source of the Cloud Storage file to be imported.")
-          .optional(),
+        }).describe("Source located in Cloud Storage.").optional(),
         textMetadata: z.object({
           languageCode: z.string().describe(
             "The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.",
           ).optional(),
-        }).describe("Metadata for the text.").optional(),
+        }).describe(
+          "Required for text import, as language code must be specified.",
+        ).optional(),
       }).describe(
-        "The configuration of input data, including data type, location, etc.",
+        "Rquired. Details for the sampled prediction input. Within this configuration, there are requirements for several fields: * `dataType` must be one of `IMAGE`, `TEXT`, or `GENERAL_DATA`. * `annotationType` must be one of `IMAGE_CLASSIFICATION_ANNOTATION`, `TEXT_CLASSIFICATION_ANNOTATION`, `GENERAL_CLASSIFICATION_ANNOTATION`, or `IMAGE_BOUNDING_BOX_ANNOTATION` (image object detection). * If your machine learning model performs classification, you must specify `classificationMetadata.isMultiLabel`. * You must specify `bigquerySource` (not `gcsSource`).",
       ).optional(),
       textClassificationConfig: z.object({
         allowMultiLabel: z.boolean().describe(
@@ -331,12 +337,14 @@ const GlobalArgsSchema = z.object({
           enableLabelSentimentSelection: z.boolean().describe(
             "If set to true, contributors will have the option to select sentiment of the label they selected, to mark it as negative or positive label. Default is false.",
           ).optional(),
-        }).describe("Config for setting up sentiments.").optional(),
-      }).describe("Config for text classification human labeling task.")
-        .optional(),
-    }).describe(
-      "Configures specific details of how a continuous evaluation job works. Provide this configuration when you create an EvaluationJob.",
-    ).optional(),
+        }).describe(
+          "Optional. Configs for sentiment selection. We deprecate sentiment analysis in data labeling side as it is incompatible with uCAIP.",
+        ).optional(),
+      }).describe(
+        "Specify this field if your model version performs text classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+      ).optional(),
+    }).describe("Required. Configuration details for the evaluation job.")
+      .optional(),
     labelMissingGroundTruth: z.boolean().describe(
       "Required. Whether you want Data Labeling Service to provide ground truth labels for prediction input. If you want the service to assign human labelers to annotate your data, set this to `true`. If you want to provide your own ground truth labels in the evaluation job's BigQuery table, set this to `false`.",
     ).optional(),
@@ -357,9 +365,7 @@ const GlobalArgsSchema = z.object({
       "STOPPED",
     ]).describe("Output only. Describes the current state of the job.")
       .optional(),
-  }).describe(
-    "Defines an evaluation job that runs periodically to generate Evaluations. [Creating an evaluation job](/ml-engine/docs/continuous-evaluation/create-job) is the starting point for using continuous evaluation.",
-  ).optional(),
+  }).describe("Required. The evaluation job to create.").optional(),
   annotationSpecSet: z.string().describe(
     'Required. Name of the AnnotationSpecSet describing all the labels that your machine learning model outputs. You must create this resource before you create an evaluation job and provide its name in the following format: "projects/{project_id}/annotationSpecSets/{annotation_spec_set_id}"',
   ).optional(),
@@ -397,17 +403,18 @@ const GlobalArgsSchema = z.object({
         "Optional. Instruction message showed on contributors UI.",
       ).optional(),
     }).describe(
-      "Config for image bounding poly (and bounding box) human labeling task.",
+      "Specify this field if your model version performs image object detection (bounding box detection). `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet.",
     ).optional(),
     evaluationConfig: z.object({
       boundingBoxEvaluationOptions: z.object({
         iouThreshold: z.number().describe(
           "Minimum [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) required for 2 bounding boxes to be considered a match. This must be a number between 0 and 1.",
         ).optional(),
-      }).describe("Options regarding evaluation between bounding boxes.")
-        .optional(),
+      }).describe(
+        "Only specify this field if the related model performs image object detection (`IMAGE_BOUNDING_BOX_ANNOTATION`). Describes how to evaluate bounding boxes.",
+      ).optional(),
     }).describe(
-      "Configuration details used for calculating evaluation metrics and creating an Evaluation.",
+      "Required. Details for calculating evaluation metrics and creating Evaulations. If your model version performs image object detection, you must specify the `boundingBoxEvaluationOptions` field within this configuration. Otherwise, provide an empty object for this configuration.",
     ).optional(),
     evaluationJobAlertConfig: z.object({
       email: z.string().describe(
@@ -417,7 +424,7 @@ const GlobalArgsSchema = z.object({
         "Required. A number between 0 and 1 that describes a minimum mean average precision threshold. When the evaluation job runs, if it calculates that your model version's predictions from the recent interval have meanAveragePrecision below this threshold, then it sends an alert to your specified email.",
       ).optional(),
     }).describe(
-      "Provides details for how an evaluation job sends email alerts based on the results of a run.",
+      "Optional. Configuration details for evaluation job alerts. Specify this field if you want to receive email alerts if the evaluation job finds that your predictions have low mean average precision during a run.",
     ).optional(),
     exampleCount: z.number().int().describe(
       "Required. The maximum number of predictions to sample and save to BigQuery during each evaluation interval. This limit overrides `example_sample_percentage`: even if the service has not sampled enough predictions to fulfill `example_sample_perecentage` during an interval, it stops sampling predictions when it meets this limit.",
@@ -452,8 +459,9 @@ const GlobalArgsSchema = z.object({
       userEmailAddress: z.string().describe(
         "Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.",
       ).optional(),
-    }).describe("Configuration for how human labeling task should be done.")
-      .optional(),
+    }).describe(
+      "Optional. Details for human annotation of your data. If you set labelMissingGroundTruth to `true` for this evaluation job, then you must specify this field. If you plan to provide your own ground truth labels, then omit this field. Note that you must create an Instruction resource before you can specify this field. Provide the name of the instruction resource in the `instruction` field within this configuration.",
+    ).optional(),
     imageClassificationConfig: z.object({
       allowMultiLabel: z.boolean().describe(
         "Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one image.",
@@ -467,8 +475,9 @@ const GlobalArgsSchema = z.object({
         "UNANIMOUS_VOTE",
         "NO_AGGREGATION",
       ]).describe("Optional. The type of how to aggregate answers.").optional(),
-    }).describe("Config for image classification human labeling task.")
-      .optional(),
+    }).describe(
+      "Specify this field if your model version performs image classification or general classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+    ).optional(),
     inputConfig: z.object({
       annotationType: z.enum([
         "ANNOTATION_TYPE_UNSPECIFIED",
@@ -493,13 +502,15 @@ const GlobalArgsSchema = z.object({
           'Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).',
         ).optional(),
       }).describe(
-        "The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.",
+        "Source located in BigQuery. You must specify this field if you are using this InputConfig in an EvaluationJob.",
       ).optional(),
       classificationMetadata: z.object({
         isMultiLabel: z.boolean().describe(
           "Whether the classification task is multi-label or not.",
         ).optional(),
-      }).describe("Metadata for classification annotations.").optional(),
+      }).describe(
+        "Optional. Metadata about annotations for the input. You must specify this field if you are using this InputConfig in an EvaluationJob for a model version that performs classification.",
+      ).optional(),
       dataType: z.enum([
         "DATA_TYPE_UNSPECIFIED",
         "IMAGE",
@@ -516,15 +527,16 @@ const GlobalArgsSchema = z.object({
         mimeType: z.string().describe(
           'Required. The format of the source file. Only "text/csv" is supported.',
         ).optional(),
-      }).describe("Source of the Cloud Storage file to be imported.")
-        .optional(),
+      }).describe("Source located in Cloud Storage.").optional(),
       textMetadata: z.object({
         languageCode: z.string().describe(
           "The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.",
         ).optional(),
-      }).describe("Metadata for the text.").optional(),
+      }).describe(
+        "Required for text import, as language code must be specified.",
+      ).optional(),
     }).describe(
-      "The configuration of input data, including data type, location, etc.",
+      "Rquired. Details for the sampled prediction input. Within this configuration, there are requirements for several fields: * `dataType` must be one of `IMAGE`, `TEXT`, or `GENERAL_DATA`. * `annotationType` must be one of `IMAGE_CLASSIFICATION_ANNOTATION`, `TEXT_CLASSIFICATION_ANNOTATION`, `GENERAL_CLASSIFICATION_ANNOTATION`, or `IMAGE_BOUNDING_BOX_ANNOTATION` (image object detection). * If your machine learning model performs classification, you must specify `classificationMetadata.isMultiLabel`. * You must specify `bigquerySource` (not `gcsSource`).",
     ).optional(),
     textClassificationConfig: z.object({
       allowMultiLabel: z.boolean().describe(
@@ -537,12 +549,14 @@ const GlobalArgsSchema = z.object({
         enableLabelSentimentSelection: z.boolean().describe(
           "If set to true, contributors will have the option to select sentiment of the label they selected, to mark it as negative or positive label. Default is false.",
         ).optional(),
-      }).describe("Config for setting up sentiments.").optional(),
-    }).describe("Config for text classification human labeling task.")
-      .optional(),
-  }).describe(
-    "Configures specific details of how a continuous evaluation job works. Provide this configuration when you create an EvaluationJob.",
-  ).optional(),
+      }).describe(
+        "Optional. Configs for sentiment selection. We deprecate sentiment analysis in data labeling side as it is incompatible with uCAIP.",
+      ).optional(),
+    }).describe(
+      "Specify this field if your model version performs text classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+    ).optional(),
+  }).describe("Required. Configuration details for the evaluation job.")
+    .optional(),
   labelMissingGroundTruth: z.boolean().describe(
     "Required. Whether you want Data Labeling Service to provide ground truth labels for prediction input. If you want the service to assign human labelers to annotate your data, set this to `true`. If you want to provide your own ground truth labels in the evaluation job's BigQuery table, set this to `false`.",
   ).optional(),
@@ -690,17 +704,18 @@ const InputsSchema = z.object({
           "Optional. Instruction message showed on contributors UI.",
         ).optional(),
       }).describe(
-        "Config for image bounding poly (and bounding box) human labeling task.",
+        "Specify this field if your model version performs image object detection (bounding box detection). `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet.",
       ).optional(),
       evaluationConfig: z.object({
         boundingBoxEvaluationOptions: z.object({
           iouThreshold: z.number().describe(
             "Minimum [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) required for 2 bounding boxes to be considered a match. This must be a number between 0 and 1.",
           ).optional(),
-        }).describe("Options regarding evaluation between bounding boxes.")
-          .optional(),
+        }).describe(
+          "Only specify this field if the related model performs image object detection (`IMAGE_BOUNDING_BOX_ANNOTATION`). Describes how to evaluate bounding boxes.",
+        ).optional(),
       }).describe(
-        "Configuration details used for calculating evaluation metrics and creating an Evaluation.",
+        "Required. Details for calculating evaluation metrics and creating Evaulations. If your model version performs image object detection, you must specify the `boundingBoxEvaluationOptions` field within this configuration. Otherwise, provide an empty object for this configuration.",
       ).optional(),
       evaluationJobAlertConfig: z.object({
         email: z.string().describe(
@@ -710,7 +725,7 @@ const InputsSchema = z.object({
           "Required. A number between 0 and 1 that describes a minimum mean average precision threshold. When the evaluation job runs, if it calculates that your model version's predictions from the recent interval have meanAveragePrecision below this threshold, then it sends an alert to your specified email.",
         ).optional(),
       }).describe(
-        "Provides details for how an evaluation job sends email alerts based on the results of a run.",
+        "Optional. Configuration details for evaluation job alerts. Specify this field if you want to receive email alerts if the evaluation job finds that your predictions have low mean average precision during a run.",
       ).optional(),
       exampleCount: z.number().int().describe(
         "Required. The maximum number of predictions to sample and save to BigQuery during each evaluation interval. This limit overrides `example_sample_percentage`: even if the service has not sampled enough predictions to fulfill `example_sample_perecentage` during an interval, it stops sampling predictions when it meets this limit.",
@@ -745,8 +760,9 @@ const InputsSchema = z.object({
         userEmailAddress: z.string().describe(
           "Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.",
         ).optional(),
-      }).describe("Configuration for how human labeling task should be done.")
-        .optional(),
+      }).describe(
+        "Optional. Details for human annotation of your data. If you set labelMissingGroundTruth to `true` for this evaluation job, then you must specify this field. If you plan to provide your own ground truth labels, then omit this field. Note that you must create an Instruction resource before you can specify this field. Provide the name of the instruction resource in the `instruction` field within this configuration.",
+      ).optional(),
       imageClassificationConfig: z.object({
         allowMultiLabel: z.boolean().describe(
           "Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one image.",
@@ -761,8 +777,9 @@ const InputsSchema = z.object({
           "NO_AGGREGATION",
         ]).describe("Optional. The type of how to aggregate answers.")
           .optional(),
-      }).describe("Config for image classification human labeling task.")
-        .optional(),
+      }).describe(
+        "Specify this field if your model version performs image classification or general classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+      ).optional(),
       inputConfig: z.object({
         annotationType: z.enum([
           "ANNOTATION_TYPE_UNSPECIFIED",
@@ -787,13 +804,15 @@ const InputsSchema = z.object({
             'Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).',
           ).optional(),
         }).describe(
-          "The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.",
+          "Source located in BigQuery. You must specify this field if you are using this InputConfig in an EvaluationJob.",
         ).optional(),
         classificationMetadata: z.object({
           isMultiLabel: z.boolean().describe(
             "Whether the classification task is multi-label or not.",
           ).optional(),
-        }).describe("Metadata for classification annotations.").optional(),
+        }).describe(
+          "Optional. Metadata about annotations for the input. You must specify this field if you are using this InputConfig in an EvaluationJob for a model version that performs classification.",
+        ).optional(),
         dataType: z.enum([
           "DATA_TYPE_UNSPECIFIED",
           "IMAGE",
@@ -810,15 +829,16 @@ const InputsSchema = z.object({
           mimeType: z.string().describe(
             'Required. The format of the source file. Only "text/csv" is supported.',
           ).optional(),
-        }).describe("Source of the Cloud Storage file to be imported.")
-          .optional(),
+        }).describe("Source located in Cloud Storage.").optional(),
         textMetadata: z.object({
           languageCode: z.string().describe(
             "The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.",
           ).optional(),
-        }).describe("Metadata for the text.").optional(),
+        }).describe(
+          "Required for text import, as language code must be specified.",
+        ).optional(),
       }).describe(
-        "The configuration of input data, including data type, location, etc.",
+        "Rquired. Details for the sampled prediction input. Within this configuration, there are requirements for several fields: * `dataType` must be one of `IMAGE`, `TEXT`, or `GENERAL_DATA`. * `annotationType` must be one of `IMAGE_CLASSIFICATION_ANNOTATION`, `TEXT_CLASSIFICATION_ANNOTATION`, `GENERAL_CLASSIFICATION_ANNOTATION`, or `IMAGE_BOUNDING_BOX_ANNOTATION` (image object detection). * If your machine learning model performs classification, you must specify `classificationMetadata.isMultiLabel`. * You must specify `bigquerySource` (not `gcsSource`).",
       ).optional(),
       textClassificationConfig: z.object({
         allowMultiLabel: z.boolean().describe(
@@ -831,12 +851,14 @@ const InputsSchema = z.object({
           enableLabelSentimentSelection: z.boolean().describe(
             "If set to true, contributors will have the option to select sentiment of the label they selected, to mark it as negative or positive label. Default is false.",
           ).optional(),
-        }).describe("Config for setting up sentiments.").optional(),
-      }).describe("Config for text classification human labeling task.")
-        .optional(),
-    }).describe(
-      "Configures specific details of how a continuous evaluation job works. Provide this configuration when you create an EvaluationJob.",
-    ).optional(),
+        }).describe(
+          "Optional. Configs for sentiment selection. We deprecate sentiment analysis in data labeling side as it is incompatible with uCAIP.",
+        ).optional(),
+      }).describe(
+        "Specify this field if your model version performs text classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+      ).optional(),
+    }).describe("Required. Configuration details for the evaluation job.")
+      .optional(),
     labelMissingGroundTruth: z.boolean().describe(
       "Required. Whether you want Data Labeling Service to provide ground truth labels for prediction input. If you want the service to assign human labelers to annotate your data, set this to `true`. If you want to provide your own ground truth labels in the evaluation job's BigQuery table, set this to `false`.",
     ).optional(),
@@ -857,9 +879,7 @@ const InputsSchema = z.object({
       "STOPPED",
     ]).describe("Output only. Describes the current state of the job.")
       .optional(),
-  }).describe(
-    "Defines an evaluation job that runs periodically to generate Evaluations. [Creating an evaluation job](/ml-engine/docs/continuous-evaluation/create-job) is the starting point for using continuous evaluation.",
-  ).optional(),
+  }).describe("Required. The evaluation job to create.").optional(),
   annotationSpecSet: z.string().describe(
     'Required. Name of the AnnotationSpecSet describing all the labels that your machine learning model outputs. You must create this resource before you create an evaluation job and provide its name in the following format: "projects/{project_id}/annotationSpecSets/{annotation_spec_set_id}"',
   ).optional(),
@@ -897,17 +917,18 @@ const InputsSchema = z.object({
         "Optional. Instruction message showed on contributors UI.",
       ).optional(),
     }).describe(
-      "Config for image bounding poly (and bounding box) human labeling task.",
+      "Specify this field if your model version performs image object detection (bounding box detection). `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet.",
     ).optional(),
     evaluationConfig: z.object({
       boundingBoxEvaluationOptions: z.object({
         iouThreshold: z.number().describe(
           "Minimum [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) required for 2 bounding boxes to be considered a match. This must be a number between 0 and 1.",
         ).optional(),
-      }).describe("Options regarding evaluation between bounding boxes.")
-        .optional(),
+      }).describe(
+        "Only specify this field if the related model performs image object detection (`IMAGE_BOUNDING_BOX_ANNOTATION`). Describes how to evaluate bounding boxes.",
+      ).optional(),
     }).describe(
-      "Configuration details used for calculating evaluation metrics and creating an Evaluation.",
+      "Required. Details for calculating evaluation metrics and creating Evaulations. If your model version performs image object detection, you must specify the `boundingBoxEvaluationOptions` field within this configuration. Otherwise, provide an empty object for this configuration.",
     ).optional(),
     evaluationJobAlertConfig: z.object({
       email: z.string().describe(
@@ -917,7 +938,7 @@ const InputsSchema = z.object({
         "Required. A number between 0 and 1 that describes a minimum mean average precision threshold. When the evaluation job runs, if it calculates that your model version's predictions from the recent interval have meanAveragePrecision below this threshold, then it sends an alert to your specified email.",
       ).optional(),
     }).describe(
-      "Provides details for how an evaluation job sends email alerts based on the results of a run.",
+      "Optional. Configuration details for evaluation job alerts. Specify this field if you want to receive email alerts if the evaluation job finds that your predictions have low mean average precision during a run.",
     ).optional(),
     exampleCount: z.number().int().describe(
       "Required. The maximum number of predictions to sample and save to BigQuery during each evaluation interval. This limit overrides `example_sample_percentage`: even if the service has not sampled enough predictions to fulfill `example_sample_perecentage` during an interval, it stops sampling predictions when it meets this limit.",
@@ -952,8 +973,9 @@ const InputsSchema = z.object({
       userEmailAddress: z.string().describe(
         "Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.",
       ).optional(),
-    }).describe("Configuration for how human labeling task should be done.")
-      .optional(),
+    }).describe(
+      "Optional. Details for human annotation of your data. If you set labelMissingGroundTruth to `true` for this evaluation job, then you must specify this field. If you plan to provide your own ground truth labels, then omit this field. Note that you must create an Instruction resource before you can specify this field. Provide the name of the instruction resource in the `instruction` field within this configuration.",
+    ).optional(),
     imageClassificationConfig: z.object({
       allowMultiLabel: z.boolean().describe(
         "Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one image.",
@@ -967,8 +989,9 @@ const InputsSchema = z.object({
         "UNANIMOUS_VOTE",
         "NO_AGGREGATION",
       ]).describe("Optional. The type of how to aggregate answers.").optional(),
-    }).describe("Config for image classification human labeling task.")
-      .optional(),
+    }).describe(
+      "Specify this field if your model version performs image classification or general classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+    ).optional(),
     inputConfig: z.object({
       annotationType: z.enum([
         "ANNOTATION_TYPE_UNSPECIFIED",
@@ -993,13 +1016,15 @@ const InputsSchema = z.object({
           'Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).',
         ).optional(),
       }).describe(
-        "The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.",
+        "Source located in BigQuery. You must specify this field if you are using this InputConfig in an EvaluationJob.",
       ).optional(),
       classificationMetadata: z.object({
         isMultiLabel: z.boolean().describe(
           "Whether the classification task is multi-label or not.",
         ).optional(),
-      }).describe("Metadata for classification annotations.").optional(),
+      }).describe(
+        "Optional. Metadata about annotations for the input. You must specify this field if you are using this InputConfig in an EvaluationJob for a model version that performs classification.",
+      ).optional(),
       dataType: z.enum([
         "DATA_TYPE_UNSPECIFIED",
         "IMAGE",
@@ -1016,15 +1041,16 @@ const InputsSchema = z.object({
         mimeType: z.string().describe(
           'Required. The format of the source file. Only "text/csv" is supported.',
         ).optional(),
-      }).describe("Source of the Cloud Storage file to be imported.")
-        .optional(),
+      }).describe("Source located in Cloud Storage.").optional(),
       textMetadata: z.object({
         languageCode: z.string().describe(
           "The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.",
         ).optional(),
-      }).describe("Metadata for the text.").optional(),
+      }).describe(
+        "Required for text import, as language code must be specified.",
+      ).optional(),
     }).describe(
-      "The configuration of input data, including data type, location, etc.",
+      "Rquired. Details for the sampled prediction input. Within this configuration, there are requirements for several fields: * `dataType` must be one of `IMAGE`, `TEXT`, or `GENERAL_DATA`. * `annotationType` must be one of `IMAGE_CLASSIFICATION_ANNOTATION`, `TEXT_CLASSIFICATION_ANNOTATION`, `GENERAL_CLASSIFICATION_ANNOTATION`, or `IMAGE_BOUNDING_BOX_ANNOTATION` (image object detection). * If your machine learning model performs classification, you must specify `classificationMetadata.isMultiLabel`. * You must specify `bigquerySource` (not `gcsSource`).",
     ).optional(),
     textClassificationConfig: z.object({
       allowMultiLabel: z.boolean().describe(
@@ -1037,12 +1063,14 @@ const InputsSchema = z.object({
         enableLabelSentimentSelection: z.boolean().describe(
           "If set to true, contributors will have the option to select sentiment of the label they selected, to mark it as negative or positive label. Default is false.",
         ).optional(),
-      }).describe("Config for setting up sentiments.").optional(),
-    }).describe("Config for text classification human labeling task.")
-      .optional(),
-  }).describe(
-    "Configures specific details of how a continuous evaluation job works. Provide this configuration when you create an EvaluationJob.",
-  ).optional(),
+      }).describe(
+        "Optional. Configs for sentiment selection. We deprecate sentiment analysis in data labeling side as it is incompatible with uCAIP.",
+      ).optional(),
+    }).describe(
+      "Specify this field if your model version performs text classification. `annotationSpecSet` in this configuration must match EvaluationJob.annotationSpecSet. `allowMultiLabel` in this configuration must match `classificationMetadata.isMultiLabel` in input_config.",
+    ).optional(),
+  }).describe("Required. Configuration details for the evaluation job.")
+    .optional(),
   labelMissingGroundTruth: z.boolean().describe(
     "Required. Whether you want Data Labeling Service to provide ground truth labels for prediction input. If you want the service to assign human labelers to annotate your data, set this to `true`. If you want to provide your own ground truth labels in the evaluation job's BigQuery table, set this to `false`.",
   ).optional(),
@@ -1091,7 +1119,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Labeling EvaluationJobs. Registered at `@swamp/gcp/datalabeling/evaluationjobs`. */
 export const model = {
   type: "@swamp/gcp/datalabeling/evaluationjobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1176,6 +1204,16 @@ export const model = {
     {
       toVersion: "2026.07.20.1",
       description: "Added: scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

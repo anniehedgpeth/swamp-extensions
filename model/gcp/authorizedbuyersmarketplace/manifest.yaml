@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/authorizedbuyersmarketplace"
-version: "2026.07.21.1"
+version: "2026.07.21.3"
 description: "Google Cloud authorizedbuyersmarketplace infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: buyers_clients_users, buyers_proposals, buyers_proposals_deals
+  - Updated: bidders_auctionpackages, bidders_finalizeddeals, buyers_auctionpackages, buyers_clients, buyers_clients_users, buyers_finalizeddeals, buyers_proposals, buyers_proposals_deals, buyers_publisherprofiles
 models:
   - bidders_auctionpackages.ts
   - bidders_finalizeddeals.ts

@@ -282,7 +282,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow KnowledgeBases.Documents. Registered at `@swamp/gcp/dialogflow/knowledgebases-documents`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/knowledgebases-documents",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

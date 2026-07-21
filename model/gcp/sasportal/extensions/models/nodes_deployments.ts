@@ -200,7 +200,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SAS Portal Nodes.Deployments. Registered at `@swamp/gcp/sasportal/nodes-deployments`. */
 export const model = {
   type: "@swamp/gcp/sasportal/nodes-deployments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -299,6 +299,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

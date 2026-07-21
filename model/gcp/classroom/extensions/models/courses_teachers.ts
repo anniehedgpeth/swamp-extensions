@@ -281,7 +281,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.Teachers. Registered at `@swamp/gcp/classroom/courses-teachers`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-teachers",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -370,6 +370,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

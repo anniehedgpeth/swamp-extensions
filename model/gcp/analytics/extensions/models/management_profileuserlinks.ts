@@ -39,6 +39,7 @@ import {
   deleteResource,
   type ExplicitGcpCredentials,
   getProjectId,
+  isAlreadyExistsError,
   isResourceNotFoundError,
   listResources,
   readViaList,
@@ -199,7 +200,7 @@ const GlobalArgsSchema = z.object({
       id: z.string().describe("Account ID.").optional(),
       kind: z.string().describe("Analytics account reference.").optional(),
       name: z.string().describe("Account name.").optional(),
-    }).describe("JSON template for a linked account.").optional(),
+    }).describe("Account for this link.").optional(),
     profileRef: z.object({
       accountId: z.string().describe(
         "Account ID to which this view (profile) belongs.",
@@ -215,7 +216,7 @@ const GlobalArgsSchema = z.object({
       webPropertyId: z.string().describe(
         "Web property ID of the form UA-XXXXX-YY to which this view (profile) belongs.",
       ).optional(),
-    }).describe("JSON template for a linked view (profile).").optional(),
+    }).describe("View (Profile) for this link.").optional(),
     webPropertyRef: z.object({
       accountId: z.string().describe(
         "Account ID to which this web property belongs.",
@@ -228,7 +229,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       kind: z.string().describe("Analytics web property reference.").optional(),
       name: z.string().describe("Name of this web property.").optional(),
-    }).describe("JSON template for a web property reference.").optional(),
+    }).describe("Web property for this link.").optional(),
   }).describe(
     "Entity for this link. It can be an account, a web property, or a view (profile).",
   ).optional(),
@@ -245,7 +246,7 @@ const GlobalArgsSchema = z.object({
     email: z.string().describe("Email ID of this user.").optional(),
     id: z.string().describe("User ID.").optional(),
     kind: z.string().optional(),
-  }).describe("JSON template for a user reference.").optional(),
+  }).describe("User reference.").optional(),
   accountId: z.string().describe("Account ID to create the user link for."),
   webPropertyId: z.string().describe(
     "Web Property ID to create the user link for.",
@@ -309,7 +310,7 @@ const InputsSchema = z.object({
       id: z.string().describe("Account ID.").optional(),
       kind: z.string().describe("Analytics account reference.").optional(),
       name: z.string().describe("Account name.").optional(),
-    }).describe("JSON template for a linked account.").optional(),
+    }).describe("Account for this link.").optional(),
     profileRef: z.object({
       accountId: z.string().describe(
         "Account ID to which this view (profile) belongs.",
@@ -325,7 +326,7 @@ const InputsSchema = z.object({
       webPropertyId: z.string().describe(
         "Web property ID of the form UA-XXXXX-YY to which this view (profile) belongs.",
       ).optional(),
-    }).describe("JSON template for a linked view (profile).").optional(),
+    }).describe("View (Profile) for this link.").optional(),
     webPropertyRef: z.object({
       accountId: z.string().describe(
         "Account ID to which this web property belongs.",
@@ -338,7 +339,7 @@ const InputsSchema = z.object({
       ).optional(),
       kind: z.string().describe("Analytics web property reference.").optional(),
       name: z.string().describe("Name of this web property.").optional(),
-    }).describe("JSON template for a web property reference.").optional(),
+    }).describe("Web property for this link.").optional(),
   }).describe(
     "Entity for this link. It can be an account, a web property, or a view (profile).",
   ).optional(),
@@ -355,7 +356,7 @@ const InputsSchema = z.object({
     email: z.string().describe("Email ID of this user.").optional(),
     id: z.string().describe("User ID.").optional(),
     kind: z.string().optional(),
-  }).describe("JSON template for a user reference.").optional(),
+  }).describe("User reference.").optional(),
   accountId: z.string().describe("Account ID to create the user link for.")
     .optional(),
   webPropertyId: z.string().describe(
@@ -389,7 +390,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Management.ProfileUserLinks. Registered at `@swamp/gcp/analytics/management-profileuserlinks`. */
 export const model = {
   type: "@swamp/gcp/analytics/management-profileuserlinks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -441,6 +442,16 @@ export const model = {
       description: "Added: accessToken, credentialsJson, project, scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -478,25 +489,39 @@ export const model = {
           body["permissions"] = g["permissions"];
         }
         if (g["userRef"] !== undefined) body["userRef"] = g["userRef"];
-        const result = await createResource(
-          BASE_URL,
-          INSERT_CONFIG,
-          params,
-          body,
-          undefined,
-          undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
+        let result: StateData;
+        try {
+          result = await createResource(
+            BASE_URL,
+            INSERT_CONFIG,
+            params,
+            body,
+            undefined,
+            undefined,
+            undefined,
+            credentials,
+          ) as StateData;
+        } catch (createErr) {
+          if (!isAlreadyExistsError(createErr)) throw createErr;
+          const matchValue = String(g["userRef"]?.id ?? "");
+          const { items } = await listResources(
+            BASE_URL,
+            LIST_CONFIG,
+            {
               "accountId": String(g["accountId"] ?? ""),
               "webPropertyId": String(g["webPropertyId"] ?? ""),
               "profileId": String(g["profileId"] ?? ""),
             },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
-          credentials,
-        ) as StateData;
+            "items",
+            100,
+            credentials,
+          );
+          const existing = items.find((item: any) =>
+            item?.userRef?.id === matchValue
+          );
+          if (existing) result = existing as StateData;
+          else throw createErr;
+        }
         const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
           "_",

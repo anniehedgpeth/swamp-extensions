@@ -271,7 +271,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Namespaces.Executions. Registered at `@swamp/gcp/run/namespaces-executions`. */
 export const model = {
   type: "@swamp/gcp/run/namespaces-executions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

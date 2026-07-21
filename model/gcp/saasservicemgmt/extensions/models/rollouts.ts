@@ -352,7 +352,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Lifecycle Manager Rollouts. Registered at `@swamp/gcp/saasservicemgmt/rollouts`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/rollouts",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -503,6 +503,24 @@ export const model = {
         const { stats: _stats, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: flagRelease",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { flagRelease: _flagRelease, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
+      description: "Added: flagRelease",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

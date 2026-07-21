@@ -223,7 +223,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) OauthClients.Credentials. Registered at `@swamp/gcp/iam/oauthclients-credentials`. */
 export const model = {
   type: "@swamp/gcp/iam/oauthclients-credentials",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

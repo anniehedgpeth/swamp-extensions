@@ -173,7 +173,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud OS Config Instances.Inventories. Registered at `@swamp/gcp/osconfig/instances-inventories`. */
 export const model = {
   type: "@swamp/gcp/osconfig/instances-inventories",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

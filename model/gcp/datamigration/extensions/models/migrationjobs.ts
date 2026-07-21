@@ -963,7 +963,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration MigrationJobs. Registered at `@swamp/gcp/datamigration/migrationjobs`. */
 export const model = {
   type: "@swamp/gcp/datamigration/migrationjobs",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1137,6 +1137,28 @@ export const model = {
         const { error: _error, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: mysqlHomogeneousConfig, postgresHomogeneousConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          mysqlHomogeneousConfig: _mysqlHomogeneousConfig,
+          postgresHomogeneousConfig: _postgresHomogeneousConfig,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
+      description: "Added: mysqlHomogeneousConfig, postgresHomogeneousConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1667,7 +1689,7 @@ export const model = {
             "parameters": { "name": { "location": "path", "required": true } },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,
@@ -1825,7 +1847,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

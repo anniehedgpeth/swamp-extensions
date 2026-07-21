@@ -565,7 +565,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.Creatives. Registered at `@swamp/gcp/adexchangebuyer2/accounts-creatives`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-creatives",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -669,6 +669,16 @@ export const model = {
         const { adTechnologyProviders: _adTechnologyProviders, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

@@ -175,13 +175,15 @@ const GlobalArgsSchema = z.object({
           'Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).',
         ).optional(),
       }).describe(
-        "The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.",
+        "Source located in BigQuery. You must specify this field if you are using this InputConfig in an EvaluationJob.",
       ).optional(),
       classificationMetadata: z.object({
         isMultiLabel: z.boolean().describe(
           "Whether the classification task is multi-label or not.",
         ).optional(),
-      }).describe("Metadata for classification annotations.").optional(),
+      }).describe(
+        "Optional. Metadata about annotations for the input. You must specify this field if you are using this InputConfig in an EvaluationJob for a model version that performs classification.",
+      ).optional(),
       dataType: z.enum([
         "DATA_TYPE_UNSPECIFIED",
         "IMAGE",
@@ -198,13 +200,14 @@ const GlobalArgsSchema = z.object({
         mimeType: z.string().describe(
           'Required. The format of the source file. Only "text/csv" is supported.',
         ).optional(),
-      }).describe("Source of the Cloud Storage file to be imported.")
-        .optional(),
+      }).describe("Source located in Cloud Storage.").optional(),
       textMetadata: z.object({
         languageCode: z.string().describe(
           "The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.",
         ).optional(),
-      }).describe("Metadata for the text.").optional(),
+      }).describe(
+        "Required for text import, as language code must be specified.",
+      ).optional(),
     })).describe(
       "Output only. This is populated with the original input configs where ImportData is called. It is available only after the clients import data to this dataset.",
     ).optional(),
@@ -214,9 +217,7 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Output only. Dataset resource name, format is: projects/{project_id}/datasets/{dataset_id}",
     ).optional(),
-  }).describe(
-    "Dataset is the resource to hold your data. You can request multiple labeling tasks for a dataset while each one will generate an AnnotatedDataset.",
-  ).optional(),
+  }).describe("Required. The dataset to be created.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -296,13 +297,15 @@ const InputsSchema = z.object({
           'Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).',
         ).optional(),
       }).describe(
-        "The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.",
+        "Source located in BigQuery. You must specify this field if you are using this InputConfig in an EvaluationJob.",
       ).optional(),
       classificationMetadata: z.object({
         isMultiLabel: z.boolean().describe(
           "Whether the classification task is multi-label or not.",
         ).optional(),
-      }).describe("Metadata for classification annotations.").optional(),
+      }).describe(
+        "Optional. Metadata about annotations for the input. You must specify this field if you are using this InputConfig in an EvaluationJob for a model version that performs classification.",
+      ).optional(),
       dataType: z.enum([
         "DATA_TYPE_UNSPECIFIED",
         "IMAGE",
@@ -319,13 +322,14 @@ const InputsSchema = z.object({
         mimeType: z.string().describe(
           'Required. The format of the source file. Only "text/csv" is supported.',
         ).optional(),
-      }).describe("Source of the Cloud Storage file to be imported.")
-        .optional(),
+      }).describe("Source located in Cloud Storage.").optional(),
       textMetadata: z.object({
         languageCode: z.string().describe(
           "The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.",
         ).optional(),
-      }).describe("Metadata for the text.").optional(),
+      }).describe(
+        "Required for text import, as language code must be specified.",
+      ).optional(),
     })).describe(
       "Output only. This is populated with the original input configs where ImportData is called. It is available only after the clients import data to this dataset.",
     ).optional(),
@@ -335,9 +339,7 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Output only. Dataset resource name, format is: projects/{project_id}/datasets/{dataset_id}",
     ).optional(),
-  }).describe(
-    "Dataset is the resource to hold your data. You can request multiple labeling tasks for a dataset while each one will generate an AnnotatedDataset.",
-  ).optional(),
+  }).describe("Required. The dataset to be created.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -366,7 +368,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Labeling Datasets. Registered at `@swamp/gcp/datalabeling/datasets`. */
 export const model = {
   type: "@swamp/gcp/datalabeling/datasets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -448,6 +450,16 @@ export const model = {
       description: "Added: scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -487,16 +499,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

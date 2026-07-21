@@ -2496,23 +2496,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/connectors/connections",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description:
-        "Removed: billingConfig, connectorVersionInfraConfig, eventingRuntimeData, status",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          billingConfig: _billingConfig,
-          connectorVersionInfraConfig: _connectorVersionInfraConfig,
-          eventingRuntimeData: _eventingRuntimeData,
-          status: _status,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -3016,7 +2999,7 @@ export const model = {
             "parameters": { "name": { "location": "path", "required": true } },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,
@@ -3060,7 +3043,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,
@@ -3218,7 +3201,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

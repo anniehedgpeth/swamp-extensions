@@ -251,7 +251,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Folders. Registered at `@swamp/gcp/tagmanager/accounts-containers-folders`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-folders",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

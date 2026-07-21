@@ -329,7 +329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services Gateways. Registered at `@swamp/gcp/networkservices/gateways`. */
 export const model = {
   type: "@swamp/gcp/networkservices/gateways",
-  version: "2026.07.20.2",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -465,6 +465,24 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: allPorts",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: allPorts",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { allPorts: _allPorts, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "Added: allPorts",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

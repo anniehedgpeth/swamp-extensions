@@ -477,7 +477,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationSets. Registered at `@swamp/gcp/aiplatform/evaluationsets`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationsets",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -629,6 +629,24 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: agentConfigs",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { agentConfigs: _agentConfigs, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "Added: agentConfigs",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

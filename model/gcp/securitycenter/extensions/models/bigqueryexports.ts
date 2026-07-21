@@ -225,7 +225,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center BigQueryExports. Registered at `@swamp/gcp/securitycenter/bigqueryexports`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/bigqueryexports",
-  version: "2026.07.20.2",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -344,6 +344,31 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: createTime, mostRecentEditor, principal, updateTime",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: createTime, mostRecentEditor, principal, updateTime",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          createTime: _createTime,
+          mostRecentEditor: _mostRecentEditor,
+          principal: _principal,
+          updateTime: _updateTime,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "Added: createTime, mostRecentEditor, principal, updateTime",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

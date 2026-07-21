@@ -697,7 +697,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Providers.Connectors.Versions. Registered at `@swamp/gcp/connectors/providers-connectors-versions`. */
 export const model = {
   type: "@swamp/gcp/connectors/providers-connectors-versions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -880,7 +880,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

@@ -230,16 +230,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/gkehub/scopes",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: state",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { state: _state, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -588,7 +578,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,
@@ -634,7 +624,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,
@@ -668,7 +658,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

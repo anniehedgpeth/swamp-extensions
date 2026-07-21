@@ -248,7 +248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.MaterializedViews. Registered at `@swamp/gcp/bigtableadmin/instances-materializedviews`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-materializedviews",
-  version: "2026.07.20.2",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -357,6 +357,19 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: ignoreWarnings",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: ignoreWarnings",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { ignoreWarnings: _ignoreWarnings, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
       description: "Added: ignoreWarnings",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

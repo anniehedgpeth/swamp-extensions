@@ -226,7 +226,9 @@ const GlobalArgsSchema = z.object({
           enableCloudLogging: z.boolean().describe(
             "Optional. Status of whether Cloud Logging is enabled or not for the integration version getting executed.",
           ).optional(),
-        }).describe("Cloud Logging details for execution info").optional(),
+        }).describe(
+          "Optional. Cloud Logging details for the integration version",
+        ).optional(),
         createTime: z.string().describe("Output only. Auto-generated.")
           .optional(),
         createdFromTemplate: z.string().describe(
@@ -259,7 +261,7 @@ const GlobalArgsSchema = z.object({
             "Optional. The user created label for a particular error catcher. Optional.",
           ).optional(),
           position: z.unknown().describe(
-            "Configuration detail of coordinate, it used for UI",
+            "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
           ).optional(),
           startErrorTasks: z.unknown().describe(
             "Required. The set of start tasks that are to be executed for the error catch flow",
@@ -269,9 +271,11 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         integrationConfigParameters: z.array(z.object({
           parameter: z.unknown().describe(
-            "Integration Parameter is defined in the integration config and are used to provide information about data types of the expected parameters and provide any default values if needed. They can also be used to add custom attributes. These are static in nature and should not be used for dynamic event definition.",
+            "Optional. Integration Parameter to provide the default value, data type and attributes required for the Integration config variables.",
           ).optional(),
-          value: z.unknown().describe("The type of the parameter.").optional(),
+          value: z.unknown().describe(
+            "Values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.",
+          ).optional(),
         })).describe(
           "Optional. Config Parameters that are expected to be passed to the integration when an integration is published. This consists of all the parameters that are expected to provide configuration in the integration execution. This gives the user the ability to provide default values, value, add information like connection url, project based configuration value and also provide data types of each parameter.",
         ).optional(),
@@ -280,8 +284,9 @@ const GlobalArgsSchema = z.object({
             "Indicates whether this variable contains large data and need to be uploaded to Cloud Storage.",
           ).optional(),
           dataType: z.unknown().describe("Type of the parameter.").optional(),
-          defaultValue: z.unknown().describe("The type of the parameter.")
-            .optional(),
+          defaultValue: z.unknown().describe(
+            "Default values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.",
+          ).optional(),
           description: z.unknown().describe(
             "Optional. Description of the parameter.",
           ).optional(),
@@ -317,7 +322,7 @@ const GlobalArgsSchema = z.object({
             "Parameters are a part of Event and can be used to communiticate between different tasks that are part of the same workflow execution.",
           ).optional(),
         }).describe(
-          "LINT.IfChange This is the frontend version of WorkflowParameters. It's exactly like the backend version except that instead of flattening protobuf parameters and treating every field and subfield of a protobuf parameter as a separate parameter, the fields/subfields of a protobuf parameter will be nested as \"children\" (see 'children' field below) parameters of the parent parameter. Please refer to enterprise/crm/eventbus/proto/workflow_parameters.proto for more information about WorkflowParameters.",
+          "Optional. Parameters that are expected to be passed to the integration when an event is triggered. This consists of all the parameters that are expected in the integration execution. This gives the user the ability to provide default values, add information like PII and also provide data types of each parameter.",
         ).optional(),
         lastModifierEmail: z.string().describe(
           "Optional. The last modifier's email address. Generated based on the End User Credentials/LOAS role of the user making the call.",
@@ -360,7 +365,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         taskConfigs: z.array(z.object({
           conditionalFailurePolicies: z.unknown().describe(
-            "Conditional task failur retry strategies",
+            "Optional. The list of conditional failure policies that will be applied to the task in order.",
           ).optional(),
           description: z.unknown().describe(
             "Optional. User-provided description intended to give additional business context about the task.",
@@ -375,7 +380,7 @@ const GlobalArgsSchema = z.object({
             "Optional. External task type of the task",
           ).optional(),
           failurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).",
           ).optional(),
           jsonValidationOption: z.unknown().describe(
             "Optional. If set, overrides the option configured in the Task implementation class.",
@@ -390,13 +395,13 @@ const GlobalArgsSchema = z.object({
             "Optional. The customized parameters the user can pass to this task.",
           ).optional(),
           position: z.unknown().describe(
-            "Configuration detail of coordinate, it used for UI",
+            "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
           ).optional(),
           successPolicy: z.unknown().describe(
-            "Policy that dictates the behavior for the task after it completes successfully.",
+            "Optional. Determines what action to take upon successful task completion.",
           ).optional(),
           synchronousCallFailurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
           ).optional(),
           task: z.unknown().describe("Optional. The name for the task.")
             .optional(),
@@ -416,7 +421,9 @@ const GlobalArgsSchema = z.object({
           alertConfigs: z.unknown().describe(
             "Alert configurations on error rate, warning rate, number of runs, durations, etc.",
           ).optional(),
-          conditionalFailurePolicies: z.unknown().optional(),
+          conditionalFailurePolicies: z.unknown().describe(
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
+          ).optional(),
           createTime: z.unknown().describe("Auto-generated.").optional(),
           creatorEmail: z.unknown().describe(
             "The creator's email address. Auto-generated from the user's email.",
@@ -432,7 +439,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           externalTaskType: z.unknown().optional(),
           failurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).",
           ).optional(),
           incomingEdgeCount: z.unknown().describe(
             "The number of edges leading into this TaskConfig.",
@@ -454,7 +461,7 @@ const GlobalArgsSchema = z.object({
             "The customized parameters the user can pass to this task.",
           ).optional(),
           position: z.unknown().describe(
-            "Represents two-dimensional positions.",
+            "Optional. Informs the front-end application where to draw this task config on the UI.",
           ).optional(),
           precondition: z.unknown().describe(
             'Optional. Standard filter expression evaluated before execution. Independent of other conditions and tasks. Can be used to enable rollout. e.g. "rollout(5)" will only allow 5% of incoming traffic to task.',
@@ -462,16 +469,17 @@ const GlobalArgsSchema = z.object({
           preconditionLabel: z.unknown().describe(
             "Optional. User-provided label that is attached to precondition in the UI.",
           ).optional(),
-          rollbackStrategy: z.unknown().describe("Next available id: 4")
-            .optional(),
+          rollbackStrategy: z.unknown().describe(
+            "Optional. Contains information about what needs to be done upon failure (either a permanent error or after it has been retried too many times).",
+          ).optional(),
           successPolicy: z.unknown().describe(
-            "Policy that dictates the behavior for the task after it completes successfully.",
+            "Determines what action to take upon successful task completion.",
           ).optional(),
           synchronousCallFailurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
           ).optional(),
           taskEntity: z.unknown().describe(
-            "Contains a task's metadata and associated information. Next available id: 7",
+            "Copy of the task entity that this task config is an instance of.",
           ).optional(),
           taskExecutionStrategy: z.unknown().describe(
             "The policy dictating the execution strategy of this task.",
@@ -494,13 +502,15 @@ const GlobalArgsSchema = z.object({
         teardown: z.object({
           teardownTaskConfigs: z.array(z.unknown()).describe("Required.")
             .optional(),
-        }).optional(),
+        }).describe(
+          'Optional. Contains a graph of tasks that will be executed before putting the event in a terminal state (SUCCEEDED/FAILED/FATAL), regardless of success or failure, similar to "finally" in code.',
+        ).optional(),
         triggerConfigs: z.array(z.object({
           alertConfig: z.unknown().describe(
             "Optional. An alert threshold configuration for the [trigger + client + integration] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + integration] when published.",
           ).optional(),
           cloudSchedulerConfig: z.unknown().describe(
-            "Cloud Scheduler Trigger configuration",
+            "Optional. Cloud Scheduler Trigger related metadata",
           ).optional(),
           description: z.unknown().describe(
             "Optional. User-provided description intended to give additional business context about the task.",
@@ -509,7 +519,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task",
           ).optional(),
           inputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of input variables for the api trigger.",
           ).optional(),
           label: z.unknown().describe(
             "Optional. The user created label for a particular trigger.",
@@ -518,10 +528,10 @@ const GlobalArgsSchema = z.object({
             "Optional. Dictates how next tasks will be executed.",
           ).optional(),
           outputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of output variables for the api trigger.",
           ).optional(),
           position: z.unknown().describe(
-            "Configuration detail of coordinate, it used for UI",
+            "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
           ).optional(),
           properties: z.unknown().describe(
             'Optional. Configurable properties of the trigger, not to be confused with integration parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Pub/sub triggers.',
@@ -558,7 +568,7 @@ const GlobalArgsSchema = z.object({
             "Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task",
           ).optional(),
           inputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of input variables for the api trigger.",
           ).optional(),
           label: z.unknown().describe(
             "The user created label for a particular trigger.",
@@ -567,13 +577,13 @@ const GlobalArgsSchema = z.object({
             "Dictates how next tasks will be executed.",
           ).optional(),
           outputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of output variables for the api trigger.",
           ).optional(),
           pauseWorkflowExecutions: z.unknown().describe(
             "Optional. If set to true, any upcoming requests for this trigger config will be paused and the executions will be resumed later when the flag is reset. The workflow to which this trigger config belongs has to be in ACTIVE status for the executions to be paused or resumed.",
           ).optional(),
           position: z.unknown().describe(
-            "Represents two-dimensional positions.",
+            "Optional. Informs the front-end application where to draw this trigger config on the UI.",
           ).optional(),
           properties: z.unknown().describe(
             'Configurable properties of the trigger, not to be confused with workflow parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Cloud Pubsub triggers.',
@@ -581,7 +591,9 @@ const GlobalArgsSchema = z.object({
           startTasks: z.unknown().describe(
             "Set of tasks numbers from where the workflow execution is started by this trigger. If this is empty, then workflow is executed with default start tasks. In the list of start tasks, none of two tasks can have direct ancestor-descendant relationships (i.e. in a same workflow execution graph).",
           ).optional(),
-          triggerCriteria: z.unknown().optional(),
+          triggerCriteria: z.unknown().describe(
+            "Optional. When set, Eventbus will run the task specified in the trigger_criteria and validate the result using the trigger_criteria.condition, and only execute the workflow when result is true.",
+          ).optional(),
           triggerId: z.unknown().describe("The backend trigger ID.").optional(),
           triggerName: z.unknown().describe(
             "Optional. Name of the trigger This is added to identify the type of trigger. This is avoid the logic on triggerId to identify the trigger_type and push the same to monitoring.",
@@ -596,11 +608,12 @@ const GlobalArgsSchema = z.object({
         userLabel: z.string().describe(
           "Optional. A user-defined label that annotates an integration version. Typically, this is only set when the integration version is created.",
         ).optional(),
-      }).describe("The integration version definition.").optional(),
+      }).describe("Required. Templatized version of integration.").optional(),
       key: z.string().describe(
         "Required. Unique Key of the IntegrationVersion.",
       ).optional(),
-    }).describe("Define the template of IntegrationVersion.").optional(),
+    }).describe("Required. Main integration templates of the template bundle.")
+      .optional(),
     subIntegrationVersionTemplates: z.array(z.object({
       integrationVersion: z.object({
         cloudKmsKey: z.string().describe(
@@ -613,7 +626,9 @@ const GlobalArgsSchema = z.object({
           enableCloudLogging: z.unknown().describe(
             "Optional. Status of whether Cloud Logging is enabled or not for the integration version getting executed.",
           ).optional(),
-        }).describe("Cloud Logging details for execution info").optional(),
+        }).describe(
+          "Optional. Cloud Logging details for the integration version",
+        ).optional(),
         createTime: z.string().describe("Output only. Auto-generated.")
           .optional(),
         createdFromTemplate: z.string().describe(
@@ -646,7 +661,7 @@ const GlobalArgsSchema = z.object({
             "Parameters are a part of Event and can be used to communiticate between different tasks that are part of the same workflow execution.",
           ).optional(),
         }).describe(
-          "LINT.IfChange This is the frontend version of WorkflowParameters. It's exactly like the backend version except that instead of flattening protobuf parameters and treating every field and subfield of a protobuf parameter as a separate parameter, the fields/subfields of a protobuf parameter will be nested as \"children\" (see 'children' field below) parameters of the parent parameter. Please refer to enterprise/crm/eventbus/proto/workflow_parameters.proto for more information about WorkflowParameters.",
+          "Optional. Parameters that are expected to be passed to the integration when an event is triggered. This consists of all the parameters that are expected in the integration execution. This gives the user the ability to provide default values, add information like PII and also provide data types of each parameter.",
         ).optional(),
         lastModifierEmail: z.string().describe(
           "Optional. The last modifier's email address. Generated based on the End User Credentials/LOAS role of the user making the call.",
@@ -695,7 +710,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         teardown: z.object({
           teardownTaskConfigs: z.unknown().describe("Required.").optional(),
-        }).optional(),
+        }).describe(
+          'Optional. Contains a graph of tasks that will be executed before putting the event in a terminal state (SUCCEEDED/FAILED/FATAL), regardless of success or failure, similar to "finally" in code.',
+        ).optional(),
         triggerConfigs: z.array(z.unknown()).describe(
           "Optional. Trigger configurations.",
         ).optional(),
@@ -707,14 +724,16 @@ const GlobalArgsSchema = z.object({
         userLabel: z.string().describe(
           "Optional. A user-defined label that annotates an integration version. Typically, this is only set when the integration version is created.",
         ).optional(),
-      }).describe("The integration version definition.").optional(),
+      }).describe("Required. Templatized version of integration.").optional(),
       key: z.string().describe(
         "Required. Unique Key of the IntegrationVersion.",
       ).optional(),
     })).describe(
       "Optional. Sub integration templates which would be added along with main integration.",
     ).optional(),
-  }).describe("Define the bundle of the template.").optional(),
+  }).describe(
+    "Required. Bundle which is part of the templates. The template entities in the bundle would be converted to an actual entity.",
+  ).optional(),
   usageCount: z.string().describe("Optional. Number of template usages.")
     .optional(),
   usageInfo: z.string().describe(
@@ -1009,7 +1028,9 @@ const InputsSchema = z.object({
           enableCloudLogging: z.boolean().describe(
             "Optional. Status of whether Cloud Logging is enabled or not for the integration version getting executed.",
           ).optional(),
-        }).describe("Cloud Logging details for execution info").optional(),
+        }).describe(
+          "Optional. Cloud Logging details for the integration version",
+        ).optional(),
         createTime: z.string().describe("Output only. Auto-generated.")
           .optional(),
         createdFromTemplate: z.string().describe(
@@ -1042,7 +1063,7 @@ const InputsSchema = z.object({
             "Optional. The user created label for a particular error catcher. Optional.",
           ).optional(),
           position: z.unknown().describe(
-            "Configuration detail of coordinate, it used for UI",
+            "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
           ).optional(),
           startErrorTasks: z.unknown().describe(
             "Required. The set of start tasks that are to be executed for the error catch flow",
@@ -1052,9 +1073,11 @@ const InputsSchema = z.object({
         ).optional(),
         integrationConfigParameters: z.array(z.object({
           parameter: z.unknown().describe(
-            "Integration Parameter is defined in the integration config and are used to provide information about data types of the expected parameters and provide any default values if needed. They can also be used to add custom attributes. These are static in nature and should not be used for dynamic event definition.",
+            "Optional. Integration Parameter to provide the default value, data type and attributes required for the Integration config variables.",
           ).optional(),
-          value: z.unknown().describe("The type of the parameter.").optional(),
+          value: z.unknown().describe(
+            "Values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.",
+          ).optional(),
         })).describe(
           "Optional. Config Parameters that are expected to be passed to the integration when an integration is published. This consists of all the parameters that are expected to provide configuration in the integration execution. This gives the user the ability to provide default values, value, add information like connection url, project based configuration value and also provide data types of each parameter.",
         ).optional(),
@@ -1063,8 +1086,9 @@ const InputsSchema = z.object({
             "Indicates whether this variable contains large data and need to be uploaded to Cloud Storage.",
           ).optional(),
           dataType: z.unknown().describe("Type of the parameter.").optional(),
-          defaultValue: z.unknown().describe("The type of the parameter.")
-            .optional(),
+          defaultValue: z.unknown().describe(
+            "Default values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.",
+          ).optional(),
           description: z.unknown().describe(
             "Optional. Description of the parameter.",
           ).optional(),
@@ -1100,7 +1124,7 @@ const InputsSchema = z.object({
             "Parameters are a part of Event and can be used to communiticate between different tasks that are part of the same workflow execution.",
           ).optional(),
         }).describe(
-          "LINT.IfChange This is the frontend version of WorkflowParameters. It's exactly like the backend version except that instead of flattening protobuf parameters and treating every field and subfield of a protobuf parameter as a separate parameter, the fields/subfields of a protobuf parameter will be nested as \"children\" (see 'children' field below) parameters of the parent parameter. Please refer to enterprise/crm/eventbus/proto/workflow_parameters.proto for more information about WorkflowParameters.",
+          "Optional. Parameters that are expected to be passed to the integration when an event is triggered. This consists of all the parameters that are expected in the integration execution. This gives the user the ability to provide default values, add information like PII and also provide data types of each parameter.",
         ).optional(),
         lastModifierEmail: z.string().describe(
           "Optional. The last modifier's email address. Generated based on the End User Credentials/LOAS role of the user making the call.",
@@ -1143,7 +1167,7 @@ const InputsSchema = z.object({
           ).optional(),
         taskConfigs: z.array(z.object({
           conditionalFailurePolicies: z.unknown().describe(
-            "Conditional task failur retry strategies",
+            "Optional. The list of conditional failure policies that will be applied to the task in order.",
           ).optional(),
           description: z.unknown().describe(
             "Optional. User-provided description intended to give additional business context about the task.",
@@ -1158,7 +1182,7 @@ const InputsSchema = z.object({
             "Optional. External task type of the task",
           ).optional(),
           failurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).",
           ).optional(),
           jsonValidationOption: z.unknown().describe(
             "Optional. If set, overrides the option configured in the Task implementation class.",
@@ -1173,13 +1197,13 @@ const InputsSchema = z.object({
             "Optional. The customized parameters the user can pass to this task.",
           ).optional(),
           position: z.unknown().describe(
-            "Configuration detail of coordinate, it used for UI",
+            "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
           ).optional(),
           successPolicy: z.unknown().describe(
-            "Policy that dictates the behavior for the task after it completes successfully.",
+            "Optional. Determines what action to take upon successful task completion.",
           ).optional(),
           synchronousCallFailurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
           ).optional(),
           task: z.unknown().describe("Optional. The name for the task.")
             .optional(),
@@ -1199,7 +1223,9 @@ const InputsSchema = z.object({
           alertConfigs: z.unknown().describe(
             "Alert configurations on error rate, warning rate, number of runs, durations, etc.",
           ).optional(),
-          conditionalFailurePolicies: z.unknown().optional(),
+          conditionalFailurePolicies: z.unknown().describe(
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
+          ).optional(),
           createTime: z.unknown().describe("Auto-generated.").optional(),
           creatorEmail: z.unknown().describe(
             "The creator's email address. Auto-generated from the user's email.",
@@ -1215,7 +1241,7 @@ const InputsSchema = z.object({
           ).optional(),
           externalTaskType: z.unknown().optional(),
           failurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).",
           ).optional(),
           incomingEdgeCount: z.unknown().describe(
             "The number of edges leading into this TaskConfig.",
@@ -1237,7 +1263,7 @@ const InputsSchema = z.object({
             "The customized parameters the user can pass to this task.",
           ).optional(),
           position: z.unknown().describe(
-            "Represents two-dimensional positions.",
+            "Optional. Informs the front-end application where to draw this task config on the UI.",
           ).optional(),
           precondition: z.unknown().describe(
             'Optional. Standard filter expression evaluated before execution. Independent of other conditions and tasks. Can be used to enable rollout. e.g. "rollout(5)" will only allow 5% of incoming traffic to task.',
@@ -1245,16 +1271,17 @@ const InputsSchema = z.object({
           preconditionLabel: z.unknown().describe(
             "Optional. User-provided label that is attached to precondition in the UI.",
           ).optional(),
-          rollbackStrategy: z.unknown().describe("Next available id: 4")
-            .optional(),
+          rollbackStrategy: z.unknown().describe(
+            "Optional. Contains information about what needs to be done upon failure (either a permanent error or after it has been retried too many times).",
+          ).optional(),
           successPolicy: z.unknown().describe(
-            "Policy that dictates the behavior for the task after it completes successfully.",
+            "Determines what action to take upon successful task completion.",
           ).optional(),
           synchronousCallFailurePolicy: z.unknown().describe(
-            "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+            "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
           ).optional(),
           taskEntity: z.unknown().describe(
-            "Contains a task's metadata and associated information. Next available id: 7",
+            "Copy of the task entity that this task config is an instance of.",
           ).optional(),
           taskExecutionStrategy: z.unknown().describe(
             "The policy dictating the execution strategy of this task.",
@@ -1277,13 +1304,15 @@ const InputsSchema = z.object({
         teardown: z.object({
           teardownTaskConfigs: z.array(z.unknown()).describe("Required.")
             .optional(),
-        }).optional(),
+        }).describe(
+          'Optional. Contains a graph of tasks that will be executed before putting the event in a terminal state (SUCCEEDED/FAILED/FATAL), regardless of success or failure, similar to "finally" in code.',
+        ).optional(),
         triggerConfigs: z.array(z.object({
           alertConfig: z.unknown().describe(
             "Optional. An alert threshold configuration for the [trigger + client + integration] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + integration] when published.",
           ).optional(),
           cloudSchedulerConfig: z.unknown().describe(
-            "Cloud Scheduler Trigger configuration",
+            "Optional. Cloud Scheduler Trigger related metadata",
           ).optional(),
           description: z.unknown().describe(
             "Optional. User-provided description intended to give additional business context about the task.",
@@ -1292,7 +1321,7 @@ const InputsSchema = z.object({
             "Optional. Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task",
           ).optional(),
           inputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of input variables for the api trigger.",
           ).optional(),
           label: z.unknown().describe(
             "Optional. The user created label for a particular trigger.",
@@ -1301,10 +1330,10 @@ const InputsSchema = z.object({
             "Optional. Dictates how next tasks will be executed.",
           ).optional(),
           outputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of output variables for the api trigger.",
           ).optional(),
           position: z.unknown().describe(
-            "Configuration detail of coordinate, it used for UI",
+            "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
           ).optional(),
           properties: z.unknown().describe(
             'Optional. Configurable properties of the trigger, not to be confused with integration parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Pub/sub triggers.',
@@ -1341,7 +1370,7 @@ const InputsSchema = z.object({
             "Optional Error catcher id of the error catch flow which will be executed when execution error happens in the task",
           ).optional(),
           inputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of input variables for the api trigger.",
           ).optional(),
           label: z.unknown().describe(
             "The user created label for a particular trigger.",
@@ -1350,13 +1379,13 @@ const InputsSchema = z.object({
             "Dictates how next tasks will be executed.",
           ).optional(),
           outputVariables: z.unknown().describe(
-            "Variables names mapped to api trigger.",
+            "Optional. List of output variables for the api trigger.",
           ).optional(),
           pauseWorkflowExecutions: z.unknown().describe(
             "Optional. If set to true, any upcoming requests for this trigger config will be paused and the executions will be resumed later when the flag is reset. The workflow to which this trigger config belongs has to be in ACTIVE status for the executions to be paused or resumed.",
           ).optional(),
           position: z.unknown().describe(
-            "Represents two-dimensional positions.",
+            "Optional. Informs the front-end application where to draw this trigger config on the UI.",
           ).optional(),
           properties: z.unknown().describe(
             'Configurable properties of the trigger, not to be confused with workflow parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Cloud Pubsub triggers.',
@@ -1364,7 +1393,9 @@ const InputsSchema = z.object({
           startTasks: z.unknown().describe(
             "Set of tasks numbers from where the workflow execution is started by this trigger. If this is empty, then workflow is executed with default start tasks. In the list of start tasks, none of two tasks can have direct ancestor-descendant relationships (i.e. in a same workflow execution graph).",
           ).optional(),
-          triggerCriteria: z.unknown().optional(),
+          triggerCriteria: z.unknown().describe(
+            "Optional. When set, Eventbus will run the task specified in the trigger_criteria and validate the result using the trigger_criteria.condition, and only execute the workflow when result is true.",
+          ).optional(),
           triggerId: z.unknown().describe("The backend trigger ID.").optional(),
           triggerName: z.unknown().describe(
             "Optional. Name of the trigger This is added to identify the type of trigger. This is avoid the logic on triggerId to identify the trigger_type and push the same to monitoring.",
@@ -1379,11 +1410,12 @@ const InputsSchema = z.object({
         userLabel: z.string().describe(
           "Optional. A user-defined label that annotates an integration version. Typically, this is only set when the integration version is created.",
         ).optional(),
-      }).describe("The integration version definition.").optional(),
+      }).describe("Required. Templatized version of integration.").optional(),
       key: z.string().describe(
         "Required. Unique Key of the IntegrationVersion.",
       ).optional(),
-    }).describe("Define the template of IntegrationVersion.").optional(),
+    }).describe("Required. Main integration templates of the template bundle.")
+      .optional(),
     subIntegrationVersionTemplates: z.array(z.object({
       integrationVersion: z.object({
         cloudKmsKey: z.string().describe(
@@ -1396,7 +1428,9 @@ const InputsSchema = z.object({
           enableCloudLogging: z.unknown().describe(
             "Optional. Status of whether Cloud Logging is enabled or not for the integration version getting executed.",
           ).optional(),
-        }).describe("Cloud Logging details for execution info").optional(),
+        }).describe(
+          "Optional. Cloud Logging details for the integration version",
+        ).optional(),
         createTime: z.string().describe("Output only. Auto-generated.")
           .optional(),
         createdFromTemplate: z.string().describe(
@@ -1429,7 +1463,7 @@ const InputsSchema = z.object({
             "Parameters are a part of Event and can be used to communiticate between different tasks that are part of the same workflow execution.",
           ).optional(),
         }).describe(
-          "LINT.IfChange This is the frontend version of WorkflowParameters. It's exactly like the backend version except that instead of flattening protobuf parameters and treating every field and subfield of a protobuf parameter as a separate parameter, the fields/subfields of a protobuf parameter will be nested as \"children\" (see 'children' field below) parameters of the parent parameter. Please refer to enterprise/crm/eventbus/proto/workflow_parameters.proto for more information about WorkflowParameters.",
+          "Optional. Parameters that are expected to be passed to the integration when an event is triggered. This consists of all the parameters that are expected in the integration execution. This gives the user the ability to provide default values, add information like PII and also provide data types of each parameter.",
         ).optional(),
         lastModifierEmail: z.string().describe(
           "Optional. The last modifier's email address. Generated based on the End User Credentials/LOAS role of the user making the call.",
@@ -1478,7 +1512,9 @@ const InputsSchema = z.object({
         ).optional(),
         teardown: z.object({
           teardownTaskConfigs: z.unknown().describe("Required.").optional(),
-        }).optional(),
+        }).describe(
+          'Optional. Contains a graph of tasks that will be executed before putting the event in a terminal state (SUCCEEDED/FAILED/FATAL), regardless of success or failure, similar to "finally" in code.',
+        ).optional(),
         triggerConfigs: z.array(z.unknown()).describe(
           "Optional. Trigger configurations.",
         ).optional(),
@@ -1490,14 +1526,16 @@ const InputsSchema = z.object({
         userLabel: z.string().describe(
           "Optional. A user-defined label that annotates an integration version. Typically, this is only set when the integration version is created.",
         ).optional(),
-      }).describe("The integration version definition.").optional(),
+      }).describe("Required. Templatized version of integration.").optional(),
       key: z.string().describe(
         "Required. Unique Key of the IntegrationVersion.",
       ).optional(),
     })).describe(
       "Optional. Sub integration templates which would be added along with main integration.",
     ).optional(),
-  }).describe("Define the bundle of the template.").optional(),
+  }).describe(
+    "Required. Bundle which is part of the templates. The template entities in the bundle would be converted to an actual entity.",
+  ).optional(),
   usageCount: z.string().describe("Optional. Number of template usages.")
     .optional(),
   usageInfo: z.string().describe(
@@ -1533,7 +1571,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Application Integration Templates. Registered at `@swamp/gcp/integrations/templates`. */
 export const model = {
   type: "@swamp/gcp/integrations/templates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1593,6 +1631,16 @@ export const model = {
     {
       toVersion: "2026.07.20.1",
       description: "Added: accessToken, credentialsJson, project, scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1985,7 +2033,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,
@@ -2069,7 +2117,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

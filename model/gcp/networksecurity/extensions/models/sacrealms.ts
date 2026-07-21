@@ -233,16 +233,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/networksecurity/sacrealms",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: pairingKey",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { pairingKey: _pairingKey, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

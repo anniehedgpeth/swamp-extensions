@@ -518,7 +518,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.CryptoKeys. Registered at `@swamp/gcp/cloudkms/keyrings-cryptokeys`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-cryptokeys",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -646,6 +646,25 @@ export const model = {
         const { primary: _primary, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: trustedWrappingEnabled",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { trustedWrappingEnabled: _trustedWrappingEnabled, ...rest } =
+          old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
+      description: "Added: trustedWrappingEnabled",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1147,7 +1166,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

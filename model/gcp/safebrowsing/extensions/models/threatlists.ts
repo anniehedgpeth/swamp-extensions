@@ -109,7 +109,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Safe Browsing ThreatLists. Registered at `@swamp/gcp/safebrowsing/threatlists`. */
 export const model = {
   type: "@swamp/gcp/safebrowsing/threatlists",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

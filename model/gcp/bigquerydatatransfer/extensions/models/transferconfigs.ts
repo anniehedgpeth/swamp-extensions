@@ -461,7 +461,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Data Transfer TransferConfigs. Registered at `@swamp/gcp/bigquerydatatransfer/transferconfigs`. */
 export const model = {
   type: "@swamp/gcp/bigquerydatatransfer/transferconfigs",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -584,6 +584,19 @@ export const model = {
         const { error: _error, ownerInfo: _ownerInfo, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: metadataDestination",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { metadataDestination: _metadataDestination, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "Added: metadataDestination",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

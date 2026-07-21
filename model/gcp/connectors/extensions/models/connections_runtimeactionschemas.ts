@@ -360,7 +360,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Connections.RuntimeActionSchemas. Registered at `@swamp/gcp/connectors/connections-runtimeactionschemas`. */
 export const model = {
   type: "@swamp/gcp/connectors/connections-runtimeactionschemas",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

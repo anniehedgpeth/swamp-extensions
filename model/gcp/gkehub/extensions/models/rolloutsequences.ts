@@ -351,20 +351,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/gkehub/rolloutsequences",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: effectiveAutoUpgradeConfig, operationalState",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          effectiveAutoUpgradeConfig: _effectiveAutoUpgradeConfig,
-          operationalState: _operationalState,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -90,9 +90,11 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  availableCoreCount: z.number().optional(),
   availableCoreCountPerNode: z.number().optional(),
   availableDataStorageTb: z.number().optional(),
   availableMemoryPerNodeGb: z.number().optional(),
+  coreCountIncrement: z.number().optional(),
   maxNodeCount: z.number().optional(),
   maxStorageCount: z.number().optional(),
   minCoreCountPerNode: z.number().optional(),
@@ -100,6 +102,7 @@ const StateSchema = z.object({
   minMemoryPerNodeGb: z.number().optional(),
   minNodeCount: z.number().optional(),
   minStorageCount: z.number().optional(),
+  minimumCoreCount: z.number().optional(),
   name: z.string(),
   shape: z.string().optional(),
 }).passthrough();
@@ -140,7 +143,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud DbSystemShapes. Registered at `@swamp/gcp/oracledatabase/dbsystemshapes`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/dbsystemshapes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -229,6 +232,21 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -345,7 +363,7 @@ export const model = {
       description: "List dbSystemShapes resources",
       arguments: z.object({
         filter: z.string().describe(
-          'Optional. An expression for filtering the results of the request. Only the gcp_oracle_zone_id field is supported in this format: `gcp_oracle_zone_id="{gcp_oracle_zone_id}"`.',
+          'Optional. An expression for filtering the results of the request. The `gcp_oracle_zone_id`, `shape_family`, and `database_edition` fields are supported in the following format: `gcp_oracle_zone_id="{gcp_oracle_zone_id}" AND shape_family="{shape_family}" AND database_edition="{database_edition}"`.',
         ).optional(),
         pageSize: z.number().describe(
           "Optional. The maximum number of items to return. If unspecified, at most 50 database system shapes will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.",

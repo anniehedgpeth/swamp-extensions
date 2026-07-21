@@ -196,7 +196,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Check Services. Registered at `@swamp/gcp/firebaseappcheck/services`. */
 export const model = {
   type: "@swamp/gcp/firebaseappcheck/services",
-  version: "2026.07.20.2",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -362,6 +362,29 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: etag, replayProtection, updateTime",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: etag, replayProtection, updateTime",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          etag: _etag,
+          replayProtection: _replayProtection,
+          updateTime: _updateTime,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "Added: etag, replayProtection, updateTime",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

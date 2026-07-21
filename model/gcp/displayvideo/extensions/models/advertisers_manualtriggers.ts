@@ -217,7 +217,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.ManualTriggers. Registered at `@swamp/gcp/displayvideo/advertisers-manualtriggers`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-manualtriggers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

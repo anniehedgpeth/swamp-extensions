@@ -207,7 +207,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Agent.Environments.Users.Sessions.Contexts. Registered at `@swamp/gcp/dialogflow/agent-environments-users-sessions-contexts`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/agent-environments-users-sessions-contexts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

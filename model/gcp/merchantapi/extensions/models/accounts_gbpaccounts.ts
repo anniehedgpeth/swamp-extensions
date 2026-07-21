@@ -135,7 +135,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.GbpAccounts. Registered at `@swamp/gcp/merchantapi/accounts-gbpaccounts`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-gbpaccounts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

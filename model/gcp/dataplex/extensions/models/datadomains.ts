@@ -287,16 +287,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/dataplex/datadomains",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: policyMember",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { policyMember: _policyMember, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -669,7 +659,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

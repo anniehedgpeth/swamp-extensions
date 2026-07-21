@@ -347,7 +347,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Management.UnsampledReports. Registered at `@swamp/gcp/analytics/management-unsampledreports`. */
 export const model = {
   type: "@swamp/gcp/analytics/management-unsampledreports",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -397,6 +397,16 @@ export const model = {
     {
       toVersion: "2026.07.20.1",
       description: "Added: accessToken, credentialsJson, project, scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -460,16 +470,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "accountId": String(g["accountId"] ?? ""),
-              "webPropertyId": String(g["webPropertyId"] ?? ""),
-              "profileId": String(g["profileId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

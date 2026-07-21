@@ -130,7 +130,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Clusters.MemoryLayers. Registered at `@swamp/gcp/bigtableadmin/instances-clusters-memorylayers`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-clusters-memorylayers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

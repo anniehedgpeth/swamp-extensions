@@ -235,16 +235,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/iam/workloadidentitypools-namespaces",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: ownerService",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { ownerService: _ownerService, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

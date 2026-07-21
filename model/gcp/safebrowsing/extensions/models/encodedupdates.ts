@@ -173,7 +173,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Safe Browsing EncodedUpdates. Registered at `@swamp/gcp/safebrowsing/encodedupdates`. */
 export const model = {
   type: "@swamp/gcp/safebrowsing/encodedupdates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -163,16 +163,6 @@ const StateSchema = z.object({
       variantNumber: z.number(),
     })),
   }).optional(),
-  unprotectedGeneratedSplitApks: z.array(z.object({
-    downloadId: z.string(),
-    moduleName: z.string(),
-    splitId: z.string(),
-    variantId: z.number(),
-  })).optional(),
-  unprotectedGeneratedStandaloneApks: z.array(z.object({
-    downloadId: z.string(),
-    variantId: z.number(),
-  })).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -211,7 +201,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Generatedapks. Registered at `@swamp/gcp/androidpublisher/generatedapks`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/generatedapks",
-  version: "2026.07.20.2",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -345,6 +335,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -554,7 +554,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

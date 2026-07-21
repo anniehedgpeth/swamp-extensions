@@ -230,7 +230,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Mobiledevices. Registered at `@swamp/gcp/admin/mobiledevices`. */
 export const model = {
   type: "@swamp/gcp/admin/mobiledevices",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

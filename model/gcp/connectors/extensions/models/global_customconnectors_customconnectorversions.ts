@@ -1400,16 +1400,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/connectors/global-customconnectors-customconnectorversions",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: publishStatus",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { publishStatus: _publishStatus, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -295,6 +295,10 @@ const StateSchema = z.object({
   displayName: z.string().optional(),
   entitlementId: z.string().optional(),
   gcpOracleZone: z.string().optional(),
+  identityConnector: z.object({
+    connectionState: z.string(),
+    serviceAgentEmail: z.string(),
+  }).optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
   odbNetwork: z.string().optional(),
@@ -483,7 +487,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud ExadbVmClusters. Registered at `@swamp/gcp/oracledatabase/exadbvmclusters`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/exadbvmclusters",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -592,6 +596,21 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

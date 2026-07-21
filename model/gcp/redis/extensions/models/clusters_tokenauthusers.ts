@@ -182,7 +182,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Memorystore for Redis Clusters.TokenAuthUsers. Registered at `@swamp/gcp/redis/clusters-tokenauthusers`. */
 export const model = {
   type: "@swamp/gcp/redis/clusters-tokenauthusers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

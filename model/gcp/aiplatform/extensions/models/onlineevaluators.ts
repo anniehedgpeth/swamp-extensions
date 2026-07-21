@@ -797,10 +797,10 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform OnlineEvaluators. Registered at `@swamp/gcp/aiplatform/onlineevaluators`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/onlineevaluators",
-  version: "2026.07.21.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
-      toVersion: "2026.07.21.1",
+      toVersion: "2026.07.21.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

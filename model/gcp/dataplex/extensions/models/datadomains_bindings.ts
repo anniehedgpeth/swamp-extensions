@@ -213,7 +213,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataDomains.Bindings. Registered at `@swamp/gcp/dataplex/datadomains-bindings`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datadomains-bindings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

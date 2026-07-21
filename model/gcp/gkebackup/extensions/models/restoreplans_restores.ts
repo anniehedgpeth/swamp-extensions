@@ -507,7 +507,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup for GKE RestorePlans.Restores. Registered at `@swamp/gcp/gkebackup/restoreplans-restores`. */
 export const model = {
   type: "@swamp/gcp/gkebackup/restoreplans-restores",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -630,6 +630,16 @@ export const model = {
         } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1009,7 +1019,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

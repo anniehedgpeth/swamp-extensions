@@ -421,6 +421,10 @@ export async function request(
   body?: Record<string, unknown>,
   credentials?: ExplicitGcpCredentials,
 ): Promise<Response> {
+  const upperMethod = method.toUpperCase();
+  const safeBody = (upperMethod === "GET" || upperMethod === "HEAD")
+    ? undefined
+    : body;
   const creds = await getCredentials(credentials);
   const headers: Record<string, string> = {
     "Authorization": `Bearer ${creds.accessToken}`,
@@ -433,7 +437,7 @@ export async function request(
   const resp = await fetch(url, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: safeBody ? JSON.stringify(safeBody) : undefined,
   });
 
   // Retry once on 401 — token may have expired
@@ -451,7 +455,7 @@ export async function request(
     return await fetch(url, {
       method,
       headers: retryHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body: safeBody ? JSON.stringify(safeBody) : undefined,
     });
   }
 
@@ -600,7 +604,7 @@ export async function createResource(
   baseUrl: string,
   config: GcpMethodConfig,
   params: Record<string, string>,
-  body: Record<string, unknown>,
+  body: Record<string, unknown> | undefined,
   readConfig?: GcpMethodConfig,
   readiness?: ReadinessConfig,
   idempotency?: IdempotencyConfig,

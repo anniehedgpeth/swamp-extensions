@@ -3130,7 +3130,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center Sources.Findings. Registered at `@swamp/gcp/securitycenter/sources-findings`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/sources-findings",
-  version: "2026.07.20.2",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -3306,6 +3306,30 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: agent, agentAnomaly, agentSessions, iamDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: agent, agentAnomaly, agentSessions, iamDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          agent: _agent,
+          agentAnomaly: _agentAnomaly,
+          agentSessions: _agentSessions,
+          iamDetails: _iamDetails,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "Added: agent, agentAnomaly, agentSessions, iamDetails",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

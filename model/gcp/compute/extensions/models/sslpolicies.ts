@@ -294,7 +294,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine SslPolicies. Registered at `@swamp/gcp/compute/sslpolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/sslpolicies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -458,6 +458,25 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: postQuantumKeyExchange",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: postQuantumKeyExchange",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { postQuantumKeyExchange: _postQuantumKeyExchange, ...rest } =
+          old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "Added: postQuantumKeyExchange",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -808,7 +827,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

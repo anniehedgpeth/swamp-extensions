@@ -428,7 +428,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Recommendations AI (Beta) Catalogs.CatalogItems. Registered at `@swamp/gcp/recommendationengine/catalogs-catalogitems`. */
 export const model = {
   type: "@swamp/gcp/recommendationengine/catalogs-catalogitems",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -791,6 +791,44 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description:
+        "Removed: g, type, version, upgrades, globalArguments, inputsSchema, resources, methods",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          g: _g,
+          type: _type,
+          version: _version,
+          upgrades: _upgrades,
+          globalArguments: _globalArguments,
+          inputsSchema: _inputsSchema,
+          resources: _resources,
+          methods: _methods,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description:
+        "Removed: g, type, version, upgrades, globalArguments, inputsSchema, resources, methods",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          g: _g,
+          type: _type,
+          version: _version,
+          upgrades: _upgrades,
+          globalArguments: _globalArguments,
+          inputsSchema: _inputsSchema,
+          resources: _resources,
+          methods: _methods,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
       description:
         "Removed: g, type, version, upgrades, globalArguments, inputsSchema, resources, methods",
       upgradeAttributes: (old: Record<string, unknown>) => {

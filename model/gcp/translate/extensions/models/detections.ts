@@ -118,7 +118,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Translation Detections. Registered at `@swamp/gcp/translate/detections`. */
 export const model = {
   type: "@swamp/gcp/translate/detections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

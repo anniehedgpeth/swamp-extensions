@@ -250,7 +250,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine TargetTcpProxies. Registered at `@swamp/gcp/compute/targettcpproxies`. */
 export const model = {
   type: "@swamp/gcp/compute/targettcpproxies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -367,6 +367,24 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: loadBalancingScheme",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: loadBalancingScheme",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { loadBalancingScheme: _loadBalancingScheme, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "Added: loadBalancingScheme",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

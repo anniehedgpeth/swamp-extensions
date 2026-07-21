@@ -251,7 +251,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Number Registry IpamAdminScopes. Registered at `@swamp/gcp/cloudnumberregistry/ipamadminscopes`. */
 export const model = {
   type: "@swamp/gcp/cloudnumberregistry/ipamadminscopes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.05.19.1",
@@ -325,6 +325,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -685,7 +690,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

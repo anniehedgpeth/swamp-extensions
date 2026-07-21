@@ -773,7 +773,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine FutureReservations. Registered at `@swamp/gcp/compute/futurereservations`. */
 export const model = {
   type: "@swamp/gcp/compute/futurereservations",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -970,6 +970,28 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: confidentialComputeType, params",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          confidentialComputeType: _confidentialComputeType,
+          params: _params,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
+      description: "Added: confidentialComputeType, params",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -218,7 +218,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Support SupportEventSubscriptions. Registered at `@swamp/gcp/cloudsupport/supporteventsubscriptions`. */
 export const model = {
   type: "@swamp/gcp/cloudsupport/supporteventsubscriptions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

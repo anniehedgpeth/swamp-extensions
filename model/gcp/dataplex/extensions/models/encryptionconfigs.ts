@@ -239,7 +239,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex EncryptionConfigs. Registered at `@swamp/gcp/dataplex/encryptionconfigs`. */
 export const model = {
   type: "@swamp/gcp/dataplex/encryptionconfigs",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -348,6 +348,16 @@ export const model = {
         const { failureDetails: _failureDetails, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -706,7 +716,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

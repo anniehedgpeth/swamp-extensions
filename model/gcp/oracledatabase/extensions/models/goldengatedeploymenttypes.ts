@@ -142,7 +142,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud GoldengateDeploymentTypes. Registered at `@swamp/gcp/oracledatabase/goldengatedeploymenttypes`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/goldengatedeploymenttypes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

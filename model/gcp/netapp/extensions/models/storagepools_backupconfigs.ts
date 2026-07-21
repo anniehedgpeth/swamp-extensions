@@ -136,7 +136,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud NetApp StoragePools.BackupConfigs. Registered at `@swamp/gcp/netapp/storagepools-backupconfigs`. */
 export const model = {
   type: "@swamp/gcp/netapp/storagepools-backupconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

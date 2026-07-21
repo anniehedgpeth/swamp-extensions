@@ -215,27 +215,25 @@ const GlobalArgsSchema = z.object({
       booleanArray: z.object({
         booleanValues: z.array(z.unknown()).describe("Boolean array.")
           .optional(),
-      }).describe("This message only contains a field of boolean array.")
-        .optional(),
+      }).describe("Boolean Array.").optional(),
       booleanValue: z.boolean().describe("Boolean.").optional(),
       doubleArray: z.object({
         doubleValues: z.array(z.unknown()).describe("Double number array.")
           .optional(),
-      }).describe("This message only contains a field of double number array.")
-        .optional(),
+      }).describe("Double Number Array.").optional(),
       doubleValue: z.number().describe("Double Number.").optional(),
       intArray: z.object({
         intValues: z.array(z.unknown()).describe("Integer array.").optional(),
-      }).describe("This message only contains a field of integer array.")
-        .optional(),
+      }).describe("Integer Array.").optional(),
       intValue: z.string().describe("Integer.").optional(),
       jsonValue: z.string().describe("Json.").optional(),
       stringArray: z.object({
         stringValues: z.array(z.unknown()).describe("String array.").optional(),
-      }).describe("This message only contains a field of string array.")
-        .optional(),
+      }).describe("String Array.").optional(),
       stringValue: z.string().describe("String.").optional(),
-    }).describe("The type of the parameter.").optional(),
+    }).describe(
+      "Default values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.",
+    ).optional(),
     description: z.string().describe("Optional. Description of the parameter.")
       .optional(),
     displayName: z.string().describe(
@@ -286,9 +284,11 @@ const GlobalArgsSchema = z.object({
         masked: z.unknown().describe(
           "True if this parameter should be masked in the logs",
         ).optional(),
-        value: z.unknown().describe("The type of the parameter.").optional(),
+        value: z.unknown().describe(
+          "Values for the defined keys. Each value can either be string, int, double or any proto message.",
+        ).optional(),
       }).describe(
-        "This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Next available id: 4",
+        "Optional. Key-value pair for ASSERT_EQUALS, ASSERT_NOT_EQUALS, ASSERT_CONTAINS to succeed",
       ).optional(),
       retryCount: z.number().int().describe(
         "Number of times given task should be retried in case of ASSERT_FAILED_EXECUTION",
@@ -316,12 +316,14 @@ const GlobalArgsSchema = z.object({
         masked: z.unknown().describe(
           "True if this parameter should be masked in the logs",
         ).optional(),
-        value: z.unknown().describe("The type of the parameter.").optional(),
+        value: z.unknown().describe(
+          "Values for the defined keys. Each value can either be string, int, double or any proto message.",
+        ).optional(),
       })).describe(
         "Optional. List of key-value pairs for specific mock strategy",
       ).optional(),
     }).describe(
-      "The configuration for mocking of a task during test execution Next available id: 4",
+      "Optional. Defines how to mock the given task during test execution",
     ).optional(),
     task: z.string().describe(
       "Required. This defines in the test case, the task name in integration which will be mocked by this test task config",
@@ -342,12 +344,14 @@ const GlobalArgsSchema = z.object({
             "Defines what happens to the task upon failure.",
           ).optional(),
         }).describe(
-          "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+          "The default failure policy to be applied if no conditional failure policy matches.",
         ).optional(),
         failurePolicies: z.array(z.unknown()).describe(
           "The list of failure policies that will be applied to the task in order.",
         ).optional(),
-      }).describe("Conditional task failur retry strategies").optional(),
+      }).describe(
+        "Optional. The list of conditional failure policies that will be applied to the task in order.",
+      ).optional(),
       description: z.string().describe(
         "Optional. User-provided description intended to give additional business context about the task.",
       ).optional(),
@@ -384,7 +388,7 @@ const GlobalArgsSchema = z.object({
         ]).describe("Defines what happens to the task upon failure.")
           .optional(),
       }).describe(
-        "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+        "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).",
       ).optional(),
       jsonValidationOption: z.enum([
         "JSON_VALIDATION_OPTION_UNSPECIFIED",
@@ -427,7 +431,9 @@ const GlobalArgsSchema = z.object({
           masked: z.unknown().describe(
             "True if this parameter should be masked in the logs",
           ).optional(),
-          value: z.unknown().describe("The type of the parameter.").optional(),
+          value: z.unknown().describe(
+            "Values for the defined keys. Each value can either be string, int, double or any proto message.",
+          ).optional(),
         }),
       ).describe(
         "Optional. The customized parameters the user can pass to this task.",
@@ -437,8 +443,9 @@ const GlobalArgsSchema = z.object({
           .optional(),
         y: z.number().int().describe("Required. Y axis of the coordinate")
           .optional(),
-      }).describe("Configuration detail of coordinate, it used for UI")
-        .optional(),
+      }).describe(
+        "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
+      ).optional(),
       successPolicy: z.object({
         finalState: z.enum([
           "FINAL_STATE_UNSPECIFIED",
@@ -448,7 +455,7 @@ const GlobalArgsSchema = z.object({
           "State to which the execution snapshot status will be set if the task succeeds.",
         ).optional(),
       }).describe(
-        "Policy that dictates the behavior for the task after it completes successfully.",
+        "Optional. Determines what action to take upon successful task completion.",
       ).optional(),
       synchronousCallFailurePolicy: z.object({
         condition: z.string().describe(
@@ -472,7 +479,7 @@ const GlobalArgsSchema = z.object({
         ]).describe("Defines what happens to the task upon failure.")
           .optional(),
       }).describe(
-        "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+        "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
       ).optional(),
       task: z.string().describe("Optional. The name for the task.").optional(),
       taskExecutionStrategy: z.enum([
@@ -489,9 +496,7 @@ const GlobalArgsSchema = z.object({
       taskTemplate: z.string().describe(
         "Optional. Used to define task-template name if task is of type task-template",
       ).optional(),
-    }).describe(
-      "The task configuration details. This is not the implementation of Task. There might be multiple TaskConfigs for the same Task.",
-    ).optional(),
+    }).describe("Optional. Auto-generated.").optional(),
     taskNumber: z.string().describe(
       "Required. This defines in the test case, the task in integration which will be mocked by this test task config",
     ).optional(),
@@ -543,7 +548,7 @@ const GlobalArgsSchema = z.object({
         percentage: z.number().int().describe("Percentage threshold.")
           .optional(),
       }).describe(
-        "The threshold value of the metric, above or below which the alert should be triggered. See EventAlertConfig or TaskAlertConfig for the different alert metric types in each case. For the *RATE metrics, one or both of these fields may be set. Zero is the default value and can be left at that. For *PERCENTILE_DURATION metrics, one or both of these fields may be set, and also, the duration threshold value should be specified in the threshold_duration_ms member below. For *AVERAGE_DURATION metrics, these fields should not be set at all. A different member, threshold_duration_ms, must be set in the EventAlertConfig or the TaskAlertConfig.",
+        "The metric value, above or below which the alert should be triggered.",
       ).optional(),
     })).describe(
       "Optional. An alert threshold configuration for the [trigger + client + integration] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + integration] when published.",
@@ -561,7 +566,8 @@ const GlobalArgsSchema = z.object({
       serviceAccountEmail: z.string().describe(
         "Required. Service account used by Cloud Scheduler to trigger the integration at scheduled time",
       ).optional(),
-    }).describe("Cloud Scheduler Trigger configuration").optional(),
+    }).describe("Optional. Cloud Scheduler Trigger related metadata")
+      .optional(),
     description: z.string().describe(
       "Optional. User-provided description intended to give additional business context about the task.",
     ).optional(),
@@ -571,7 +577,8 @@ const GlobalArgsSchema = z.object({
     inputVariables: z.object({
       names: z.array(z.string()).describe("Optional. List of variable names.")
         .optional(),
-    }).describe("Variables names mapped to api trigger.").optional(),
+    }).describe("Optional. List of input variables for the api trigger.")
+      .optional(),
     label: z.string().describe(
       "Optional. The user created label for a particular trigger.",
     ).optional(),
@@ -584,14 +591,16 @@ const GlobalArgsSchema = z.object({
     outputVariables: z.object({
       names: z.array(z.string()).describe("Optional. List of variable names.")
         .optional(),
-    }).describe("Variables names mapped to api trigger.").optional(),
+    }).describe("Optional. List of output variables for the api trigger.")
+      .optional(),
     position: z.object({
       x: z.number().int().describe("Required. X axis of the coordinate")
         .optional(),
       y: z.number().int().describe("Required. Y axis of the coordinate")
         .optional(),
-    }).describe("Configuration detail of coordinate, it used for UI")
-      .optional(),
+    }).describe(
+      "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
+    ).optional(),
     properties: z.record(z.string(), z.string()).describe(
       'Optional. Configurable properties of the trigger, not to be confused with integration parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Pub/sub triggers.',
     ).optional(),
@@ -632,7 +641,7 @@ const GlobalArgsSchema = z.object({
       "CLOUD_PUBSUB",
       "EVENTARC_TRIGGER",
     ]).describe("Optional. Type of trigger").optional(),
-  }).describe("Configuration detail of a trigger.").optional(),
+  }).describe("Optional. Auto-generated.").optional(),
   triggerId: z.string().describe(
     "Required. This defines the trigger ID in workflow which is considered to be executed as starting point of the test case",
   ).optional(),
@@ -867,27 +876,25 @@ const InputsSchema = z.object({
       booleanArray: z.object({
         booleanValues: z.array(z.unknown()).describe("Boolean array.")
           .optional(),
-      }).describe("This message only contains a field of boolean array.")
-        .optional(),
+      }).describe("Boolean Array.").optional(),
       booleanValue: z.boolean().describe("Boolean.").optional(),
       doubleArray: z.object({
         doubleValues: z.array(z.unknown()).describe("Double number array.")
           .optional(),
-      }).describe("This message only contains a field of double number array.")
-        .optional(),
+      }).describe("Double Number Array.").optional(),
       doubleValue: z.number().describe("Double Number.").optional(),
       intArray: z.object({
         intValues: z.array(z.unknown()).describe("Integer array.").optional(),
-      }).describe("This message only contains a field of integer array.")
-        .optional(),
+      }).describe("Integer Array.").optional(),
       intValue: z.string().describe("Integer.").optional(),
       jsonValue: z.string().describe("Json.").optional(),
       stringArray: z.object({
         stringValues: z.array(z.unknown()).describe("String array.").optional(),
-      }).describe("This message only contains a field of string array.")
-        .optional(),
+      }).describe("String Array.").optional(),
       stringValue: z.string().describe("String.").optional(),
-    }).describe("The type of the parameter.").optional(),
+    }).describe(
+      "Default values for the defined keys. Each value can either be string, int, double or any proto message or a serialized object.",
+    ).optional(),
     description: z.string().describe("Optional. Description of the parameter.")
       .optional(),
     displayName: z.string().describe(
@@ -938,9 +945,11 @@ const InputsSchema = z.object({
         masked: z.unknown().describe(
           "True if this parameter should be masked in the logs",
         ).optional(),
-        value: z.unknown().describe("The type of the parameter.").optional(),
+        value: z.unknown().describe(
+          "Values for the defined keys. Each value can either be string, int, double or any proto message.",
+        ).optional(),
       }).describe(
-        "This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Next available id: 4",
+        "Optional. Key-value pair for ASSERT_EQUALS, ASSERT_NOT_EQUALS, ASSERT_CONTAINS to succeed",
       ).optional(),
       retryCount: z.number().int().describe(
         "Number of times given task should be retried in case of ASSERT_FAILED_EXECUTION",
@@ -968,12 +977,14 @@ const InputsSchema = z.object({
         masked: z.unknown().describe(
           "True if this parameter should be masked in the logs",
         ).optional(),
-        value: z.unknown().describe("The type of the parameter.").optional(),
+        value: z.unknown().describe(
+          "Values for the defined keys. Each value can either be string, int, double or any proto message.",
+        ).optional(),
       })).describe(
         "Optional. List of key-value pairs for specific mock strategy",
       ).optional(),
     }).describe(
-      "The configuration for mocking of a task during test execution Next available id: 4",
+      "Optional. Defines how to mock the given task during test execution",
     ).optional(),
     task: z.string().describe(
       "Required. This defines in the test case, the task name in integration which will be mocked by this test task config",
@@ -994,12 +1005,14 @@ const InputsSchema = z.object({
             "Defines what happens to the task upon failure.",
           ).optional(),
         }).describe(
-          "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+          "The default failure policy to be applied if no conditional failure policy matches.",
         ).optional(),
         failurePolicies: z.array(z.unknown()).describe(
           "The list of failure policies that will be applied to the task in order.",
         ).optional(),
-      }).describe("Conditional task failur retry strategies").optional(),
+      }).describe(
+        "Optional. The list of conditional failure policies that will be applied to the task in order.",
+      ).optional(),
       description: z.string().describe(
         "Optional. User-provided description intended to give additional business context about the task.",
       ).optional(),
@@ -1036,7 +1049,7 @@ const InputsSchema = z.object({
         ]).describe("Defines what happens to the task upon failure.")
           .optional(),
       }).describe(
-        "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+        "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for asynchronous calls to Eventbus alone (Post To Queue, Schedule etc.).",
       ).optional(),
       jsonValidationOption: z.enum([
         "JSON_VALIDATION_OPTION_UNSPECIFIED",
@@ -1079,7 +1092,9 @@ const InputsSchema = z.object({
           masked: z.unknown().describe(
             "True if this parameter should be masked in the logs",
           ).optional(),
-          value: z.unknown().describe("The type of the parameter.").optional(),
+          value: z.unknown().describe(
+            "Values for the defined keys. Each value can either be string, int, double or any proto message.",
+          ).optional(),
         }),
       ).describe(
         "Optional. The customized parameters the user can pass to this task.",
@@ -1089,8 +1104,9 @@ const InputsSchema = z.object({
           .optional(),
         y: z.number().int().describe("Required. Y axis of the coordinate")
           .optional(),
-      }).describe("Configuration detail of coordinate, it used for UI")
-        .optional(),
+      }).describe(
+        "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
+      ).optional(),
       successPolicy: z.object({
         finalState: z.enum([
           "FINAL_STATE_UNSPECIFIED",
@@ -1100,7 +1116,7 @@ const InputsSchema = z.object({
           "State to which the execution snapshot status will be set if the task succeeds.",
         ).optional(),
       }).describe(
-        "Policy that dictates the behavior for the task after it completes successfully.",
+        "Optional. Determines what action to take upon successful task completion.",
       ).optional(),
       synchronousCallFailurePolicy: z.object({
         condition: z.string().describe(
@@ -1124,7 +1140,7 @@ const InputsSchema = z.object({
         ]).describe("Defines what happens to the task upon failure.")
           .optional(),
       }).describe(
-        "Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a `retry_strategy` of NONE will be applied).",
+        "Optional. Determines the number of times the task will be retried on failure and with what retry strategy. This is applicable for synchronous calls to Eventbus alone (Post).",
       ).optional(),
       task: z.string().describe("Optional. The name for the task.").optional(),
       taskExecutionStrategy: z.enum([
@@ -1141,9 +1157,7 @@ const InputsSchema = z.object({
       taskTemplate: z.string().describe(
         "Optional. Used to define task-template name if task is of type task-template",
       ).optional(),
-    }).describe(
-      "The task configuration details. This is not the implementation of Task. There might be multiple TaskConfigs for the same Task.",
-    ).optional(),
+    }).describe("Optional. Auto-generated.").optional(),
     taskNumber: z.string().describe(
       "Required. This defines in the test case, the task in integration which will be mocked by this test task config",
     ).optional(),
@@ -1195,7 +1209,7 @@ const InputsSchema = z.object({
         percentage: z.number().int().describe("Percentage threshold.")
           .optional(),
       }).describe(
-        "The threshold value of the metric, above or below which the alert should be triggered. See EventAlertConfig or TaskAlertConfig for the different alert metric types in each case. For the *RATE metrics, one or both of these fields may be set. Zero is the default value and can be left at that. For *PERCENTILE_DURATION metrics, one or both of these fields may be set, and also, the duration threshold value should be specified in the threshold_duration_ms member below. For *AVERAGE_DURATION metrics, these fields should not be set at all. A different member, threshold_duration_ms, must be set in the EventAlertConfig or the TaskAlertConfig.",
+        "The metric value, above or below which the alert should be triggered.",
       ).optional(),
     })).describe(
       "Optional. An alert threshold configuration for the [trigger + client + integration] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + integration] when published.",
@@ -1213,7 +1227,8 @@ const InputsSchema = z.object({
       serviceAccountEmail: z.string().describe(
         "Required. Service account used by Cloud Scheduler to trigger the integration at scheduled time",
       ).optional(),
-    }).describe("Cloud Scheduler Trigger configuration").optional(),
+    }).describe("Optional. Cloud Scheduler Trigger related metadata")
+      .optional(),
     description: z.string().describe(
       "Optional. User-provided description intended to give additional business context about the task.",
     ).optional(),
@@ -1223,7 +1238,8 @@ const InputsSchema = z.object({
     inputVariables: z.object({
       names: z.array(z.string()).describe("Optional. List of variable names.")
         .optional(),
-    }).describe("Variables names mapped to api trigger.").optional(),
+    }).describe("Optional. List of input variables for the api trigger.")
+      .optional(),
     label: z.string().describe(
       "Optional. The user created label for a particular trigger.",
     ).optional(),
@@ -1236,14 +1252,16 @@ const InputsSchema = z.object({
     outputVariables: z.object({
       names: z.array(z.string()).describe("Optional. List of variable names.")
         .optional(),
-    }).describe("Variables names mapped to api trigger.").optional(),
+    }).describe("Optional. List of output variables for the api trigger.")
+      .optional(),
     position: z.object({
       x: z.number().int().describe("Required. X axis of the coordinate")
         .optional(),
       y: z.number().int().describe("Required. Y axis of the coordinate")
         .optional(),
-    }).describe("Configuration detail of coordinate, it used for UI")
-      .optional(),
+    }).describe(
+      "Optional. Informs the front-end application where to draw this error catcher config on the UI.",
+    ).optional(),
     properties: z.record(z.string(), z.string()).describe(
       'Optional. Configurable properties of the trigger, not to be confused with integration parameters. E.g. "name" is a property for API triggers and "subscription" is a property for Pub/sub triggers.',
     ).optional(),
@@ -1284,7 +1302,7 @@ const InputsSchema = z.object({
       "CLOUD_PUBSUB",
       "EVENTARC_TRIGGER",
     ]).describe("Optional. Type of trigger").optional(),
-  }).describe("Configuration detail of a trigger.").optional(),
+  }).describe("Optional. Auto-generated.").optional(),
   triggerId: z.string().describe(
     "Required. This defines the trigger ID in workflow which is considered to be executed as starting point of the test case",
   ).optional(),
@@ -1321,7 +1339,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Application Integration Integrations.Versions.TestCases. Registered at `@swamp/gcp/integrations/integrations-versions-testcases`. */
 export const model = {
   type: "@swamp/gcp/integrations/integrations-versions-testcases",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1382,6 +1400,16 @@ export const model = {
       toVersion: "2026.07.20.1",
       description:
         "Added: accessToken, credentialsJson, project, scopes, parent",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1791,7 +1819,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

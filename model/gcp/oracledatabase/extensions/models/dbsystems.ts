@@ -179,7 +179,7 @@ const GlobalArgsSchema = z.object({
     }).describe("Optional. Data collection options for diagnostics.")
       .optional(),
     dataStorageSizeGb: z.number().int().describe(
-      "Optional. The data storage size in GB that is currently available to DbSystems.",
+      "Optional. The data storage size in GB that is currently available to DbSystems. The value is same as initial_data_storage_size_gb. This can be modified from OCI console.",
     ).optional(),
     databaseEdition: z.enum([
       "DB_SYSTEM_DATABASE_EDITION_UNSPECIFIED",
@@ -345,17 +345,18 @@ const GlobalArgsSchema = z.object({
       "NEEDS_ATTENTION",
       "UPGRADING",
     ]).describe("Output only. State of the DbSystem.").optional(),
-    memorySizeGb: z.number().int().describe("Optional. The memory size in GB.")
-      .optional(),
+    memorySizeGb: z.number().int().describe(
+      "Optional. The memory size in GB. This value can not be set and is automatically calculated based on the number of ECPUs allocated to the DbSystem.",
+    ).optional(),
     nodeCount: z.number().int().describe(
-      "Optional. The number of nodes in the DbSystem.",
+      "Optional. The number of nodes to launch for a virtual machine DbSystem. By default this will be set to 1.",
     ).optional(),
     ocid: z.string().describe("Output only. OCID of the DbSystem.").optional(),
     privateIp: z.string().describe(
       "Optional. The private IP address of the DbSystem.",
     ).optional(),
     recoStorageSizeGb: z.number().int().describe(
-      "Optional. The reco/redo storage size in GB.",
+      "Optional. The reco/redo storage size in GB. The value for recovery storage size is based on the available data storage size.",
     ).optional(),
     shape: z.string().describe("Required. Shape of DB System.").optional(),
     sshPublicKeys: z.array(z.string()).describe(
@@ -505,7 +506,7 @@ const InputsSchema = z.object({
     }).describe("Optional. Data collection options for diagnostics.")
       .optional(),
     dataStorageSizeGb: z.number().int().describe(
-      "Optional. The data storage size in GB that is currently available to DbSystems.",
+      "Optional. The data storage size in GB that is currently available to DbSystems. The value is same as initial_data_storage_size_gb. This can be modified from OCI console.",
     ).optional(),
     databaseEdition: z.enum([
       "DB_SYSTEM_DATABASE_EDITION_UNSPECIFIED",
@@ -671,17 +672,18 @@ const InputsSchema = z.object({
       "NEEDS_ATTENTION",
       "UPGRADING",
     ]).describe("Output only. State of the DbSystem.").optional(),
-    memorySizeGb: z.number().int().describe("Optional. The memory size in GB.")
-      .optional(),
+    memorySizeGb: z.number().int().describe(
+      "Optional. The memory size in GB. This value can not be set and is automatically calculated based on the number of ECPUs allocated to the DbSystem.",
+    ).optional(),
     nodeCount: z.number().int().describe(
-      "Optional. The number of nodes in the DbSystem.",
+      "Optional. The number of nodes to launch for a virtual machine DbSystem. By default this will be set to 1.",
     ).optional(),
     ocid: z.string().describe("Output only. OCID of the DbSystem.").optional(),
     privateIp: z.string().describe(
       "Optional. The private IP address of the DbSystem.",
     ).optional(),
     recoStorageSizeGb: z.number().int().describe(
-      "Optional. The reco/redo storage size in GB.",
+      "Optional. The reco/redo storage size in GB. The value for recovery storage size is based on the available data storage size.",
     ).optional(),
     shape: z.string().describe("Required. Shape of DB System.").optional(),
     sshPublicKeys: z.array(z.string()).describe(
@@ -730,7 +732,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud DbSystems. Registered at `@swamp/gcp/oracledatabase/dbsystems`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/dbsystems",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -864,6 +866,21 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

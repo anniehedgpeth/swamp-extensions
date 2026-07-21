@@ -135,7 +135,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Assured Workloads DbFindingSummaries. Registered at `@swamp/gcp/assuredworkloads/dbfindingsummaries`. */
 export const model = {
   type: "@swamp/gcp/assuredworkloads/dbfindingsummaries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

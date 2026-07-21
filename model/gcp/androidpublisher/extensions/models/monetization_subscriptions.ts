@@ -348,7 +348,7 @@ const GlobalArgsSchema = z.object({
       "A list of benefits shown to the user on platforms such as the Play Store and in restoration flows in the language of this listing. Plain text. Ordered list of at most four benefits.",
     ).optional(),
     description: z.string().describe(
-      "The description of this subscription in the language of this listing. Maximum length - 200 characters. Plain text.",
+      "The description of this subscription in the language of this listing. Maximum length - 80 characters. Plain text.",
     ).optional(),
     languageCode: z.string().describe(
       'Required. The language of this listing, as defined by BCP-47, e.g. "en-US".',
@@ -682,7 +682,7 @@ const InputsSchema = z.object({
       "A list of benefits shown to the user on platforms such as the Play Store and in restoration flows in the language of this listing. Plain text. Ordered list of at most four benefits.",
     ).optional(),
     description: z.string().describe(
-      "The description of this subscription in the language of this listing. Maximum length - 200 characters. Plain text.",
+      "The description of this subscription in the language of this listing. Maximum length - 80 characters. Plain text.",
     ).optional(),
     languageCode: z.string().describe(
       'Required. The language of this listing, as defined by BCP-47, e.g. "en-US".',
@@ -794,7 +794,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Monetization.Subscriptions. Registered at `@swamp/gcp/androidpublisher/monetization-subscriptions`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/monetization-subscriptions",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -928,6 +928,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1302,7 +1312,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

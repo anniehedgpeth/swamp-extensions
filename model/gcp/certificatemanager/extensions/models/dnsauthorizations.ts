@@ -258,7 +258,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager DnsAuthorizations. Registered at `@swamp/gcp/certificatemanager/dnsauthorizations`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/dnsauthorizations",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -385,6 +385,19 @@ export const model = {
         const { dnsResourceRecord: _dnsResourceRecord, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { tags: _tags, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

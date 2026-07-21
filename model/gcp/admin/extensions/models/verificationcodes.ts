@@ -124,7 +124,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK VerificationCodes. Registered at `@swamp/gcp/admin/verificationcodes`. */
 export const model = {
   type: "@swamp/gcp/admin/verificationcodes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

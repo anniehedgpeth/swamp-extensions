@@ -153,7 +153,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Fleets. Registered at `@swamp/gcp/gkehub/fleets`. */
 export const model = {
   type: "@swamp/gcp/gkehub/fleets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

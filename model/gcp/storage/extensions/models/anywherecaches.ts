@@ -251,7 +251,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON AnywhereCaches. Registered at `@swamp/gcp/storage/anywherecaches`. */
 export const model = {
   type: "@swamp/gcp/storage/anywherecaches",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -388,6 +388,24 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: ingestOnWrite",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { ingestOnWrite: _ingestOnWrite, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
+      description: "Added: ingestOnWrite",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

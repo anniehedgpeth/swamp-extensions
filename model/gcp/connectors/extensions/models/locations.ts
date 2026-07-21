@@ -148,7 +148,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Locations. Registered at `@swamp/gcp/connectors/locations`. */
 export const model = {
   type: "@swamp/gcp/connectors/locations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -325,7 +325,7 @@ export const model = {
             "parameters": { "name": { "location": "path", "required": true } },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,
@@ -353,7 +353,7 @@ export const model = {
             "parameters": { "name": { "location": "path", "required": true } },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

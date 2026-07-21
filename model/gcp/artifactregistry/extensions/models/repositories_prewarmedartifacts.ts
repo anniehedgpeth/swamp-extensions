@@ -138,7 +138,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Artifact Registry Repositories.PrewarmedArtifacts. Registered at `@swamp/gcp/artifactregistry/repositories-prewarmedartifacts`. */
 export const model = {
   type: "@swamp/gcp/artifactregistry/repositories-prewarmedartifacts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

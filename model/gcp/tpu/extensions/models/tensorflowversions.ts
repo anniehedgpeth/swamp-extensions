@@ -153,7 +153,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud TPU TensorflowVersions. Registered at `@swamp/gcp/tpu/tensorflowversions`. */
 export const model = {
   type: "@swamp/gcp/tpu/tensorflowversions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

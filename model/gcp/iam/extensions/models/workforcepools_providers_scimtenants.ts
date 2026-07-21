@@ -239,7 +239,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkforcePools.Providers.ScimTenants. Registered at `@swamp/gcp/iam/workforcepools-providers-scimtenants`. */
 export const model = {
   type: "@swamp/gcp/iam/workforcepools-providers-scimtenants",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

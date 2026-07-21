@@ -140,7 +140,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build BitbucketServerConfigs.Repos. Registered at `@swamp/gcp/cloudbuild/bitbucketserverconfigs-repos`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/bitbucketserverconfigs-repos",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

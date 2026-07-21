@@ -2442,7 +2442,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Tools. Registered at `@swamp/gcp/ces/apps-tools`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-tools",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -2660,6 +2660,23 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: remoteAgentTool, timeout",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          remoteAgentTool: _remoteAgentTool,
+          timeout: _timeout,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "Added: remoteAgentTool, timeout",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

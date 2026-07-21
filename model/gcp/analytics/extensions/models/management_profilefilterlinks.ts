@@ -231,7 +231,7 @@ const GlobalArgsSchema = z.object({
     id: z.string().describe("Filter ID.").optional(),
     kind: z.string().describe("Kind value for filter reference.").optional(),
     name: z.string().describe("Name of this filter.").optional(),
-  }).describe("JSON template for a profile filter link.").optional(),
+  }).describe("Filter for this link.").optional(),
   id: z.string().describe("Profile filter link ID.").optional(),
   profileRef: z.object({
     accountId: z.string().describe(
@@ -247,7 +247,7 @@ const GlobalArgsSchema = z.object({
     webPropertyId: z.string().describe(
       "Web property ID of the form UA-XXXXX-YY to which this view (profile) belongs.",
     ).optional(),
-  }).describe("JSON template for a linked view (profile).").optional(),
+  }).describe("View (Profile) for this link.").optional(),
   rank: z.number().int().describe(
     "The rank of this profile filter link relative to the other filters linked to the same profile. For readonly (i.e., list and get) operations, the rank always starts at 1. For write (i.e., create, update, or delete) operations, you may specify a value between 0 and 255 inclusively, [0, 255]. In order to insert a link at the end of the list, either don't specify a rank or set a rank to a number greater than the largest rank in the list. In order to insert a link to the beginning of the list specify a rank that is less than or equal to 1. The new link will move all existing filters with the same or lower rank down the list. After the link is inserted/updated/deleted all profile filter links will be renumbered starting at 1.",
   ).optional(),
@@ -298,7 +298,7 @@ const InputsSchema = z.object({
     id: z.string().describe("Filter ID.").optional(),
     kind: z.string().describe("Kind value for filter reference.").optional(),
     name: z.string().describe("Name of this filter.").optional(),
-  }).describe("JSON template for a profile filter link.").optional(),
+  }).describe("Filter for this link.").optional(),
   id: z.string().describe("Profile filter link ID.").optional(),
   profileRef: z.object({
     accountId: z.string().describe(
@@ -314,7 +314,7 @@ const InputsSchema = z.object({
     webPropertyId: z.string().describe(
       "Web property ID of the form UA-XXXXX-YY to which this view (profile) belongs.",
     ).optional(),
-  }).describe("JSON template for a linked view (profile).").optional(),
+  }).describe("View (Profile) for this link.").optional(),
   rank: z.number().int().describe(
     "The rank of this profile filter link relative to the other filters linked to the same profile. For readonly (i.e., list and get) operations, the rank always starts at 1. For write (i.e., create, update, or delete) operations, you may specify a value between 0 and 255 inclusively, [0, 255]. In order to insert a link at the end of the list, either don't specify a rank or set a rank to a number greater than the largest rank in the list. In order to insert a link to the beginning of the list specify a rank that is less than or equal to 1. The new link will move all existing filters with the same or lower rank down the list. After the link is inserted/updated/deleted all profile filter links will be renumbered starting at 1.",
   ).optional(),
@@ -351,7 +351,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Management.ProfileFilterLinks. Registered at `@swamp/gcp/analytics/management-profilefilterlinks`. */
 export const model = {
   type: "@swamp/gcp/analytics/management-profilefilterlinks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -403,6 +403,16 @@ export const model = {
       description: "Added: accessToken, credentialsJson, project, scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -445,16 +455,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "accountId": String(g["accountId"] ?? ""),
-              "webPropertyId": String(g["webPropertyId"] ?? ""),
-              "profileId": String(g["profileId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

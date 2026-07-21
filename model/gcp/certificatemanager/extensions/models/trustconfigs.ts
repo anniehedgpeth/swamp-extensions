@@ -345,7 +345,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager TrustConfigs. Registered at `@swamp/gcp/certificatemanager/trustconfigs`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/trustconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -462,6 +462,19 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { tags: _tags, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.2",
       description: "Added: tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

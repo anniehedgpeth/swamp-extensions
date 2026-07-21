@@ -1057,7 +1057,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.Proposals. Registered at `@swamp/gcp/adexchangebuyer2/accounts-proposals`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-proposals",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1166,6 +1166,16 @@ export const model = {
         const { billedBuyer: _billedBuyer, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1613,10 +1623,8 @@ export const model = {
     },
     complete_setup: {
       description: "complete setup",
-      arguments: z.object({
-        externalDealIds: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
@@ -1638,10 +1646,6 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         params["proposalId"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
-        const body: Record<string, unknown> = {};
-        if (args["externalDealIds"] !== undefined) {
-          body["externalDealIds"] = args["externalDealIds"];
-        }
         const result = await createResource(
           BASE_URL,
           {
@@ -1656,7 +1660,7 @@ export const model = {
             },
           },
           params,
-          body,
+          {},
           undefined,
           undefined,
           undefined,

@@ -2335,7 +2335,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Container Analysis Notes. Registered at `@swamp/gcp/containeranalysis/notes`. */
 export const model = {
   type: "@swamp/gcp/containeranalysis/notes",
-  version: "2026.07.21.1",
+  version: "2026.07.21.4",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2527,6 +2527,24 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "Removed: aiSkillAnalysis",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { aiSkillAnalysis: _aiSkillAnalysis, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.4",
+      description: "Added: aiSkillAnalysis",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

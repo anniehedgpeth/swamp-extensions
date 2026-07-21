@@ -217,7 +217,7 @@ const GlobalArgsSchema = z.object({
     matchType: z.string().describe(
       "Match type for this filter. Possible values are BEGINS_WITH, EQUAL, ENDS_WITH, CONTAINS, or MATCHES. GEO_DOMAIN, GEO_IP_ADDRESS, PAGE_REQUEST_URI, or PAGE_HOSTNAME filters can use any match type; all other filters must use MATCHES.",
     ).optional(),
-  }).describe("JSON template for an Analytics filter expression.").optional(),
+  }).describe("Details for the filter of the type EXCLUDE.").optional(),
   id: z.string().describe("Filter ID.").optional(),
   includeDetails: z.object({
     caseSensitive: z.boolean().describe(
@@ -234,7 +234,7 @@ const GlobalArgsSchema = z.object({
     matchType: z.string().describe(
       "Match type for this filter. Possible values are BEGINS_WITH, EQUAL, ENDS_WITH, CONTAINS, or MATCHES. GEO_DOMAIN, GEO_IP_ADDRESS, PAGE_REQUEST_URI, or PAGE_HOSTNAME filters can use any match type; all other filters must use MATCHES.",
     ).optional(),
-  }).describe("JSON template for an Analytics filter expression.").optional(),
+  }).describe("Details for the filter of the type INCLUDE.").optional(),
   lowercaseDetails: z.object({
     field: z.string().describe("Field to use in the filter.").optional(),
     fieldIndex: z.number().int().describe(
@@ -395,7 +395,7 @@ const InputsSchema = z.object({
     matchType: z.string().describe(
       "Match type for this filter. Possible values are BEGINS_WITH, EQUAL, ENDS_WITH, CONTAINS, or MATCHES. GEO_DOMAIN, GEO_IP_ADDRESS, PAGE_REQUEST_URI, or PAGE_HOSTNAME filters can use any match type; all other filters must use MATCHES.",
     ).optional(),
-  }).describe("JSON template for an Analytics filter expression.").optional(),
+  }).describe("Details for the filter of the type EXCLUDE.").optional(),
   id: z.string().describe("Filter ID.").optional(),
   includeDetails: z.object({
     caseSensitive: z.boolean().describe(
@@ -412,7 +412,7 @@ const InputsSchema = z.object({
     matchType: z.string().describe(
       "Match type for this filter. Possible values are BEGINS_WITH, EQUAL, ENDS_WITH, CONTAINS, or MATCHES. GEO_DOMAIN, GEO_IP_ADDRESS, PAGE_REQUEST_URI, or PAGE_HOSTNAME filters can use any match type; all other filters must use MATCHES.",
     ).optional(),
-  }).describe("JSON template for an Analytics filter expression.").optional(),
+  }).describe("Details for the filter of the type INCLUDE.").optional(),
   lowercaseDetails: z.object({
     field: z.string().describe("Field to use in the filter.").optional(),
     fieldIndex: z.number().int().describe(
@@ -477,7 +477,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Management.Filters. Registered at `@swamp/gcp/analytics/management-filters`. */
 export const model = {
   type: "@swamp/gcp/analytics/management-filters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -527,6 +527,16 @@ export const model = {
     {
       toVersion: "2026.07.20.1",
       description: "Added: accessToken, credentialsJson, project, scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -231,7 +231,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security SacAttachments. Registered at `@swamp/gcp/networksecurity/sacattachments`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/sacattachments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -346,16 +346,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/networkservices/agentgateways",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: agentGatewayCard",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { agentGatewayCard: _agentGatewayCard, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

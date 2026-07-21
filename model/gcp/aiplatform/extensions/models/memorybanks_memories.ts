@@ -347,7 +347,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform MemoryBanks.Memories. Registered at `@swamp/gcp/aiplatform/memorybanks-memories`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/memorybanks-memories",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -1654,10 +1654,13 @@ export function generateGcpExtensionModel(
 
     // Use createResource which handles URL building + LRO polling
     const actionConfigStr = JSON.stringify(action.config);
+    const isGetOrHead = action.config.httpMethod === "GET" ||
+      action.config.httpMethod === "HEAD";
+    const bodyArg = argProps.length > 0
+      ? "body"
+      : (isGetOrHead ? "undefined" : "{}");
     lines.push(
-      `        const result = await createResource(BASE_URL, ${actionConfigStr}, params, ${
-        argProps.length > 0 ? "body" : "{}"
-      }, undefined, undefined, undefined, credentials);`,
+      `        const result = await createResource(BASE_URL, ${actionConfigStr}, params, ${bodyArg}, undefined, undefined, undefined, credentials);`,
     );
 
     lines.push(`        return { result };`);

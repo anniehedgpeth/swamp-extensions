@@ -483,13 +483,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/compute/globalvmextensionpolicies",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

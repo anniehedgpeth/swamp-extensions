@@ -209,7 +209,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Resources.Features. Registered at `@swamp/gcp/admin/resources-features`. */
 export const model = {
   type: "@swamp/gcp/admin/resources-features",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

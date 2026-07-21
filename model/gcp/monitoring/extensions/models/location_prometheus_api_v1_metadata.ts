@@ -131,7 +131,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring Location.Prometheus.Api.V1.Metadata. Registered at `@swamp/gcp/monitoring/location-prometheus-api-v1-metadata`. */
 export const model = {
   type: "@swamp/gcp/monitoring/location-prometheus-api-v1-metadata",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

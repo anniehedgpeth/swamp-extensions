@@ -758,6 +758,122 @@ Deno.test("generateGcpExtensionModel - action methods", async (t) => {
 });
 
 // ---------------------------------------------------------------------------
+// Snapshot: GET action method emits undefined body (not {})
+// ---------------------------------------------------------------------------
+
+Deno.test("generateGcpExtensionModel - GET action method uses undefined body", async (t) => {
+  const resource = makeResource({
+    resourcePath: ["spreadsheets", "values"],
+    typeName: "Google Sheets Spreadsheets Values",
+    description: "Spreadsheet values",
+    primaryIdentifier: ["spreadsheetId"],
+    domainProperties: {
+      spreadsheetId: { type: "string", description: "Spreadsheet ID" },
+    },
+    resourceValueProperties: {
+      spreadsheetId: { type: "string" },
+    },
+    insertProperties: new Set(["spreadsheetId"]),
+    updateProperties: new Set<string>(),
+    handlers: { create: true, read: true, update: false, delete: false },
+    methodConfigs: {
+      get: makeMethodConfig({
+        id: "sheets.spreadsheets.values.get",
+        path: "v4/spreadsheets/{spreadsheetId}/values/{range}",
+        httpMethod: "GET",
+        parameterOrder: ["spreadsheetId", "range"],
+        parameters: {
+          spreadsheetId: { location: "path", required: true },
+          range: { location: "path", required: true },
+        },
+      }),
+      insert: makeMethodConfig({
+        id: "sheets.spreadsheets.values.update",
+        path: "v4/spreadsheets/{spreadsheetId}/values/{range}",
+        httpMethod: "PUT",
+        parameterOrder: ["spreadsheetId", "range"],
+        parameters: {
+          spreadsheetId: { location: "path", required: true },
+          range: { location: "path", required: true },
+        },
+      }),
+    },
+    actionMethods: [
+      {
+        name: "batch_get",
+        description: "Batch get values",
+        config: {
+          id: "sheets.spreadsheets.values.batchGet",
+          path: "v4/spreadsheets/{spreadsheetId}/values:batchGet",
+          httpMethod: "GET",
+          parameterOrder: ["spreadsheetId"],
+          parameters: {
+            spreadsheetId: { location: "path", required: true },
+            ranges: { location: "query" },
+          },
+        },
+        requestProperties: {},
+        requiredProperties: [],
+      },
+      {
+        name: "batch_update",
+        description: "Batch update values",
+        config: {
+          id: "sheets.spreadsheets.values.batchUpdate",
+          path: "v4/spreadsheets/{spreadsheetId}/values:batchUpdate",
+          httpMethod: "POST",
+          parameterOrder: ["spreadsheetId"],
+          parameters: {
+            spreadsheetId: { location: "path", required: true },
+          },
+        },
+        requestProperties: {},
+        requiredProperties: [],
+      },
+    ],
+  });
+
+  const input = makeInput({
+    resource,
+    modelType: "@swamp/gcp/sheets/spreadsheets-values",
+    zodResult: {
+      extractedSchemas: [],
+      inputSchemaBody:
+        `  spreadsheetId: z.string().describe("Spreadsheet ID"),`,
+      resourceSchemaBody: `  spreadsheetId: z.string().optional(),`,
+    },
+  });
+
+  const output = generateGcpExtensionModel(input);
+
+  // GET action method must pass undefined body, not {}
+  assert(
+    output.includes("createResource(BASE_URL,") &&
+      output.includes('"httpMethod":"GET"') &&
+      !output.match(
+        /"httpMethod":"GET"[^;]*,\s*\{\}\s*,\s*undefined,\s*undefined,\s*undefined,\s*credentials/,
+      ),
+    "GET action method should not pass {} as body to createResource",
+  );
+  assert(
+    output.match(
+      /"httpMethod":"GET"[^;]*,\s*undefined\s*,\s*undefined,\s*undefined,\s*undefined,\s*credentials/,
+    ),
+    "GET action method should pass undefined as body to createResource",
+  );
+
+  // POST action method should still pass {} (empty body is fine for POST)
+  assert(
+    output.match(
+      /"httpMethod":"POST"[^;]*,\s*\{\}\s*,\s*undefined,\s*undefined,\s*undefined,\s*credentials/,
+    ),
+    "POST action method with no request properties should still pass {} as body",
+  );
+
+  await assertSnapshot(t, output);
+});
+
+// ---------------------------------------------------------------------------
 // Snapshot: no update/delete handlers (create + read only)
 // ---------------------------------------------------------------------------
 

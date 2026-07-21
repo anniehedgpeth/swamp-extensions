@@ -191,7 +191,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Postmaster Tools Domains.TrafficStats. Registered at `@swamp/gcp/gmailpostmastertools/domains-trafficstats`. */
 export const model = {
   type: "@swamp/gcp/gmailpostmastertools/domains-trafficstats",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

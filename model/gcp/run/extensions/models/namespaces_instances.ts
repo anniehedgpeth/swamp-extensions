@@ -1181,16 +1181,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/run/namespaces-instances",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: status",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { status: _status, ...rest } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -268,7 +268,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity InboundSsoAssignments. Registered at `@swamp/gcp/cloudidentity/inboundssoassignments`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/inboundssoassignments",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -372,6 +372,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

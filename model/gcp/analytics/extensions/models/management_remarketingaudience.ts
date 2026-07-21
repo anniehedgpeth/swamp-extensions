@@ -218,9 +218,8 @@ const GlobalArgsSchema = z.object({
       segment: z.string().describe(
         "The segment condition that will cause a user to be added to an audience.",
       ).optional(),
-    }).describe(
-      "JSON template for an Analytics Remarketing Include Conditions.",
-    ).optional(),
+    }).describe("Defines the conditions to include users to the audience.")
+      .optional(),
   }).describe(
     "The simple audience definition that will cause a user to be added to an audience.",
   ).optional(),
@@ -296,9 +295,8 @@ const GlobalArgsSchema = z.object({
       segment: z.string().describe(
         "The segment condition that will cause a user to be added to an audience.",
       ).optional(),
-    }).describe(
-      "JSON template for an Analytics Remarketing Include Conditions.",
-    ).optional(),
+    }).describe("Defines the conditions to include users to the audience.")
+      .optional(),
   }).describe(
     "A state based audience definition that will cause a user to be added or removed from an audience.",
   ).optional(),
@@ -384,9 +382,8 @@ const InputsSchema = z.object({
       segment: z.string().describe(
         "The segment condition that will cause a user to be added to an audience.",
       ).optional(),
-    }).describe(
-      "JSON template for an Analytics Remarketing Include Conditions.",
-    ).optional(),
+    }).describe("Defines the conditions to include users to the audience.")
+      .optional(),
   }).describe(
     "The simple audience definition that will cause a user to be added to an audience.",
   ).optional(),
@@ -462,9 +459,8 @@ const InputsSchema = z.object({
       segment: z.string().describe(
         "The segment condition that will cause a user to be added to an audience.",
       ).optional(),
-    }).describe(
-      "JSON template for an Analytics Remarketing Include Conditions.",
-    ).optional(),
+    }).describe("Defines the conditions to include users to the audience.")
+      .optional(),
   }).describe(
     "A state based audience definition that will cause a user to be added or removed from an audience.",
   ).optional(),
@@ -499,7 +495,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Management.RemarketingAudience. Registered at `@swamp/gcp/analytics/management-remarketingaudience`. */
 export const model = {
   type: "@swamp/gcp/analytics/management-remarketingaudience",
-  version: "2026.07.20.1",
+  version: "2026.07.21.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -549,6 +545,16 @@ export const model = {
     {
       toVersion: "2026.07.20.1",
       description: "Added: accessToken, credentialsJson, project, scopes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

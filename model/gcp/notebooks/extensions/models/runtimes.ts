@@ -776,20 +776,6 @@ function _buildGcpCredentials(
 export const model = {
   type: "@swamp/gcp/notebooks/runtimes",
   version: "2026.07.21.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: metrics, runtimeMigrationEligibility",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          metrics: _metrics,
-          runtimeMigrationEligibility: _runtimeMigrationEligibility,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1219,7 +1205,7 @@ export const model = {
             },
           },
           params,
-          {},
+          undefined,
           undefined,
           undefined,
           undefined,

@@ -235,7 +235,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Customers.Chrome.PrintServers. Registered at `@swamp/gcp/admin/customers-chrome-printservers`. */
 export const model = {
   type: "@swamp/gcp/admin/customers-chrome-printservers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

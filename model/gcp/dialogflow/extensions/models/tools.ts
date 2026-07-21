@@ -453,7 +453,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Tools. Registered at `@swamp/gcp/dialogflow/tools`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/tools",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

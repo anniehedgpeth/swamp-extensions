@@ -266,7 +266,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security InterceptEndpointGroups. Registered at `@swamp/gcp/networksecurity/interceptendpointgroups`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/interceptendpointgroups",
-  version: "2026.07.21.1",
+  version: "2026.07.21.3",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -381,6 +381,16 @@ export const model = {
           old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
