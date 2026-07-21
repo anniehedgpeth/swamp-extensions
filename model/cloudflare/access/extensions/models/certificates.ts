@@ -93,7 +93,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Certificates. Registered at `@swamp/cloudflare/access/certificates`. */
 export const model = {
   type: "@swamp/cloudflare/access/certificates",
-  version: "2026.07.18.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -107,6 +107,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -277,23 +282,30 @@ export const model = {
     },
     update: {
       description: "Update Certificates attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific Certificates by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const scopePrefix = g.account_id
           ? "/accounts/" + g.account_id
           : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/access/certificates";
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
-        if (!content) throw new Error("No data found - run create first");
+        if (!content) {
+          throw new Error("No data found - run create, get, or list first");
+        }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.associated_hostnames !== undefined) {
@@ -342,24 +354,29 @@ export const model = {
     },
     sync: {
       description: "Sync Certificates state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific Certificates by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const scopePrefix = g.account_id
           ? "/accounts/" + g.account_id
           : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/access/certificates";
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No data found - run create or get first");
+          throw new Error("No data found - run create, get, or list first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.id) {

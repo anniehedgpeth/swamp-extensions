@@ -169,15 +169,15 @@ export const model = {
     },
     sync: {
       description: "Sync Database state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific Database by id (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/d1/database";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create or get first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.id) throw new Error("Stored state has no id - cannot sync");
         const result = await tryRead(endpoint, existing.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData | null;
@@ -363,15 +363,15 @@ export const model = {
     },
     update: {
       description: "Update DNS Record attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific DNS Record by id (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/zones/" + g.zone_id + "/dns_records";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.name !== undefined) body.name = g.name;
@@ -402,15 +402,15 @@ export const model = {
     },
     sync: {
       description: "Sync DNS Record state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific DNS Record by id (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/zones/" + g.zone_id + "/dns_records";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create or get first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.id) throw new Error("Stored state has no id - cannot sync");
         const result = await tryRead(endpoint, existing.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData | null;
@@ -596,16 +596,16 @@ export const model = {
     },
     update: {
       description: "Update Ruleset attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific Ruleset by id (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.name !== undefined) body.name = g.name;
@@ -634,16 +634,16 @@ export const model = {
     },
     sync: {
       description: "Sync Ruleset state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific Ruleset by id (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create or get first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.id) throw new Error("Stored state has no id - cannot sync");
         const result = await tryRead(endpoint, existing.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData | null;
@@ -812,15 +812,15 @@ export const model = {
     },
     update: {
       description: "Update Address Map attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific Address Map by id (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/addressing/address_maps";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.enabled !== undefined) body.enabled = g.enabled;
@@ -848,15 +848,15 @@ export const model = {
     },
     sync: {
       description: "Sync Address Map state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific Address Map by id (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/addressing/address_maps";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create or get first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.id) throw new Error("Stored state has no id - cannot sync");
         const result = await tryRead(endpoint, existing.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData | null;
@@ -1048,15 +1048,15 @@ export const model = {
     },
     sync: {
       description: "Sync Worker Script state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({ identifier: z.string().describe("Target a specific Worker Script by name (e.g. one discovered by list)").optional() }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/workers/scripts";
-        const instanceName = (g.name?.toString() ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
+        const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType, context.modelId, instanceName,
         );
-        if (!content) throw new Error("No data found - run create or get first");
+        if (!content) throw new Error("No data found - run create, get, or list first");
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.name) throw new Error("Stored state has no name - cannot sync");
         const result = await tryRead(endpoint, existing.name, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData | null;

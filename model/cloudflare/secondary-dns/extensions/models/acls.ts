@@ -80,7 +80,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Acls. Registered at `@swamp/cloudflare/secondary-dns/acls`. */
 export const model = {
   type: "@swamp/cloudflare/secondary-dns/acls",
-  version: "2026.07.18.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -94,6 +94,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -245,20 +250,27 @@ export const model = {
     },
     update: {
       description: "Update Acls attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific Acls by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/secondary_dns/acls";
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
-        if (!content) throw new Error("No data found - run create first");
+        if (!content) {
+          throw new Error("No data found - run create, get, or list first");
+        }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.id !== undefined) body.id = g.id;
@@ -301,21 +313,26 @@ export const model = {
     },
     sync: {
       description: "Sync Acls state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific Acls by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/secondary_dns/acls";
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No data found - run create or get first");
+          throw new Error("No data found - run create, get, or list first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.id) {

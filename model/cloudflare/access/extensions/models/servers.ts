@@ -44,6 +44,9 @@ import {
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   auth_credentials: z.string().optional(),
+  client_secret: z.string().describe(
+    "Pre-registered OAuth client_secret. Write-only - accepted on create/update when auth_credentials.auth_mode is 'manual'. Stored AES-GCM-encrypted in server_oauth_secrets; never returned by read endpoints.",
+  ).optional(),
   description: z.string().max(512).optional(),
   is_shared_oauth_callback_enabled: z.boolean().describe(
     "When true, the gateway worker uses the shared Cloudflare-owned OAuth callback endpoint as the redirect_uri for upstream on-behalf OAuth, instead of the customer portal hostname. Defaults to false (off); opt in per server by setting true. Effective behavior is gated by the gateway worker's per-env rollout mode KV key.",
@@ -85,6 +88,24 @@ const GlobalArgsSchema = z.object({
 });
 
 const ResourceSchema = z.object({
+  auth_config_summary: z.object({
+    auth_mode: z.string().optional(),
+    client_secret_version: z.number().optional(),
+    config: z.object({
+      authorization_endpoint: z.string().optional(),
+      issuer: z.string().optional(),
+      resource: z.string().optional(),
+      revocation_endpoint: z.string().optional(),
+      token_endpoint: z.string().optional(),
+    }).optional(),
+    has_client_secret: z.boolean().optional(),
+    registration_info: z.object({
+      client_id: z.string().optional(),
+      redirect_uris: z.array(z.string()).optional(),
+      scope: z.string().optional(),
+      token_endpoint_auth_method: z.string().optional(),
+    }).optional(),
+  }).optional(),
   auth_type: z.string().optional(),
   created_at: z.string().optional(),
   created_by: z.string().optional(),
@@ -128,6 +149,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   auth_credentials: z.string().optional(),
+  client_secret: z.string().optional(),
   description: z.string().max(512).optional(),
   is_shared_oauth_callback_enabled: z.boolean().optional(),
   name: z.string().max(350).optional(),
@@ -161,7 +183,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Servers. Registered at `@swamp/cloudflare/access/servers`. */
 export const model = {
   type: "@swamp/cloudflare/access/servers",
-  version: "2026.07.18.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -188,6 +210,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Added: client_secret",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -212,6 +239,7 @@ export const model = {
           body.auth_credentials = g.auth_credentials;
         }
         if (g.auth_type !== undefined) body.auth_type = g.auth_type;
+        if (g.client_secret !== undefined) body.client_secret = g.client_secret;
         if (g.description !== undefined) body.description = g.description;
         if (g.hostname !== undefined) body.hostname = g.hostname;
         if (g.id !== undefined) body.id = g.id;
@@ -279,6 +307,9 @@ export const model = {
         const filters: [string, string][] = [];
         if (g.auth_credentials !== undefined) {
           filters.push(["auth_credentials", String(g.auth_credentials)]);
+        }
+        if (g.client_secret !== undefined) {
+          filters.push(["client_secret", String(g.client_secret)]);
         }
         if (g.description !== undefined) {
           filters.push(["description", String(g.description)]);
@@ -375,26 +406,34 @@ export const model = {
     },
     update: {
       description: "Update Servers attributes",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific Servers by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id +
           "/access/ai-controls/mcp/servers";
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
-        if (!content) throw new Error("No data found - run create first");
+        if (!content) {
+          throw new Error("No data found - run create, get, or list first");
+        }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.auth_credentials !== undefined) {
           body.auth_credentials = g.auth_credentials;
         }
+        if (g.client_secret !== undefined) body.client_secret = g.client_secret;
         if (g.description !== undefined) body.description = g.description;
         if (g.is_shared_oauth_callback_enabled !== undefined) {
           body.is_shared_oauth_callback_enabled =
@@ -446,22 +485,27 @@ export const model = {
     },
     sync: {
       description: "Sync Servers state from Cloudflare",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific Servers by id (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id +
           "/access/ai-controls/mcp/servers";
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
           instanceName,
         );
         if (!content) {
-          throw new Error("No data found - run create or get first");
+          throw new Error("No data found - run create, get, or list first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         if (!existing.id) {

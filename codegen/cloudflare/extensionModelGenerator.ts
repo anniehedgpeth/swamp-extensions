@@ -381,15 +381,19 @@ export function generateCloudflareExtensionModel(
   if (resource.handlers.update) {
     lines.push(`    update: {`);
     lines.push(`      description: "Update ${singular} attributes",`);
-    lines.push(`      arguments: z.object({}),`);
     lines.push(
-      `      execute: async (_args: Record<string, never>, context: any) => {`,
+      `      arguments: z.object({ identifier: z.string().describe("Target a specific ${singular} by ${resource.identifyingField} (e.g. one discovered by list)").optional() }),`,
+    );
+    lines.push(
+      `      execute: async (args: { identifier?: string }, context: any) => {`,
     );
     lines.push(`        const g = context.globalArgs;`);
     lines.push(...buildEndpointLines(scopeType, relPath));
     lines.push(
       `        const instanceName = ${
-        wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+        wrapWithSanitize(
+          `g.${namingField}?.toString() ?? args.identifier ?? "current"`,
+        )
       };`,
     );
     lines.push(
@@ -400,7 +404,7 @@ export function generateCloudflareExtensionModel(
     );
     lines.push(`        );`);
     lines.push(
-      `        if (!content) throw new Error("No data found - run create first");`,
+      `        if (!content) throw new Error("No data found - run create, get, or list first");`,
     );
     lines.push(
       `        const existing = JSON.parse(new TextDecoder().decode(content));`,
@@ -470,15 +474,19 @@ export function generateCloudflareExtensionModel(
   // --- sync method ---
   lines.push(`    sync: {`);
   lines.push(`      description: "Sync ${singular} state from Cloudflare",`);
-  lines.push(`      arguments: z.object({}),`);
   lines.push(
-    `      execute: async (_args: Record<string, never>, context: any) => {`,
+    `      arguments: z.object({ identifier: z.string().describe("Target a specific ${singular} by ${resource.identifyingField} (e.g. one discovered by list)").optional() }),`,
+  );
+  lines.push(
+    `      execute: async (args: { identifier?: string }, context: any) => {`,
   );
   lines.push(`        const g = context.globalArgs;`);
   lines.push(...buildEndpointLines(scopeType, relPath));
   lines.push(
     `        const instanceName = ${
-      wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+      wrapWithSanitize(
+        `g.${namingField}?.toString() ?? args.identifier ?? "current"`,
+      )
     };`,
   );
   lines.push(
@@ -489,7 +497,7 @@ export function generateCloudflareExtensionModel(
   );
   lines.push(`        );`);
   lines.push(
-    `        if (!content) throw new Error("No data found - run create or get first");`,
+    `        if (!content) throw new Error("No data found - run create, get, or list first");`,
   );
   lines.push(
     `        const existing = JSON.parse(new TextDecoder().decode(content));`,

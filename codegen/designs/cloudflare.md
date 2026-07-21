@@ -559,12 +559,48 @@ data.latest("dns_records", "www-a-record").attributes.id
 
 ### How instance names flow through methods
 
-| Method   | Instance name source                                     |
-| -------- | -------------------------------------------------------- |
-| `create` | `globalArgs.{namingField}` or `"current"`                |
-| `get`    | Natural: `result.{namingField}`. Synthetic: `globalArgs` |
-| `update` | `globalArgs.{namingField}` or `"current"`                |
-| `delete` | `args.id.toString()`                                     |
+| Method   | Instance name source                                                     |
+| -------- | ------------------------------------------------------------------------ |
+| `create` | `globalArgs.{namingField}` or `"current"`                                |
+| `get`    | Natural: `result.{namingField}`. Synthetic: `globalArgs`                 |
+| `lookup` | `globalArgs.{namingField}` or `result.{identifyingField}` or `"current"` |
+| `adopt`  | `result.{namingField}` or `globalArgs.{namingField}` or `args.id`        |
+| `update` | `globalArgs.{namingField}` or `args.identifier` or `"current"`           |
+| `sync`   | `globalArgs.{namingField}` or `args.identifier` or `"current"`           |
+| `delete` | `args.id.toString()`                                                     |
+
+### Factory-aware CRUD
+
+The `update` and `sync` methods accept an optional `identifier` argument that
+targets a specific resource by instance name. This enables in-place management
+of resources discovered via `lookup` or `adopt`, which write per-resource data
+artifacts keyed by name.
+
+Without `identifier`, the methods fall back to `globalArgs.{namingField}` then
+`"current"` — fully backward compatible with single-instance usage.
+
+**Resolution order**: `globalArgs.{namingField}` > `args.identifier` >
+`"current"`
+
+`globalArgs` takes precedence so that explicit model configuration always wins.
+The `identifier` argument is the escape hatch for targeting a specific artifact
+without changing globalArgs.
+
+**Example: lookup → update → sync lifecycle**
+
+```bash
+# Discover existing DNS records via lookup
+swamp model method run my-dns lookup
+# → writes artifacts: "www.example.com", "api.example.com", "mail.example.com"
+
+# Update a specific record by identifier
+swamp model method run my-dns update --input identifier="api.example.com"
+# → reads the "api.example.com" artifact, sends PATCH to Cloudflare
+
+# Sync a specific record by identifier
+swamp model method run my-dns sync --input identifier="mail.example.com"
+# → reads the "mail.example.com" artifact, fetches current state from Cloudflare
+```
 
 ---
 
